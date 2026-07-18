@@ -1,0 +1,185 @@
+/**
+ * Site Config Fixture
+ *
+ * Full SiteConfig matching the Lucky brand shape from useSiteConfigLucky.ts.
+ * The app gates all rendering on this data being present (app.vue: v-if="siteConfig").
+ */
+export const MOCK_SITE_CONFIG = {
+  meta: {
+    title: '',
+    description: 'Experience the best online gaming experience with Banana Lucky',
+    favicon: '/lucky/icons/icon-192x192.png',
+  },
+
+  branding: {
+    site: 'lucky',
+    siteName: '',
+    logo: '/lucky/gif/logo.gif',
+    brandColor: '#FFD52B',
+    themeColor: '#000000',
+    accentColor: '#711edb',
+    bodyBgColor: '#000000',
+    headerBgImage: '',
+    lineGradient:
+      'linear-gradient(180deg, #FCD601 0%, #FFD800 52.88%, #645500 59.62%, #967F01 92.79%)',
+    announcementTextStroke: '#FF8137',
+    announcementTextFill: '#0034B7',
+    loginModalLogoContainerStyle: { top: '-47px', height: '96.667px', width: '386.667px' },
+    loginModalLogoStyle: { height: '96.667px', width: '386.667px', aspectRatio: '386.67/96.67' },
+    profileModalLogoStyle: { width: '129.5px', height: '27.5px' },
+    desktopHeaderLogoStyle: { maxHeight: '75px', maxWidth: '282px' },
+    mobileHeaderLogoStyle: {
+      width: '290px',
+      height: '80px',
+      aspectRatio: '151 / 40',
+      marginTop: '5px',
+    },
+    mobileNavDividerColor: '#313131',
+    navMenuItemMarginTop: '0px',
+  },
+
+  assets: {
+    images: {
+      mainBackground: '/lucky/main-bg.png',
+      fixedMainBackground: true,
+      girlGif: '/lucky/gif/girl.gif',
+      logoGif: '/lucky/gif/logo.gif',
+      loginGif: '/lucky/gif/login-en.gif',
+      signUpGif: '/lucky/gif/sign-up-en.gif',
+      announcement: '/lucky/announcement.png',
+      bannerLeftItem: '/lucky/banner/left-item.png',
+      bannerRightItem: '/lucky/banner/right-item.png',
+      bannerLeftItemMobile: '/lucky/banner/left-item-m.png',
+      logoMobile: '/lucky/gif/logo-mobile.gif',
+      loginModalBg: '/lucky/modal-login-bg.webp',
+      logoPopup: '/lucky/logo-yellow.png',
+      leftDecor: '/lucky/left-home-img.webp',
+      rightDecor: '/lucky/right-home-img.webp',
+      depositBg: '/lucky/dep-bg.webp',
+      defaultThumbnail: '/lucky/default.png',
+      loyaltyStonesPath: '/lucky/stones',
+      ratio: '/lucky/ratio.png',
+    },
+    navigation: {
+      background: '/lucky/navigation/navbar-bg.png',
+      transBackground: '/lucky/navigation/trans-bg.png',
+      depositIcon: '/lucky/navigation/new-deposit.png',
+      withdrawIcon: '/lucky/navigation/new-withdraw.png',
+      menuBg: '/lucky/navigation/bg.gif',
+      menuBorder: '/lucky/navigation/border.png',
+      activeMenuGif: '/lucky/navigation/bg-active.gif',
+      silverBorder: '/lucky/navigation/border-active.png',
+      arrowRight: '/lucky/navigation/arrow-right.png',
+      hamburgerMenu: '/lucky/navigation/hamburger-menu.png',
+      bottomNav: {
+        home: '/lucky/navigation/home.png',
+        deposit: '/lucky/navigation/deposit.png',
+        withdraw: '/lucky/navigation/widthdraw.png',
+        menu: '/lucky/navigation/menu.png',
+        bottomNavStyle: '',
+      },
+    },
+    flags: {
+      usa: '/lucky/flags/usa.png',
+      indonesia: '/lucky/flags/indonesia.png',
+      korea: '/lucky/flags/south-korea.png',
+      thailand: '/lucky/flags/thailand.png',
+    },
+    transaction: {
+      bankAccountListPath: '/lucky/banks/accountlist',
+      bankAccountNoImage: '/lucky/banks/accountlist/NOIMG.png',
+      depositIcon: '/lucky/deposit.png',
+      withdrawIcon: '/lucky/withdraw.png',
+      qrSample: '/lucky/qr-sample.webp',
+      bankBasePath: '/lucky/banks',
+      bankNoImage: '/lucky/banks/NOIMAGE.png',
+    },
+    lobbyCard: {
+      thumbnailBgPathMobile: '/lucky/gif/thumbnail-bg/mobile',
+      thumbnailBgPathWeb: '/lucky/gif/thumbnail-bg/web',
+      topBorder: '/lucky/gif/border/top-border.gif',
+      bottomBorder: '/lucky/gif/border/bottom-border.gif',
+      characterGifPath: '/lucky/gif/lobbies/mobile',
+      characterPngPath: '/lucky/png',
+      logoPath: '/lucky/logo',
+    },
+    profileMenu: {
+      referral: '/lucky/my-account/refferal.png',
+      bonusHistory: '/lucky/my-account/bonus-history.png',
+      bettingReport: '/lucky/my-account/betting-report.png',
+      levelSystem: '/lucky/my-account/level-system.png',
+      loginHistory: '/lucky/my-account/login-history.png',
+      changePassword: '/lucky/my-account/change-password.png',
+      promotions: '/lucky/my-account/promotions.png',
+      faq: '/lucky/my-account/fandq.png',
+      apk: '/lucky/my-account/apk.png',
+      telegram: '/lucky/my-account/telegram.png',
+      inquiry: '/lucky/my-account/inquiry.png',
+      contact: '/lucky/my-account/contact.png',
+      myAccountCards: {
+        referralCard: '/lucky/my-account/m-referral.webp',
+        bonusHistoryCard: '/lucky/my-account/m-bonus-history.webp',
+        bettingReportCard: '/lucky/my-account/m-betting-report.webp',
+        levelSystemCard: '/lucky/my-account/m-level.webp',
+        loginHistoryCard: '/lucky/my-account/m-history.webp',
+        changePasswordCard: '/lucky/my-account/m-password.webp',
+      },
+    },
+    contact: {
+      whatsapp: '/lucky/contact/contact-whatsapp.webp',
+      telegram: '/lucky/contact/contact-telegram.webp',
+      line: '/lucky/contact/contact-line.webp',
+      messenger: '/lucky/contact/contact-messenger.webp',
+    },
+    gameSectionBg: {
+      enabled: false,
+      mobileOnly: false,
+      image: '',
+      mobileStyle: {},
+      mobileContainerStyle: {},
+      desktopStyle: {},
+      desktopContainerStyle: {},
+    },
+    decorativeImages: {
+      enabled: false,
+      leftContainerStyle: '',
+      rightContainerStyle: '',
+      leftMediaStyle: {},
+      rightMediaStyle: {},
+    },
+    video: {
+      bannerMobile: '/lucky/banner/banner1-m.mp4',
+      bannerDesktop: '/lucky/banner/banner1.mp4',
+    },
+    icons: {
+      pwa: {
+        '72x72': '/lucky/icons/icon-72x72.png',
+        '96x96': '/lucky/icons/icon-96x96.png',
+        '128x128': '/lucky/icons/icon-128x128.png',
+        '144x144': '/lucky/icons/icon-144x144.png',
+        '152x152': '/lucky/icons/icon-152x152.png',
+        '192x192': '/lucky/icons/icon-192x192.png',
+        '384x384': '/lucky/icons/icon-384x384.png',
+        '512x512': '/lucky/icons/icon-512x512.png',
+      },
+    },
+  },
+
+  socialLinks: {
+    telegram: '',
+    whatsapp: '',
+    instagram: '',
+  },
+
+  services: {
+    tawkTo: {
+      propertyId: null,
+      widgetId: null,
+    },
+  },
+
+  api: {
+    baseUrl: 'http://localhost:4000/api',
+    wsUrl: 'localhost',
+  },
+}

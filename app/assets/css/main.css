@@ -1,0 +1,898 @@
+/* Inter is self-hosted by @nuxt/fonts (auto-detected from `.font-inter` below
+   and configured in nuxt.config.ts `fonts`). No remote Google Fonts @import —
+   that was a render-blocking cross-origin request on the critical path. */
+@import "tailwindcss";
+
+/* Mobile header sizing — overridden before first paint by the inline script
+   in app.vue (see PLAN-HEADER-INITIAL-SIZE-FLASH.md). These are SSR / no-JS
+   fallbacks only; the script replaces them with viewport-accurate values. */
+:root {
+  --mh-scale: 1;
+  --mh-header-height: 65px;
+  /* Self-hosted Mark font (see @font-face below). Use as font-family. */
+  --font-mark: "Mark", system-ui, sans-serif;
+}
+
+/* LINE Seed Font Declarations */
+/* English/Latin */
+@font-face {
+  font-family: "LINE Seed";
+  src: url("/fonts/LINESeedSans_W_Th.woff2") format("woff2");
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* IBM Plex Sans Condensed — used by game-card thumbnails (name / labels =
+   Medium 500, countdown time = SemiBold 600). */
+@font-face {
+  font-family: "IBM Plex Sans Condensed";
+  src: url("/fonts/IBMPlexSansCondensed-Medium.ttf") format("truetype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "IBM Plex Sans Condensed";
+  src: url("/fonts/IBMPlexSansCondensed-SemiBold.ttf") format("truetype");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "LINE Seed";
+  src: url("/fonts/LINESeedSans_W_Rg.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "LINE Seed";
+  src: url("/fonts/LINESeedSans_W_Bd.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "LINE Seed";
+  src: url("/fonts/LINESeedSans_W_XBd.woff2") format("woff2");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "LINE Seed";
+  src: url("/fonts/LINESeedSans_W_He.woff2") format("woff2");
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Korean */
+@font-face {
+  font-family: "LINE Seed";
+  src: url("/fonts/LINESeedKR-Th.woff2") format("woff2");
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+  unicode-range:
+    U+AC00-D7A3, U+1100-11FF, U+3130-318F, U+A960-A97F, U+D7B0-D7FF;
+}
+
+@font-face {
+  font-family: "LINE Seed";
+  src: url("/fonts/LINESeedKR-Rg.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range:
+    U+AC00-D7A3, U+1100-11FF, U+3130-318F, U+A960-A97F, U+D7B0-D7FF;
+}
+
+@font-face {
+  font-family: "LINE Seed";
+  src: url("/fonts/LINESeedKR-Bd.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  unicode-range:
+    U+AC00-D7A3, U+1100-11FF, U+3130-318F, U+A960-A97F, U+D7B0-D7FF;
+}
+
+/* Thai */
+@font-face {
+  font-family: "LINE Seed";
+  src: url("/fonts/LINESeedSansTH_W_Th.woff2") format("woff2");
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0E00-0E7F;
+}
+
+@font-face {
+  font-family: "LINE Seed";
+  src: url("/fonts/LINESeedSansTH_W_Rg.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0E00-0E7F;
+}
+
+@font-face {
+  font-family: "LINE Seed";
+  src: url("/fonts/LINESeedSansTH_W_Bd.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0E00-0E7F;
+}
+
+@font-face {
+  font-family: "LINE Seed";
+  src: url("/fonts/LINESeedSansTH_W_XBd.woff2") format("woff2");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0E00-0E7F;
+}
+
+@font-face {
+  font-family: "LINE Seed";
+  src: url("/fonts/LINESeedSansTH_W_He.woff2") format("woff2");
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0E00-0E7F;
+}
+
+/* Japanese */
+@font-face {
+  font-family: "LINE Seed";
+  src: url("/fonts/LINESeedJP_OTF_Th.woff2") format("woff2");
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+  unicode-range:
+    U+3000-303F, U+3040-309F, U+30A0-30FF, U+FF00-FFEF, U+4E00-9FAF;
+}
+
+@font-face {
+  font-family: "LINE Seed";
+  src: url("/fonts/LINESeedJP_OTF_Rg.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range:
+    U+3000-303F, U+3040-309F, U+30A0-30FF, U+FF00-FFEF, U+4E00-9FAF;
+}
+
+@font-face {
+  font-family: "LINE Seed";
+  src: url("/fonts/LINESeedJP_OTF_Bd.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  unicode-range:
+    U+3000-303F, U+3040-309F, U+30A0-30FF, U+FF00-FFEF, U+4E00-9FAF;
+}
+
+@font-face {
+  font-family: "LINE Seed";
+  src: url("/fonts/LINESeedJP_OTF_Eb.woff2") format("woff2");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+  unicode-range:
+    U+3000-303F, U+3040-309F, U+30A0-30FF, U+FF00-FFEF, U+4E00-9FAF;
+}
+
+/* Mark Font (self-hosted) — Regular / Medium / Bold. Use via var(--font-mark). */
+@font-face {
+  font-family: "Mark";
+  src: url("/fonts/Mark-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Mark";
+  src: url("/fonts/Mark-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Mark";
+  src: url("/fonts/Mark-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Custom Animations */
+@keyframes logoBlink {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.3;
+  }
+}
+
+@keyframes dotPulse {
+
+  0%,
+  20% {
+    opacity: 0;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  80%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes iconZoomInOut {
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.15);
+  }
+}
+
+@keyframes zoomInOut {
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.08);
+  }
+}
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.marquee {
+  display: inline-flex;
+  animation: marquee 25s linear infinite;
+}
+
+/* Single-copy announcement ticker: the message enters from the right edge
+   (padding-left: 100% pushes it fully off-screen), scrolls left until it has
+   completely exited, then loops. Shows the message once per cycle. */
+@keyframes announce-scroll {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+.announce-scroll {
+  display: inline-block;
+  padding-left: 100%;
+  animation: announce-scroll linear infinite;
+  will-change: transform;
+}
+
+@keyframes shine {
+  0% {
+    transform: translateX(-100%) skewX(-15deg);
+  }
+
+  100% {
+    transform: translateX(200%) skewX(-15deg);
+  }
+}
+
+/* Utility Classes */
+.zoom-animation {
+  animation: zoomInOut 3s ease-in-out infinite;
+  will-change: transform;
+}
+
+.active-menu-icon-zoom {
+  animation: iconZoomInOut 2s ease-in-out infinite;
+  will-change: transform;
+}
+
+.page-loader-logo {
+  animation: logoBlink 1.5s ease-in-out infinite;
+}
+
+.page-loader-text {
+  color: white;
+  font-size: 18px;
+  margin-top: 20px;
+  font-family: "LINE Seed", system-ui, sans-serif;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.page-loader-dot {
+  animation: dotPulse 1.4s ease-in-out infinite;
+}
+
+.page-loader-dot:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.page-loader-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.page-loader-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+.animate-shine {
+  animation: shine 1.2s ease-in-out infinite;
+}
+
+.figma-container-precise {
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transform-style: preserve-3d;
+}
+
+.figma-container-precise * {
+  box-sizing: border-box;
+}
+
+/* Inter font utility — declared so @nuxt/fonts auto-detects and
+   self-hosts the weights we use (400/500/600/700). */
+.font-inter {
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Gradient-outline button — TRANSPARENT fill with a gradient border ring,
+   driven by the --ring-gradient custom property. The ring is painted on
+   ::before and clipped to a thin frame via mask-composite, so the button's
+   text/content stays fully visible and the border-radius is preserved.
+   Used by the MASUK (login) / live-chat auth buttons. */
+.gradient-ring-btn {
+  position: relative;
+  background: transparent;
+}
+
+.gradient-ring-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: var(--ring-gradient);
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Tailwind Theme Configuration */
+@theme {
+  --font-sans: "LINE Seed", system-ui, sans-serif;
+  --breakpoint-wide: 1194px;
+  --breakpoint-wider: 1669px;
+}
+
+/* Base Styles */
+@layer base {
+  * {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  html {
+    min-width: 320px !important;
+    overflow-x: auto !important;
+    scroll-behavior: auto;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: geometricPrecision;
+    font-synthesis: none;
+  }
+
+  body {
+    min-width: 320px !important;
+    overflow-x: auto !important;
+    @apply bg-black text-white;
+    -webkit-font-smoothing: subpixel-antialiased;
+    -moz-osx-font-smoothing: auto;
+    text-rendering: optimizeSpeed;
+  }
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #666 #2a2a2a;
+}
+
+/* Chrome/Edge/Safari scrollbar */
+*::-webkit-scrollbar {
+  width: 2px;
+}
+
+*::-webkit-scrollbar-track {
+  background: #2a2a2a;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #666;
+  border-radius: 10px;
+}
+
+/* Typography overrides (exclude app dialog and Sonner toast elements) */
+*:not(.app-dialog-card):not(.app-dialog-card *):not([data-sonner-toaster]):not([data-sonner-toaster] *) {
+  line-height: normal !important;
+  letter-spacing: 0 !important;
+}
+
+/* Vue-Sonner Toast overrides */
+[data-sonner-toaster] {
+  z-index: 999999 !important;
+}
+
+[data-sonner-toast] {
+  font-family: "LINE Seed", system-ui, sans-serif !important;
+  background: #1e1e2e !important;
+  border: 1px solid rgba(113, 30, 219, 0.4) !important;
+  color: #ffffff !important;
+}
+
+[data-sonner-toast] [data-title] {
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+
+[data-sonner-toast] [data-description] {
+  color: rgba(255, 255, 255, 0.75) !important;
+}
+
+[data-sonner-toast] [data-icon] svg {
+  color: currentColor !important;
+}
+
+[data-sonner-toast][data-type="success"] [data-icon] svg {
+  color: #04c000 !important;
+}
+
+[data-sonner-toast][data-type="error"] [data-icon] svg {
+  color: #f44336 !important;
+}
+
+[data-sonner-toast][data-type="info"] [data-icon] svg {
+  color: #3b82f6 !important;
+}
+
+[data-sonner-toast][data-type="warning"] [data-icon] svg {
+  color: #ff9800 !important;
+}
+
+/* Shared animations */
+@keyframes spin-once {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spin-once {
+  animation: spin-once 1s ease-in-out;
+}
+
+/* Card-shaped skeleton placeholder. Used while a card-style component
+   (GameCard, LobbyCard, etc.) is loading or below the fold. Sweeps a
+   faint bright bar across a dark base every ~1.8s. */
+.skeleton-card {
+  position: relative;
+  background-color: rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+.skeleton-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.07) 50%,
+      transparent 100%);
+  transform: translateX(-100%);
+  animation: skeletonCardShimmer 1.8s infinite;
+}
+
+@keyframes skeletonCardShimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-card::before {
+    animation: none;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Shared modal surface (Deposit / Withdrawal / Signup)
+   ---------------------------------------------------------------------------
+   One border + input theme shared by the three modals so they look consistent
+   and future theme changes happen in one place. All colours come from
+   `theme.transactionmodal`, exposed as CSS vars on each modal's body root:
+     --body-bg      modalBgColor   (panel fill)
+     --b-mid        borderColor    (border mid stop)
+     --b-accent     accentColor    (border corner stops)
+     --tm-input-ph  inputPlaceholderColor
+     --tm-accent    accentColor    (input focus)
+   The Login modal is intentionally NOT part of this — it keeps its PNG frame.
+--------------------------------------------------------------------------- */
+
+/* Solid panel fill (padding-box layer + standalone use). */
+.modal-body-fill {
+  background: var(--body-bg);
+}
+
+/* Gradient border ring via the border-box trick: fill on padding-box, a single
+   135° gradient on border-box so it follows the rounded corners. Accent at the
+   corners, border colour through the middle. Shared by all three modals. */
+.modal-gradient-border {
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--body-bg), var(--body-bg)) padding-box,
+    linear-gradient(135deg, var(--b-accent), var(--b-mid) 50%, var(--b-accent)) border-box;
+  /* Outer glow derived from the accent colour (kept subtle). */
+  box-shadow:
+    0 0 10px color-mix(in srgb, var(--b-accent) 28%, transparent),
+    0 0 24px color-mix(in srgb, var(--b-accent) 13%, transparent);
+}
+
+/* Themed placeholder + focus for any input/select inside a `.tm-modal` root,
+   so the three modals share input styling without each field opting in. The
+   field's own bg/border/text still come from theme.transactionmodal (inline or
+   via --tm-input-* vars on the same root). */
+.tm-modal input::placeholder,
+.tm-modal textarea::placeholder {
+  color: var(--tm-input-ph);
+  opacity: 1;
+}
+
+.tm-modal input:focus,
+.tm-modal select:focus,
+.tm-modal textarea:focus {
+  outline: none;
+  border-color: var(--tm-accent) !important;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--tm-accent) 30%, transparent);
+}
+
+/* ---------------------------------------------------------------------------
+   Shared transition vocabulary (unscoped, app-wide)
+   ---------------------------------------------------------------------------
+   One central set of Vue <Transition> classes so every consumer that uses a
+   matching `name=""` shares identical, subtle motion. Keep these in sync with:
+     - app.pageTransition / layoutTransition in nuxt.config.ts  -> "page"
+     - modals (Teleport + <Transition name="modal">)            -> "modal"
+     - SelectBankAccountModal                                   -> "modal-fade"
+     - notification / profile dropdowns                         -> "dropdown"
+     - bottom-sheet panels (mobile NewProfileModal, etc.)       -> "sheet"
+   The reduced-motion block at the bottom strips transforms for accessibility.
+--------------------------------------------------------------------------- */
+
+/* page — route transitions: pure opacity cross-fade.
+   No transform: some pages embed position:fixed full-screen
+   backgrounds, and a transform on the page root would turn it into their
+   containing block and shift them mid-transition. Fade only avoids that. */
+.page-enter-active,
+.page-leave-active {
+  transition: opacity 0.22s ease;
+}
+
+.page-enter-from,
+.page-leave-to {
+  opacity: 0;
+}
+
+/* modal — backdrop + panel together: fade + subtle scale */
+.modal-enter-active,
+.modal-leave-active {
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+  transform: scale(0.97);
+}
+
+/* modal-fade — pure opacity fade (no transform) */
+.modal-fade-enter-active,
+.modal-fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.modal-fade-enter-from,
+.modal-fade-leave-to {
+  opacity: 0;
+}
+
+/* dropdown — quick fade + small downward reveal */
+.dropdown-enter-active,
+.dropdown-leave-active {
+  transition:
+    opacity 0.16s ease,
+    transform 0.16s ease;
+}
+
+.dropdown-enter-from,
+.dropdown-leave-to {
+  opacity: 0;
+  transform: translateY(-6px) scale(0.98);
+}
+
+/* sheet / mobile-modal — bottom-sheet & full-screen mobile modals slide up */
+.sheet-enter-active,
+.sheet-leave-active,
+.mobile-modal-enter-active,
+.mobile-modal-leave-active {
+  transition:
+    opacity 0.26s cubic-bezier(0.32, 0.72, 0, 1),
+    transform 0.26s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.sheet-enter-from,
+.sheet-leave-to,
+.mobile-modal-enter-from,
+.mobile-modal-leave-to {
+  opacity: 0;
+  transform: translateY(100%);
+}
+
+/* Accessibility: honor reduced-motion — drop transforms, keep a quick fade. */
+@media (prefers-reduced-motion: reduce) {
+  .page-enter-active,
+  .page-leave-active,
+  .modal-enter-active,
+  .modal-leave-active,
+  .modal-fade-enter-active,
+  .modal-fade-leave-active,
+  .dropdown-enter-active,
+  .dropdown-leave-active,
+  .sheet-enter-active,
+  .sheet-leave-active,
+  .mobile-modal-enter-active,
+  .mobile-modal-leave-active {
+    transition: opacity 0.12s ease;
+  }
+
+  .page-enter-from,
+  .page-leave-to,
+  .modal-enter-from,
+  .modal-leave-to,
+  .dropdown-enter-from,
+  .dropdown-leave-to,
+  .sheet-enter-from,
+  .sheet-leave-to,
+  .mobile-modal-enter-from,
+  .mobile-modal-leave-to {
+    transform: none;
+  }
+}
+/* ===========================================================================
+   Partner modal form utilities (shared by app/components/partner/modals/*).
+   Prefixed `pm-`/`quick-` to avoid collisions; the partner theme accent is
+   applied inline by each modal.
+   =========================================================================== */
+.pm-input {
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  transition: border-color 0.15s ease;
+}
+
+.pm-input::placeholder {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.pm-input:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.pm-input option {
+  background: #111;
+  color: #fff;
+}
+
+.pm-label {
+  display: block;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+}
+
+.quick-btn {
+  flex: 1 1 auto;
+  min-width: 52px;
+  height: 30px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.quick-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.quick-clear {
+  flex: 0 0 auto;
+  min-width: 40px;
+  color: #fb7185;
+}
+
+.pm-submit {
+  width: 100%;
+  height: 44px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: filter 0.15s ease;
+}
+
+.pm-submit:hover {
+  filter: brightness(1.05);
+}
+
+/* ===========================================================================
+   Partner section — premium UI polish (spacing / shadow / hover / focus only;
+   no color, brand, or layout changes). Interactive surfaces get smooth 200ms
+   transitions, soft elevation on hover, tactile press, and accessible
+   focus-visible rings in the brand accent (`--pb-accent`, set on the partner
+   body + modal panels).
+   =========================================================================== */
+
+/* Keyboard focus rings in the partner brand accent. */
+.partner-body :focus-visible,
+.pm-panel :focus-visible {
+  outline: 2px solid var(--pb-accent, #FF7A00);
+  outline-offset: 2px;
+  border-radius: 10px;
+}
+
+/* Inputs — softer accent focus ring + higher-contrast placeholder. */
+.pm-input:focus {
+  border-color: var(--pb-accent, #FF7A00);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--pb-accent, #FF7A00) 20%, transparent);
+}
+
+.pm-input::placeholder {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+/* Primary submit — premium soft shadow + tactile press. */
+.pm-submit {
+  box-shadow:
+    0 10px 24px -12px color-mix(in srgb, var(--pb-accent, #FF7A00) 70%, transparent),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.26);
+}
+
+.pm-submit:active {
+  transform: translateY(1px);
+}
+
+/* Chips, action buttons, quick-amount buttons — consistent motion + press. */
+.quick-btn,
+.action-btn,
+.chip-btn {
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.quick-btn:active,
+.action-btn:active,
+.chip-btn:active {
+  transform: translateY(1px);
+}
+
+/* Tabs — smooth motion + subtle press (augments the scoped styles). */
+.partner-tab,
+.detail-tab {
+  transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.partner-tab:active,
+.detail-tab:active {
+  transform: translateY(1px);
+}
+
+/* RESET button beside the amount input in the partner money modals — matches
+   the input height with a muted-red label. */
+.amount-reset {
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fb7185;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.amount-reset:hover {
+  background: rgba(255, 255, 255, 0.08);
+}

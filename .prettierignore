@@ -1,0 +1,28 @@
+# Nuxt dev/build outputs
+.output
+.data
+.nuxt
+.nitro
+.cache
+dist
+
+# Node dependencies
+node_modules
+
+# Logs
+*.log
+
+# Playwright
+test-results/
+playwright-report/
+blob-report/
+
+# PWA service worker build artifacts
+sw.*
+workbox-*.js
+
+# Wrangler
+.wrangler
+
+# Git internals
+.git

@@ -1,0 +1,50 @@
+// AUTO-GENERATED — per-logo vertical object-position (%) that centres each
+// slot-provider wordmark inside its 5:2 object-cover box. The source assets are
+// uniform 480x627 canvases with the wordmark in a band whose vertical centre
+// varies per logo; a single object-position leaves whitespace above the lower
+// ones. Derived offline from each asset's alpha bounding box (sharp):
+//   P = (3.266*cy - 0.5) / 2.266,  cy = content vertical-centre fraction.
+// Regenerate if the slot-logo assets change.
+export const SLOT_LOGO_POS_Y: Record<string, number> = {
+  "001c8371-235e-4d77-9eb4-a00ef115c1da": 90,
+  "136d0c79-23a2-4bcf-bfb4-55b2b4921d8b": 87,
+  "13ffb7a8-74b5-487a-b8e7-511f4335c15c": 90,
+  "1893358f-1d6f-45cd-860d-8b0bc6c9fe37": 83,
+  "1e00e0a8-4abe-45c6-870d-9503e9bfd69d": 96,
+  "2aba0649-346c-4c5e-bea8-fdaec2db1544": 95,
+  "448faa03-a472-49ca-b49e-3e23f7b1a80b": 91,
+  "4d895741-a0d5-4eaf-8c00-420396590c62": 97,
+  "543cbf59-91a0-41cc-a97d-b705288c9e84": 89,
+  "61eaeeaf-dd7a-4a5c-81f9-3b70135ab0be": 92,
+  "6fc33ddf-d23f-47ba-bc7b-c12b0c8041b0": 97,
+  "81532f7d-c0a6-4a7b-b1e0-903f13978822": 94,
+  "81bb5067-1d2c-470a-842c-a2b7d43e5484": 93,
+  "8f0ab05d-37cd-4d95-938b-485dfc87d724": 99,
+  "92f3b817-a577-42f1-a76a-f1ebeeaacf6b": 91,
+  "960eb0b7-889c-4cce-91aa-221be10c6491": 96,
+  "9807256f-2e3c-4354-aaf0-3ffbc36c9f7e": 88,
+  "99af7fab-4d7c-425c-88ee-1116c08b109a": 95,
+  "AdvantPlay": 95,
+  "IdealGaming": 93,
+  "PlayAce": 90,
+  "TAP-A-ROO": 95,
+  "a043ea86-5531-4467-b97e-9593632d3e50": 98,
+  "b3d79198-b254-41e4-bf18-8abe633496f7": 96,
+  "c4302402-0d1e-424d-ad85-b38d2f600ba0": 96,
+  "c4713b9a-a2d9-4357-a54c-d3a2da1a28ef": 97,
+  "cbb4d9f9-f9b5-46e8-9b87-b9041bbd5bbd": 89,
+  "d2ab8d39-bd7f-47fe-80b5-0596e1e4e378": 90,
+  "d3a46904-82e5-47a7-b587-5e957be3c1b8": 90,
+  "d71c81c9-2fbe-46fa-a4b3-f20cafd5ac8a": 95,
+  "dd6c818e-6617-4806-a35a-979d2e35a8a7": 94,
+  "e6285253-4ae0-4b15-b357-727fd5e7c3aa": 90,
+  "ec09fc45-7689-4f50-89ea-6d143fd8f854": 97,
+  "ee0f3e3d-1db7-4fb5-bfe1-cb076564614a": 100,
+  "ee39ebdb-e60e-497a-be90-906007df3cbb": 100,
+  "f711334b-7bd3-4c97-be62-ddc42bcfcd24": 98,
+  "f7624c71-3929-4bb9-9e44-47e107364db0": 92,
+  "f8056220-5286-4ac5-b0a6-d568fecd34cc": 94,
+  "f814f404-d4da-4527-9c40-3f8d7896de79": 89,
+  "fce22874-4027-4a53-a822-1a176ee38b54": 92,
+  "ff5f88f6-12c2-4790-8769-8551c8bcfaeb": 92,
+};

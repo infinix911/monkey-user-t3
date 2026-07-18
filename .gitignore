@@ -1,0 +1,50 @@
+# Nuxt dev/build outputs
+.output
+.data
+.nuxt
+.nuxtrc
+.nitro
+.cache
+dist
+
+# Node dependencies
+node_modules
+
+# Logs
+logs
+*.log
+
+# Misc
+.DS_Store
+.fleet
+.idea
+.claude
+nul
+
+# Local env files
+.env
+.env.*
+!.env.example
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+
+# PWA service worker build artifacts
+sw.*
+workbox-*.js
+workbox-*.js.map
+
+# Build-generated SEO files (created by build:before hook in nuxt.config.ts)
+public/sitemap.xml
+public/robots.txt
+
+# Playwright
+test-results/
+playwright-report/
+blob-report/
+
+# playright-mcp
+.playwright-mcp
+scripts/

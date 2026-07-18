@@ -1,0 +1,17 @@
+node_modules
+.nuxt
+.output
+.wrangler
+.git
+.gitignore
+*.log
+.env
+.env.*
+!.env.example
+playwright-report
+test-results
+README.md
+.vscode
+.idea
+Dockerfile
+.dockerignore
