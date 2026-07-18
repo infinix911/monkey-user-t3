@@ -91,6 +91,13 @@ import { openGame } from "~~/utils/game-navigation";
 // } from "~~/utils/top-transactions-fallback";
 // import TopTransactionsTicker from "~/components/site/TopTransactionsTicker.vue";
 import { stripGamePayload } from "~/utils/strip-game-payload";
+import {
+  mapGameLobby,
+  mapGameListItem,
+  type GameLobbyWire,
+  type GameListItemWire,
+  type NormalizedLobby,
+} from "@/interfaces/game.interface";
 
 const authStore = useAuthStore();
 const uiStore = useUiStore();
@@ -149,12 +156,16 @@ const handleGameClick = (game: any) => {
 type AnyList = any[];
 type RemoteResponse = AnyList | { data?: AnyList } | null | undefined;
 
+// The homepage is best-effort (fetches use `.catch(() => null)`), so we
+// normalize defensively via the mappers rather than validateResponse — a
+// malformed/absent payload degrades to an empty row instead of throwing.
 const unwrap = (res: RemoteResponse): AnyList => {
-  if (Array.isArray(res)) return res;
-  if (res && typeof res === "object" && Array.isArray((res as { data?: AnyList }).data)) {
-    return (res as { data: AnyList }).data;
-  }
-  return [];
+  const arr = Array.isArray(res)
+    ? res
+    : res && typeof res === "object" && Array.isArray((res as { data?: AnyList }).data)
+      ? (res as { data: AnyList }).data
+      : [];
+  return arr.map((it) => mapGameListItem(it as GameListItemWire));
 };
 
 // Single SSR backend call for the only section the homepage renders (hot
@@ -169,7 +180,7 @@ const hotGamesAsync = useAsyncData<AnyList>(
   "home-hot-games",
   async () => {
     const res = await api<RemoteResponse>("/games", {
-      query: { game_type: "slot", category: "hot", page: 1, limit: 48 },
+      query: { gameType: "slot", category: "hot", page: 1, limit: 48 },
     }).catch(() => null as unknown as RemoteResponse);
     // Drop fields the UI never reads (e.g. game_name_ko) before they're baked
     // into the SSR payload. See utils/strip-game-payload.ts.
@@ -188,11 +199,6 @@ const hotGames = computed<AnyList>(() => hotGamesData.value ?? []);
 // Casino + Sports + Slot lobbies — same `/games/lobbies?game_type=...` endpoint
 // the dedicated /casino and /sports pages use (see useLobbyPage.ts), so
 // SSR-cached payloads are shared across pages.
-interface Lobby {
-  id: string | number;
-  game_name?: string;
-  logo_path?: string;
-}
 interface LobbyCard {
   id: string | number;
   name: string;
@@ -201,25 +207,32 @@ interface LobbyCard {
   bgImage: string;
   frameImage?: string;
 }
-type LobbyApiResponse = Lobby[] | { data?: Lobby[] } | null | undefined;
+type LobbyApiResponse =
+  | GameLobbyWire[]
+  | { data?: GameLobbyWire[] }
+  | null
+  | undefined;
 
-const unwrapLobbies = (res: LobbyApiResponse): Lobby[] => {
-  if (Array.isArray(res)) return res;
-  if (res && typeof res === "object" && Array.isArray(res.data)) return res.data;
-  return [];
+const unwrapLobbies = (res: LobbyApiResponse): NormalizedLobby[] => {
+  const arr = Array.isArray(res)
+    ? res
+    : res && typeof res === "object" && Array.isArray(res.data)
+      ? res.data
+      : [];
+  return arr.map((it) => mapGameLobby(it as GameLobbyWire));
 };
 
 // One fetcher for the three identical lobby reads (only `game_type` differs).
 const fetchLobbies = (key: string, gameType: string) =>
-  useAsyncData<Lobby[]>(
+  useAsyncData<NormalizedLobby[]>(
     key,
     async () => {
       const res = await api<LobbyApiResponse>("/games/lobbies", {
-        query: { game_type: gameType },
+        query: { gameType },
       }).catch(() => null);
       return unwrapLobbies(res);
     },
-    { default: () => [] as Lobby[] },
+    { default: () => [] as NormalizedLobby[] },
   );
 
 // Keys match the dedicated /casino, /sports, /slots pages (useLobbyPage.ts uses
@@ -240,7 +253,7 @@ const miniGamesAsync = useAsyncData<AnyList>(
   async () => {
     const lobbies = unwrapLobbies(
       await api<LobbyApiResponse>("/games/lobbies", {
-        query: { game_type: "mini" },
+        query: { gameType: "mini" },
       }).catch(() => null),
     );
     if (lobbies.length === 0) return [];
@@ -279,7 +292,7 @@ const miniGames = computed<AnyList>(() => miniGamesData.value ?? []);
 // `logo_path` keeps the homepage off the external CDN — faster paint, no
 // extra network dependency.
 const toCard = (
-  l: Lobby,
+  l: NormalizedLobby,
   index: number,
   gameType: "casino" | "sports" | "slot",
   logoBase: string,

@@ -86,18 +86,12 @@
 <script setup lang="ts">
 import { useApi } from "@/composables/useApi";
 import { formatNumberID as formatNumber } from "~/lib/formatter";
-
-interface ITransactionHistory {
-  id: string;
-  bank_name: string;
-  bank_account: string;
-  bank_account_name: string;
-  method: string;
-  amount: string;
-  status: number;
-  created_at: string;
-  updated_at: string;
-}
+import { validateResponse } from "@/lib/validateResponse";
+import {
+  walletTransactionsResponseSchema,
+  mapWalletTransaction,
+  type WalletTransaction as ITransactionHistory,
+} from "@/interfaces/transaction.interface";
 
 const props = defineProps<{
   type: "deposit" | "withdrawal";
@@ -197,15 +191,23 @@ async function fetchTransactions() {
   const { start_date, end_date } = calculateDateRange();
 
   try {
-    const params = new URLSearchParams({ start_date, end_date });
+    const params = new URLSearchParams({
+      startDate: start_date,
+      endDate: end_date,
+    });
     if (props.method) {
       params.append("method", props.method);
     }
 
     const api = useApi();
-    transactions.value = await api<ITransactionHistory[]>(
+    const raw = await api(
       `/transactions/wallet/${props.type}?${params.toString()}`,
     );
+    transactions.value = validateResponse(
+      walletTransactionsResponseSchema,
+      raw,
+      "/transactions/wallet",
+    ).map(mapWalletTransaction);
   } catch (error) {
     console.error(`Failed to fetch ${props.type} history:`, error);
     transactions.value = [];

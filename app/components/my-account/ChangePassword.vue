@@ -187,8 +187,8 @@ const onSubmit = handleSubmit(async (values) => {
     await api("/auth/change-password", {
       method: "POST",
       body: {
-        current_password: values.oldPassword,
-        new_password: values.newPassword,
+        currentPassword: values.oldPassword,
+        newPassword: values.newPassword,
       },
     });
 

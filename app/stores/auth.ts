@@ -1,70 +1,31 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import axiosClient from "@/lib/axios-client";
+import { validateResponse } from "@/lib/validateResponse";
+import {
+  verifyUserResponseSchema,
+  mapVerifyUserToState,
+  defaultUserState,
+  type VerifyUserResponse,
+  type UserState,
+} from "@/interfaces/auth.interface";
 import { useSiteStore } from "./site";
+
+// Re-exported for consumers that import these from the store. Canonical source
+// is interfaces/auth.interface.ts.
+export type { VerifyUserResponse, UserState };
+export { defaultUserState };
 
 /**
  * Auth / session store — user identity, wallet, level, referral and the
  * current game session. Split out of the former monolithic `app` store.
  * See [[useUiStore]] for modals/device and [[useSiteStore]] for site data.
+ *
+ * The `GET /auth/v` wire shape (camelCase) lives in
+ * `interfaces/auth.interface.ts` and is runtime-validated here before being
+ * mapped onto the snake_case internal {@link UserState} (anti-corruption
+ * layer), so existing consumers keep working and contract drift fails loudly.
  */
-
-export interface VerifyUserResponse {
-  id: string;
-  upper_id: string;
-  username: string;
-  bank_name: string;
-  bank_account: string;
-  bank_account_name: string;
-  phone: string;
-  user_type: number;
-  level: number;
-  currency: string;
-  wallet: string;
-  point_wallet: string;
-  level_name?: string;
-  level_exp?: string;
-  level_min_exp?: string;
-  next_level?: number;
-  next_level_name?: string;
-  next_level_min_exp?: string;
-}
-
-export interface UserState {
-  id: string;
-  username: string;
-  level: number;
-  level_name: string;
-  level_exp: string;
-  level_min_exp: string;
-  next_level: number;
-  next_level_name: string;
-  next_level_min_exp: string;
-  wallet: string;
-  point_wallet: string;
-  bank_name: string;
-  bank_account: string;
-  bank_account_name: string;
-  phone: string;
-  user_type: number;
-  currency: string;
-  upper_id: string;
-}
-
-export interface Reward {
-  name: string;
-  description: string;
-  type: string;
-  metric: string;
-  valid_to: string;
-}
-
-export interface MemberLevel {
-  id: number;
-  name: string;
-  min_exp: string;
-  rewards: Reward[];
-}
 
 export interface GameState {
   id: string;
@@ -73,30 +34,6 @@ export interface GameState {
   type: string;
   lobby_id: string;
 }
-
-/**
- * Default user state (empty/logged out)
- */
-export const defaultUserState: UserState = {
-  id: "",
-  username: "",
-  level: 0,
-  level_name: "",
-  level_exp: "",
-  level_min_exp: "",
-  next_level: 0,
-  next_level_name: "",
-  next_level_min_exp: "",
-  wallet: "",
-  point_wallet: "",
-  bank_name: "",
-  bank_account: "",
-  bank_account_name: "",
-  phone: "",
-  user_type: 0,
-  currency: "",
-  upper_id: "",
-};
 
 export const useAuthStore = defineStore("auth", () => {
   // User & Authentication
@@ -167,32 +104,19 @@ export const useAuthStore = defineStore("auth", () => {
    */
   const verifyUser = async (): Promise<VerifyUserResponse> => {
     try {
-      const result = (await axiosClient.get<VerifyUserResponse>("/auth/v"))
-        .data;
+      // Runtime-validate the response against the backend contract so a shape
+      // drift throws ApiValidationError instead of silently yielding undefined
+      // wallet/bank fields (auth + money safety).
+      const result = validateResponse(
+        verifyUserResponseSchema,
+        (await axiosClient.get("/auth/v")).data,
+        "/auth/v",
+      );
 
-      const userData: UserState = {
-        id: result.id,
-        username: result.username,
-        level: result.level,
-        level_name: result.level_name || "",
-        level_exp: result.level_exp || "",
-        level_min_exp: result.level_min_exp || "",
-        next_level: result.next_level || 0,
-        next_level_name: result.next_level_name || "",
-        next_level_min_exp: result.next_level_min_exp || "",
-        wallet: result.wallet,
-        point_wallet: result.point_wallet,
-        bank_name: result.bank_name,
-        bank_account: result.bank_account,
-        bank_account_name: result.bank_account_name,
-        phone: result.phone,
-        user_type: result.user_type,
-        currency: result.currency,
-        upper_id: result.upper_id,
-      };
-
-      // Update store with user data
-      user.value = userData;
+      // Map onto internal state via the shared mapper (single source of the
+      // field mapping). `currency` isn't in the profile response — derive it
+      // from the site config.
+      user.value = mapVerifyUserToState(result, useSiteCurrency());
 
       return result;
     } catch (error: unknown) {
@@ -206,19 +130,6 @@ export const useAuthStore = defineStore("auth", () => {
       } else {
         throw new Error(apiErrorMessageOr(error, "Failed to verify user"));
       }
-    }
-  };
-
-  /**
-   * Fetch member levels from API
-   */
-  const getMemberLevels = async (): Promise<MemberLevel[]> => {
-    try {
-      const response =
-        await axiosClient.get<MemberLevel[]>("/promotions/levels");
-      return response.data;
-    } catch (error: unknown) {
-      throw new Error(apiErrorMessageOr(error, "Failed to fetch member levels"));
     }
   };
 
@@ -264,7 +175,6 @@ export const useAuthStore = defineStore("auth", () => {
     setCurrentGame,
     setIsNavigating,
     verifyUser,
-    getMemberLevels,
     logout,
   };
 });

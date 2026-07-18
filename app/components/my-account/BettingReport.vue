@@ -261,6 +261,12 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from "vue";
+import { validateResponse } from "@/lib/validateResponse";
+import {
+  gameLobbiesResponseSchema,
+  mapGameLobby,
+  type NormalizedLobby,
+} from "@/interfaces/game.interface";
 import { useI18n } from "vue-i18n";
 import { useApi } from "@/composables/useApi";
 import { formatDateAsISO } from "~/lib/date";
@@ -291,16 +297,6 @@ interface IBetHistory {
     roll_amount: string;
     net_amount: string;
   };
-}
-
-interface ILobby {
-  id: number;
-  game_provider: string;
-  game_type: string;
-  game_name: string;
-  has_sub_game: boolean;
-  sort: number;
-  is_active: boolean;
 }
 
 const _props = defineProps<{
@@ -380,7 +376,7 @@ function typeLabel(type?: string): string {
   const label = t(key);
   return label === key ? type : label;
 }
-const providers = ref<ILobby[]>([]);
+const providers = ref<NormalizedLobby[]>([]);
 const loadingProviders = ref(false);
 
 // Green for a net win (positive), red for a net loss (negative), neutral at zero.
@@ -407,8 +403,12 @@ async function fetchProviders(type: string) {
   try {
     loadingProviders.value = true;
     const api = useApi();
-    providers.value =
-      (await api<ILobby[]>(`/games/lobbies?game_type=${type}`)) || [];
+    const raw = await api("/games/lobbies", { query: { gameType: type } });
+    providers.value = validateResponse(
+      gameLobbiesResponseSchema,
+      raw,
+      "/games/lobbies",
+    ).map(mapGameLobby);
     provider.value = "";
   } catch (err) {
     console.error("Failed to fetch providers:", err);

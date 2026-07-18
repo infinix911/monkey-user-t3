@@ -192,7 +192,7 @@ async function openGamePopup() {
         | GameListItem[]
         | { data?: GameListItem[]; games?: GameListItem[] };
       const body = await api<GamesResponse>(
-        `/games?page=1&limit=10&lobby_id=${props.game.id}`,
+        `/games?page=1&limit=10&lobbyId=${props.game.id}`,
       );
       const list = Array.isArray(body)
         ? body

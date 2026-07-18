@@ -347,11 +347,12 @@ export function useBankPayment(options: UseBankPaymentOptions) {
       }
     }
 
+    // Backend contract (camelCase, see createDepositSchema in monkey-user-api):
+    // { amount: number, receiptImage?: string | null }. The backend derives the
+    // deposit account itself (no accountId) and has no voucher support.
     const depositData = {
       amount: depositAmountNum.value,
-      voucher_issue_id: selectedVoucher.value?.issue_id || null,
-      account_id: values.bankAccountId,
-      receipt_image: receiptURL,
+      receiptImage: receiptURL,
     };
 
     try {
@@ -380,19 +381,10 @@ export function useBankPayment(options: UseBankPaymentOptions) {
     }
   });
 
-  // Fetch vouchers on mount. The agreement popup is shown only when the user
-  // selects a voucher that has enable_popup:true (see handleVoucherChange).
-  onMounted(async () => {
-    try {
-      loadingVouchers.value = true;
-      const data = await api<IVoucherIssue[]>("/promotions/vouchers");
-      vouchers.value = data;
-    } catch (error) {
-      console.error("Failed to fetch vouchers:", error);
-    } finally {
-      loadingVouchers.value = false;
-    }
-  });
+  // Vouchers are not fetched: the backend has no /promotions endpoint and
+  // deposit carries no voucher field. The voucher UI is hidden in
+  // BankPaymentContent. (State kept so the surface can be re-enabled if a
+  // promotions API is added.)
 
   return {
     siteConfig,

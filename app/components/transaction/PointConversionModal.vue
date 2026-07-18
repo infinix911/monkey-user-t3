@@ -146,7 +146,13 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import { useCurrency } from "@/composables/useCurrency";
+import { useApi } from "@/composables/useApi";
 import { showSuccessAlert, showErrorAlert } from "~~/utils/swal-alert";
+
+/** Error body shape carried by an ofetch/$fetch error. */
+interface FetchErrorLike {
+  data?: { message?: string };
+}
 
 const props = defineProps<{ isOpen: boolean }>();
 const emit = defineEmits<{ close: [] }>();
@@ -235,21 +241,28 @@ async function submit() {
 
   isLoading.value = true;
   try {
-    // NOTE: no backend endpoint yet — this optimistically updates the local
-    // wallet so the UI reflects the conversion. Wire to the real point-transfer
-    // API (e.g. POST /tran/point { amount }) when it exists; see
-    // PLAN-HEADER-POINT-CONVERSION.md.
     const converted = amt.value;
-    authStore.updateUser({
-      point_wallet: String(pointCurrent.value - converted),
-      wallet: String(balanceCurrent.value + converted),
+    // POST /points/exchange { amount } converts points → wallet. On success we
+    // re-verify to pull the authoritative point/wallet balances rather than
+    // optimistically mutating them (money safety).
+    const api = useApi();
+    await api("/points/exchange", {
+      method: "POST",
+      body: { amount: converted },
     });
+    await authStore.verifyUser().catch(() => {});
     amount.value = "";
     await showSuccessAlert(
       t("point.title"),
       t("point.convertSuccess", { amount: currency.formatNumber(converted) }),
     );
     onClose();
+  } catch (err: unknown) {
+    const apiMessage = (err as FetchErrorLike)?.data?.message;
+    await showErrorAlert(
+      t("point.title"),
+      apiMessage ? t(`point.apiMessages.${apiMessage}`) : t("point.convertFailed"),
+    );
   } finally {
     isLoading.value = false;
   }

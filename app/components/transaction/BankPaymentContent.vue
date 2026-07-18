@@ -160,8 +160,10 @@ class="self-stretch" style="
 
         <!-- Right Column: Voucher + Summary + Upload + Submit -->
         <div class="mb-6 font-medium w-full md:w-1/2 md:pl-6">
-          <!-- Voucher (hidden for PULSA — no voucher on pulsa deposits) -->
-          <template v-if="paymentType !== 'PULSA'">
+          <!-- Voucher UI hidden: the backend has no /promotions/vouchers
+               endpoint and deposit carries no voucher field. Re-enable this
+               block (v-if="paymentType !== 'PULSA'") if a promotions API lands. -->
+          <template v-if="false">
             <label class="text-white text-sm mb-2 flex items-center gap-1.5">
               <span :style="{ color: dep.accentColor }">
                 <svg

@@ -13,7 +13,12 @@
 
 import axiosClient from "~/lib/axios-client";
 import { showSuccessAlert, showErrorAlert } from "~~/utils/swal-alert";
-import type { RepliesResponse } from "~/interfaces/inquiry.interface";
+import { validateResponse } from "@/lib/validateResponse";
+import {
+  inquiryRepliesResponseWireSchema,
+  mapRepliesResponse,
+  type RepliesResponse,
+} from "~/interfaces/inquiry.interface";
 
 
 const TRANSLATABLE_ERRORS = {
@@ -267,11 +272,18 @@ export const useInquiryMutations = (onRefresh?: () => Promise<void>) => {
 
       // Reload replies to show the new one
       const params = new URLSearchParams({ limit: "20" });
-      const response = await axiosClient.get<RepliesResponse>(
-        `/inquiries/${inquiryId}/replies?${params.toString()}`,
+      const raw = (
+        await axiosClient.get(
+          `/inquiries/${inquiryId}/replies?${params.toString()}`,
+        )
+      ).data;
+      return mapRepliesResponse(
+        validateResponse(
+          inquiryRepliesResponseWireSchema,
+          raw,
+          "/inquiries/replies",
+        ),
       );
-
-      return response.data;
     } catch (error: unknown) {
       const errorMessage = apiErrorMessageOr(
         error,

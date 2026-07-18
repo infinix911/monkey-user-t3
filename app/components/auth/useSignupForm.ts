@@ -15,11 +15,31 @@ import { showSuccessAlert, showErrorAlert } from "~~/utils/swal-alert";
 import { signupSchema } from "@/schemas";
 import { toTitleCase } from "@/lib/formatter";
 
-interface RegisterBank {
-  id: string;
-  bank: string;
-  bank_type: string;
-}
+/**
+ * Static bank list for the signup dropdown. The backend has no `/banks`
+ * endpoint (register accepts a free-text `bankName`), so this is a curated
+ * list for the KRW deployment. Replace with an API source if one is added.
+ */
+const STATIC_BANK_NAMES: string[] = [
+  "국민은행",
+  "신한은행",
+  "우리은행",
+  "하나은행",
+  "농협은행",
+  "기업은행",
+  "SC제일은행",
+  "카카오뱅크",
+  "케이뱅크",
+  "토스뱅크",
+  "부산은행",
+  "대구은행",
+  "경남은행",
+  "광주은행",
+  "새마을금고",
+  "우체국",
+  "수협은행",
+  "산업은행",
+];
 
 /** Error shape carried by an ofetch/$fetch error. */
 interface FetchErrorLike {
@@ -39,16 +59,9 @@ export function useSignupForm(options: UseSignupFormOptions) {
   const currency = useCurrency();
   const api = useApi();
 
-  const bankNames = ref<string[]>([]);
-
-  onMounted(async () => {
-    try {
-      const data = await api<RegisterBank[]>("/banks/register");
-      bankNames.value = (data || []).map((a) => a.bank);
-    } catch {
-      // keep empty list on error
-    }
-  });
+  // Bank names for the signup dropdown. Sourced statically — the backend has
+  // no bank-list endpoint and register takes a free-text `bankName`.
+  const bankNames = ref<string[]>([...STATIC_BANK_NAMES]);
 
   // All currencies the codebase knows how to render. The dropdown is
   // filtered to only the deployment currency below — keeping the full
@@ -184,18 +197,20 @@ export function useSignupForm(options: UseSignupFormOptions) {
     isSubmitting.value = true;
 
     try {
+      // Backend contract (camelCase, see registerSchema in monkey-user-api):
+      // { username, email?, password, confirmPassword, phone, bankName,
+      //   bankAccount, bankAccountName, referral? }. No `currency` field.
       await api("/auth/register", {
         method: "POST",
         body: {
           username: values.username.trim().toLowerCase(),
           password: values.password,
-          confirm_password: values.confirmPassword,
+          confirmPassword: values.confirmPassword,
           email: values.email?.trim() || undefined,
           phone: values.mobile.trim(),
-          currency: values.currency,
-          bank_name: values.bankName,
-          bank_account_name: toTitleCase(values.bankAccountName.trim()),
-          bank_account: values.bankAccount.trim(),
+          bankName: values.bankName,
+          bankAccountName: toTitleCase(values.bankAccountName.trim()),
+          bankAccount: values.bankAccount.trim(),
           referral: values.referral?.trim() || null,
         },
       });

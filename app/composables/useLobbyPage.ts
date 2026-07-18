@@ -1,30 +1,36 @@
 import { computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useAuthStore } from "@/stores/auth";
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type Lobby = any;
-type LobbyResponse = Lobby[] | { data?: Lobby[] };
+import { validateResponse } from "@/lib/validateResponse";
+import {
+  gameLobbiesResponseSchema,
+  mapGameLobby,
+  type NormalizedLobby,
+} from "@/interfaces/game.interface";
 
 export function useLobbyPage(gameType: string) {
   const { t } = useI18n();
   const api = useApi();
 
   // SSR fetch via useApi — runs on the server during initial render and
-  // hydrates on the client without re-fetching.
+  // hydrates on the client without re-fetching. The backend returns a
+  // camelCase array; validate it then normalize to the shape the components
+  // render (see mapGameLobby).
   const {
     data,
     error: fetchError,
     pending,
     refresh: fetchLobbies,
-  } = useAsyncData<Lobby[]>(
+  } = useAsyncData<NormalizedLobby[]>(
     `lobbies-${gameType}`,
     async () => {
-      const res = await api<LobbyResponse>("/games/lobbies", {
-        query: { game_type: gameType },
-      });
-      if (Array.isArray(res)) return res;
-      return res?.data ?? [];
+      const raw = await api("/games/lobbies", { query: { gameType } });
+      const wire = validateResponse(
+        gameLobbiesResponseSchema,
+        raw,
+        "/games/lobbies",
+      );
+      return wire.map(mapGameLobby);
     },
     { default: () => [] },
   );
@@ -41,7 +47,7 @@ export function useLobbyPage(gameType: string) {
     },
   );
 
-  const lobbies = computed<Lobby[]>(() => data.value ?? []);
+  const lobbies = computed<NormalizedLobby[]>(() => data.value ?? []);
   const isLoading = computed(() => pending.value);
   const error = computed<string | null>(() => {
     if (!fetchError.value) return null;

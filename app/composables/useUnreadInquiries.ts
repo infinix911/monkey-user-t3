@@ -13,13 +13,12 @@
 import axiosClient from "~/lib/axios-client";
 import { getDateRangeLastNDays } from "~/lib/date";
 import { useWebSocketStore } from "~/stores/websocket";
-import type { InquiryItem } from "~/interfaces/inquiry.interface";
-
-interface InquiryResponse {
-  pages: number;
-  rows: number;
-  data: InquiryItem[];
-}
+import { validateResponse } from "@/lib/validateResponse";
+import {
+  inquiriesResponseWireSchema,
+  mapInquiriesResponse,
+  type InquiryItem,
+} from "~/interfaces/inquiry.interface";
 
 const INQUIRY_DATE_RANGE = 30;
 const INQUIRY_LIMIT = 10;
@@ -37,11 +36,14 @@ export function useUnreadInquiries() {
 
     try {
       const { startDate, endDate } = getDateRangeLastNDays(INQUIRY_DATE_RANGE);
-      const apiUrl = `/inquiries?page=1&limit=${INQUIRY_LIMIT}&start_date=${startDate}&end_date=${endDate}`;
-      const response = await axiosClient.get<InquiryResponse>(apiUrl);
+      const apiUrl = `/inquiries?page=1&limit=${INQUIRY_LIMIT}&startDate=${startDate}&endDate=${endDate}`;
+      const raw = (await axiosClient.get(apiUrl)).data;
+      const response = mapInquiriesResponse(
+        validateResponse(inquiriesResponseWireSchema, raw, "/inquiries"),
+      );
 
       // Check if any inquiry has unread replies
-      const hasUnread = response.data.data.some(
+      const hasUnread = response.data.some(
         (inquiry: InquiryItem) => inquiry.member_unread > 0,
       );
 
