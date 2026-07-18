@@ -1023,6 +1023,13 @@
     "amountCheck": "The minimum conversion amount is 1.",
     "amountGt": "The amount cannot exceed your available points.",
     "convertSuccess": "{amount} points have been converted to your balance.",
+    "convertFailed": "Point conversion failed. Please try again.",
+    "apiMessages": {
+      "POINTS_EXCHANGED": "Points converted successfully.",
+      "INSUFFICIENT_POINTS": "You don't have enough points.",
+      "MEMBER_NOT_FOUND": "Member not found.",
+      "INTERNAL_ERROR": "Something went wrong. Please try again."
+    },
     "available": "Available Points"
   },
   "partnerMenu": {

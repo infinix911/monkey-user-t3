@@ -348,11 +348,10 @@ export function useBankPayment(options: UseBankPaymentOptions) {
     }
 
     // Backend contract (camelCase, see createDepositSchema in monkey-user-api):
-    // { amount: number, accountId: uuid, receiptImage?: string | null }.
-    // The backend has no voucher support, so no voucher field is sent.
+    // { amount: number, receiptImage?: string | null }. The backend derives the
+    // deposit account itself (no accountId) and has no voucher support.
     const depositData = {
       amount: depositAmountNum.value,
-      accountId: values.bankAccountId,
       receiptImage: receiptURL,
     };
 

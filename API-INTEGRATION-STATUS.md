@@ -1,9 +1,26 @@
 # monkey-user-t3 — API Integration Status
 
 Progress tracker for connecting the Nuxt frontend to `monkey-user-api`.
-Companion to `API-INTEGRATION-PLAN.md` (the roadmap). Last updated 2026-07-18.
+Companion to `API-INTEGRATION-PLAN.md` (the roadmap). Last updated 2026-07-18
+(synced to backend `b900f35`).
 
-**Legend:** ✅ done · ⚠️ done with a blocker · 🚫 blocked (no backend) · ⏳ not started
+**Legend:** ✅ done · ⚠️ done, frontend follow-up needed · 🚫 blocked (no backend) · ⏳ available, not yet integrated
+
+## ⚡ Backend sync (pulled 2026-07-18, backend `b900f35`) — integrated ✅
+
+Three backend commits landed; all three are now handled on the frontend:
+
+1. **`bda4ce2` — deposit no longer needs `accountId`.** ✅ Removed `accountId`
+   from the deposit body in `useBankPayment.ts` (now `{ amount, receiptImage? }`).
+   **The old bank-account blocker is resolved.** The static bank in
+   `useDepositModal.ts` is now display-only (the account is derived server-side).
+2. **`fadc6ad` — "Normalize user API response casing."** ✅ Responses stay
+   camelCase (mappers hold); removed the dropped `fee`/`rewardAmount`/`netAmount`
+   from `walletTransactionWireSchema`.
+3. **`b900f35` — new Points module** (`/api/points`). ✅ `POST /points/exchange`
+   wired into `PointConversionModal` (real API + re-verify instead of the old
+   optimistic update). History (`GET /points/exchanges`) schema/mapper ready in
+   `points.interface.ts` — no UI consumer yet.
 
 **Pattern used everywhere:** each module has a zod wire schema in
 `app/interfaces/*.interface.ts`, is validated at the fetch boundary via
@@ -25,7 +42,9 @@ mapper. Backend (camelCase) is the source of truth.
 | 3 | M8 Notifications | ✅ |
 | 3 | M9 Referrals / login history | ✅ |
 | 4 | M5 Withdrawal (write) | ✅ |
-| 4 | M4 Deposit (write) | ⚠️ payload done; needs a real bank-account id |
+| 4 | M4 Deposit (write) | ✅ (`accountId` removed; blocker resolved) |
+| — | Points — exchange | ✅ (`PointConversionModal`) |
+| — | Points — exchange history | ⏳ schema ready, no UI consumer |
 | 5 | M11 Promotions | 🚫 no backend |
 | 5 | M12 Partner section | 🚫 no backend |
 
@@ -64,7 +83,7 @@ mapper. Backend (camelCase) is the source of truth.
 ### ✅ Transactions (reads) — `/api/transactions`
 | Endpoint | Status | Notes |
 |---|---|---|
-| GET `/wallet/:transaction` | ✅ | `startDate`/`endDate`; camelCase→snake mapper (string amounts) |
+| GET `/wallet/:transaction` | ✅ | `startDate`/`endDate`; camelCase→snake mapper; schema trimmed to drop backend-removed `fee`/`rewardAmount`/`netAmount` |
 | GET `/activity/:category` | ✅ | `{data,meta}`→`{rows,pages,data}`; camelCase mapper |
 | GET `/logs`, `/roll-requirement`, `/pending-*` | ⏳ | contracts known; not currently consumed by UI |
 
@@ -87,28 +106,36 @@ mapper. Backend (camelCase) is the source of truth.
 | Endpoint | Status | Notes |
 |---|---|---|
 | POST `/withdrawal` | ✅ | `{amount:number}` — already correct |
-| POST `/deposit` | ⚠️ | body fixed to `{amount,accountId,receiptImage}`; voucher removed |
+| POST `/deposit` | ✅ | body `{amount, receiptImage?}` (backend dropped `accountId`); voucher removed |
 | POST `/deposit/upload-receipt` | ✅ | two-step upload; reads `{url}` |
+
+### Points — `/api/points` (new backend)
+| Endpoint | Status | Notes |
+|---|---|---|
+| POST `/exchange` | ✅ | body `{amount:number(min 1)}` → `{message}`. Wired in `PointConversionModal.vue` (real API + `verifyUser()` refresh) |
+| GET `/exchanges` | ⏳ | schema/mapper ready in `points.interface.ts`; no history UI consumer yet |
 
 ### 🚫 No backend (blocked)
 | Frontend area | Missing backend |
 |---|---|
 | Deposit voucher / member levels | `/promotions/*` (fetch removed, UI hidden) |
-| Bank-account list (deposit) | `/banks/accounts` — see blocker below |
 | Signup bank list | `/banks/register` (replaced with static list) |
 | Partner section (all pages) | `/partner/*` (stays mock) |
 
 ---
 
-## Open blockers
+## Frontend follow-ups (from the 2026-07-18 backend sync)
 
-1. **⚠️ Deposit `accountId`** — `POST /transactions/deposit` requires a valid
-   `adminBankAccounts` UUID, but no endpoint lists admin bank accounts. The
-   payload is correct; a real deposit returns `BANK_ACCOUNT_NOT_FOUND` until the
-   placeholder id in `useDepositModal.ts` is replaced with a seeded account id,
-   or a `GET /banks/accounts` endpoint is added and loaded.
-2. **🚫 Promotions (M11) & Partner (M12)** — no backend exists. UI stays
-   mock/hidden pending new endpoints (product decision).
+1. ✅ **Deposit** — removed `accountId` from the deposit body in `useBankPayment.ts`.
+2. ✅ **Wallet history** — removed `fee`/`rewardAmount`/`netAmount` from
+   `walletTransactionWireSchema`.
+3. ✅ **Points** — `POST /points/exchange` wired in `PointConversionModal.vue`;
+   history schema/mapper ready in `points.interface.ts` (no UI consumer yet).
+
+## Still blocked (no backend)
+
+- **🚫 Promotions (M11) & Partner (M12)** — no backend exists. UI stays
+  mock/hidden pending new endpoints (product decision).
 
 ## New files added by the integration
 - `app/lib/validateResponse.ts` — shared runtime validator (throws `ApiValidationError`)
@@ -118,6 +145,7 @@ mapper. Backend (camelCase) is the source of truth.
 - `app/interfaces/inquiry.interface.ts` (schemas/mappers appended)
 - `app/interfaces/transaction.interface.ts`
 - `app/interfaces/site.interface.ts` — carousel banners
+- `app/interfaces/points.interface.ts` — point exchange + history
 
 ## Verification
 - **Live-tested against the running backend:** auth (login → `/auth/v`), games list/lobbies (real seed data).
