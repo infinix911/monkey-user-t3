@@ -60,7 +60,12 @@
 import { ref, watch } from "vue";
 import { useApi } from "@/composables/useApi";
 import { getDateRangeLastNDays } from "~/lib/date";
-import type { InquiryResponse } from "./InquiryContent.vue";
+import { validateResponse } from "@/lib/validateResponse";
+import {
+  inquiriesResponseWireSchema,
+  mapInquiriesResponse,
+  type InquiriesResponse,
+} from "@/interfaces/inquiry.interface";
 import { showErrorAlert } from "~~/utils/swal-alert";
 
 interface Props {
@@ -80,15 +85,19 @@ const uiStore = useUiStore();
 const INQUIRY_DATE_RANGE = 30;
 const INQUIRY_LIMIT = 10;
 
-const inquiryData = ref<InquiryResponse | null>(null);
+const inquiryData = ref<InquiriesResponse | null>(null);
 const currentPage = ref(1);
 
 const fetchInquiryData = async (page: number = 1) => {
   try {
     const { startDate, endDate } = getDateRangeLastNDays(INQUIRY_DATE_RANGE);
-    const apiUrl = `/inquiries?page=${page}&limit=${INQUIRY_LIMIT}&start_date=${startDate}&end_date=${endDate}`;
     const api = useApi();
-    const data = await api<InquiryResponse>(apiUrl);
+    const raw = await api("/inquiries", {
+      query: { page, limit: INQUIRY_LIMIT, startDate, endDate },
+    });
+    const data = mapInquiriesResponse(
+      validateResponse(inquiriesResponseWireSchema, raw, "/inquiries"),
+    );
 
     inquiryData.value = data;
     currentPage.value = page;

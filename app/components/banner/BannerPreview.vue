@@ -88,14 +88,12 @@
 import { computed, ref, onMounted, onUnmounted } from "vue";
 import { useApi } from "@/composables/useApi";
 import { useCarouselSwipe } from "@/composables/useCarouselSwipe";
-
-interface BannerPreviewItem {
-  main_url: string;
-  overlay_url: string | null;
-  main_url_mobile: string;
-  overlay_url_mobile: string | null;
-  sort: number;
-}
+import { validateResponse } from "@/lib/validateResponse";
+import {
+  bannersCarouselResponseSchema,
+  mapBannersCarouselResponse,
+  type BannerCarouselItem as BannerPreviewItem,
+} from "@/interfaces/site.interface";
 
 // Domains idr-demo2 … idr-demo11 drive their hero banner from the theme config
 // (`/site/config/theme` → `banners`) instead of the `/site/banners-new/carousel`
@@ -240,12 +238,10 @@ const { data: bannersData, pending: isLoading } = await useAsyncData<
     return themeBannersToCarousel(siteConfig);
   }
   try {
-    const response = await api<{ data?: BannerPreviewItem[] } | BannerPreviewItem[]>(
-      "/site/banners-new/carousel",
+    const raw = await api("/site/banners-new/carousel");
+    const list = mapBannersCarouselResponse(
+      validateResponse(bannersCarouselResponseSchema, raw, "/site/banners-new"),
     );
-    const list = Array.isArray(response)
-      ? response
-      : (response?.data ?? []);
     return [...list].sort((a, b) => a.sort - b.sort);
   } catch (err) {
     if (import.meta.dev) console.error("Failed to fetch banners:", err);

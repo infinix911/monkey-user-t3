@@ -38,6 +38,10 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
+import {
+  mapGameListItem,
+  type GameListItemWire,
+} from "@/interfaces/game.interface";
 
 definePageMeta({
   layout: "default",
@@ -75,6 +79,7 @@ type RemoteResponse =
       games?: GameRow[];
       rows?: number;
       total?: number;
+      meta?: { total?: number };
     }
   | null;
 
@@ -93,20 +98,21 @@ const { data, error: fetchError, pending, refresh: fetchGames } = useAsyncData<L
     if (!lobby) return { games: [], total: 0 };
     const res = await api<RemoteResponse>("/games", {
       query: {
-        lobby_id: lobby,
+        lobbyId: lobby,
         page: currentPage.value,
         limit: GAMES_PER_PAGE,
         // Only send when non-empty — an empty string would still be a valid
         // (match-all) filter but needlessly fragments the backend cache key.
-        ...(searchQuery.value ? { game_name: searchQuery.value } : {}),
+        ...(searchQuery.value ? { gameName: searchQuery.value } : {}),
       },
     }).catch(() => null);
 
     if (Array.isArray(res)) {
-      return { games: res, total: res.length };
+      return { games: res.map((it) => mapGameListItem(it as GameListItemWire)), total: res.length };
     }
-    const list = res?.data || res?.games || [];
-    const total = Number(res?.rows) || Number(res?.total) || list.length;
+    const raw = res?.data || res?.games || [];
+    const list = raw.map((it) => mapGameListItem(it as GameListItemWire));
+    const total = Number(res?.meta?.total) || Number(res?.rows) || Number(res?.total) || list.length;
     return { games: list, total };
   },
   {

@@ -61,7 +61,7 @@ const providers = computed(() => {
   const charOverrides = siteConfig.assets.homepage.gameCharacterOverrides.casino;
   const bg = siteConfig.assets.homepage.gameBg.casino;
   const frame = siteConfig.assets.homepage.gameFrame.casino;
-  return (lobbies.value ?? []).map((l: { id: string | number; game_name?: string }, i: number) => ({
+  return (lobbies.value ?? []).map((l, i: number) => ({
     id: l.id,
     name: l.game_name ?? "",
     logo: lobbyLogoUrl(logoBase, l.id),

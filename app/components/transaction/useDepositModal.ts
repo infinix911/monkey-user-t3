@@ -23,9 +23,17 @@ export interface UseDepositModalOptions {
   isOpen: () => boolean;
 }
 
-/** Fixed deposit account shown in the modal (no API load). */
+/**
+ * Fixed deposit account shown in the modal (no API load).
+ *
+ * ⚠️ BLOCKER: `id` must be a real `adminBankAccounts` UUID for a deposit to
+ * succeed — the backend validates `accountId` as a uuid and looks it up
+ * (404 BANK_ACCOUNT_NOT_FOUND otherwise). There is currently no endpoint that
+ * lists admin bank accounts, so this is a placeholder. Replace `id` with a
+ * seeded account UUID, or add a bank-accounts list endpoint and load from it.
+ */
 const STATIC_BANK_ACCOUNT: IBankAccount = {
-  id: "static-bank",
+  id: "00000000-0000-0000-0000-000000000000",
   account_name: "MONKEY",
   bank: "BCA",
   code: "014",

@@ -62,7 +62,7 @@ const providers = computed(() => {
   const bg = siteConfig.assets.homepage.gameBg.slot;
   const frame = siteConfig.assets.homepage.gameFrame.slot;
   return (lobbies.value ?? []).map(
-    (l: { id: string | number; game_name?: string }, i: number) => ({
+    (l, i: number) => ({
       id: l.id,
       name: l.game_name ?? "",
       logo: lobbyLogoUrl(logoBase, l.id),

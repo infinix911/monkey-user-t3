@@ -12,12 +12,12 @@ export const loginSchema = (t: TFn) =>
       username: z
         .string()
         .min(1, t("auth.validation.usernameCheck"))
-        .max(32, t("auth.validation.usernameTooLong"))
+        .max(12, t("auth.validation.usernameTooLong"))
         .regex(/^[a-zA-Z0-9_-]+$/, t("auth.validation.usernameInvalidChars")),
       password: z
         .string()
         .min(1, t("auth.validation.passwordCheck"))
-        .max(128, t("auth.validation.passwordTooLong")),
+        .max(20, t("auth.validation.passwordTooLong")),
     }),
   );
 
@@ -29,7 +29,7 @@ const signupRawSchema = (t: TFn) =>
     .object({
       username: z
         .string()
-        .min(4, t("signup.validation.usernameMinLength"))
+        .min(5, t("signup.validation.usernameMinLength"))
         .max(12, t("signup.validation.usernameMaxLength")),
       password: z
         .string()

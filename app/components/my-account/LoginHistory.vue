@@ -99,13 +99,12 @@ import { ref, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { useApi } from "@/composables/useApi";
 import { formatDeviceInfo } from "~/lib/user-agent";
-
-interface ILoginLog {
-  id: number;
-  ip_address: string;
-  user_agent: string;
-  created_at: string;
-}
+import { validateResponse } from "@/lib/validateResponse";
+import {
+  loginHistoriesResponseSchema,
+  mapLoginHistory,
+  type LoginLog as ILoginLog,
+} from "@/interfaces/auth.interface";
 
 const { t } = useI18n();
 
@@ -128,10 +127,14 @@ onMounted(async () => {
   try {
     const { start_date, end_date } = calculateDateRange();
     const api = useApi();
-    loginHistories.value =
-      (await api<ILoginLog[]>(
-        `/auth/login-histories?start_date=${start_date}&end_date=${end_date}`,
-      )) || [];
+    const raw = await api(
+      `/auth/login-histories?startDate=${start_date}&endDate=${end_date}`,
+    );
+    loginHistories.value = validateResponse(
+      loginHistoriesResponseSchema,
+      raw,
+      "/auth/login-histories",
+    ).map(mapLoginHistory);
   } catch (err) {
     console.error("Failed to fetch login history:", err);
   } finally {

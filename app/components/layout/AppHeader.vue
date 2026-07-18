@@ -294,6 +294,12 @@
 import { computed, ref, watch, onMounted, onUnmounted } from "vue";
 import { formatWallet } from "@/utils/currency";
 import { useApi } from "@/composables/useApi";
+import { validateResponse } from "@/lib/validateResponse";
+import {
+  notificationsResponseSchema,
+  mapNotification,
+  type NotificationItem,
+} from "@/interfaces/notification.interface";
 
 const authStore = useAuthStore();
 const uiStore = useUiStore();
@@ -432,16 +438,7 @@ onUnmounted(() => {
 // Computed
 const isAuthenticated = computed(() => authStore.isAuthenticated);
 
-const notifications = ref<
-  Array<{
-    id: number;
-    category: string;
-    title: string;
-    message: string;
-    is_read: boolean;
-    created_at: string;
-  }>
->([]);
+const notifications = ref<NotificationItem[]>([]);
 const unreadNotificationCount = computed(
   () => notifications.value.filter((n) => !n.is_read).length,
 );
@@ -470,19 +467,12 @@ const fetchNotifications = async () => {
   if (!authStore.isAuthenticated) return;
   try {
     const api = useApi();
-    const data = await api<
-      Array<{
-        id: number;
-        category: string;
-        title: string;
-        message: string;
-        is_read: boolean;
-        created_at: string;
-      }>
-    >("/notifications", {
-      query: { lang: locale.value },
-    });
-    notifications.value = data || [];
+    const raw = await api("/notifications", { query: { lang: locale.value } });
+    notifications.value = validateResponse(
+      notificationsResponseSchema,
+      raw,
+      "/notifications",
+    ).map(mapNotification);
   } catch {
     notifications.value = [];
   }

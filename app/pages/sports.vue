@@ -63,7 +63,7 @@ const providers = computed(() => {
   const bgRatio = siteConfig.assets.homepage.gameBg.sportRatio;
   const frame = siteConfig.assets.homepage.gameFrame.sport;
   const ratioIds = new Set(siteConfig.assets.homepage.ratioSportIds);
-  return (lobbies.value ?? []).map((l: { id: string | number; game_name?: string }, i: number) => ({
+  return (lobbies.value ?? []).map((l, i: number) => ({
     id: l.id,
     name: l.game_name ?? "",
     logo: lobbyLogoUrl(logoBase, l.id),

@@ -140,7 +140,7 @@ const { lobbies } = useLobbyPage("slot");
 // homepage slot cards use, not the CMS/API logo_path) to the CDN host.
 const slotLogoBase = computed(() => siteConfig.assets.homepage.gameLogos.slot);
 const providers = computed(() =>
-  (lobbies.value ?? []).map((l: { id: string | number; game_name?: string }) => {
+  (lobbies.value ?? []).map((l) => {
     const id = String(l.id);
     return {
       id,

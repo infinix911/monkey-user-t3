@@ -162,6 +162,12 @@ xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 2
 import { ref, computed, onMounted } from "vue";
 import { useApi } from "@/composables/useApi";
 import DataTable from "~/components/DataTable.vue";
+import { validateResponse } from "@/lib/validateResponse";
+import {
+  activityResponseWireSchema,
+  mapActivityResponse,
+  type ActivityRow,
+} from "@/interfaces/transaction.interface";
 import { useSiteConfig } from "~/composables/useSiteConfig";
 
 defineOptions({
@@ -184,22 +190,6 @@ interface Tab {
   labelKey: string;
 }
 
-interface ActivityRow {
-  id: number;
-  created_at: string;
-  type: string;
-  transaction: string;
-  transaction_id: string;
-  debit: string;
-  credit: string;
-  wallet_after: string;
-}
-
-interface ActivityResponse {
-  rows: number;
-  pages: number;
-  data: ActivityRow[];
-}
 
 const tabs: Tab[] = [
   { id: "all", labelKey: "common.all" },
@@ -296,13 +286,19 @@ const fetchActivity = async (category: ActivityCategory, page: number) => {
   loading.value = true;
   try {
     const api = useApi();
-    const payload = await api<ActivityResponse>(
-      `/transactions/activity/${category}`,
-      { query: { page, limit: PAGE_SIZE } },
+    const raw = await api(`/transactions/activity/${category}`, {
+      query: { page, limit: PAGE_SIZE },
+    });
+    const payload = mapActivityResponse(
+      validateResponse(
+        activityResponseWireSchema,
+        raw,
+        "/transactions/activity",
+      ),
     );
-    rawData.value = payload?.data ?? [];
-    totalPages.value = payload?.pages ?? 0;
-    totalRows.value = payload?.rows ?? 0;
+    rawData.value = payload.data;
+    totalPages.value = payload.pages;
+    totalRows.value = payload.rows;
     currentPage.value = page;
   } catch (err) {
     console.error(`Failed to fetch activity for ${category}:`, err);

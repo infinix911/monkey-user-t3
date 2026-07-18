@@ -83,7 +83,7 @@
             </tr>
             <tr
               v-for="(referral, index) in referrals"
-              :key="referral.id"
+              :key="index"
               class="border-b last:border-b-0"
               style="background-color: #505050; border-color: #7a7a7a"
             >
@@ -118,12 +118,12 @@ import { ref, computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { useApi } from "@/composables/useApi";
 import { showAutoAlert } from "~~/utils/swal-alert";
-
-interface IReferral {
-  id: number;
-  username: string;
-  created_at: string;
-}
+import { validateResponse } from "@/lib/validateResponse";
+import {
+  referralsResponseSchema,
+  mapReferral,
+  type Referral as IReferral,
+} from "@/interfaces/auth.interface";
 
 const { t } = useI18n();
 const authStore = useAuthStore();
@@ -148,7 +148,12 @@ function handleCopy() {
 onMounted(async () => {
   try {
     const api = useApi();
-    referrals.value = (await api<IReferral[]>("/auth/referrals")) || [];
+    const raw = await api("/auth/referrals");
+    referrals.value = validateResponse(
+      referralsResponseSchema,
+      raw,
+      "/auth/referrals",
+    ).map(mapReferral);
   } catch (err) {
     console.error("Failed to fetch referrals:", err);
   } finally {

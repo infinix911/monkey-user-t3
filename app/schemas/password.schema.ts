@@ -15,7 +15,8 @@ export const changePasswordSchema = (t: TFn) =>
           .min(1, t("password.validation.oldPasswordRequired")),
         newPassword: z
           .string()
-          .min(6, t("password.validation.newPasswordMinLength")),
+          .min(6, t("password.validation.newPasswordMinLength"))
+          .max(20, t("password.validation.newPasswordMaxLength")),
         confirmPassword: z
           .string()
           .min(1, t("password.validation.confirmPasswordRequired")),

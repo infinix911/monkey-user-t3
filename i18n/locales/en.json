@@ -82,6 +82,7 @@
     "validation": {
       "oldPasswordRequired": "Current password is required",
       "newPasswordMinLength": "Password must be at least 6 characters",
+      "newPasswordMaxLength": "Password must be at most 20 characters",
       "confirmPasswordRequired": "Please confirm your password",
       "passwordsMismatch": "Passwords don't match"
     },
