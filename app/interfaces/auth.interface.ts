@@ -25,12 +25,15 @@ export const verifyUserResponseSchema = z.object({
   wallet: z.string(),
   pointWallet: z.string(),
   level: z.number(),
-  levelName: z.string().nullable(),
-  levelExp: z.string(),
-  levelMinExp: z.string().nullable(),
-  nextLevel: z.number(),
-  nextLevelName: z.string(),
-  nextLevelMinExp: z.string(),
+  // Level-detail fields are optional — the backend omits them in some
+  // responses. The mapper defaults them (|| "" / || 0), so verifyUser must not
+  // fail validation when they're absent (would leave the app "logged out").
+  levelName: z.string().nullable().optional(),
+  levelExp: z.string().optional(),
+  levelMinExp: z.string().nullable().optional(),
+  nextLevel: z.number().optional(),
+  nextLevelName: z.string().optional(),
+  nextLevelMinExp: z.string().optional(),
 });
 
 export type VerifyUserResponse = z.infer<typeof verifyUserResponseSchema>;

@@ -109,6 +109,11 @@
 <script setup lang="ts">
 import { computed, ref, watch, onMounted, onBeforeUnmount } from "vue";
 import { openGame } from "~~/utils/game-navigation";
+import {
+  mapGameListItem,
+  type GameListItemWire,
+  type NormalizedGame,
+} from "@/interfaces/game.interface";
 
 definePageMeta({
   layout: "default",
@@ -125,7 +130,13 @@ interface Game {
 }
 type RemoteResponse =
   | Game[]
-  | { data?: Game[]; games?: Game[]; rows?: number; total?: number }
+  | {
+      data?: Game[];
+      games?: Game[];
+      rows?: number;
+      total?: number;
+      meta?: { total?: number };
+    }
   | null;
 
 const { t } = useI18n();
@@ -242,7 +253,7 @@ watch(
 
 // Clicking a game launches it — but guests get the login modal first (same flow
 // as the lobby games grid).
-const handleGameClick = (game: Game) => {
+const handleGameClick = (game: NormalizedGame) => {
   if (!authStore.isAuthenticated) {
     uiStore.setShowLoginModal(true);
     return;
@@ -250,7 +261,7 @@ const handleGameClick = (game: Game) => {
   const lobbyId = selectedLobby.value || "";
   authStore.setCurrentGame({
     id: String(game.id),
-    name: game.game_name_en,
+    name: game.game_name_en ?? "",
     provider: game.lobby || "",
     type: "slot",
     lobby_id: lobbyId,
@@ -267,7 +278,7 @@ const handleGameClick = (game: Game) => {
 // doesn't play well with useAsyncData's hydration keying. The RTP bars are
 // placeholder values rendered per card.
 const GAMES_PER_PAGE = 24;
-const games = ref<Game[]>([]);
+const games = ref<NormalizedGame[]>([]);
 const gamesLoading = ref(false);
 const currentPage = ref(1);
 const totalGames = ref(0);
@@ -283,13 +294,14 @@ async function loadGames() {
   gamesLoading.value = true;
   try {
     const res = await api<RemoteResponse>("/games", {
-      query: { lobby_id: selectedLobby.value, page: currentPage.value, limit: GAMES_PER_PAGE },
+      query: { lobbyId: selectedLobby.value, page: currentPage.value, limit: GAMES_PER_PAGE },
     });
-    const list = Array.isArray(res) ? res : res?.data || res?.games || [];
-    games.value = list;
+    const raw = Array.isArray(res) ? res : res?.data || res?.games || [];
+    // Normalize each row's camelCase wire shape to the snake_case the cards read.
+    games.value = raw.map((g) => mapGameListItem(g as unknown as GameListItemWire));
     totalGames.value = Array.isArray(res)
-      ? list.length
-      : Number(res?.rows) || Number(res?.total) || list.length;
+      ? raw.length
+      : Number(res?.meta?.total) || Number(res?.rows) || Number(res?.total) || raw.length;
   } catch {
     games.value = [];
     totalGames.value = 0;
