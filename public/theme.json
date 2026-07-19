@@ -13,12 +13,12 @@
             "defaultFollow": true
         },
         "social": {
-            "defaultOgImage": "https://design.imgcloud.io/storage/kimak/KIMAKS-mobile TOGEL.webp",
+            "defaultOgImage": "/storage/kimak/KIMAKS-mobile-TOGEL.webp",
             "defaultOgTitle": "KIMAKTOTO | Daftar & Login Resmi  Situs HK Pools Dengan Hadiah 4D Terbesar",
             "twitterCardType": "summary_large_image",
             "defaultOgImageType": "WEBP",
             "defaultOgImageWidth": 1099,
-            "defaultTwitterImage": "https://design.imgcloud.io/storage/kimak/KIMAKS-mobile TOGEL.webp",
+            "defaultTwitterImage": "/storage/kimak/KIMAKS-mobile-TOGEL.webp",
             "defaultTwitterTitle": "KIMAKTOTO | Daftar & Login Resmi  Situs HK Pools Dengan Hadiah 4D Terbesar",
             "defaultOgDescription": "KIMAKTOTO hadir dengan akses HK Pools terpercaya, informasi pasaran yang selalu diperbarui, dan sistem permainan yang responsif. Pilihan tepat bagi Anda yang ingin menikmati pengalaman Toto Online",
             "defaultOgImageHeight": 535,
@@ -66,19 +66,19 @@
         },
         "nav": {
             "type": "png",
-            "gifBg": "https://banana.sg-sin-1.linodeobjects.com/designs/template-1/navbar/gif-bg/03.gif",
+            "gifBg": "/designs/template-1/navbar/gif-bg/03.gif",
             "icons": {
-                "hot": "https://sg-sin-1.linodeobjects.com/banana/theme/hot-icon-optimized-1782395532169.webp",
-                "mini": "https://sg-sin-1.linodeobjects.com/banana/theme/mini-icon-optimized-1782396091443.webp",
-                "slot": "https://sg-sin-1.linodeobjects.com/banana/theme/slot-icon-optimized-1782395661345.webp",
-                "sport": "https://sg-sin-1.linodeobjects.com/banana/theme/sport-icon-optimized-1782395825566.webp",
-                "casino": "https://sg-sin-1.linodeobjects.com/banana/theme/casino-icon-optimized-1782395725967.webp",
-                "fishing": "https://sg-sin-1.linodeobjects.com/banana/theme/fishing-icon-optimized-1782396049473.webp",
-                "virtual": "https://sg-sin-1.linodeobjects.com/banana/theme/virtual-icon-optimized-1782395959578.webp"
+                "hot": "/banana/theme/hot-icon-optimized-1782395532169.webp",
+                "mini": "/banana/theme/mini-icon-optimized-1782396091443.webp",
+                "slot": "/banana/theme/slot-icon-optimized-1782395661345.webp",
+                "sport": "/banana/theme/sport-icon-optimized-1782395825566.webp",
+                "casino": "/banana/theme/casino-icon-optimized-1782395725967.webp",
+                "fishing": "/banana/theme/fishing-icon-optimized-1782396049473.webp",
+                "virtual": "/banana/theme/virtual-icon-optimized-1782395959578.webp"
             },
             "stickyBg": "rgba(0,0,0,1)",
             "defaultBg": "#000000",
-            "gifBorder": "https://banana.sg-sin-1.linodeobjects.com/designs/template-1/navbar/border/05.webp",
+            "gifBorder": "/designs/template-1/navbar/border/05.webp",
             "activeItemColor": "#ea5100",
             "depositSectionGradient": "linear-gradient(to right, #C61E04 0%, #FF5137 50.48%, #C61E04 100%)"
         },
@@ -230,20 +230,20 @@
             }
         },
         "images": {
-            "gold": "/designs/dragon/stones/gold.webp",
+            "gold": "https://banana.sg-sin-1.linodeobjects.com/dragon/stones/gold.webp",
             "ratio": "/designs/misc/ratio.webp",
             "girlGif": "",
             "loginModalBg": "/designs/misc/modal-login-bg.webp",
-            "mainBackground": "https://sg-sin-1.linodeobjects.com/banana/imageAssets/image-50-1-1778909515732.png",
+            "mainBackground": "/banana/imageAssets/image-50-1-1778909515732.png",
             "defaultThumbnail": "/designs/misc/default.webp",
             "fixedMainBackground": false,
             "mainBackgroundMobile": false
         },
         "homepage": {
             "gameBg": {
-                "slot": "https://banana.sg-sin-1.linodeobjects.com/designs/template-3/game-thumbnail-bg/28.webp",
-                "sport": "https://banana.sg-sin-1.linodeobjects.com/designs/template-3/game-thumbnail-bg/30.webp",
-                "casino": "https://banana.sg-sin-1.linodeobjects.com/designs/template-3/game-thumbnail-bg/29.webp",
+                "slot": "/designs/template-3/game-thumbnail-bg/28.webp",
+                "sport": "/designs/template-3/game-thumbnail-bg/30.webp",
+                "casino": "/designs/template-3/game-thumbnail-bg/29.webp",
                 "sportRatio": ""
             },
             "gameFrame": {
@@ -284,165 +284,165 @@
         "lobbyCard": {
             "topBorder": "/designs/gif-border/top-border.webp",
             "bottomBorder": "/designs/gif-border/bottom-border.webp",
-            "thumbnailBgPathWeb": "https://sg-sin-1.linodeobjects.com/banana/ocean/gif/thumbnail-bg/web",
-            "thumbnailBgPathMobile": "https://sg-sin-1.linodeobjects.com/banana/ocean/gif/thumbnail-bg/mobile"
+            "thumbnailBgPathWeb": "/banana/ocean/gif/thumbnail-bg/web",
+            "thumbnailBgPathMobile": "/banana/ocean/gif/thumbnail-bg/mobile"
         },
         "profileMenu": [
             {
                 "key": "rtp",
                 "page": 1,
                 "sort": 1,
-                "image": "https://sg-sin-1.linodeobjects.com/banana/menu-icons/group-595-1782999084030.webp",
+                "image": "/banana/menu-icons/group-595-1782999084030.webp",
                 "is_active": true
             },
             {
                 "key": "livechat",
                 "page": 1,
                 "sort": 2,
-                "image": "https://banana.sg-sin-1.linodeobjects.com/designs/menu/livechat.webp",
+                "image": "/designs/menu/livechat.webp",
                 "is_active": true
             },
             {
                 "key": "transaksi",
                 "page": 1,
                 "sort": 3,
-                "image": "https://banana.sg-sin-1.linodeobjects.com/designs/menu/transaction.webp",
+                "image": "/designs/menu/transaction.webp",
                 "is_active": true
             },
             {
                 "key": "activity",
                 "page": 1,
                 "sort": 4,
-                "image": "https://banana.sg-sin-1.linodeobjects.com/designs/menu/activity.webp",
+                "image": "/designs/menu/activity.webp",
                 "is_active": true
             },
             {
                 "key": "referral",
                 "page": 1,
                 "sort": 5,
-                "image": "https://banana.sg-sin-1.linodeobjects.com/designs/menu/referral.webp",
+                "image": "/designs/menu/referral.webp",
                 "is_active": true
             },
             {
                 "key": "bettingReport",
                 "page": 1,
                 "sort": 6,
-                "image": "https://banana.sg-sin-1.linodeobjects.com/designs/menu/betting-report.webp",
+                "image": "/designs/menu/betting-report.webp",
                 "is_active": true
             },
             {
                 "key": "history",
                 "page": 1,
                 "sort": 7,
-                "image": "https://banana.sg-sin-1.linodeobjects.com/designs/menu/history.webp",
+                "image": "/designs/menu/history.webp",
                 "is_active": true
             },
             {
                 "key": "contact",
                 "page": 1,
                 "sort": 8,
-                "image": "https://banana.sg-sin-1.linodeobjects.com/designs/menu/contact.webp",
+                "image": "/designs/menu/contact.webp",
                 "is_active": true
             },
             {
                 "key": "changePassword",
                 "page": 1,
                 "sort": 9,
-                "image": "https://banana.sg-sin-1.linodeobjects.com/designs/menu/change-pass.webp",
+                "image": "/designs/menu/change-pass.webp",
                 "is_active": true
             },
             {
                 "key": "promotion",
                 "page": 1,
                 "sort": 10,
-                "image": "https://banana.sg-sin-1.linodeobjects.com/designs/menu/promotion.webp",
+                "image": "/designs/menu/promotion.webp",
                 "is_active": true
             },
             {
                 "key": "apk",
                 "page": 1,
                 "sort": 11,
-                "image": "https://banana.sg-sin-1.linodeobjects.com/designs/menu/apk.webp",
+                "image": "/designs/menu/apk.webp",
                 "is_active": true
             },
             {
                 "key": "telegram",
                 "page": 1,
                 "sort": 12,
-                "image": "https://banana.sg-sin-1.linodeobjects.com/designs/menu/telegram.webp",
+                "image": "/designs/menu/telegram.webp",
                 "is_active": false
             },
             {
                 "key": "invoice",
                 "page": 2,
                 "sort": 1,
-                "image": "https://banana.sg-sin-1.linodeobjects.com/designs/menu/invoice.webp",
+                "image": "/designs/menu/invoice.webp",
                 "is_active": true
             },
             {
                 "key": "hadiah",
                 "page": 2,
                 "sort": 2,
-                "image": "https://banana.sg-sin-1.linodeobjects.com/designs/menu/reward.webp",
+                "image": "/designs/menu/reward.webp",
                 "is_active": true
             },
             {
                 "key": "caraBermain",
                 "page": 2,
                 "sort": 3,
-                "image": "https://banana.sg-sin-1.linodeobjects.com/designs/menu/guide.webp",
+                "image": "/designs/menu/guide.webp",
                 "is_active": true
             },
             {
                 "key": "meanang",
                 "page": 2,
                 "sort": 4,
-                "image": "https://banana.sg-sin-1.linodeobjects.com/designs/menu/trophy.webp",
+                "image": "/designs/menu/trophy.webp",
                 "is_active": true
             },
             {
                 "key": "faq",
                 "page": 2,
                 "sort": 5,
-                "image": "https://banana.sg-sin-1.linodeobjects.com/designs/menu/faq.webp",
+                "image": "/designs/menu/faq.webp",
                 "is_active": true
             },
             {
                 "key": "loginHistory",
                 "page": 2,
                 "sort": 6,
-                "image": "https://banana.sg-sin-1.linodeobjects.com/designs/menu/login.webp",
+                "image": "/designs/menu/login.webp",
                 "is_active": true
             },
             {
                 "key": "levelSystem",
                 "page": 2,
                 "sort": 7,
-                "image": "https://banana.sg-sin-1.linodeobjects.com/designs/menu/level.webp",
+                "image": "/designs/menu/level.webp",
                 "is_active": true
             },
             {
                 "key": "bonusHistory",
                 "page": 2,
                 "sort": 8,
-                "image": "https://banana.sg-sin-1.linodeobjects.com/designs/menu/bonus-history.webp",
+                "image": "/designs/menu/bonus-history.webp",
                 "is_active": true
             },
             {
                 "key": "inquiry",
                 "page": 2,
                 "sort": 9,
-                "image": "https://banana.sg-sin-1.linodeobjects.com/designs/menu/inquiry.webp",
+                "image": "/designs/menu/inquiry.webp",
                 "is_active": true
             }
         ],
         "transaction": {
             "bankNoImage": "/designs/banks/NOIMAGE.webp",
             "depositIcon": "",
-            "bankBasePath": "https://sg-sin-1.linodeobjects.com/banana/ocean/banks",
+            "bankBasePath": "/banana/ocean/banks",
             "withdrawIcon": "",
             "bankAccountNoImage": "/designs/banks/accountlist/NOIMG.webp",
-            "bankAccountListPath": "https://sg-sin-1.linodeobjects.com/banana/ocean/banks/accountlist"
+            "bankAccountListPath": "/banana/ocean/banks/accountlist"
         }
     },
     "contact": {
@@ -454,12 +454,12 @@
         }
     },
     "identity": {
-        "logo": "https://sg-sin-1.linodeobjects.com/banana/theme/kiiiiiiiimmm-mmmmmmmmaaaaaaaaaaaaaaaaaaax-1781619514685.webp",
+        "logo": "/banana/theme/kiiiiiiiimmm-mmmmmmmmaaaaaaaaaaaaaaaaaaax-1781619514685.webp",
         "slug": "ocean",
-        "favicon": "https://sg-sin-1.linodeobjects.com/banana/theme/kimakicon-1781679808366.webp",
+        "favicon": "/banana/theme/kimakicon-1781679808366.webp",
         "siteName": "KIMAKTOTO",
-        "logoPopup": "https://sg-sin-1.linodeobjects.com/banana/theme/kiiiiiiiimmm-mmmmmmmmaaaaaaaaaaaaaaaaaaax-1781619514685.webp",
-        "logoMobile": "https://sg-sin-1.linodeobjects.com/banana/theme/kiiiiiiiimmm-mmmmmmmmaaaaaaaaaaaaaaaaaaax-1781619514685.webp",
+        "logoPopup": "/banana/theme/kiiiiiiiimmm-mmmmmmmmaaaaaaaaaaaaaaaaaaax-1781619514685.webp",
+        "logoMobile": "/banana/theme/kiiiiiiiimmm-mmmmmmmmaaaaaaaaaaaaaaaaaaax-1781619514685.webp",
         "description": "KIMAKTOTO hadir dengan akses HK Pools terpercaya, informasi pasaran yang selalu diperbarui, dan sistem permainan yang responsif. Pilihan tepat bagi Anda yang ingin menikmati pengalaman Toto Online,"
     },
     "integrations": {
