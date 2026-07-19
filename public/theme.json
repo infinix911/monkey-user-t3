@@ -439,10 +439,10 @@
         "transaction": {
             "bankNoImage": "/designs/banks/NOIMAGE.webp",
             "depositIcon": "",
-            "bankBasePath": "/banana/ocean/banks",
+            "bankBasePath": "https://sg-sin-1.linodeobjects.com/banana/ocean/banks",
             "withdrawIcon": "",
             "bankAccountNoImage": "/designs/banks/accountlist/NOIMG.webp",
-            "bankAccountListPath": "/banana/ocean/banks/accountlist"
+            "bankAccountListPath": "https://sg-sin-1.linodeobjects.com/banana/ocean/banks/accountlist"
         }
     },
     "contact": {
