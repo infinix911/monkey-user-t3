@@ -10,86 +10,31 @@ class="mb-6" style="
       <div class="flex flex-col md:flex-row gap-4 md:mt-[35px]">
         <!-- Left Column: Account + Amount -->
         <div class="mb-0 md:mb-6 w-full md:w-1/2 md:pr-6">
-          <label class="text-white text-sm mb-2 flex items-center gap-1.5">
-            <span :style="{ color: dep.accentColor }">
-              <svg
-class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <rect x="2" y="5" width="20" height="14" rx="2" />
-                <path d="M2 10h20" />
-              </svg>
-            </span>
-            Deposit
-          </label>
-          <!-- Bank is fixed by the API — displayed statically, not selectable. -->
-          <div
-            class="h-11 px-4 py-2 rounded w-full flex items-center" :style="{
-              backgroundColor: dep.inputBgColor,
-              color: dep.inputTextColor,
-              border: `1px solid ${dep.inputBorderColor}`,
-            }">
-            <span>{{ selectedBankAccount?.bank || "—" }}</span>
-          </div>
-
           <!-- Account Info Card -->
           <div
-class="mt-4 flex flex-col justify-between relative min-h-[167px]" :style="{
+class="mt-4 flex flex-col justify-center gap-2 p-4" :style="{
             borderRadius: '10px',
             border: `1px solid ${dep.inputBorderColor}`,
             backgroundColor: dep.inputBgColor,
             fontFamily: 'var(--font-line-seed)',
             fontWeight: '400',
           }">
-            <NuxtImg
-v-if="selectedBankAccount"
-              :src="`${siteConfig.assets.transaction.bankBasePath}/${selectedBankAccount.bank.replaceAll(' ', '')}.png`"
-              alt="Bank Logo" style="
-                position: absolute;
-                bottom: 50%;
-                left: 12px;
-                width: auto;
-                height: 50px;
-                object-fit: cover;
-              " />
-            <div class="text-white absolute bottom-[-5px] left-0 right-0 p-4">
-              <p class="text-[17px] lg:text-[19px] tracking-wide mb-[-17px] md:mb-[-14.5px]">
+            <!-- Bank name (no logo image — lead with an emoji instead) -->
+            <p class="flex items-center gap-2 text-[15px] lg:text-[17px] text-white">
+              <span aria-hidden="true">🏦</span>
+              <span>{{ user.bank_name || "—" }}</span>
+            </p>
+            <div class="text-white">
+              <p class="text-[14px] lg:text-[16px] text-white/60">
+                {{ user.bank_account_name }}
+              </p>
+              <p class="text-[17px] lg:text-[19px] tracking-wide">
                 {{
-                  selectedBankAccount
-                    ? selectedBankAccount.account_number
-                      .match(/.{1,4}/g)
-                      ?.join("-")
+                  user.bank_account
+                    ? user.bank_account.match(/.{1,4}/g)?.join("-")
                     : ""
                 }}
               </p>
-              <div class="flex items-end justify-between">
-                <p class="text-[14px] lg:text-[16px] text-white/60">
-                  {{
-                    selectedBankAccount ? selectedBankAccount.account_name : ""
-                  }}
-                </p>
-                <button
-v-if="selectedBankAccount" type="button"
-                  class="mb-0.5 p-1 hover:opacity-75 transition-opacity cursor-pointer" title="Copy account number"
-                  @click="
-                    handleCopy(
-                      selectedBankAccount.account_number,
-                      'accountNumber',
-                    )
-                    ">
-                  <svg width="27" height="27" viewBox="0 0 27 27" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <g clip-path="url(#clip0_698_12634)">
-                      <path
-                        d="M18 1.125H4.5C3.2625 1.125 2.25 2.1375 2.25 3.375V19.125H4.5V3.375H18V1.125ZM21.375 5.625H9C7.7625 5.625 6.75 6.6375 6.75 7.875V23.625C6.75 24.8625 7.7625 25.875 9 25.875H21.375C22.6125 25.875 23.625 24.8625 23.625 23.625V7.875C23.625 6.6375 22.6125 5.625 21.375 5.625ZM21.375 23.625H9V7.875H21.375V23.625Z"
-                        fill="#AFAFAF" />
-                    </g>
-                    <defs>
-                      <clipPath id="clip0_698_12634">
-                        <rect width="27" height="27" fill="white" />
-                      </clipPath>
-                    </defs>
-                  </svg>
-                </button>
-              </div>
             </div>
           </div>
 
@@ -261,6 +206,7 @@ import {
   type IBankAccount,
 } from "@/components/transaction/useBankPayment";
 import VoucherPopupModal from "@/components/transaction/VoucherPopupModal.vue";
+import { useAuthStore } from "~/stores/auth";
 
 const props = defineProps<{
   bankAccounts?: IBankAccount[];
@@ -268,6 +214,11 @@ const props = defineProps<{
 }>();
 
 const { t } = useI18n();
+
+// The account card shows the logged-in user's own registered bank (from /auth/v),
+// not the deposit destination account.
+const authStore = useAuthStore();
+const user = computed(() => authStore.user);
 
 const {
   siteConfig,
@@ -280,7 +231,6 @@ const {
   showVoucherPopup,
   pendingVoucher,
   fileName,
-  selectedBankAccount,
   depositAmountNum,
   bonus,
   serviceFee,
@@ -297,7 +247,6 @@ const {
   handlePopupAgree,
   handlePopupDisagree,
   handleFileChange,
-  handleCopy,
   onSubmit,
 } = useBankPayment({
   bankAccounts: () => props.bankAccounts,
