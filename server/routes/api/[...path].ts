@@ -32,13 +32,32 @@ export default defineEventHandler(async (event) => {
   const originalHost = getRequestHost(event, { xForwardedHost: true });
   const originalProto = getRequestProtocol(event, { xForwardedProto: true });
 
-  return proxyRequest(event, target, {
-    sendStream: true,
-    cookieDomainRewrite: { "*": "" },
-    fetchOptions: { redirect: "manual" },
-    headers: {
-      "x-forwarded-host": originalHost,
-      "x-forwarded-proto": originalProto,
-    },
-  });
+  try {
+    return await proxyRequest(event, target, {
+      // Buffer in dev so a client/upstream abort throws here (caught below)
+      // instead of erroring mid-stream and restarting the Nuxt dev server.
+      // Keep streaming in production for efficiency.
+      sendStream: !import.meta.dev,
+      cookieDomainRewrite: { "*": "" },
+      fetchOptions: { redirect: "manual" },
+      headers: {
+        "x-forwarded-host": originalHost,
+        "x-forwarded-proto": originalProto,
+      },
+    });
+  } catch (err) {
+    // Benign connection aborts: the client cancelled (navigation / HMR reload)
+    // or the upstream backend dropped the socket mid-stream (e.g. it hot-
+    // reloaded). Swallow these so they don't surface as dev "Restarting Nuxt
+    // due to error" churn. Re-throw anything else.
+    const code = (err as { code?: string })?.code;
+    const msg = (err as { message?: string })?.message ?? "";
+    const isAbort =
+      code === "ECONNABORTED" ||
+      code === "ECONNRESET" ||
+      code === "ABORT_ERR" ||
+      /aborted|socket hang up|ECONNRESET|ECONNABORTED/i.test(msg);
+    if (isAbort) return null;
+    throw err;
+  }
 });
