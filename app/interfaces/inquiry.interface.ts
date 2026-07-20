@@ -42,16 +42,31 @@ export interface InquiryItem {
 // fetch points.
 // ===========================================================================
 
+/**
+ * Counts arrive as STRINGS, not numbers.
+ *
+ * `listInquiries` builds `repliesCount` and `meta.total` with a raw `COUNT(*)`,
+ * which Postgres returns as `bigint`; node-postgres parses bigint to a string to
+ * avoid precision loss, and the service sets no `setTypeParser` override. The
+ * backend's `sql<number>` annotation is therefore a compile-time lie — the wire
+ * carries `"3"`.
+ *
+ * A plain `z.number()` rejected that, `validateResponse` threw, the fetch's
+ * catch swallowed it, and the panel rendered "No inquiries yet." even when the
+ * member had inquiries. Coerce instead of trusting the annotation.
+ */
+const wireCount = z.coerce.number();
+
 /** Wire shape of a list item (getInquiriesSchema.data[]). */
 export const inquiryListItemWireSchema = z.object({
   id: z.string(),
   title: z.string(),
   message: z.string(),
-  status: z.number(),
+  status: z.coerce.number(),
   createdAt: z.string(),
   updatedAt: z.string(),
-  repliesCount: z.number(),
-  memberUnread: z.number(),
+  repliesCount: wireCount,
+  memberUnread: z.coerce.number(),
   createdByType: z.string(),
   lastReplyBy: z.string(),
 });
@@ -60,10 +75,10 @@ export const inquiryListItemWireSchema = z.object({
 export const inquiriesResponseWireSchema = z.object({
   data: z.array(inquiryListItemWireSchema),
   meta: z.object({
-    total: z.number(),
-    page: z.number(),
-    limit: z.number(),
-    totalPages: z.number(),
+    total: wireCount,
+    page: z.coerce.number(),
+    limit: z.coerce.number(),
+    totalPages: z.coerce.number(),
   }),
 });
 export type InquiriesResponseWire = z.infer<typeof inquiriesResponseWireSchema>;
