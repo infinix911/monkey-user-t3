@@ -32,7 +32,7 @@
     <div class="rtp-info relative z-30 flex flex-col gap-[1.6cqw] px-[6%] pt-[2.5cqw] pb-[4cqw]"
       :style="{ '--rtp-info-bg': frame.bgColor }">
       <div class="text-center leading-tight">
-        <p class="text-white font-bold truncate" style="font-size: clamp(8px, 7.5cqw, 14px)" :title="game.game_name_en">
+        <p class="text-white font-bold truncate" style="font-size: clamp(8px, 7.5cqw, 14px)" :title="game.game_name_en ?? ''">
           {{ game.game_name_en }}
         </p>
       </div>
@@ -63,9 +63,9 @@ const frame = computed(() => siteConfig.theme.cardFrame);
 
 interface Game {
   id: string | number;
-  game_name_en: string;
-  game_img?: string;
-  lobby?: string;
+  game_name_en: string | null;
+  game_img?: string | null;
+  lobby?: string | null;
 }
 
 const props = defineProps<{ game: Game }>();

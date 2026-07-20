@@ -52,10 +52,10 @@
                 background: #505050;
                 box-shadow: 0 1.566px 1.566px 0 rgba(0, 0, 0, 0.5);
               ">
-              <option value="all">{{ t("bettingReport.all") }}</option>
+              <!-- Only casino/slot/sport: the backend bet-histories endpoint
+                   supports these game types (no aggregate "all" or "mini"). -->
               <option value="casino">{{ t("bettingReport.casino") }}</option>
               <option value="slot">{{ t("bettingReport.slot") }}</option>
-              <option value="mini">Mini</option>
               <option value="sport">{{ t("bettingReport.sport") }}</option>
             </select>
             <svg
@@ -265,7 +265,10 @@ import { validateResponse } from "@/lib/validateResponse";
 import {
   gameLobbiesResponseSchema,
   mapGameLobby,
+  betHistoriesResponseWireSchema,
+  mapBetHistoriesResponse,
   type NormalizedLobby,
+  type BetHistoryRow as IBetHistoryRow,
 } from "@/interfaces/game.interface";
 import { useI18n } from "vue-i18n";
 import { useApi } from "@/composables/useApi";
@@ -273,31 +276,6 @@ import { formatDateAsISO } from "~/lib/date";
 import { formatNumber } from "~/lib/formatter";
 
 // One row per individual bet (realtime, from /games/bet-histories).
-interface IBetHistoryRow {
-  id: number;
-  // Present only on the aggregated `all` response — labels each row's game type.
-  game_type?: string;
-  game_provider: string;
-  game_name: string;
-  game_room: string;
-  bet_amount: string;
-  win_amount: string;
-  bet_result: string;
-  status: number;
-  created_at: string;
-}
-
-interface IBetHistory {
-  pages: number;
-  rows: number;
-  data: IBetHistoryRow[];
-  summary: {
-    bet_amount: string;
-    win_amount: string;
-    roll_amount: string;
-    net_amount: string;
-  };
-}
 
 const _props = defineProps<{
   className?: string;
@@ -361,7 +339,7 @@ const summary = ref<{
   net_amount: string;
 } | null>(null);
 const currentPage = ref(1);
-const gameType = ref("all");
+const gameType = ref("casino");
 // Tracks the game type the currently displayed rows were fetched with, so the
 // Type column shows/hides in sync with the data (not the live dropdown, which
 // may change before the next search).
@@ -425,25 +403,28 @@ async function fetchBetHistories(page: number = 1) {
     error.value = null;
 
     const params = new URLSearchParams({
-      start_date: `${dateFrom.value} ${timeFrom.value}`,
-      end_date: `${dateTo.value} ${timeTo.value}`,
+      startDate: `${dateFrom.value} ${timeFrom.value}`,
+      endDate: `${dateTo.value} ${timeTo.value}`,
       page: String(page),
       limit: "25",
     });
 
     if (provider.value) {
-      params.append("game_name", provider.value);
+      params.append("gameName", provider.value);
     }
 
     const typeForRequest = gameType.value;
     const api = useApi();
-    const data = await api<IBetHistory>(
+    const raw = await api(
       `/games/bet-histories/${typeForRequest}?${params.toString()}`,
     );
-    betHistories.value = data.data || [];
-    totalPages.value = data.pages || 0;
-    totalRows.value = data.rows || 0;
-    summary.value = data.summary || null;
+    const data = mapBetHistoriesResponse(
+      validateResponse(betHistoriesResponseWireSchema, raw, "/games/bet-histories"),
+    );
+    betHistories.value = data.data;
+    totalPages.value = data.pages;
+    totalRows.value = data.rows;
+    summary.value = data.summary;
     currentPage.value = page;
     loadedGameType.value = typeForRequest;
   } catch (err) {

@@ -15,7 +15,12 @@
 
 import { useApi } from "@/composables/useApi";
 import { formatDateAsISO } from "~/lib/date";
-import type { InquiryResponse } from "~/components/inquiry/InquiryContent.vue";
+import { validateResponse } from "@/lib/validateResponse";
+import {
+  inquiriesResponseWireSchema,
+  mapInquiriesResponse,
+  type InquiriesResponse,
+} from "@/interfaces/inquiry.interface";
 import {
   showErrorAlert,
   showWarningAlert,
@@ -405,7 +410,7 @@ export function useProfileMenu(options: UseProfileMenuOptions) {
   }
 
   // Mobile inquiry data fetching
-  const mobileInquiryData = ref<InquiryResponse | null>(null);
+  const mobileInquiryData = ref<InquiriesResponse | null>(null);
   const mobileInquiryPage = ref(1);
 
   async function fetchMobileInquiryData(page: number = 1) {
@@ -413,8 +418,17 @@ export function useProfileMenu(options: UseProfileMenuOptions) {
       const endDate = new Date();
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - INQUIRY_DATE_RANGE);
-      const apiUrl = `/inquiries?page=${page}&limit=${INQUIRY_LIMIT}&start_date=${formatDateAsISO(startDate)}&end_date=${formatDateAsISO(endDate)}`;
-      const data = await api<InquiryResponse>(apiUrl);
+      const raw = await api("/inquiries", {
+        query: {
+          page,
+          limit: INQUIRY_LIMIT,
+          startDate: formatDateAsISO(startDate),
+          endDate: formatDateAsISO(endDate),
+        },
+      });
+      const data = mapInquiriesResponse(
+        validateResponse(inquiriesResponseWireSchema, raw, "/inquiries"),
+      );
       mobileInquiryData.value = data;
       mobileInquiryPage.value = page;
       const hasUnread = data.data.some(

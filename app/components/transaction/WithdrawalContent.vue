@@ -17,27 +17,11 @@
         <!-- Bank Account Card (dark with accent glow border) -->
         <div v-if="bankName && bankAccountNumber" class="relative flex flex-col justify-between min-h-[140px] mb-6 p-4"
           :style="cardStyle">
-          <NuxtImg v-if="user.bank_name && !bankImageError"
-            :src="`${siteConfig.assets.transaction.bankBasePath}/${user.bank_name.replaceAll(' ', '')}.png`"
-            alt="Bank Logo" class="self-start" style="width: auto; height: 46px; object-fit: contain"
-            @error="bankImageError = true" @load="bankImageError = false" />
-          <!-- Fallback when the bank logo PNG is missing or fails to load -->
-          <div v-else aria-label="Bank logo unavailable"
-            class="self-start inline-flex items-center gap-2.5 text-white font-bold text-[15px] leading-none">
-            <span :style="{ color: dep.accentColor }">
-              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"
-                aria-hidden="true">
-                <path d="M3 10l9-6 9 6" />
-                <path d="M5 10v8" />
-                <path d="M9 10v8" />
-                <path d="M15 10v8" />
-                <path d="M19 10v8" />
-                <path d="M3 20h18" />
-              </svg>
-            </span>
+          <!-- Bank name (no logo image — lead with an emoji, same as the deposit card) -->
+          <p class="self-start flex items-center gap-2 text-white font-bold text-[15px] lg:text-[17px]">
+            <span aria-hidden="true">🏦</span>
             <span>{{ user.bank_name || t("withdrawal.bankName") }}</span>
-          </div>
+          </p>
 
           <div class="mt-auto pt-4">
             <p class="text-white text-[18px] lg:text-[20px] tracking-wide">
@@ -250,7 +234,6 @@ const errors = computed(() => (submitted.value ? rawErrors.value : {}));
 const isSubmitting = ref(false);
 const lastSelectedButton = ref<string | null>(null);
 const amount = ref("0");
-const bankImageError = ref(false);
 
 const bankName = computed(() => user.value.bank_name || "");
 const bankAccountNumber = computed(() => user.value.bank_account || "");

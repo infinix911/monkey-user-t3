@@ -6,6 +6,94 @@
 import { z } from "zod";
 
 // ===========================================================================
+// Bet histories: GET /games/bet-histories/:gameType ({ data, meta }, camelCase)
+// ===========================================================================
+
+/** Wire shape of a bet-history row (getBetHistoriesSchema.data[]). */
+export const betHistoryItemWireSchema = z.object({
+  id: z.string(),
+  memberId: z.string().optional(),
+  member: z.string().optional(),
+  gameProvider: z.string(),
+  gameName: z.string(),
+  gameRoom: z.string(),
+  gameRound: z.string().optional(),
+  gameTxn: z.string().optional(),
+  betAmount: z.string(),
+  winAmount: z.string(),
+  betResult: z.string(),
+  walletBefore: z.string().optional(),
+  walletAfter: z.string().optional(),
+  status: z.number().nullable(),
+  createdAt: z.string(),
+  updatedAt: z.string().optional(),
+});
+
+export const betHistoriesResponseWireSchema = z.object({
+  data: z.array(betHistoryItemWireSchema),
+  meta: z.object({
+    total: z.number(),
+    page: z.number().optional(),
+    limit: z.number().optional(),
+    totalPages: z.number(),
+  }),
+});
+export type BetHistoriesResponseWire = z.infer<
+  typeof betHistoriesResponseWireSchema
+>;
+
+/** Normalized bet-history row (snake_case) consumed by BettingReport. */
+export interface BetHistoryRow {
+  id: string;
+  game_type?: string;
+  game_provider: string;
+  game_name: string;
+  game_room: string;
+  bet_amount: string;
+  win_amount: string;
+  bet_result: string;
+  status: number;
+  created_at: string;
+}
+
+/** Normalized bet-history response — the { pages, rows, data, summary } shape. */
+export interface BetHistoryResponse {
+  pages: number;
+  rows: number;
+  data: BetHistoryRow[];
+  summary: {
+    bet_amount: string;
+    win_amount: string;
+    roll_amount: string;
+    net_amount: string;
+  } | null;
+}
+
+export const mapBetHistoryItem = (
+  w: z.infer<typeof betHistoryItemWireSchema>,
+): BetHistoryRow => ({
+  id: w.id,
+  game_provider: w.gameProvider,
+  game_name: w.gameName,
+  game_room: w.gameRoom,
+  bet_amount: w.betAmount,
+  win_amount: w.winAmount,
+  bet_result: w.betResult,
+  status: w.status ?? 0,
+  created_at: w.createdAt,
+});
+
+export const mapBetHistoriesResponse = (
+  w: BetHistoriesResponseWire,
+): BetHistoryResponse => ({
+  pages: w.meta.totalPages,
+  rows: w.meta.total,
+  data: w.data.map(mapBetHistoryItem),
+  // The backend bet-histories endpoint returns no aggregate summary.
+  summary: null,
+});
+
+// ===========================================================================
 // Backend contracts + normalization (monkey-user-api /games, /games/lobbies)
 //
 // The API returns camelCase with UPPERCASE game types (e.g. "CASINO"). The

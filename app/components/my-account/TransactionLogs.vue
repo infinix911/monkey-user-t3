@@ -88,7 +88,13 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { useApi } from "@/composables/useApi";
-import type { ILedgerItem, ILedgerResponse, LedgerStatus } from "@/interfaces/ledger";
+import { validateResponse } from "@/lib/validateResponse";
+import {
+  logsResponseWireSchema,
+  mapLogsResponse,
+  type ILedgerItem,
+  type LedgerStatus,
+} from "@/interfaces/ledger";
 
 // Column headers for the account transaction ledger.
 const columns = ["Tanggal", "Keterangan", "Status", "Saldo", "Last Balance"];
@@ -136,11 +142,15 @@ async function fetchLedger(page: number) {
   try {
     const api = useApi();
     // useApi prepends the base (`/api` on the client) → /api/transactions/logs.
-    const result = await api<ILedgerResponse>("/transactions/logs", {
+    // Backend returns { data, meta } (camelCase); normalize to { pages, rows, data }.
+    const raw = await api("/transactions/logs", {
       query: { page, limit: PAGE_SIZE },
     });
-    ledgerData.value = result?.data ?? [];
-    totalPages.value = result?.pages ?? 0;
+    const result = mapLogsResponse(
+      validateResponse(logsResponseWireSchema, raw, "/transactions/logs"),
+    );
+    ledgerData.value = result.data;
+    totalPages.value = result.pages;
     currentPage.value = page;
   } catch (err) {
     console.error("Failed to fetch ledger:", err);
