@@ -12,7 +12,7 @@
 #     -e NUXT_PUBLIC_SITE=lucky \
 #     -e NUXT_PUBLIC_SITE_URL=https://luckylah.com \
 #     -e NUXT_API_URL=https://api.example.internal/api \
-#     -e NUXT_WS_API_URL=ws://api.example.internal:4002 \
+#     -e NUXT_WS_API_URL=ws://api.example.internal:4000 \
 #     -e REDIS_HOST=redis -e REDIS_PORT=6379 -e REDIS_PASSWORD= -e REDIS_DB=0 \
 #     banana-lucky-nuxt
 #

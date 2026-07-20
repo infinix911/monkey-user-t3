@@ -29,7 +29,6 @@ export const useWebSocketStore = defineStore("websocket", () => {
   const isConnected = ref(false);
   const connectionError = ref<string | null>(null);
   const reconnectAttempts = ref(0);
-  const maxReconnectAttempts = 3;
 
   // Store callback functions (not reactive state)
   let routerRefreshFn: (() => void) | null = null;
@@ -205,7 +204,28 @@ export const useWebSocketStore = defineStore("websocket", () => {
                 const walletData = data.data as WalletData;
                 if (walletData?.wallet !== undefined) {
                   const authStore = useAuthStore();
-                  authStore.updateUser({ wallet: String(walletData.wallet) });
+                  authStore.updateUser({
+                    wallet: String(walletData.wallet),
+                    ...(walletData.point !== undefined
+                      ? { point: String(walletData.point) }
+                      : {}),
+                  });
+                }
+                break;
+              }
+
+              case "inquiry_updated":
+              case "reloaduser": {
+                inquiryCheckCallback?.();
+                routerRefreshFn?.();
+                break;
+              }
+
+              case "counter_update": {
+                const counter = data.data as { type?: string };
+                if (counter?.type === "MEMBER_INQUIRY") {
+                  inquiryCheckCallback?.();
+                  routerRefreshFn?.();
                 }
                 break;
               }
@@ -237,19 +257,15 @@ export const useWebSocketStore = defineStore("websocket", () => {
           // Attempt reconnection if it wasn't a manual close (code 1000)
           if (event.code !== 1000) {
             const currentAttempts = reconnectAttempts.value;
-            if (currentAttempts < maxReconnectAttempts) {
-              const delay = 2000 * (currentAttempts + 1); // Exponential backoff
-              console.log(
-                `🔌 Reconnecting in ${delay}ms (attempt ${currentAttempts + 1}/${maxReconnectAttempts})`,
-              );
+            const delay = Math.min(30_000, 1000 * 2 ** currentAttempts);
+            console.log(
+              `🔌 Reconnecting in ${delay}ms (attempt ${currentAttempts + 1})`,
+            );
 
-              setTimeout(() => {
-                reconnectAttempts.value = currentAttempts + 1;
-                connect();
-              }, delay);
-            } else {
-              console.error("🔌 Max reconnection attempts reached");
-            }
+            setTimeout(() => {
+              reconnectAttempts.value = currentAttempts + 1;
+              connect();
+            }, delay);
           }
         };
 

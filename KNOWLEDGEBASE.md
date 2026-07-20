@@ -21,7 +21,7 @@
 
 - **Purpose:** User-facing gaming platform frontend (casino/slot/sport/togel; IDR market primary). This is the **"Jae/T3" fork** of banana-lucky-nuxt: single bundled design template ("Template3") + per-domain CMS theming. Deploys to `idr-demo1.jaeisol.com`-style tenant domains.
 - **Stack:** Nuxt **4.4.2** SSR (node-server preset), Vue 3.5, TypeScript, Tailwind **v4**, Pinia 3, @nuxtjs/i18n 10 (en/id/ko/th, `no_prefix`), vee-validate + zod, vue-sonner (toasts), in-house AppDialog (SweetAlert2 removed), @nuxt/image (IPX), nuxt-security, Sentry (env-gated), ioredis (SSR caches).
-- **Backend:** `../banana-user-api` (Bun+Elysia, HTTP :4000, WS :4002 external) — has its own KNOWLEDGEBASE.md. Browser NEVER talks to it directly (§4).
+- **Backend:** `../monkey-user-api` (Bun+Elysia, HTTP + WS :4000) — the browser never talks to it directly (§4).
 - **Build/run:** Docker — Bun builds (`bun install --frozen-lockfile`, `bun run build`), **Node 22 runs** `.output/server/index.mjs` as non-root, port 3000, behind Traefik (router files written dynamically by the APIs).
 - **Size:** 831 tracked files; `app/components` 201 files (~45k lines, half of it togel), 41 composables, 26 pages, 6 Pinia stores, 4 togel money-math services (the only unit-tested code).
 - **Testing:** Playwright e2e (13 specs, ~52 tests, API-mocked, serial, NO webServer — start the app yourself), Vitest 2-project (unit = togel services 98 tests; component = 27 payload-characterization tests). Coverage measured only for `app/services/togel/**`.

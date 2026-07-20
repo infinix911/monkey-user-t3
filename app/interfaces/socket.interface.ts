@@ -20,5 +20,6 @@ export interface NotificationData {
  * WebSocket wallet update data structure
  */
 export interface WalletData {
-  wallet?: number;
+  wallet?: string | number;
+  point?: string | number;
 }

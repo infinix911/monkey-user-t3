@@ -84,5 +84,5 @@ export function getWsApiUrl(): string {
   }
   const cfg = readServerConfig()
   if (cfg?.wsApiUrl) return cfg.wsApiUrl
-  return 'ws://localhost:4002'
+  return 'ws://localhost:4000'
 }

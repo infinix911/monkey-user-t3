@@ -196,7 +196,7 @@ before wiring.
 5. 🟠 **Field/length divergence** (username 4↔5, login max 12↔32, withdrawal bank fields, register `currency`) — align FE schemas to backend.
 6. 🟠 **`/auth/v` no `currency`** — derive from site currency, not the profile.
 7. 🟢 **Port clash** — user-api and admin-api both default to :4000; run one at a time.
-8. 🟢 **WS server lives in admin-api** (:4002) — notifications/wallet live updates need it running.
+8. 🟢 **WS server lives in monkey-user-api** (:4000) — Nuxt proxies `/ws`, while Redis fans out notifications and wallet updates.
 
 ---
 
