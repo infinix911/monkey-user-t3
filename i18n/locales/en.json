@@ -116,6 +116,12 @@
     "bankAccountName": "Account Holder",
     "bankAccount": "Account Number",
     "note": "Withdrawals can only be made to the account registered during deposit/withdrawal registration.",
+    "validation": {
+      "amountInvalid": "Please enter a valid amount",
+      "amountMinimum": "Minimum withdrawal amount is {min}",
+      "amountMaximum": "Maximum withdrawal amount is {max}",
+      "amountDivisible": "Withdrawal amount must be in multiples of {step}"
+    },
     "withdrawCheck": "Withdrawal amount must be 10,000 or more.",
     "success": "Withdrawal request has been completed.",
     "withdrawDivCheck": "Withdrawal amount must be in multiples of 10,000",
@@ -520,7 +526,9 @@
     "validation": {
       "amountRequired": "Deposit amount is required",
       "amountInvalid": "Please enter a valid amount",
-      "amountMinimum": "Deposit amount must be greater than 0",
+      "amountMinimum": "Minimum deposit amount is {min}",
+      "amountMaximum": "Maximum deposit amount is {max}",
+      "amountDivisible": "Deposit amount must be in multiples of {step}",
       "bankRequired": "Please select a bank account"
     },
     "failed": {
