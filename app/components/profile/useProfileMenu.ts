@@ -90,10 +90,6 @@ export function useProfileMenu(options: UseProfileMenuOptions) {
       labelKey: "myAccount.referral.title",
       image: profileMenu.referral,
     },
-    bonusHistory: {
-      labelKey: "myAccount.bonusHistory.title",
-      image: profileMenu.bonusHistory,
-    },
     bettingReport: {
       labelKey: "myAccount.bettingReport",
       image: profileMenu.bettingReport,
@@ -105,10 +101,6 @@ export function useProfileMenu(options: UseProfileMenuOptions) {
     transaction: {
       labelKey: "profile.transaction",
       image: profileMenu.bettingReport,
-    },
-    levelSystem: {
-      labelKey: "myAccount.levelSystem",
-      image: profileMenu.levelSystem,
     },
     loginHistory: {
       labelKey: "myAccount.loginHistory.label",
@@ -195,21 +187,26 @@ export function useProfileMenu(options: UseProfileMenuOptions) {
 
   const isBottom = computed(() => options.position() === "bottom");
 
-  // Togel was removed from this fork (ADR: togel/qris removal), but the live
-  // CMS theme payload may still carry the old togel menu items (hadiah /
-  // invoice / meanang / history → /togel/normor / caraBermain). Drop them
-  // unconditionally — the routes no longer exist. Matched on a normalized id
-  // so CMS variants (cara_bermain, cara-bermain, Menang) are caught too.
-  const TOGEL_ITEM_IDS = new Set([
+  // Menu items whose panels no longer exist in this fork. The live CMS theme
+  // payload still ships them, so they must be dropped here or they'd render as
+  // tiles that open nothing. Matched on a normalized id so CMS spelling
+  // variants (cara_bermain, cara-bermain, Menang, bonus_history) are caught.
+  //
+  // - togel group (invoice … carabermain): ADR togel/qris removal — routes gone.
+  // - bonushistory / levelsystem: backed only by GET /promotions/bonuses and
+  //   GET /promotions/level-rewards, which don't exist in monkey-user-api.
+  const REMOVED_ITEM_IDS = new Set([
     "invoice",
     "meanang",
     "menang",
     "hadiah",
     "history",
     "carabermain",
+    "bonushistory",
+    "levelsystem",
   ]);
-  const isTogelItem = (id: string) =>
-    TOGEL_ITEM_IDS.has(id.replace(/[^a-z]/gi, "").toLowerCase());
+  const isRemovedItem = (id: string) =>
+    REMOVED_ITEM_IDS.has(id.replace(/[^a-z]/gi, "").toLowerCase());
 
   // Pre-fetched server-side in app.vue via useAsyncData('menuSettings').
   const menuSettings = useMenuSettings();
@@ -242,7 +239,7 @@ export function useProfileMenu(options: UseProfileMenuOptions) {
       return MENU_ITEMS;
     }
     const page1 = settings
-      .filter((s) => s.enabled && s.page === 1 && !isTogelItem(s.item))
+      .filter((s) => s.enabled && s.page === 1 && !isRemovedItem(s.item))
       .sort((a, b) => a.sort - b.sort);
     if (page1.length === 0) {
       return MENU_ITEMS;
@@ -256,7 +253,7 @@ export function useProfileMenu(options: UseProfileMenuOptions) {
       return PAGE2_ITEMS;
     }
     const page2 = settings
-      .filter((s) => s.enabled && s.page === 2 && !isTogelItem(s.item))
+      .filter((s) => s.enabled && s.page === 2 && !isRemovedItem(s.item))
       .sort((a, b) => a.sort - b.sort);
     if (page2.length === 0) {
       return PAGE2_ITEMS;
@@ -288,10 +285,8 @@ export function useProfileMenu(options: UseProfileMenuOptions) {
   // Header icons for the mobile full-screen modal (icon + text).
   const ACCOUNT_SECTION_ICONS: Partial<Record<string, string>> = {
     bettingReport: "/designs/template-3/bettingreport.png",
-    levelSystem: "/designs/template-3/level1.png",
     changePassword: "/designs/template-3/password.png",
     referral: "/designs/template-3/referral.png",
-    bonusHistory: "/designs/template-3/bonus.png",
     loginHistory: "/designs/template-3/login.png",
   };
 
@@ -303,10 +298,8 @@ export function useProfileMenu(options: UseProfileMenuOptions) {
 
   // Per-section vertical nudge for the overlapping header icon.
   const ACCOUNT_SECTION_ICON_TOP: Partial<Record<string, string>> = {
-    levelSystem: "4px",
     referral: "8px",
     changePassword: "3px",
-    bonusHistory: "11px",
   };
 
   const selectedAccountSectionIconStyle = computed(() => {

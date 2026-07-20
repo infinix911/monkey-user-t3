@@ -344,7 +344,7 @@ const siteConfig = useSiteConfig();
 const { locale, setLocale } = useI18n();
 
 // Mobile authenticated pill (lucky-style): currency formatting + the user's
-// level-matching stone badge. Mirrors UserBalancePill.vue / LevelSystem.vue.
+// level-matching stone badge. Mirrors UserBalancePill.vue.
 const currency = useCurrency();
 const walletSymbol = computed(() => {
   const s = currency.symbolFor(authStore.user.currency);

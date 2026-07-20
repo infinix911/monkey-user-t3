@@ -103,50 +103,11 @@ class="self-stretch" style="
           " />
         <div class="w-full block md:hidden h-[1px]" style="background: #666" />
 
-        <!-- Right Column: Voucher + Summary + Upload + Submit -->
+        <!-- Right Column: Summary + Upload + Submit -->
         <div class="mb-6 font-medium w-full md:w-1/2 md:pl-6">
-          <!-- Voucher UI hidden: the backend has no /promotions/vouchers
-               endpoint and deposit carries no voucher field. Re-enable this
-               block (v-if="paymentType !== 'PULSA'") if a promotions API lands. -->
-          <template v-if="false">
-            <label class="text-white text-sm mb-2 flex items-center gap-1.5">
-              <span :style="{ color: dep.accentColor }">
-                <svg
-class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round">
-                  <path
-                    d="M2 9a3 3 0 0 0 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z" />
-                  <path d="M13 5v14" />
-                </svg>
-              </span>
-              {{ t("deposit.voucher") }}
-            </label>
-            <div class="relative mb-4">
-              <select
-:value="selectedVoucher?.issue_id || ''"
-                class="font-normal px-4 py-2 rounded w-full appearance-none pr-10" :style="{
-                  height: '45px',
-                  backgroundColor: dep.inputBgColor,
-                  color: dep.inputTextColor,
-                  border: `1px solid ${dep.inputBorderColor}`,
-                }" :disabled="loadingVouchers" @change="handleVoucherChange">
-                <option value="">{{ t("deposit.selectVoucher") }}</option>
-                <option v-for="voucher in vouchers" :key="voucher.issue_id" :value="voucher.issue_id">
-                  {{ voucher.voucher }}
-                </option>
-              </select>
-              <svg
-class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600 pointer-events-none"
-                fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-              </svg>
-            </div>
-          </template>
-
           <!-- Transaction Summary -->
           <DepositSummary
-:deposit-amount="depositAmountNum" :service-fee="serviceFee" :net-amount="netAmount"
-            :bonus="bonus" :total-net-amount="totalNetAmount" />
+:deposit-amount="depositAmountNum" :service-fee="serviceFee" :net-amount="netAmount" />
 
           <!-- Divider -->
           <div class="w-full mt-7 mb-5" style="height: 1px; background: #666" />
@@ -189,14 +150,6 @@ type="submit"
         </div>
       </div>
     </div>
-
-    <!-- Voucher Popup Modal -->
-    <VoucherPopupModal
-      :is-open="showVoucherPopup"
-      :popup-text="pendingVoucher?.popup_text ?? null"
-      @agree="handlePopupAgree"
-      @disagree="handlePopupDisagree"
-    />
   </form>
 </template>
 
@@ -205,7 +158,6 @@ import {
   useBankPayment,
   type IBankAccount,
 } from "@/components/transaction/useBankPayment";
-import VoucherPopupModal from "@/components/transaction/VoucherPopupModal.vue";
 import { useAuthStore } from "~/stores/auth";
 
 const props = defineProps<{
@@ -224,18 +176,11 @@ const {
   siteConfig,
   currency,
   errors,
-  vouchers,
-  loadingVouchers,
   depositAmount,
-  selectedVoucher,
-  showVoucherPopup,
-  pendingVoucher,
   fileName,
   depositAmountNum,
-  bonus,
   serviceFee,
   netAmount,
-  totalNetAmount,
   quickAmounts,
   getTranslatedAmount,
   formatCurrencyInput,
@@ -243,9 +188,6 @@ const {
   handleAmountClick,
   handleMax,
   handleReset,
-  handleVoucherChange,
-  handlePopupAgree,
-  handlePopupDisagree,
   handleFileChange,
   onSubmit,
 } = useBankPayment({
