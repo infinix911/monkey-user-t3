@@ -1,15 +1,13 @@
 ﻿<template>
   <form @submit.prevent="onSubmit">
     <!-- Main Layout -->
-    <div
-class="mb-6" style="
-        font-family: var(--font-line-seed);
-        max-width: 957px;
-        margin: 0 auto;
-      ">
-      <div class="flex flex-col md:flex-row gap-4 md:mt-[35px]">
-        <!-- Left Column: Account + Amount -->
-        <div class="mb-0 md:mb-6 w-full md:w-1/2 md:pr-6">
+    <div class="mb-6 mx-auto w-full max-w-md" style="font-family: var(--font-line-seed)">
+      <!-- Single column: the summary card and proof-of-transfer upload were
+           removed, which left the old right-hand column holding only the submit
+           button — so the two-column split and its vertical divider went with
+           them. Width now matches the withdrawal modal's max-w-md body. -->
+      <div class="mt-2 md:mt-4">
+        <div class="mb-0 md:mb-4 w-full">
           <!-- Account Info Card -->
           <div
 class="mt-4 flex flex-col justify-center gap-2 p-4" :style="{
@@ -94,46 +92,8 @@ v-for="amount in quickAmounts" :key="amount" type="button"
           </div>
         </div>
 
-        <!-- Vertical Divider -->
-        <div
-class="self-stretch" style="
-            width: 1.5px;
-            background: rgba(138, 134, 134, 0.4);
-            min-height: 100%;
-          " />
-        <div class="w-full block md:hidden h-[1px]" style="background: #666" />
-
-        <!-- Right Column: Summary + Upload + Submit -->
-        <div class="mb-6 font-medium w-full md:w-1/2 md:pl-6">
-          <!-- Transaction Summary -->
-          <DepositSummary
-:deposit-amount="depositAmountNum" :service-fee="serviceFee" :net-amount="netAmount" />
-
-          <!-- Divider -->
-          <div class="w-full mt-7 mb-5" style="height: 1px; background: #666" />
-
-          <!-- Proof Transfer -->
-          <div class="mb-[21px]">
-            <label class="text-white text-sm mb-2 block">
-              {{ t("deposit.proofTransfer") }}
-            </label>
-            <div class="flex gap-3">
-              <label
-                class="text-nowrap text-[15px] md:text-[18px] bg-black hover:bg-[#1a1a1a] text-white px-4 pt-3 md:pt-2 rounded cursor-pointer transition-colors border border-[#3c3c3c]">
-                <input type="file" class="hidden" accept="image/*" @change="handleFileChange">
-                {{ t("deposit.selectFile") }}
-              </label>
-              <input
-type="text" :value="fileName" readonly class="px-3 lg:px-6 py-2 rounded flex-1 w-full" :style="{
-                height: '45px',
-                backgroundColor: dep.inputBgColor,
-                color: dep.inputTextColor,
-                border: `1px solid ${dep.inputBorderColor}`,
-              }">
-            </div>
-          </div>
-
-          <!-- Deposit Button -->
+        <!-- Deposit Button -->
+        <div class="mb-6 font-medium w-full">
           <div class="relative">
             <button
 type="submit"
@@ -162,7 +122,6 @@ import { useAuthStore } from "~/stores/auth";
 
 const props = defineProps<{
   bankAccounts?: IBankAccount[];
-  paymentType?: string;
 }>();
 
 const { t } = useI18n();
@@ -177,10 +136,6 @@ const {
   currency,
   errors,
   depositAmount,
-  fileName,
-  depositAmountNum,
-  serviceFee,
-  netAmount,
   quickAmounts,
   getTranslatedAmount,
   formatCurrencyInput,
@@ -188,11 +143,9 @@ const {
   handleAmountClick,
   handleMax,
   handleReset,
-  handleFileChange,
   onSubmit,
 } = useBankPayment({
   bankAccounts: () => props.bankAccounts,
-  paymentType: () => props.paymentType,
 });
 
 const dep = computed(() => siteConfig.theme.transactionmodal);
