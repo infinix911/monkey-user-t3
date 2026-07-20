@@ -17,7 +17,9 @@ const MOCK_VOUCHER_WITH_POPUP = {
   valid_to: "2027-12-31 23:59:59",
   enable_popup: true,
   popup_text: "By selecting this voucher you agree to the promotional terms.",
-  tiers: [{ min_value: 50000, reward_type: "PERCENT", reward_value: 10, cap: 200000 }],
+  tiers: [
+    { min_value: 50000, reward_type: "PERCENT", reward_value: 10, cap: 200000 },
+  ],
 };
 
 const MOCK_VOUCHER_NO_POPUP = {
@@ -28,7 +30,9 @@ const MOCK_VOUCHER_NO_POPUP = {
   valid_to: "2027-12-31 23:59:59",
   enable_popup: false,
   popup_text: null,
-  tiers: [{ min_value: 50000, reward_type: "PERCENT", reward_value: 5, cap: 100000 }],
+  tiers: [
+    { min_value: 50000, reward_type: "PERCENT", reward_value: 5, cap: 100000 },
+  ],
 };
 
 function json(data: unknown, status = 200) {
@@ -56,7 +60,11 @@ async function openDepositModal(page: Page) {
 /** Wait for Vue to hydrate — __vue_app__ is set on #__nuxt after mount. */
 async function waitForVue(page: Page) {
   await page.waitForFunction(
-    () => !!(document.getElementById("__nuxt") && (document.getElementById("__nuxt") as any).__vue_app__),
+    () =>
+      !!(
+        document.getElementById("__nuxt") &&
+        (document.getElementById("__nuxt") as any).__vue_app__
+      ),
     { timeout: 15_000 },
   );
 }
@@ -68,9 +76,12 @@ test.describe("Voucher Popup in Deposit Modal", () => {
     await page.route(
       (url) => url.hostname === "localhost" && url.pathname.startsWith("/api/"),
       async (route) => {
-        const path = route.request().url().replace(/^https?:\/\/[^/]+/, "");
+        const path = route
+          .request()
+          .url()
+          .replace(/^https?:\/\/[^/]+/, "");
 
-        if (path.startsWith("/api/auth/v")) {
+        if (path.startsWith("/api/auth/get-session")) {
           return route.fulfill(json(MOCK_USER));
         }
         if (path.startsWith("/api/promotions/vouchers")) {

@@ -1,7 +1,7 @@
 // AUTO-GENERATED — curated provider logos for the AppFooter marquees, grouped
 // by category (up to 12 per folder, to keep the footer image count low).
-// Sources: public/designs/{casino,slot,sport}-logo (served via the CDN).
-import { cdn } from "@/utils/assetUrl";
+// Keep these same-origin: AppFooter uses each image as a CSS mask for its shine
+// effect, and the Linode bucket does not return the CORS headers CSS masks need.
 
 export const CASINO_LOGOS: readonly string[] = [
   "/designs/casino-logo/0473fcc5-ebe8-49dc-90f4-c86ea6c9e25d.webp",
@@ -16,7 +16,7 @@ export const CASINO_LOGOS: readonly string[] = [
   "/designs/casino-logo/7c8e4e62-ceca-4a49-b03d-e6b45f7cb148.webp",
   "/designs/casino-logo/8e4adcdd-d908-4579-988f-c664f204c452.webp",
   "/designs/casino-logo/98d739c8-2a47-4077-8bb1-3037bb2aaf7e.webp",
-].map(cdn);
+];
 
 export const SLOT_LOGOS: readonly string[] = [
   "/designs/slot-logo/001c8371-235e-4d77-9eb4-a00ef115c1da.webp",
@@ -31,7 +31,7 @@ export const SLOT_LOGOS: readonly string[] = [
   "/designs/slot-logo/61eaeeaf-dd7a-4a5c-81f9-3b70135ab0be.webp",
   "/designs/slot-logo/6fc33ddf-d23f-47ba-bc7b-c12b0c8041b0.webp",
   "/designs/slot-logo/81532f7d-c0a6-4a7b-b1e0-903f13978822.webp",
-].map(cdn);
+];
 
 export const SPORT_LOGOS: readonly string[] = [
   "/designs/sport-logo/0deb2d1a-d6aa-4ed5-831c-1f99abe779e0.webp",
@@ -42,4 +42,4 @@ export const SPORT_LOGOS: readonly string[] = [
   "/designs/sport-logo/d29f20bb-85d3-4321-bf57-26e6b6a015b4.webp",
   "/designs/sport-logo/d509c0cd-4032-4e77-a095-6722770fa15a.webp",
   "/designs/sport-logo/de90630f-a457-46a1-ade3-9c5709c907bc.webp",
-].map(cdn);
+];

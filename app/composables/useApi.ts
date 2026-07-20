@@ -62,7 +62,9 @@ export class ApiValidationError extends Error {
   constructor(request: string, issues: ZodIssue[]) {
     super(
       `API response validation failed for "${request}": ` +
-        issues.map((i) => `${i.path.join(".") || "<root>"} ${i.message}`).join("; "),
+        issues
+          .map((i) => `${i.path.join(".") || "<root>"} ${i.message}`)
+          .join("; "),
     );
     this.name = "ApiValidationError";
     this.issues = issues;
@@ -124,17 +126,17 @@ export const useApi = (): ValidatingFetch => {
     onResponse({ request, response }) {
       if (!import.meta.client || !response.ok) return;
       const url = String(request);
-      if (url.includes("/auth/login") || url.includes("/auth/v")) {
+      if (url.includes("/auth/sign-in/username")) {
         sessionStorage.removeItem("session_logged_out");
       }
     },
     // 401 auto-logout (parity with axios-client): reset user + redirect home,
-    // once per session, excluding the login attempt and the /auth/v probe
-    // (anonymous first-load 401 is expected — must NOT trigger a reload loop).
+    // once per session, excluding the login attempt. Better Auth's native
+    // session probe returns 200 null for anonymous visitors.
     onResponseError({ request, response }) {
       if (!import.meta.client || response?.status !== 401) return;
       const reqUrl = String(request);
-      if (reqUrl.includes("/auth/login") || reqUrl.includes("/auth/v")) return;
+      if (reqUrl.includes("/auth/sign-in/username")) return;
       if (sessionStorage.getItem("session_logged_out")) return;
       sessionStorage.setItem("session_logged_out", "1");
       try {

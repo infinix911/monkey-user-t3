@@ -17,6 +17,7 @@ CLAUDE → MEMORY → KNOWLEDGEBASE → DECISIONS → identify affected modules 
 **Do NOT re-scan the whole repository** unless architecture/folders changed materially, a large refactor landed, KNOWLEDGEBASE is demonstrably stale, or the user explicitly asks for an audit.
 
 **Documentation maintenance rules** (update as part of the change, not after):
+
 - **KNOWLEDGEBASE.md** — when architecture, a folder, module, pattern, reusable component/composable, the site-config contract, caching, auth, routing, or the File Reading Map changes.
 - **DECISIONS.md** — when an architectural decision is made/changed/obsoleted (append a new ADR; never delete — mark Deprecated/Superseded).
 - **CLAUDE.md** — when the AI workflow, repo organization, coding standards, or doc responsibilities change.
@@ -56,6 +57,7 @@ The browser never contacts the backend directly. All `/api/*` requests hit the s
 ### SSR API Pattern
 
 Use `useApi()` for all page data fetching — it's isomorphic:
+
 - **Server**: targets `NUXT_API_URL` directly and forwards the request's `cookie` header.
 - **Client**: targets `/api` (same-origin proxy), `credentials: include`.
 
@@ -80,7 +82,7 @@ Live preview: `?themePreview=1` + postMessage bridge (`app/plugins/theme-preview
 ### Authentication
 
 - **Server guard**: `server/middleware/guard.ts` — cookie-presence check, protects only `GAME_*` routes today (`PROTECTED_PREFIXES` is empty); also 404s `/togel*` on non-IDR deployments.
-- **Client guard**: `app/middleware/auth.global.ts` (post-hydration, `PROTECTED_PATHS` empty; verifies via `authStore.verifyUser()` → `GET /auth/v`).
+- **Client guard**: `app/middleware/auth.global.ts` (post-hydration, `PROTECTED_PATHS` empty; verifies via `authStore.verifyUser()` → `GET /auth/get-session`).
 - **Store**: `app/stores/auth.ts` — user/wallet/level/bank; wallet updated live by the websocket store (`wallet` events).
 - Session lifecycle: `app/plugins/session-verify.client.ts` (verify on ready → WS connect; disconnect on tab-hide for bfcache).
 
@@ -96,12 +98,12 @@ Live preview: `?themePreview=1` + postMessage bridge (`app/plugins/theme-preview
 
 ### Stores (Pinia, setup-style, no persistence plugin)
 
-| Store | Purpose |
-|---|---|
-| `auth` | User identity, wallet, level, bank; verifyUser/logout |
+| Store       | Purpose                                                                                  |
+| ----------- | ---------------------------------------------------------------------------------------- |
+| `auth`      | User identity, wallet, level, bank; verifyUser/logout                                    |
 | `websocket` | WS connect via `/auth/ws` token → `wss://<host>/ws?token=`; notification + wallet events |
-| `site` | Site settings/banks (populated during SSR) |
-| `ui` | Modal flags, device detection, notice |
+| `site`      | Site settings/banks (populated during SSR)                                               |
+| `ui`        | Modal flags, device detection, notice                                                    |
 
 ### Togel + QRIS removed
 
@@ -116,17 +118,17 @@ transaction-ledger types moved to `app/components/DataTable.vue` and
 
 ## Key Environment Variables
 
-| Variable | Purpose |
-|---|---|
-| `NUXT_API_URL` | Backend REST URL — server-only, never in browser bundle |
-| `NUXT_WS_API_URL` | Backend WS URL — server-only |
-| `NUXT_PUBLIC_SITE` | Legacy brand id (build ARG; mostly informational now) |
-| `NUXT_PUBLIC_SITE_URL` | Public URL for sitemap/robots |
-| `REDIS_HOST` (+PORT/PASSWORD/DB) | Optional — enables shared SSR cache + anon page cache storage |
-| `NUXT_ENABLE_ANON_PAGE_CACHE` / `NUXT_ANON_PAGE_CACHE_TTL_MS` | Anonymous full-page SSR cache (default off / 60s) |
-| `NUXT_ENABLE_EDGE_CACHE` (+MAXAGE_S/SWR_S) | Optional CDN-Cache-Control for anon responses |
-| `NUXT_PUBLIC_SENTRY_DSN` | Sentry — empty disables monitoring |
-| `NUXT_PUBLIC_ADMIN_PREVIEW_ORIGIN` | Admin CMS origins for theme-preview iframe/postMessage |
+| Variable                                                      | Purpose                                                       |
+| ------------------------------------------------------------- | ------------------------------------------------------------- |
+| `NUXT_API_URL`                                                | Backend REST URL — server-only, never in browser bundle       |
+| `NUXT_WS_API_URL`                                             | Backend WS URL — server-only                                  |
+| `NUXT_PUBLIC_SITE`                                            | Legacy brand id (build ARG; mostly informational now)         |
+| `NUXT_PUBLIC_SITE_URL`                                        | Public URL for sitemap/robots                                 |
+| `REDIS_HOST` (+PORT/PASSWORD/DB)                              | Optional — enables shared SSR cache + anon page cache storage |
+| `NUXT_ENABLE_ANON_PAGE_CACHE` / `NUXT_ANON_PAGE_CACHE_TTL_MS` | Anonymous full-page SSR cache (default off / 60s)             |
+| `NUXT_ENABLE_EDGE_CACHE` (+MAXAGE_S/SWR_S)                    | Optional CDN-Cache-Control for anon responses                 |
+| `NUXT_PUBLIC_SENTRY_DSN`                                      | Sentry — empty disables monitoring                            |
+| `NUXT_PUBLIC_ADMIN_PREVIEW_ORIGIN`                            | Admin CMS origins for theme-preview iframe/postMessage        |
 
 ## Notable Config Decisions (details in DECISIONS.md)
 

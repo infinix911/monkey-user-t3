@@ -8,8 +8,8 @@
  * producing `undefined` fields — important for auth/money reads.
  *
  * Usage:
- *   const raw = (await axiosClient.get("/auth/v")).data;
- *   const user = validateResponse(verifyUserResponseSchema, raw, "/auth/v");
+ *   const raw = (await axiosClient.get("/auth/get-session")).data;
+ *   const user = validateResponse(getSessionResponseSchema, raw, "/auth/get-session");
  */
 
 import type { ZodType } from "zod";

@@ -3,7 +3,7 @@
  *
  * In production, SSR hydration is skipped (cookie scoped to API domain is not
  * forwarded by the Worker), so this plugin verifies the session by calling
- * /auth/v after mount. In development, SSR already populated the store, so
+ * /auth/get-session after mount. In development, SSR already populated the store, so
  * we only verify if Pinia came up logged-out.
  *
  * Once authenticated, connects the WebSocket and fetches notices. Also pauses

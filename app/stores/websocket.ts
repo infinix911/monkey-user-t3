@@ -37,7 +37,7 @@ export const useWebSocketStore = defineStore("websocket", () => {
   // Prevent multiple simultaneous connection attempts
   let isConnecting = false;
 
-  // Session check interval (polls /auth/v to detect invalidated sessions)
+  // Session check interval (polls Better Auth to detect invalidated sessions)
   let sessionCheckInterval: ReturnType<typeof setInterval> | null = null;
 
   // ============================================================================
@@ -287,9 +287,14 @@ export const useWebSocketStore = defineStore("websocket", () => {
         if (sessionCheckInterval) clearInterval(sessionCheckInterval);
         sessionCheckInterval = setInterval(async () => {
           try {
-            await axiosClient.get("/auth/v");
+            await useAuthStore().verifyUser();
           } catch {
-            // 401 will be caught by axios interceptor which handles redirect
+            disconnect();
+            const path = window.location.pathname;
+            const alreadyAtHome =
+              path === "/" || /^\/(id|ko|th)\/?$/.test(path);
+            if (alreadyAtHome) window.location.reload();
+            else window.location.href = "/";
           }
         }, 30_000);
       } catch (error) {

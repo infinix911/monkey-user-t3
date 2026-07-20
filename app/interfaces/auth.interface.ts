@@ -11,7 +11,7 @@
 
 import { z } from "zod";
 
-/** Response of `GET /api/auth/v` (verifyAuthSchema). No `currency` field. */
+/** Authenticated response of Better Auth `GET /api/auth/get-session`. */
 export const verifyUserResponseSchema = z.object({
   id: z.string(),
   upperId: z.string().nullable(),
@@ -37,6 +37,10 @@ export const verifyUserResponseSchema = z.object({
 });
 
 export type VerifyUserResponse = z.infer<typeof verifyUserResponseSchema>;
+
+/** Better Auth returns `null` with HTTP 200 when no session cookie is valid. */
+export const getSessionResponseSchema = verifyUserResponseSchema.nullable();
+export type GetSessionResponse = z.infer<typeof getSessionResponseSchema>;
 
 /**
  * Internal auth/session state (snake_case) consumed across the app. The API
@@ -87,7 +91,8 @@ export const defaultUserState: UserState = {
 };
 
 /**
- * Map the validated `GET /auth/v` wire shape onto internal {@link UserState}.
+ * Map the authenticated `GET /auth/get-session` wire shape onto internal
+ * {@link UserState}.
  * Single source of the auth field mapping — reused by the store and the
  * server session-hydrate plugin so the two never drift. `currency` is not part
  * of the profile response and is passed in (derived from the site config).

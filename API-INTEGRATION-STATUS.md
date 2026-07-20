@@ -31,96 +31,105 @@ mapper. Backend (camelCase) is the source of truth.
 
 ## Summary
 
-| Phase | Module | Status |
-|---|---|---|
-| 0 | Foundations (camelCase types, runtime validation, auth-store remap) | ✅ |
-| 1 | M1 Authentication | ✅ (live-tested) |
-| 2 | M2 Site / theme / public content | ✅ |
-| 2 | M3 Games / lobbies / launch | ✅ (live-verified shape) |
-| 3 | M6 Transactions — history / activity (reads) | ✅ |
-| 3 | M7 Inquiries | ✅ |
-| 3 | M8 Notifications | ✅ |
-| 3 | M9 Referrals / login history | ✅ |
-| 4 | M5 Withdrawal (write) | ✅ |
-| 4 | M4 Deposit (write) | ✅ (`accountId` removed; blocker resolved) |
-| — | Points — exchange | ✅ (`PointConversionModal`) |
-| — | Points — exchange history | ⏳ schema ready, no UI consumer |
-| 5 | M11 Promotions | 🚫 no backend |
-| 5 | M12 Partner section | 🚫 no backend |
+| Phase | Module                                                              | Status                                     |
+| ----- | ------------------------------------------------------------------- | ------------------------------------------ |
+| 0     | Foundations (camelCase types, runtime validation, auth-store remap) | ✅                                         |
+| 1     | M1 Authentication                                                   | ✅ (live-tested)                           |
+| 2     | M2 Site / theme / public content                                    | ✅                                         |
+| 2     | M3 Games / lobbies / launch                                         | ✅ (live-verified shape)                   |
+| 3     | M6 Transactions — history / activity (reads)                        | ✅                                         |
+| 3     | M7 Inquiries                                                        | ✅                                         |
+| 3     | M8 Notifications                                                    | ✅                                         |
+| 3     | M9 Referrals / login history                                        | ✅                                         |
+| 4     | M5 Withdrawal (write)                                               | ✅                                         |
+| 4     | M4 Deposit (write)                                                  | ✅ (`accountId` removed; blocker resolved) |
+| —     | Points — exchange                                                   | ✅ (`PointConversionModal`)                |
+| —     | Points — exchange history                                           | ⏳ schema ready, no UI consumer            |
+| 5     | M11 Promotions                                                      | 🚫 no backend                              |
+| 5     | M12 Partner section                                                 | 🚫 no backend                              |
 
 ---
 
 ## Endpoint-level status
 
 ### ✅ Auth — `/api/auth`
-| Endpoint | Status | Notes |
-|---|---|---|
-| POST `/login` | ✅ | `{username,password}`; client limits aligned (≤12 / ≤20) |
-| POST `/register` | ✅ | camelCase, dropped `currency`; static bank-name list |
-| POST `/change-password` | ✅ | `currentPassword`/`newPassword` |
-| POST `/check/username`, `/check/referral` | ✅ | already matched |
-| GET `/v` | ✅ | camelCase, **runtime-validated** (zod), mapped to internal state |
-| POST `/logout`, GET `/ws` | ✅ | unchanged (already correct) |
-| GET `/referrals` | ✅ | camelCase mapper; list keyed by index |
-| GET `/login-histories` | ✅ | `startDate`/`endDate`; camelCase mapper |
+
+| Endpoint                                  | Status | Notes                                                            |
+| ----------------------------------------- | ------ | ---------------------------------------------------------------- |
+| POST `/login`                             | ✅     | `{username,password}`; client limits aligned (≤12 / ≤20)         |
+| POST `/register`                          | ✅     | camelCase, dropped `currency`; static bank-name list             |
+| POST `/change-password`                   | ✅     | `currentPassword`/`newPassword`                                  |
+| POST `/check/username`, `/check/referral` | ✅     | already matched                                                  |
+| GET `/v`                                  | ✅     | camelCase, **runtime-validated** (zod), mapped to internal state |
+| POST `/logout`, GET `/ws`                 | ✅     | unchanged (already correct)                                      |
+| GET `/referrals`                          | ✅     | camelCase mapper; list keyed by index                            |
+| GET `/login-histories`                    | ✅     | `startDate`/`endDate`; camelCase mapper                          |
 
 ### ✅ Site — `/api/site`
-| Endpoint | Status | Notes |
-|---|---|---|
-| GET `/config/theme`, `/config/userpage` | ✅ | already powers the app (config deep-merge) |
-| GET `/config/userpage/faq`, `/levelSystem` | ✅ | JSONB rows (`t.Unknown()`) — flexible |
-| GET `/banners-new/:type` | ✅ | **fixed** camelCase (`mainUrl`→`main_url`) mapper |
-| GET `/top/winners`,`/top/deposits`,`/top/withdrawals` | ✅ | `{member,amount}` — already correct |
-| GET `/custom-seo` | ✅ | consumed via config merge (`.canonical`) |
+
+| Endpoint                                              | Status | Notes                                             |
+| ----------------------------------------------------- | ------ | ------------------------------------------------- |
+| GET `/config/theme`, `/config/userpage`               | ✅     | already powers the app (config deep-merge)        |
+| GET `/config/userpage/faq`, `/levelSystem`            | ✅     | JSONB rows (`t.Unknown()`) — flexible             |
+| GET `/banners-new/:type`                              | ✅     | **fixed** camelCase (`mainUrl`→`main_url`) mapper |
+| GET `/top/winners`,`/top/deposits`,`/top/withdrawals` | ✅     | `{member,amount}` — already correct               |
+| GET `/custom-seo`                                     | ✅     | consumed via config merge (`.canonical`)          |
 
 ### ✅ Games — `/api/games`
-| Endpoint | Status | Notes |
-|---|---|---|
-| GET `/lobbies` | ✅ | `gameType` param; camelCase→normalized (lowercased enum) mapper |
-| GET `/` (list) | ✅ | `gameType`/`lobbyId`/`gameName` params; `meta.total` pagination; mapper |
-| GET `/launch` | ✅ | `{lobby}`/`{lobby,game}` params already matched |
+
+| Endpoint       | Status | Notes                                                                   |
+| -------------- | ------ | ----------------------------------------------------------------------- |
+| GET `/lobbies` | ✅     | `gameType` param; camelCase→normalized (lowercased enum) mapper         |
+| GET `/` (list) | ✅     | `gameType`/`lobbyId`/`gameName` params; `meta.total` pagination; mapper |
+| GET `/launch`  | ✅     | `{lobby}`/`{lobby,game}` params already matched                         |
 
 ### ✅ Transactions (reads) — `/api/transactions`
-| Endpoint | Status | Notes |
-|---|---|---|
-| GET `/wallet/:transaction` | ✅ | `startDate`/`endDate`; camelCase→snake mapper; schema trimmed to drop backend-removed `fee`/`rewardAmount`/`netAmount` |
-| GET `/activity/:category` | ✅ | `{data,meta}`→`{rows,pages,data}`; camelCase mapper |
-| GET `/logs`, `/roll-requirement`, `/pending-*` | ⏳ | contracts known; not currently consumed by UI |
+
+| Endpoint                                       | Status | Notes                                                                                                                  |
+| ---------------------------------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------- |
+| GET `/wallet/:transaction`                     | ✅     | `startDate`/`endDate`; camelCase→snake mapper; schema trimmed to drop backend-removed `fee`/`rewardAmount`/`netAmount` |
+| GET `/activity/:category`                      | ✅     | `{data,meta}`→`{rows,pages,data}`; camelCase mapper                                                                    |
+| GET `/logs`, `/roll-requirement`, `/pending-*` | ⏳     | contracts known; not currently consumed by UI                                                                          |
 
 ### ✅ Inquiries — `/api/inquiries`
-| Endpoint | Status | Notes |
-|---|---|---|
-| GET `/` (list) | ✅ | `startDate`/`endDate`; `{data,meta}`→`{pages,rows,data}` mapper |
-| GET `/:id/replies` | ✅ | `{data,meta}`→`{has_more,...}` mapper |
-| POST `/`, POST `/:id/reply`, PATCH `/:id/read` | ✅ | bodies already matched |
-| PATCH `/:id`, PATCH `/` (status) | ✅ | body `{status}` (send `'close'`/`'delete'`) |
+
+| Endpoint                                       | Status | Notes                                                           |
+| ---------------------------------------------- | ------ | --------------------------------------------------------------- |
+| GET `/` (list)                                 | ✅     | `startDate`/`endDate`; `{data,meta}`→`{pages,rows,data}` mapper |
+| GET `/:id/replies`                             | ✅     | `{data,meta}`→`{has_more,...}` mapper                           |
+| POST `/`, POST `/:id/reply`, PATCH `/:id/read` | ✅     | bodies already matched                                          |
+| PATCH `/:id`, PATCH `/` (status)               | ✅     | body `{status}` (send `'close'`/`'delete'`)                     |
 
 ### ✅ Notifications — `/api/notifications`
-| Endpoint | Status | Notes |
-|---|---|---|
-| GET `/` | ✅ | camelCase mapper; `is_read` defaulted false |
-| PATCH `/read-all` | ✅ | already correct |
-| PATCH `/read/:notifId` | ⏳ | available; dropdown only uses read-all |
+
+| Endpoint               | Status | Notes                                       |
+| ---------------------- | ------ | ------------------------------------------- |
+| GET `/`                | ✅     | camelCase mapper; `is_read` defaulted false |
+| PATCH `/read-all`      | ✅     | already correct                             |
+| PATCH `/read/:notifId` | ⏳     | available; dropdown only uses read-all      |
 
 ### Transactions (writes) — `/api/transactions`
-| Endpoint | Status | Notes |
-|---|---|---|
-| POST `/withdrawal` | ✅ | `{amount:number}` — already correct |
-| POST `/deposit` | ✅ | body `{amount, receiptImage?}` (backend dropped `accountId`); voucher removed |
-| POST `/deposit/upload-receipt` | ✅ | two-step upload; reads `{url}` |
+
+| Endpoint                       | Status | Notes                                                                         |
+| ------------------------------ | ------ | ----------------------------------------------------------------------------- |
+| POST `/withdrawal`             | ✅     | `{amount:number}` — already correct                                           |
+| POST `/deposit`                | ✅     | body `{amount, receiptImage?}` (backend dropped `accountId`); voucher removed |
+| POST `/deposit/upload-receipt` | ✅     | two-step upload; reads `{url}`                                                |
 
 ### Points — `/api/points` (new backend)
-| Endpoint | Status | Notes |
-|---|---|---|
-| POST `/exchange` | ✅ | body `{amount:number(min 1)}` → `{message}`. Wired in `PointConversionModal.vue` (real API + `verifyUser()` refresh) |
-| GET `/exchanges` | ⏳ | schema/mapper ready in `points.interface.ts`; no history UI consumer yet |
+
+| Endpoint         | Status | Notes                                                                                                                |
+| ---------------- | ------ | -------------------------------------------------------------------------------------------------------------------- |
+| POST `/exchange` | ✅     | body `{amount:number(min 1)}` → `{message}`. Wired in `PointConversionModal.vue` (real API + `verifyUser()` refresh) |
+| GET `/exchanges` | ⏳     | schema/mapper ready in `points.interface.ts`; no history UI consumer yet                                             |
 
 ### 🚫 No backend (blocked)
-| Frontend area | Missing backend |
-|---|---|
-| Deposit voucher / member levels | `/promotions/*` (fetch removed, UI hidden) |
-| Signup bank list | `/banks/register` (replaced with static list) |
-| Partner section (all pages) | `/partner/*` (stays mock) |
+
+| Frontend area                   | Missing backend                               |
+| ------------------------------- | --------------------------------------------- |
+| Deposit voucher / member levels | `/promotions/*` (fetch removed, UI hidden)    |
+| Signup bank list                | `/banks/register` (replaced with static list) |
+| Partner section (all pages)     | `/partner/*` (stays mock)                     |
 
 ---
 
@@ -138,8 +147,9 @@ mapper. Backend (camelCase) is the source of truth.
   mock/hidden pending new endpoints (product decision).
 
 ## New files added by the integration
+
 - `app/lib/validateResponse.ts` — shared runtime validator (throws `ApiValidationError`)
-- `app/interfaces/auth.interface.ts` — `/auth/v`, login-history, referrals
+- `app/interfaces/auth.interface.ts` — `/auth/get-session`, login-history, referrals
 - `app/interfaces/game.interface.ts` — lobbies + games list (schemas/mappers appended)
 - `app/interfaces/notification.interface.ts`
 - `app/interfaces/inquiry.interface.ts` (schemas/mappers appended)
@@ -148,6 +158,7 @@ mapper. Backend (camelCase) is the source of truth.
 - `app/interfaces/points.interface.ts` — point exchange + history
 
 ## Verification
-- **Live-tested against the running backend:** auth (login → `/auth/v`), games list/lobbies (real seed data).
+
+- **Live-tested against the running backend:** auth (login → `/auth/get-session`), games list/lobbies (real seed data).
 - **Verified against backend validators + typecheck:** all other modules. Typecheck sits at the pre-existing baseline (theme-config errors only) — zero new errors from the integration.
 - **Backend fix applied during testing:** `monkey-user-api/src/lib/auth.ts` `generateId: false` → `() => crypto.randomUUID()` (login `session` insert was 500ing). See git history.

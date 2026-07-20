@@ -20,7 +20,7 @@
  * const data = response.data
  *
  * // POST request
- * const response = await axiosClient.post('/auth/login', { username, password })
+ * const response = await axiosClient.post('/auth/sign-in/username', { username, password })
  * // Server sets bn.session cookie on success
  * ```
  */
@@ -149,8 +149,7 @@ const createAxiosInstance = (baseURL: string): AxiosInstance => {
       // Clear logout flag on any successful auth response (session is valid)
       if (
         import.meta.client &&
-        (response.config?.url?.includes("/auth/login") ||
-          response.config?.url?.includes("/auth/v"))
+        response.config?.url?.includes("/auth/sign-in/username")
       ) {
         sessionStorage.removeItem("session_logged_out");
       }
@@ -161,18 +160,12 @@ const createAxiosInstance = (baseURL: string): AxiosInstance => {
       if (error.response?.status === 401 && import.meta.client) {
         const reqUrl = error.config?.url || "";
         // Don't redirect on login attempts (show error to user instead)
-        const isLoginAttempt = reqUrl.includes("/auth/login");
-        // /auth/v is the session-probe endpoint called by session-verify.client.ts
-        // on every fresh load. For anonymous visitors it ALWAYS 401s — that's
-        // expected, not "session expired". Reloading here force-reloads the
-        // home page on first visit (the "loads twice" bug). session-verify
-        // catches the rejection and the user stays anonymous, which is correct.
-        const isSessionProbe = reqUrl.includes("/auth/v");
+        const isLoginAttempt = reqUrl.includes("/auth/sign-in/username");
         // Consider locale-prefixed roots (/id, /ko, /th) as "home" too
         const path = window.location.pathname;
         const alreadyAtHome = path === "/" || /^\/(id|ko|th)\/?$/.test(path);
 
-        if (!isLoginAttempt && !isSessionProbe) {
+        if (!isLoginAttempt) {
           // Only auto-logout once per session (prevent infinite reload loop)
           const alreadyLoggedOut = sessionStorage.getItem("session_logged_out");
           if (alreadyLoggedOut) return Promise.reject(error);
@@ -197,11 +190,7 @@ const createAxiosInstance = (baseURL: string): AxiosInstance => {
       // Mutations (POST/PUT/PATCH/DELETE) are intentionally excluded above
       // via isIdempotent() so money-changing requests are never replayed.
       const config = error.config as RetryableConfig | undefined;
-      if (
-        config &&
-        isIdempotent(config.method) &&
-        isRetryableError(error)
-      ) {
+      if (config && isIdempotent(config.method) && isRetryableError(error)) {
         const attempt = config.__retryCount ?? 0;
         if (attempt < MAX_RETRIES) {
           config.__retryCount = attempt + 1;

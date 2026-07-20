@@ -1,65 +1,137 @@
 ﻿<template>
   <Teleport to="body">
     <Transition name="modal" appear>
-      <div v-if="isOpen" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 px-4"
-        @click.self="handleBackdropClick">
+      <div
+        v-if="isOpen"
+        class="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 px-4"
+        @click.self="handleBackdropClick"
+      >
         <!-- Login Modal Wrapper -->
-        <div ref="modalRef" class="login-modal-wrapper relative flex w-full max-w-[460px] flex-col items-center">
+        <div
+          ref="modalRef"
+          class="login-modal-wrapper relative flex w-full max-w-[460px] flex-col items-center"
+        >
           <!-- Close Button -->
-          <button type="button"
+          <button
+            type="button"
             class="absolute right-0 top-0 z-20 inline-flex h-9 w-9 items-center justify-center rounded-lg hover:bg-white/10 text-white transition-colors cursor-pointer sm:h-10 sm:w-10"
-            :aria-label="$t('common.close')" @click="handleClose">
-            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-              stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            :aria-label="$t('common.close')"
+            @click="handleClose"
+          >
+            <svg
+              class="h-5 w-5"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
 
           <!-- Logo -->
-          <NuxtImg :src="logoSrc" :alt="siteConfig.identity.siteName"
-            class="login-logo w-[220px] sm:w-[300px] drop-shadow-2xl" :style="logoStyle" loading="eager" />
+          <NuxtImg
+            :src="logoSrc"
+            :alt="siteConfig.identity.siteName"
+            class="login-logo w-[220px] sm:w-[300px] drop-shadow-2xl"
+            :style="logoStyle"
+            loading="eager"
+          />
 
           <!-- Login Card — border + panel theming come from the shared
                `.modal-gradient-border` / `.tm-modal` classes fed by
                theme.loginModal (dedicated login-modal theme keys). -->
           <div
             class="tm-modal modal-gradient-border login-card relative w-full overflow-hidden rounded-[16px] px-7 pt-[45px] pb-[26px] sm:px-9"
-            :style="borderStyle">
+            :style="borderStyle"
+          >
             <!-- Login Form -->
-            <form class="relative z-10 flex flex-col gap-4" @submit.prevent="onSubmit">
+            <form
+              class="relative z-10 flex flex-col gap-4"
+              @submit.prevent="onSubmit"
+            >
               <div class="flex gap-3 items-stretch">
                 <div class="flex min-w-0 flex-1 flex-col gap-4">
                   <!-- Username Field -->
                   <div class="relative">
-                    <input id="login-username" v-model="username" type="text" maxlength="32" autocomplete="username"
-                      :placeholder="$t('auth.idPlaceHolder')" class="w-full focus:outline-none"
-                      :class="{ 'ring-2 ring-red-500': errors.username }" :style="inputStyle">
+                    <input
+                      id="login-username"
+                      v-model="username"
+                      type="text"
+                      maxlength="32"
+                      autocomplete="username"
+                      :placeholder="$t('auth.idPlaceHolder')"
+                      class="w-full focus:outline-none"
+                      :class="{ 'ring-2 ring-red-500': errors.username }"
+                      :style="inputStyle"
+                    />
                   </div>
 
                   <!-- Password Field -->
                   <div class="relative">
-                    <input id="login-password" v-model="password" :type="showPassword ? 'text' : 'password'"
-                      maxlength="128" autocomplete="current-password" :placeholder="$t('auth.passPlaceHolder')"
-                      class="w-full focus:outline-none" :class="{ 'ring-2 ring-red-500': errors.password }"
-                      :style="passwordInputStyle">
-                    <button type="button"
-                      class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-800" :aria-label="showPassword
-                        ? $t('login.hidePassword')
-                        : $t('login.showPassword')
-                        " @click="togglePasswordVisibility">
+                    <input
+                      id="login-password"
+                      v-model="password"
+                      :type="showPassword ? 'text' : 'password'"
+                      maxlength="128"
+                      autocomplete="current-password"
+                      :placeholder="$t('auth.passPlaceHolder')"
+                      class="w-full focus:outline-none"
+                      :class="{ 'ring-2 ring-red-500': errors.password }"
+                      :style="passwordInputStyle"
+                    />
+                    <button
+                      type="button"
+                      class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-800"
+                      :aria-label="
+                        showPassword
+                          ? $t('login.hidePassword')
+                          : $t('login.showPassword')
+                      "
+                      @click="togglePasswordVisibility"
+                    >
                       <!-- Eye Icon (show) -->
-                      <svg v-if="!showPassword" class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none"
-                        viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      <svg
+                        v-if="!showPassword"
+                        class="w-5 h-5"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                        />
                       </svg>
                       <!-- Eye Off Icon (hide) -->
-                      <svg v-else class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                      <svg
+                        v-else
+                        class="w-5 h-5"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                        />
                       </svg>
                     </button>
                   </div>
@@ -69,29 +141,45 @@
                      the stacked inputs. The loading label is absolutely positioned
                      (out of flow) with a smaller font so the longer text fits
                      without widening the button. -->
-                <button type="submit" :disabled="isSubmitting || !isFormValid"
+                <button
+                  type="submit"
+                  :disabled="isSubmitting || !isFormValid"
                   class="relative flex items-center justify-center w-[92px] sm:w-[104px] shrink-0 disabled:cursor-not-allowed transition-transform active:scale-[0.98] whitespace-nowrap"
-                  :style="buttonStyle">
+                  :style="buttonStyle"
+                >
                   <span :class="{ invisible: isSubmitting }">
                     {{ $t("login.loginButton") }}
                   </span>
-                  <span class="absolute inset-0 flex items-center justify-center text-sm"
-                    :class="{ invisible: !isSubmitting }">
+                  <span
+                    class="absolute inset-0 flex items-center justify-center text-sm"
+                    :class="{ invisible: !isSubmitting }"
+                  >
                     {{ $t("login.loggingIn") }}
                   </span>
                 </button>
               </div>
 
               <!-- Inline validation messages -->
-              <span v-if="errors.username || errors.password" class="block text-red-400 text-[13px] leading-tight">
+              <span
+                v-if="errors.username || errors.password"
+                class="block text-red-400 text-[13px] leading-tight"
+              >
                 {{ errors.username || errors.password }}
               </span>
 
               <!-- Sign Up Link -->
-              <div class="mt-1 flex items-center justify-center gap-2 whitespace-nowrap">
-                <span class="login-signup-text">{{ $t("login.noAccount") }}</span>
-                <button type="button" class="login-signup-link bg-transparent border-0 cursor-pointer hover:opacity-80"
-                  :style="{ color: dep.accentColor }" @click="handleSignupClick">
+              <div
+                class="mt-1 flex items-center justify-center gap-2 whitespace-nowrap"
+              >
+                <span class="login-signup-text">{{
+                  $t("login.noAccount")
+                }}</span>
+                <button
+                  type="button"
+                  class="login-signup-link bg-transparent border-0 cursor-pointer hover:opacity-80"
+                  :style="{ color: dep.accentColor }"
+                  @click="handleSignupClick"
+                >
                   {{ $t("login.signUpLink") }}
                 </button>
               </div>
@@ -228,7 +316,7 @@ const onSubmit = handleSubmit(async (values) => {
   try {
     // Login — server sets bn.session cookie on success
     const api = useApi();
-    await api("/auth/login", {
+    await api("/auth/sign-in/username", {
       method: "POST",
       body: {
         username: values.username,
@@ -246,7 +334,7 @@ const onSubmit = handleSubmit(async (values) => {
       await authStore.verifyUser();
     } catch {
       // Verify shouldn't fail right after a 200 login, but if it does
-      // (e.g. /auth/v 500s) fall back to the legacy reload path so we
+      // (e.g. /auth/get-session 500s) fall back to the legacy reload path so we
       // don't leave the user in an inconsistent state.
       if (typeof window !== "undefined") {
         window.location.reload();

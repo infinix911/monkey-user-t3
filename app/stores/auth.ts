@@ -3,7 +3,7 @@ import { ref, computed } from "vue";
 import axiosClient from "@/lib/axios-client";
 import { validateResponse } from "@/lib/validateResponse";
 import {
-  verifyUserResponseSchema,
+  getSessionResponseSchema,
   mapVerifyUserToState,
   defaultUserState,
   type VerifyUserResponse,
@@ -21,7 +21,7 @@ export { defaultUserState };
  * current game session. Split out of the former monolithic `app` store.
  * See [[useUiStore]] for modals/device and [[useSiteStore]] for site data.
  *
- * The `GET /auth/v` wire shape (camelCase) lives in
+ * The authenticated `GET /auth/get-session` wire shape (camelCase) lives in
  * `interfaces/auth.interface.ts` and is runtime-validated here before being
  * mapped onto the snake_case internal {@link UserState} (anti-corruption
  * layer), so existing consumers keep working and contract drift fails loudly.
@@ -108,10 +108,15 @@ export const useAuthStore = defineStore("auth", () => {
       // drift throws ApiValidationError instead of silently yielding undefined
       // wallet/bank fields (auth + money safety).
       const result = validateResponse(
-        verifyUserResponseSchema,
-        (await axiosClient.get("/auth/v")).data,
-        "/auth/v",
+        getSessionResponseSchema,
+        (await axiosClient.get("/auth/get-session")).data,
+        "/auth/get-session",
       );
+
+      if (!result) {
+        user.value = { ...defaultUserState };
+        throw new Error("INVALID_AUTH");
+      }
 
       // Map onto internal state via the shared mapper (single source of the
       // field mapping). `currency` isn't in the profile response — derive it
@@ -121,7 +126,10 @@ export const useAuthStore = defineStore("auth", () => {
       return result;
     } catch (error: unknown) {
       const status = apiErrorStatus(error);
-      if (status === 401) {
+      if (
+        status === 401 ||
+        (error instanceof Error && error.message === "INVALID_AUTH")
+      ) {
         // User is not authenticated, clear user data
         user.value = { ...defaultUserState };
         throw new Error("INVALID_AUTH");
