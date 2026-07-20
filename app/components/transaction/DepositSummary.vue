@@ -1,6 +1,6 @@
 <template>
   <div
-    class="h-[220px] md:h-[215px] text-[17.5px] rounded-lg px-6 py-5"
+    class="h-[150px] md:h-[145px] text-[17.5px] rounded-lg px-6 py-5"
     :style="{
       background: cardBg,
       border: `1px solid ${dep.borderColor}`,
@@ -20,27 +20,12 @@
       <span class="text-white/70">{{ formatCurrency(serviceFee) }}</span>
     </div>
     <hr class="my-2 border-0 h-px" :style="{ backgroundColor: dividerColor }" >
-    <div class="flex justify-between mb-2">
-      <span class="text-white/70">{{
+    <div class="flex justify-between">
+      <span class="text-white font-semibold">{{
         t("deposit.transactionSummary.netAmount")
       }}</span>
       <span class="font-black" :style="{ color: dep.accentColor }">{{
         formatCurrency(netAmount)
-      }}</span>
-    </div>
-    <div class="flex justify-between mb-2">
-      <span class="text-white/70">{{
-        t("deposit.transactionSummary.bonus")
-      }}</span>
-      <span class="text-white/70">{{ formatCurrency(bonus) }}</span>
-    </div>
-    <hr class="my-2 border-0 h-px" :style="{ backgroundColor: dividerColor }" >
-    <div class="flex justify-between">
-      <span class="text-white font-semibold">{{
-        t("deposit.transactionSummary.totalNetAmount")
-      }}</span>
-      <span class="font-semibold" :style="{ color: dep.accentColor }">{{
-        formatCurrency(totalNetAmount)
       }}</span>
     </div>
   </div>
@@ -51,8 +36,6 @@ defineProps<{
   depositAmount: number;
   serviceFee: number;
   netAmount: number;
-  bonus: number;
-  totalNetAmount: number;
 }>();
 
 const { t } = useI18n();

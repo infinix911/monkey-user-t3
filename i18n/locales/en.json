@@ -504,8 +504,6 @@
     "accountName": "Account Name",
     "accountNumber": "Account Number",
     "depositAmount": "Deposit Amount",
-    "voucher": "Voucher",
-    "selectVoucher": "No Voucher",
     "proofTransfer": "Proof Transfer",
     "selectFile": "Select file",
     "noFilesSelected": "No files selected",
@@ -517,9 +515,7 @@
     "transactionSummary": {
       "depositAmount": "Deposit Amount",
       "serviceFee": "Service Fee (-)",
-      "netAmount": "Net Amount",
-      "bonus": "Bonus (+)",
-      "totalNetAmount": "Total Net Amount"
+      "netAmount": "Net Amount"
     },
     "validation": {
       "amountRequired": "Deposit amount is required",
@@ -591,11 +587,6 @@
       "INVALID_AMOUNT": "Invalid amount. Please enter a valid amount.",
       "NOT_FOUND": "Session not found. Please request a new QR code.",
       "VALIDATION_ERROR": "Invalid input. Please check your details and try again."
-    },
-    "voucherPopup": {
-      "title": "Promotion Notice",
-      "agree": "Accept",
-      "disagree": "Do Not Accept"
     }
   },
   "myAccount": {
@@ -608,17 +599,7 @@
       "user": "User",
       "date": "Date"
     },
-    "bonusHistory": {
-      "title": "Bonus History",
-      "promotions": "Promotion",
-      "date": "Date",
-      "amount": "Amount",
-      "no": "No.",
-      "loading": "Loading...",
-      "totalBonus": "Total Bonus"
-    },
     "bettingReport": "Betting Report",
-    "levelSystem": "Level System",
     "loginHistory": {
       "label": "Login History",
       "title": "Recently 7 Days",

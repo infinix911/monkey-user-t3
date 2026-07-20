@@ -3,9 +3,9 @@
  * flow for BankPaymentContent.vue.
  *
  * Extracted verbatim from the component to keep the .vue a thin presentation
- * layer. All behavior — vee-validate wiring, currency math, voucher/bonus
- * computation, receipt upload, deposit submit and voucher fetch — is preserved
- * exactly, including the original axios error-message extraction.
+ * layer. All behavior — vee-validate wiring, currency math, receipt upload and
+ * deposit submit — is preserved exactly, including the original axios
+ * error-message extraction.
  */
 
 import { useForm } from "vee-validate";
@@ -31,22 +31,6 @@ export interface IBankAccount {
   account_number: string;
   credit_fee_type: string;
   credit_fee: string;
-}
-
-export interface IVoucherIssue {
-  issue_id: string;
-  voucher_id: string;
-  voucher: string;
-  description: string;
-  valid_to: string;
-  enable_popup: boolean;
-  popup_text: string | null;
-  tiers: {
-    min_value: number;
-    reward_type: string;
-    reward_value: number;
-    cap: number;
-  }[];
 }
 
 export interface PaymentMethod {
@@ -95,15 +79,8 @@ export function useBankPayment(options: UseBankPaymentOptions) {
   const submitted = ref(false);
   const errors = computed(() => (submitted.value ? rawErrors.value : {}));
 
-  const vouchers = ref<IVoucherIssue[]>([]);
-  const loadingVouchers = ref(false);
   const selectedPayment = ref<PaymentMethod | null>(null);
   const depositAmount = ref("0");
-  const selectedVoucher = ref<IVoucherIssue | null>(null);
-
-  // Popup state — shown when a selected voucher has enable_popup:true
-  const pendingVoucher = ref<IVoucherIssue | null>(null);
-  const showVoucherPopup = ref(false);
 
   const selectedFile = ref<File | null>(null);
   const fileName = ref(t("deposit.noFilesSelected"));
@@ -131,42 +108,6 @@ export function useBankPayment(options: UseBankPaymentOptions) {
     setFieldValue("bankAccountId", newVal?.id || "", false);
   });
 
-  // PULSA deposits don't support vouchers — clear any prior selection so a
-  // voucher chosen under BANK/E-MONEY isn't submitted after switching to PULSA.
-  watch(
-    () => options.paymentType?.(),
-    (type) => {
-      if (type === "PULSA") selectedVoucher.value = null;
-    },
-    { immediate: true },
-  );
-
-  const bonus = computed(() => {
-    if (!selectedVoucher.value) return 0;
-
-    const sortedTiers = [...selectedVoucher.value.tiers].sort(
-      (a, b) => Number(b.min_value) - Number(a.min_value),
-    );
-    const applicableTier = sortedTiers.find(
-      (tier) => depositAmountNum.value >= Number(tier.min_value),
-    );
-
-    if (!applicableTier) return 0;
-
-    const rewardValue = Number(applicableTier.reward_value);
-    let rewardAmount =
-      applicableTier.reward_type === "percentage"
-        ? depositAmountNum.value * (rewardValue / 100)
-        : rewardValue;
-
-    const cap = Number(applicableTier.cap);
-    if (cap > 0 && rewardAmount > cap) {
-      rewardAmount = cap;
-    }
-
-    return Number(rewardAmount.toFixed(2));
-  });
-
   const serviceFee = computed(() => {
     if (!selectedBankAccount.value) return 0;
     const fee =
@@ -179,7 +120,6 @@ export function useBankPayment(options: UseBankPaymentOptions) {
   });
 
   const netAmount = computed(() => depositAmountNum.value - serviceFee.value);
-  const totalNetAmount = computed(() => netAmount.value + bonus.value);
 
   function getTranslatedAmount(amount: string): string {
     return t(`common.quickAmounts.${amount}`) || amount;
@@ -221,33 +161,6 @@ export function useBankPayment(options: UseBankPaymentOptions) {
 
   function handleReset() {
     depositAmount.value = "0";
-  }
-
-  function handleVoucherChange(event: Event) {
-    const value = (event.target as HTMLSelectElement).value;
-    const selected = vouchers.value.find((v) => v.issue_id === value);
-    if (!selected) {
-      selectedVoucher.value = null;
-      return;
-    }
-    if (selected.enable_popup) {
-      pendingVoucher.value = selected;
-      showVoucherPopup.value = true;
-    } else {
-      selectedVoucher.value = selected;
-    }
-  }
-
-  function handlePopupAgree() {
-    selectedVoucher.value = pendingVoucher.value;
-    pendingVoucher.value = null;
-    showVoucherPopup.value = false;
-  }
-
-  function handlePopupDisagree() {
-    pendingVoucher.value = null;
-    showVoucherPopup.value = false;
-    selectedVoucher.value = null;
   }
 
   function handleFileChange(event: Event) {
@@ -298,7 +211,6 @@ export function useBankPayment(options: UseBankPaymentOptions) {
 
   function resetForm() {
     depositAmount.value = "0";
-    selectedVoucher.value = null;
     selectedFile.value = null;
     fileName.value = t("deposit.noFilesSelected");
     selectedPayment.value = null;
@@ -366,30 +278,18 @@ export function useBankPayment(options: UseBankPaymentOptions) {
     }
   });
 
-  // Vouchers are not fetched: the backend has no /promotions endpoint and
-  // deposit carries no voucher field. The voucher UI is hidden in
-  // BankPaymentContent. (State kept so the surface can be re-enabled if a
-  // promotions API is added.)
-
   return {
     siteConfig,
     currency,
     errors,
-    vouchers,
-    loadingVouchers,
     selectedPayment,
     depositAmount,
-    selectedVoucher,
-    showVoucherPopup,
-    pendingVoucher,
     fileName,
     isBankModalOpen,
     selectedBankAccount,
     depositAmountNum,
-    bonus,
     serviceFee,
     netAmount,
-    totalNetAmount,
     quickAmounts: QUICK_AMOUNTS,
     getTranslatedAmount,
     formatCurrency,
@@ -398,9 +298,6 @@ export function useBankPayment(options: UseBankPaymentOptions) {
     handleAmountClick,
     handleMax,
     handleReset,
-    handleVoucherChange,
-    handlePopupAgree,
-    handlePopupDisagree,
     handleFileChange,
     handleCopy,
     handleBankSelect,

@@ -2,31 +2,25 @@
   <form @submit.prevent="onSubmit">
     <!-- Main Layout -->
     <div
-      class="mb-6"
-      style="
+class="mb-6" style="
         font-family: var(--font-line-seed);
         max-width: 957px;
         margin: 0 auto;
-      "
-    >
+      ">
       <div class="flex flex-col md:flex-row gap-4 md:mt-[35px]">
         <!-- Left Column: Account + Amount -->
         <div class="mb-0 md:mb-6 w-full md:w-1/2 md:pr-6">
           <!-- Account Info Card -->
           <div
-            class="mt-4 flex flex-col justify-center gap-2 p-4"
-            :style="{
-              borderRadius: '10px',
-              border: `1px solid ${dep.inputBorderColor}`,
-              backgroundColor: dep.inputBgColor,
-              fontFamily: 'var(--font-line-seed)',
-              fontWeight: '400',
-            }"
-          >
+class="mt-4 flex flex-col justify-center gap-2 p-4" :style="{
+            borderRadius: '10px',
+            border: `1px solid ${dep.inputBorderColor}`,
+            backgroundColor: dep.inputBgColor,
+            fontFamily: 'var(--font-line-seed)',
+            fontWeight: '400',
+          }">
             <!-- Bank name (no logo image — lead with an emoji instead) -->
-            <p
-              class="flex items-center gap-2 text-[15px] lg:text-[17px] text-white"
-            >
+            <p class="flex items-center gap-2 text-[15px] lg:text-[17px] text-white">
               <span aria-hidden="true">🏦</span>
               <span>{{ user.bank_name || "—" }}</span>
             </p>
@@ -45,26 +39,15 @@
           </div>
 
           <!-- Divider -->
-          <div
-            class="w-full my-[22px] h-[1px] md:h-[1.5px]"
-            style="background: #666"
-          />
+          <div class="w-full my-[22px] h-[1px] md:h-[1.5px]" style="background: #666" />
 
           <!-- Deposit Amount -->
           <div>
-            <label
-              class="text-white text-sm mb-2 flex items-center gap-1.5 mt-[-11px]"
-            >
+            <label class="text-white text-sm mb-2 flex items-center gap-1.5 mt-[-11px]">
               <span :style="{ color: dep.accentColor }">
                 <svg
-                  class="w-4 h-4"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
+class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
                   <rect x="2" y="6" width="20" height="12" rx="2" />
                   <circle cx="12" cy="12" r="2.5" />
                   <path d="M6 12h.01M18 12h.01" />
@@ -73,56 +56,38 @@
               {{ t("deposit.depositAmount") }}
             </label>
             <input
-              type="text"
-              :value="`${currency.symbol} ${formatCurrencyInput(depositAmount)}`"
-              :class="[
-                'h-11 px-4 py-2 rounded w-full',
-                errors.depositAmount ? 'border-2 border-red-500 mb-1' : 'mb-3',
-              ]"
-              :style="{
-                backgroundColor: dep.inputBgColor,
-                color: dep.inputTextColor,
-                ...(errors.depositAmount
-                  ? {}
-                  : { border: `1px solid ${dep.inputBorderColor}` }),
-              }"
-              @input="handleAmountInput"
-            />
+type="text" :value="`${currency.symbol} ${formatCurrencyInput(depositAmount)}`" :class="[
+              'h-11 px-4 py-2 rounded w-full',
+              errors.depositAmount ? 'border-2 border-red-500 mb-1' : 'mb-3',
+            ]" :style="{
+              backgroundColor: dep.inputBgColor,
+              color: dep.inputTextColor,
+              ...(errors.depositAmount
+                ? {}
+                : { border: `1px solid ${dep.inputBorderColor}` }),
+            }" @input="handleAmountInput">
             <p v-if="errors.depositAmount" class="text-xs text-red-500 mb-2">
               {{ errors.depositAmount }}
             </p>
             <div class="grid grid-cols-4 gap-1.5 mt-3">
               <!-- Quick amount chips -->
               <button
-                v-for="amount in quickAmounts"
-                :key="amount"
-                type="button"
-                class="amt-btn text-[15px] md:text-[17px]"
-                :style="{
+v-for="amount in quickAmounts" :key="amount" type="button"
+                class="amt-btn text-[15px] md:text-[17px]" :style="{
                   '--amt-bg': dep.quickAmountBgColor,
                   '--amt-text': dep.quickAmountTextColor,
                   '--amt-accent': dep.accentColor,
-                }"
-                @click="handleAmountClick(amount)"
-              >
+                }" @click="handleAmountClick(amount)">
                 {{ getTranslatedAmount(amount) }}
               </button>
 
               <!-- MAX (violet) -->
-              <button
-                type="button"
-                class="amt-btn amt-max text-[15px] md:text-[17px]"
-                @click="handleMax"
-              >
+              <button type="button" class="amt-btn amt-max text-[15px] md:text-[17px]" @click="handleMax">
                 {{ t("deposit.max") }}
               </button>
 
               <!-- RESET (red) -->
-              <button
-                type="button"
-                class="amt-btn amt-reset text-[15px] md:text-[16px]"
-                @click="handleReset"
-              >
+              <button type="button" class="amt-btn amt-reset text-[15px] md:text-[16px]" @click="handleReset">
                 {{ t("deposit.reset") }}
               </button>
             </div>
@@ -131,86 +96,18 @@
 
         <!-- Vertical Divider -->
         <div
-          class="self-stretch"
-          style="
+class="self-stretch" style="
             width: 1.5px;
             background: rgba(138, 134, 134, 0.4);
             min-height: 100%;
-          "
-        />
+          " />
         <div class="w-full block md:hidden h-[1px]" style="background: #666" />
 
-        <!-- Right Column: Voucher + Summary + Upload + Submit -->
+        <!-- Right Column: Summary + Upload + Submit -->
         <div class="mb-6 font-medium w-full md:w-1/2 md:pl-6">
-          <!-- Voucher UI hidden: the backend has no /promotions/vouchers
-               endpoint and deposit carries no voucher field. Re-enable this
-               block (v-if="paymentType !== 'PULSA'") if a promotions API lands. -->
-          <template v-if="false">
-            <label class="text-white text-sm mb-2 flex items-center gap-1.5">
-              <span :style="{ color: dep.accentColor }">
-                <svg
-                  class="w-4 h-4"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path
-                    d="M2 9a3 3 0 0 0 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"
-                  />
-                  <path d="M13 5v14" />
-                </svg>
-              </span>
-              {{ t("deposit.voucher") }}
-            </label>
-            <div class="relative mb-4">
-              <select
-                :value="selectedVoucher?.issue_id || ''"
-                class="font-normal px-4 py-2 rounded w-full appearance-none pr-10"
-                :style="{
-                  height: '45px',
-                  backgroundColor: dep.inputBgColor,
-                  color: dep.inputTextColor,
-                  border: `1px solid ${dep.inputBorderColor}`,
-                }"
-                :disabled="loadingVouchers"
-                @change="handleVoucherChange"
-              >
-                <option value="">{{ t("deposit.selectVoucher") }}</option>
-                <option
-                  v-for="voucher in vouchers"
-                  :key="voucher.issue_id"
-                  :value="voucher.issue_id"
-                >
-                  {{ voucher.voucher }}
-                </option>
-              </select>
-              <svg
-                class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600 pointer-events-none"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M19 9l-7 7-7-7"
-                />
-              </svg>
-            </div>
-          </template>
-
           <!-- Transaction Summary -->
           <DepositSummary
-            :deposit-amount="depositAmountNum"
-            :service-fee="serviceFee"
-            :net-amount="netAmount"
-            :bonus="bonus"
-            :total-net-amount="totalNetAmount"
-          />
+:deposit-amount="depositAmountNum" :service-fee="serviceFee" :net-amount="netAmount" />
 
           <!-- Divider -->
           <div class="w-full mt-7 mb-5" style="height: 1px; background: #666" />
@@ -222,60 +119,37 @@
             </label>
             <div class="flex gap-3">
               <label
-                class="text-nowrap text-[15px] md:text-[18px] bg-black hover:bg-[#1a1a1a] text-white px-4 pt-3 md:pt-2 rounded cursor-pointer transition-colors border border-[#3c3c3c]"
-              >
-                <input
-                  type="file"
-                  class="hidden"
-                  accept="image/*"
-                  @change="handleFileChange"
-                />
+                class="text-nowrap text-[15px] md:text-[18px] bg-black hover:bg-[#1a1a1a] text-white px-4 pt-3 md:pt-2 rounded cursor-pointer transition-colors border border-[#3c3c3c]">
+                <input type="file" class="hidden" accept="image/*" @change="handleFileChange">
                 {{ t("deposit.selectFile") }}
               </label>
               <input
-                type="text"
-                :value="fileName"
-                readonly
-                class="px-3 lg:px-6 py-2 rounded flex-1 w-full"
-                :style="{
-                  height: '45px',
-                  backgroundColor: dep.inputBgColor,
-                  color: dep.inputTextColor,
-                  border: `1px solid ${dep.inputBorderColor}`,
-                }"
-              />
+type="text" :value="fileName" readonly class="px-3 lg:px-6 py-2 rounded flex-1 w-full" :style="{
+                height: '45px',
+                backgroundColor: dep.inputBgColor,
+                color: dep.inputTextColor,
+                border: `1px solid ${dep.inputBorderColor}`,
+              }">
             </div>
           </div>
 
           <!-- Deposit Button -->
           <div class="relative">
             <button
-              type="submit"
-              class="deposit-primary-btn text-[19px] h-[48px] relative w-full font-bold transition-colors z-10"
-              :style="{
-                '--btn-grad':
-                  siteConfig.theme.transactionmodal.buttonGradientColor,
-                '--btn-grad-hover':
-                  siteConfig.theme.transactionmodal.buttonGradientHoverColor,
+type="submit"
+              class="deposit-primary-btn text-[19px] h-[48px] relative w-full font-bold transition-colors z-10" :style="{
+                '--btn-grad': siteConfig.theme.transactionmodal.buttonGradientColor,
+                '--btn-grad-hover': siteConfig.theme.transactionmodal.buttonGradientHoverColor,
                 '--btn-text': siteConfig.theme.transactionmodal.buttonTextColor,
                 borderRadius: '12px',
                 border: '1.7px solid #3c3c3c',
-              }"
-            >
+              }">
               {{ t("deposit.depositButton") }}
             </button>
           </div>
         </div>
       </div>
     </div>
-
-    <!-- Voucher Popup Modal -->
-    <VoucherPopupModal
-      :is-open="showVoucherPopup"
-      :popup-text="pendingVoucher?.popup_text ?? null"
-      @agree="handlePopupAgree"
-      @disagree="handlePopupDisagree"
-    />
   </form>
 </template>
 
@@ -284,7 +158,6 @@ import {
   useBankPayment,
   type IBankAccount,
 } from "@/components/transaction/useBankPayment";
-import VoucherPopupModal from "@/components/transaction/VoucherPopupModal.vue";
 import { useAuthStore } from "~/stores/auth";
 
 const props = defineProps<{
@@ -303,18 +176,11 @@ const {
   siteConfig,
   currency,
   errors,
-  vouchers,
-  loadingVouchers,
   depositAmount,
-  selectedVoucher,
-  showVoucherPopup,
-  pendingVoucher,
   fileName,
   depositAmountNum,
-  bonus,
   serviceFee,
   netAmount,
-  totalNetAmount,
   quickAmounts,
   getTranslatedAmount,
   formatCurrencyInput,
@@ -322,9 +188,6 @@ const {
   handleAmountClick,
   handleMax,
   handleReset,
-  handleVoucherChange,
-  handlePopupAgree,
-  handlePopupDisagree,
   handleFileChange,
   onSubmit,
 } = useBankPayment({
