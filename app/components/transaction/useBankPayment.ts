@@ -23,11 +23,6 @@ interface FetchErrorLike {
   message?: string;
 }
 
-/** Read the API `message` from a $fetch error body, if present. */
-function fetchErrorMessage(error: unknown): string | undefined {
-  return (error as FetchErrorLike)?.data?.message;
-}
-
 export interface IBankAccount {
   id: string;
   account_name: string;
@@ -75,6 +70,7 @@ export function useBankPayment(options: UseBankPaymentOptions) {
   const siteConfig = useSiteConfig();
   const currency = useCurrency();
   const { t, locale } = useI18n();
+  const apiMessage = useApiMessage();
   const api = useApi();
 
   // VeeValidate form — reactive schema so the (baked) validation messages
@@ -366,18 +362,7 @@ export function useBankPayment(options: UseBankPaymentOptions) {
       );
       resetForm();
     } catch (error: unknown) {
-      const depositMessage = fetchErrorMessage(error);
-      if (depositMessage) {
-        await showErrorAlert(
-          t("deposit.title"),
-          t(`deposit.apiMessages.${depositMessage}`),
-        );
-      } else {
-        await showErrorAlert(
-          t("deposit.title"),
-          t("deposit.apiMessages.INTERNAL_ERROR"),
-        );
-      }
+      await showErrorAlert(t("deposit.title"), apiMessage(error, "deposit"));
     }
   });
 

@@ -180,6 +180,7 @@ const props = defineProps<{
 }>();
 
 const { t, locale } = useI18n();
+const apiMessage = useApiMessage();
 const authStore = useAuthStore();
 const user = computed(() => authStore.user);
 
@@ -335,35 +336,10 @@ const veeSubmit = veeHandleSubmit(async (values) => {
     veeResetForm();
     props.onSuccess?.();
   } catch (error: unknown) {
-    const err = error as {
-      data?: { message?: string };
-      message?: string;
-    };
-    const errorMessage =
-      err?.data?.message ||
-      err?.message ||
-      "An unexpected error occurred";
-
-    const translatableErrors = [
-      "INVALID_AMOUNT",
-      "INTERNAL_ERROR",
-      "ROLL_REQUIREMENT_ERROR",
-      "MEMBER_NOT_FOUND",
-      "INSUFFICIENT_ROLL",
-      "PENDING_WITHDRAWAL_REQUEST_FOUND",
-      "INSUFFICIENT_BALANCE",
-      "SETTING_NOT_SET",
-      "MINIMUM_AMOUNT_NOT_REACHED",
-      "OVER_MAXIMUM_AMOUNT",
-      "AMOUNT_NOT_DIVISIBLE",
-      "PROMOTION_DEPOSIT_TO_NOT_MET",
-    ];
-
-    const translatedMessage = translatableErrors.includes(errorMessage)
-      ? t(`withdrawal.apiMessages.${errorMessage}`)
-      : errorMessage;
-
-    await showErrorAlert(t("withdrawal.title"), translatedMessage);
+    // The old hardcoded `translatableErrors` allowlist is gone — apiMessage()
+    // already translates only tokens that exist in withdrawal.apiMessages, so
+    // the list was a second copy of the i18n file that had to be kept in sync.
+    await showErrorAlert(t("withdrawal.title"), apiMessage(error, "withdrawal"));
   } finally {
     isSubmitting.value = false;
   }

@@ -52,13 +52,6 @@ const STATIC_BANK_NAMES: string[] = [
   "케이뱅크",
 ];
 
-/** Error shape carried by an ofetch/$fetch error. */
-interface FetchErrorLike {
-  data?: { message?: string };
-  status?: number;
-  statusCode?: number;
-}
-
 export interface UseSignupFormOptions {
   isOpen: () => boolean;
   onClose: () => void;
@@ -66,6 +59,7 @@ export interface UseSignupFormOptions {
 
 export function useSignupForm(options: UseSignupFormOptions) {
   const { t, locale } = useI18n();
+  const apiMessage = useApiMessage();
   const authStore = useAuthStore();
   const currency = useCurrency();
   const api = useApi();
@@ -232,11 +226,7 @@ export function useSignupForm(options: UseSignupFormOptions) {
       options.onClose();
       await showSuccessAlert(t("signup.successTitle"), t("signup.success"));
     } catch (err: unknown) {
-      const apiMessage = (err as FetchErrorLike)?.data?.message;
-      const errorMessage = apiMessage
-        ? t(`signup.apiMessages.${apiMessage}`)
-        : t("signup.apiMessages.INTERNAL_ERROR");
-      await showErrorAlert(t("signup.failed"), errorMessage);
+      await showErrorAlert(t("signup.failed"), apiMessage(err, "signup"));
     } finally {
       isSubmitting.value = false;
     }

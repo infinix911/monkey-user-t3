@@ -149,15 +149,11 @@ import { useCurrency } from "@/composables/useCurrency";
 import { useApi } from "@/composables/useApi";
 import { showSuccessAlert, showErrorAlert } from "~~/utils/swal-alert";
 
-/** Error body shape carried by an ofetch/$fetch error. */
-interface FetchErrorLike {
-  data?: { message?: string };
-}
-
 const props = defineProps<{ isOpen: boolean }>();
 const emit = defineEmits<{ close: [] }>();
 
 const { t } = useI18n();
+const apiMessage = useApiMessage();
 const siteConfig = useSiteConfig();
 const authStore = useAuthStore();
 const currency = useCurrency();
@@ -258,10 +254,9 @@ async function submit() {
     );
     onClose();
   } catch (err: unknown) {
-    const apiMessage = (err as FetchErrorLike)?.data?.message;
     await showErrorAlert(
       t("point.title"),
-      apiMessage ? t(`point.apiMessages.${apiMessage}`) : t("point.convertFailed"),
+      apiMessage(err, "point", "point.convertFailed"),
     );
   } finally {
     isLoading.value = false;

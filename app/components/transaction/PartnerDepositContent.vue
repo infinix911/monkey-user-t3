@@ -151,6 +151,7 @@ const props = defineProps<{
 }>();
 
 const { t } = useI18n();
+const apiMessage = useApiMessage();
 const authStore = useAuthStore();
 const user = computed(() => authStore.user);
 
@@ -249,18 +250,10 @@ const veeSubmit = veeHandleSubmit(async (values) => {
     historyRef.value?.refresh();
     props.onSuccess?.();
   } catch (error: unknown) {
-    const err = error as { data?: { message?: string }; message?: string };
-    const errorMessage = err?.data?.message || err?.message || "INTERNAL_ERROR";
-
-    const translatableErrors = [
-      "INVALID_AMOUNT", "INTERNAL_ERROR", "MEMBER_NOT_FOUND", "NO_UPPER_FOUND",
-      "UPPER_NOT_FOUND", "MINIMUM_AMOUNT_NOT_REACHED", "AMOUNT_NOT_DIVISIBLE",
-    ];
-    const translatedMessage = translatableErrors.includes(errorMessage)
-      ? t(`partner.apiMessages.${errorMessage}`)
-      : errorMessage;
-
-    await showErrorAlert(t("partner.partnerDeposit"), translatedMessage);
+    await showErrorAlert(
+      t("partner.partnerDeposit"),
+      apiMessage(error, "partner"),
+    );
   } finally {
     isSubmitting.value = false;
   }
