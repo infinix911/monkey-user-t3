@@ -37,6 +37,12 @@ export const betHistoriesResponseWireSchema = z.object({
     limit: z.number().optional(),
     totalPages: z.number(),
   }),
+  summary: z.object({
+    betAmount: z.string(),
+    winAmount: z.string(),
+    rollAmount: z.string(),
+    netAmount: z.string(),
+  }),
 });
 export type BetHistoriesResponseWire = z.infer<
   typeof betHistoriesResponseWireSchema
@@ -89,8 +95,12 @@ export const mapBetHistoriesResponse = (
   pages: w.meta.totalPages,
   rows: w.meta.total,
   data: w.data.map(mapBetHistoryItem),
-  // The backend bet-histories endpoint returns no aggregate summary.
-  summary: null,
+  summary: {
+    bet_amount: w.summary.betAmount,
+    win_amount: w.summary.winAmount,
+    roll_amount: w.summary.rollAmount,
+    net_amount: w.summary.netAmount,
+  },
 });
 
 // ===========================================================================

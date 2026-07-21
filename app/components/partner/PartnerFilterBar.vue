@@ -15,7 +15,7 @@
       class="pf-ctl pf-input" @keyup.enter="emitSearch">
 
     <!-- Date range picker (themed calendar popover + quick presets) -->
-    <PartnerDateRange v-if="date" v-model:start="start" v-model:end="end" @change="emitSearch" />
+    <PartnerDateRange v-if="date" v-model:start="startValue" v-model:end="endValue" @change="emitSearch" />
 
     <!-- Search -->
     <button type="button" class="pf-search" :style="{ background: activeGradient, color: activeText }"
@@ -32,8 +32,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
-
+import { computed } from "vue";
 defineProps<{
   /** When provided, renders a search-type select + keyword input. */
   types?: { value: string; label: string }[];
@@ -59,15 +58,25 @@ const keyword = defineModel<string>("keyword", { default: "" });
 const fmt = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 const now = new Date();
-const start = ref(fmt(new Date(now.getFullYear(), now.getMonth(), 1)));
-const end = ref(fmt(now));
+const defaultStart = fmt(new Date(now.getFullYear(), now.getMonth(), 1));
+const defaultEnd = fmt(now);
+const start = defineModel<string>("start");
+const end = defineModel<string>("end");
+const startValue = computed({
+  get: () => start.value || defaultStart,
+  set: (value: string) => { start.value = value; },
+});
+const endValue = computed({
+  get: () => end.value || defaultEnd,
+  set: (value: string) => { end.value = value; },
+});
 
 const emitSearch = () =>
   emit("search", {
     searchType: searchType.value,
     keyword: keyword.value,
-    start: start.value,
-    end: end.value,
+    start: startValue.value,
+    end: endValue.value,
   });
 </script>
 

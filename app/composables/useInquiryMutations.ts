@@ -242,10 +242,18 @@ export const useInquiryMutations = (onRefresh?: () => Promise<void>) => {
   ): Promise<RepliesResponse | null> => {
     try {
       const params = new URLSearchParams({ limit: "20" });
-      const response = await axiosClient.get<RepliesResponse>(
+      const raw = (
+        await axiosClient.get(
         `/inquiries/${inquiryId}/replies?${params.toString()}`,
+        )
+      ).data;
+      return mapRepliesResponse(
+        validateResponse(
+          inquiryRepliesResponseWireSchema,
+          raw,
+          "/inquiries/replies",
+        ),
       );
-      return response.data;
     } catch (error: unknown) {
       const errorMessage = apiErrorMessageOr(error, "Failed to load replies");
 

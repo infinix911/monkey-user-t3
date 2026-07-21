@@ -1,10 +1,8 @@
 /**
  * Notification backend contract (monkey-user-api /notifications).
  *
- * Wire shape is camelCase and carries no read-state (the list returns the
- * member's current notifications; read state is cleared server-side via
- * /read-all). The mapper normalizes to the snake_case shape the dropdown
- * renders and defaults `is_read` to false.
+ * Wire shape is camelCase. The mapper normalizes it to the snake_case shape
+ * the dropdown renders.
  */
 
 import { z } from "zod";
@@ -14,6 +12,7 @@ export const notificationWireSchema = z.object({
   category: z.string(),
   title: z.string(),
   message: z.string(),
+  isRead: z.boolean(),
   pagePath: z.string(),
   createdAt: z.string(),
 });
@@ -39,5 +38,5 @@ export const mapNotification = (w: NotificationWire): NotificationItem => ({
   message: w.message,
   created_at: w.createdAt,
   page_path: w.pagePath,
-  is_read: false,
+  is_read: w.isRead,
 });

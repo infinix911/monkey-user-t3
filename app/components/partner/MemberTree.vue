@@ -24,13 +24,44 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
-import { mockMemberTree, type MemberTreeItem } from "@/utils/partnerMenu";
+import { ref, onMounted } from "vue";
+import type { MemberTreeItem } from "@/utils/partnerMenu";
+import { useApi } from "@/composables/useApi";
 
 const { accent, cardBg } = usePartnerTheme();
 
-// Placeholder tree — replace with `GET /partner/member/tree` when wired.
-const treeData = ref<MemberTreeItem[]>(mockMemberTree());
+type PartnerTreeNode = {
+  memberId: string;
+  username: string;
+  name: string;
+  depth: number | null;
+  status: number | null;
+  childCount: number;
+  nodes?: PartnerTreeNode[];
+};
+
+const treeData = ref<MemberTreeItem[]>([]);
+
+const mapNode = (node: PartnerTreeNode): MemberTreeItem => ({
+  id: node.memberId,
+  label: node.username,
+  userlabel: node.name,
+  depth: node.depth ?? 0,
+  memberCount: node.childCount,
+  status: node.status ?? undefined,
+  expanded: true,
+  nodes: node.nodes?.map(mapNode),
+});
+
+const loadTree = async () => {
+  try {
+    const api = useApi();
+    const response = await api<PartnerTreeNode[]>("/partners/members/tree");
+    treeData.value = response.map(mapNode);
+  } catch {
+    treeData.value = [];
+  }
+};
 
 /** Expand or collapse every node in the tree. */
 function setAll(open: boolean): void {
@@ -46,7 +77,7 @@ function setAll(open: boolean): void {
 }
 
 // Fully expanded on first render (mirrors stargazer-high's default tree state).
-setAll(true);
+onMounted(loadTree);
 </script>
 
 <style scoped>
