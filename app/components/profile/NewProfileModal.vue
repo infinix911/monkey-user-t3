@@ -221,9 +221,7 @@
 import type { Component } from "vue";
 import LanguageFlag from "~/components/layout/LanguageFlag.vue";
 import Referral from "~/components/my-account/Referral.vue";
-import BonusHistory from "~/components/my-account/BonusHistory.vue";
 import BettingReport from "~/components/my-account/BettingReport.vue";
-import LevelSystem from "~/components/my-account/LevelSystem.vue";
 import LoginHistory from "~/components/my-account/LoginHistory.vue";
 import ChangePassword from "~/components/my-account/ChangePassword.vue";
 import TransactionLogs from "~/components/my-account/TransactionLogs.vue";
@@ -236,9 +234,7 @@ import { useProfileMenu } from "@/components/profile/useProfileMenu";
 // Map menu id → component. Keys match API item names (camelCase) and menu ids.
 const ACCOUNT_COMPONENTS = {
   referral: Referral,
-  bonusHistory: BonusHistory,
   bettingReport: BettingReport,
-  levelSystem: LevelSystem,
   loginHistory: LoginHistory,
   changePassword: ChangePassword,
   // Transaction ledger. Both API ids map to the same panel.

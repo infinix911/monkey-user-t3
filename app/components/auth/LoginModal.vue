@@ -205,6 +205,7 @@ const authStore = useAuthStore();
 const uiStore = useUiStore();
 
 const { t, locale } = useI18n();
+const apiMessage = useApiMessage();
 const wsStore = useWebSocketStore();
 const siteConfig = useSiteConfig();
 
@@ -364,14 +365,13 @@ const onSubmit = handleSubmit(async (values) => {
     resetForm();
     emit("close");
   } catch (err: unknown) {
-    // Handle specific error codes or show generic error
-    const fetchErr = err as { data?: { message?: string } };
-    const errorKey = fetchErr?.data?.message;
-    const errorMessage = errorKey
-      ? t(`login.apiMessages.${errorKey}`)
-      : t("login.invalidCredentials");
-
-    await showErrorAlert(t("login.failed"), errorMessage);
+    // Login posts straight to Better Auth, which returns human prose in
+    // `message` — see app/composables/useApiMessage.ts for why that can't be used as
+    // an i18n key.
+    await showErrorAlert(
+      t("login.failed"),
+      apiMessage(err, "login", "login.invalidCredentials"),
+    );
   } finally {
     isSubmitting.value = false;
   }

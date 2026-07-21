@@ -21,34 +21,17 @@ import {
 } from "~/interfaces/inquiry.interface";
 
 
-const TRANSLATABLE_ERRORS = {
-  CREATE_INQUIRY: [
-    "PENDING_INQUIRY_FOUND",
-    "MEMBER_NOT_FOUND",
-    "INTERNAL_ERROR",
-  ],
-  UPDATE_STATUS: ["INQUIRY_NOT_FOUND", "INTERNAL_ERROR"],
-  SEND_REPLY: ["INQUIRY_NOT_FOUND", "INTERNAL_ERROR"],
-};
+// The per-operation TRANSLATABLE_ERRORS allowlists were removed: apiMessage()
+// translates only tokens that exist under inquiry.apiMessages, so the lists were
+// a second copy of the i18n file that had to be kept in sync by hand.
 
 /**
  * Composable for inquiry-related mutations (create, update, delete, reply)
  */
 export const useInquiryMutations = (onRefresh?: () => Promise<void>) => {
   const { t } = useI18n();
+  const apiMessage = useApiMessage();
   const router = useRouter();
-
-  /**
-   * Translate API error messages or fallback to raw error
-   */
-  const getTranslatedError = (
-    errorMessage: string,
-    translatableList: string[],
-  ): string => {
-    return translatableList.includes(errorMessage)
-      ? t(`inquiry.apiMessages.${errorMessage}`)
-      : errorMessage;
-  };
 
   /**
    * Create a new inquiry
@@ -63,11 +46,11 @@ export const useInquiryMutations = (onRefresh?: () => Promise<void>) => {
         message: content,
       });
 
-      const apiMessage = response.data?.message || "INQUIRY_CREATED";
+      const token = response.data?.message || "INQUIRY_CREATED";
 
       await showSuccessAlert(
         t("inquiry.inquirySent"),
-        t(`inquiry.apiMessages.${apiMessage}`),
+        apiMessage(token, "inquiry", "inquiry.inquirySent"),
       );
 
       // Refresh inquiry data
@@ -77,15 +60,7 @@ export const useInquiryMutations = (onRefresh?: () => Promise<void>) => {
         router.go(0);
       }
     } catch (error: unknown) {
-      const errorMessage = apiErrorMessageOr(
-        error,
-        "An unexpected error occurred",
-      );
-
-      const translatedMessage = getTranslatedError(
-        errorMessage,
-        TRANSLATABLE_ERRORS.CREATE_INQUIRY,
-      );
+      const translatedMessage = apiMessage(error, "inquiry");
 
       await showErrorAlert(t("inquiry.sendInquiryFailed"), translatedMessage);
     }
@@ -105,12 +80,11 @@ export const useInquiryMutations = (onRefresh?: () => Promise<void>) => {
         status,
       });
 
-      const apiMessage = response.data?.message;
-      const successMessage = apiMessage
-        ? t(`inquiry.apiMessages.${apiMessage}`)
-        : isMarkRead
-          ? t("inquiry.markReadSuccess")
-          : t("inquiry.deleteSuccess");
+      const successMessage = apiMessage(
+        response.data?.message,
+        "inquiry",
+        isMarkRead ? "inquiry.markReadSuccess" : "inquiry.deleteSuccess",
+      );
 
       await showSuccessAlert(t("inquiry.success"), successMessage);
 
@@ -121,15 +95,7 @@ export const useInquiryMutations = (onRefresh?: () => Promise<void>) => {
         router.go(0);
       }
     } catch (error: unknown) {
-      const errorMessage = apiErrorMessageOr(
-        error,
-        "An unexpected error occurred",
-      );
-
-      const translatedMessage = getTranslatedError(
-        errorMessage,
-        TRANSLATABLE_ERRORS.UPDATE_STATUS,
-      );
+      const translatedMessage = apiMessage(error, "inquiry");
 
       const errorTitle = isMarkRead
         ? t("inquiry.markRead")
@@ -151,12 +117,11 @@ export const useInquiryMutations = (onRefresh?: () => Promise<void>) => {
     try {
       const response = await axiosClient.patch("/inquiries/", { status });
 
-      const apiMessage = response.data?.message;
-      const successMessage = apiMessage
-        ? t(`inquiry.apiMessages.${apiMessage}`)
-        : isDelete
-          ? t("inquiry.deleteAllSuccess")
-          : t("inquiry.markAllReadSuccess");
+      const successMessage = apiMessage(
+        response.data?.message,
+        "inquiry",
+        isDelete ? "inquiry.deleteAllSuccess" : "inquiry.markAllReadSuccess",
+      );
 
       await showSuccessAlert(t("inquiry.success"), successMessage);
 
@@ -169,15 +134,7 @@ export const useInquiryMutations = (onRefresh?: () => Promise<void>) => {
         router.go(0);
       }
     } catch (error: unknown) {
-      const errorMessage = apiErrorMessageOr(
-        error,
-        "An unexpected error occurred",
-      );
-
-      const translatedMessage = getTranslatedError(
-        errorMessage,
-        TRANSLATABLE_ERRORS.UPDATE_STATUS,
-      );
+      const translatedMessage = apiMessage(error, "inquiry");
 
       const errorTitle = isMarkRead
         ? t("inquiry.markAllRead")
@@ -204,15 +161,7 @@ export const useInquiryMutations = (onRefresh?: () => Promise<void>) => {
 
       router.go(0);
     } catch (error: unknown) {
-      const errorMessage = apiErrorMessageOr(
-        error,
-        "An unexpected error occurred",
-      );
-
-      const translatedMessage = getTranslatedError(
-        errorMessage,
-        TRANSLATABLE_ERRORS.CREATE_INQUIRY,
-      );
+      const translatedMessage = apiMessage(error, "inquiry");
 
       await showErrorAlert(t("inquiry.accountInquiry"), translatedMessage);
     }
@@ -227,10 +176,11 @@ export const useInquiryMutations = (onRefresh?: () => Promise<void>) => {
         status: "close",
       });
 
-      const apiMessage = response.data?.message;
-      const successMessage = apiMessage
-        ? t(`inquiry.apiMessages.${apiMessage}`)
-        : t("inquiry.closeInquirySuccess");
+      const successMessage = apiMessage(
+        response.data?.message,
+        "inquiry",
+        "inquiry.closeInquirySuccess",
+      );
 
       await showSuccessAlert(t("inquiry.success"), successMessage);
 
@@ -241,15 +191,7 @@ export const useInquiryMutations = (onRefresh?: () => Promise<void>) => {
         router.go(0);
       }
     } catch (error: unknown) {
-      const errorMessage = apiErrorMessageOr(
-        error,
-        "An unexpected error occurred",
-      );
-
-      const translatedMessage = getTranslatedError(
-        errorMessage,
-        TRANSLATABLE_ERRORS.UPDATE_STATUS,
-      );
+      const translatedMessage = apiMessage(error, "inquiry");
 
       await showErrorAlert(t("inquiry.closeInquiryFailed"), translatedMessage);
     }
@@ -285,15 +227,7 @@ export const useInquiryMutations = (onRefresh?: () => Promise<void>) => {
         ),
       );
     } catch (error: unknown) {
-      const errorMessage = apiErrorMessageOr(
-        error,
-        "An unexpected error occurred",
-      );
-
-      const translatedMessage = getTranslatedError(
-        errorMessage,
-        TRANSLATABLE_ERRORS.SEND_REPLY,
-      );
+      const translatedMessage = apiMessage(error, "inquiry");
 
       await showErrorAlert(t("common.error"), translatedMessage);
       return null;

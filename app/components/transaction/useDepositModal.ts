@@ -7,8 +7,6 @@
  * Amount entry/quick-amounts live in `useBankPayment`.
  */
 
-export type PaymentType = "BANK" | "E-MONEY" | "PULSA";
-
 export interface IBankAccount {
   id: string;
   account_name: string;
@@ -17,10 +15,6 @@ export interface IBankAccount {
   account_number: string;
   credit_fee_type: string;
   credit_fee: string;
-}
-
-export interface UseDepositModalOptions {
-  isOpen: () => boolean;
 }
 
 /**
@@ -42,25 +36,14 @@ const STATIC_BANK_ACCOUNT: IBankAccount = {
   credit_fee: "0",
 };
 
-export function useDepositModal(options: UseDepositModalOptions) {
-  const paymentType = ref<PaymentType>("BANK");
+export function useDepositModal() {
   const bankAccounts = ref<IBankAccount[]>([STATIC_BANK_ACCOUNT]);
 
-  const historyMethod = computed(() => {
-    if (paymentType.value === "E-MONEY") return "emoney";
-    if (paymentType.value === "PULSA") return "pulsa";
-    return "bank";
-  });
-
-  // Reset the payment-type tab back to BANK when the modal closes.
-  watch(options.isOpen, (open) => {
-    if (!open) {
-      paymentType.value = "BANK";
-    }
-  });
+  // Bank transfer is the only deposit method — the E-WALLET and PULSA tabs were
+  // removed, so the history filter is fixed rather than derived from a tab.
+  const historyMethod = "bank";
 
   return {
-    paymentType,
     bankAccounts,
     historyMethod,
   };

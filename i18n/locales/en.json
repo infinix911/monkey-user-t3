@@ -54,6 +54,9 @@
       "SUCCESSFUL_LOGIN": "Login successful! Welcome back.",
       "SUCCESSFUL_LOGOUT": "You have been logged out successfully.",
       "INVALID_CREDENTIALS": "Invalid username or password. Please check your credentials and try again.",
+      "INVALID_USERNAME_OR_PASSWORD": "Invalid username or password. Please check your credentials and try again.",
+      "INVALID_EMAIL_OR_PASSWORD": "Invalid username or password. Please check your credentials and try again.",
+      "TOO_MANY_REQUESTS": "Too many login attempts. Please wait a moment and try again.",
       "INVALID_OR_EXPIRED_TOKEN": "Your session has expired. Please log in again.",
       "INVALID_USER": "Invalid user. Please contact support.",
       "AGENT_INCOMPLETE_PROFILE": "Agent profile is incomplete. Please complete your profile.",
@@ -113,6 +116,12 @@
     "bankAccountName": "Account Holder",
     "bankAccount": "Account Number",
     "note": "Withdrawals can only be made to the account registered during deposit/withdrawal registration.",
+    "validation": {
+      "amountInvalid": "Please enter a valid amount",
+      "amountMinimum": "Minimum withdrawal amount is {min}",
+      "amountMaximum": "Maximum withdrawal amount is {max}",
+      "amountDivisible": "Withdrawal amount must be in multiples of {step}"
+    },
     "withdrawCheck": "Withdrawal amount must be 10,000 or more.",
     "success": "Withdrawal request has been completed.",
     "withdrawDivCheck": "Withdrawal amount must be in multiples of 10,000",
@@ -501,8 +510,6 @@
     "accountName": "Account Name",
     "accountNumber": "Account Number",
     "depositAmount": "Deposit Amount",
-    "voucher": "Voucher",
-    "selectVoucher": "No Voucher",
     "proofTransfer": "Proof Transfer",
     "selectFile": "Select file",
     "noFilesSelected": "No files selected",
@@ -514,14 +521,14 @@
     "transactionSummary": {
       "depositAmount": "Deposit Amount",
       "serviceFee": "Service Fee (-)",
-      "netAmount": "Net Amount",
-      "bonus": "Bonus (+)",
-      "totalNetAmount": "Total Net Amount"
+      "netAmount": "Net Amount"
     },
     "validation": {
       "amountRequired": "Deposit amount is required",
       "amountInvalid": "Please enter a valid amount",
-      "amountMinimum": "Deposit amount must be greater than 0",
+      "amountMinimum": "Minimum deposit amount is {min}",
+      "amountMaximum": "Maximum deposit amount is {max}",
+      "amountDivisible": "Deposit amount must be in multiples of {step}",
       "bankRequired": "Please select a bank account"
     },
     "failed": {
@@ -588,11 +595,6 @@
       "INVALID_AMOUNT": "Invalid amount. Please enter a valid amount.",
       "NOT_FOUND": "Session not found. Please request a new QR code.",
       "VALIDATION_ERROR": "Invalid input. Please check your details and try again."
-    },
-    "voucherPopup": {
-      "title": "Promotion Notice",
-      "agree": "Accept",
-      "disagree": "Do Not Accept"
     }
   },
   "myAccount": {
@@ -605,17 +607,7 @@
       "user": "User",
       "date": "Date"
     },
-    "bonusHistory": {
-      "title": "Bonus History",
-      "promotions": "Promotion",
-      "date": "Date",
-      "amount": "Amount",
-      "no": "No.",
-      "loading": "Loading...",
-      "totalBonus": "Total Bonus"
-    },
     "bettingReport": "Betting Report",
-    "levelSystem": "Level System",
     "loginHistory": {
       "label": "Login History",
       "title": "Recently 7 Days",

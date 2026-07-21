@@ -172,6 +172,7 @@ import { useApi } from "@/composables/useApi";
 import { useAuthStore } from "~/stores/auth";
 import { showSuccessAlert, showErrorAlert } from "~~/utils/swal-alert";
 import { withdrawalSchema } from "@/schemas";
+// Min/max/divisible come from the CMS (`withdrawals:*` in /site/settings).
 
 const siteConfig = useSiteConfig();
 
@@ -180,6 +181,7 @@ const props = defineProps<{
 }>();
 
 const { t, locale } = useI18n();
+const apiMessage = useApiMessage();
 const authStore = useAuthStore();
 const user = computed(() => authStore.user);
 
@@ -187,7 +189,7 @@ const user = computed(() => authStore.user);
 const dep = computed(() => siteConfig.theme.transactionmodal);
 
 // Bank-account card: dark fill with a top-left accent gradient flowing down
-// and an accent glow border (mirrors DepositSummary; the selected method look).
+// and an accent glow border (the selected-method look).
 const cardStyle = computed(() => ({
   borderRadius: "12px",
   border: `1.5px solid ${dep.value.accentColor}`,
@@ -209,6 +211,8 @@ async function refreshBalance() {
   }
 }
 
+const limits = useTransactionLimits("withdrawals");
+
 // VeeValidate form
 const {
   handleSubmit: veeHandleSubmit,
@@ -220,7 +224,7 @@ const {
   // instead of freezing to the first language.
   validationSchema: computed(() => {
     void locale.value;
-    return withdrawalSchema(t);
+    return withdrawalSchema(t, limits.value);
   }),
   initialValues: {
     amount: "0",
@@ -295,12 +299,15 @@ function handleAmountClick(qa: { value: number; label: string }) {
 function handleMax() {
   const walletValue = Number(user.value.wallet || 0);
   lastSelectedButton.value = "MAX";
-  const divisibleValue = walletValue % 10000;
-  if (divisibleValue !== 0) {
-    amount.value = (walletValue - divisibleValue).toString();
-  } else {
-    amount.value = walletValue.toString();
-  }
+
+  // Cap at the configured maximum, then round DOWN to the configured step.
+  // The step was hardcoded to 10000; using the CMS value keeps MAX from
+  // producing an amount that the divisibility rule then rejects.
+  const capped = Math.min(walletValue, limits.value.maximum);
+  const step = limits.value.divisible;
+  amount.value = (
+    step > 0 ? capped - (capped % step) : capped
+  ).toString();
 }
 
 function handleReset() {
@@ -335,35 +342,10 @@ const veeSubmit = veeHandleSubmit(async (values) => {
     veeResetForm();
     props.onSuccess?.();
   } catch (error: unknown) {
-    const err = error as {
-      data?: { message?: string };
-      message?: string;
-    };
-    const errorMessage =
-      err?.data?.message ||
-      err?.message ||
-      "An unexpected error occurred";
-
-    const translatableErrors = [
-      "INVALID_AMOUNT",
-      "INTERNAL_ERROR",
-      "ROLL_REQUIREMENT_ERROR",
-      "MEMBER_NOT_FOUND",
-      "INSUFFICIENT_ROLL",
-      "PENDING_WITHDRAWAL_REQUEST_FOUND",
-      "INSUFFICIENT_BALANCE",
-      "SETTING_NOT_SET",
-      "MINIMUM_AMOUNT_NOT_REACHED",
-      "OVER_MAXIMUM_AMOUNT",
-      "AMOUNT_NOT_DIVISIBLE",
-      "PROMOTION_DEPOSIT_TO_NOT_MET",
-    ];
-
-    const translatedMessage = translatableErrors.includes(errorMessage)
-      ? t(`withdrawal.apiMessages.${errorMessage}`)
-      : errorMessage;
-
-    await showErrorAlert(t("withdrawal.title"), translatedMessage);
+    // The old hardcoded `translatableErrors` allowlist is gone — apiMessage()
+    // already translates only tokens that exist in withdrawal.apiMessages, so
+    // the list was a second copy of the i18n file that had to be kept in sync.
+    await showErrorAlert(t("withdrawal.title"), apiMessage(error, "withdrawal"));
   } finally {
     isSubmitting.value = false;
   }

@@ -141,3 +141,17 @@
 - The togel-only vitest `unit` project + coverage were removed (ADR-016's gate updated to `component + typecheck + build`).
 **Supersedes/updates:** ADR-013 (currency-derived feature flags — `togel` flag removed), ADR-016 (gate no longer runs a `unit` project). The `defaultLocale: id` / PLAN-PAGE-LOADS-TWICE rationale now targets `ko`.
 **Tradeoffs:** `LanguageFlag.vue` still ships id/th flag graphics because the signup **currency** selector reuses it for IDR/THB accounts (unrelated business logic left intact); this is currency iconography, not a UI language.
+
+---
+
+## ADR-018 — `/promotions/*`-only UI removed (bonus history, level system, deposit vouchers)
+**Status:** Accepted
+**Context:** `monkey-user-api` has no `/promotions` module. Three surfaces existed whose *only* data source was a non-existent endpoint, so they rendered permanently empty (or, for vouchers, were already hidden behind `v-if="false"` with the fetch stripped out). They degraded gracefully rather than crashing, which meant they lingered as dead weight and misleading UI.
+**Decision:** Delete the surfaces outright rather than keep them waiting on a backend that isn't planned:
+- **Bonus history** (`GET /promotions/bonuses`) — `BonusHistory.vue` deleted.
+- **Level system** (`GET /promotions/level-rewards`) — `LevelSystem.vue` deleted **in full**, including the level banner and the FAQ accordion that were fed by the *working* `/site/config/userpage/levelSystem` endpoint. That config fetch had no other consumer and went with it. The tier **badge assets** (`assets.images.bronze/silver/gold/diamonds`) and the auth-store level fields are retained — `AppHeader.vue` / `UserBalancePill.vue` still render the level badge.
+- **Deposit vouchers** (`GET /promotions/vouchers`) — `VoucherPopupModal.vue`, the dead picker block, all voucher state in `useBankPayment.ts`, and `tests/e2e/specs/voucher-popup.spec.ts`. With vouchers gone the `bonus` computed disappears, so `totalNetAmount` collapsed to `netAmount`; both the Bonus and Total rows were dropped from `DepositSummary.vue` rather than print the same figure twice.
+**Key constraint — the CMS is the source of menu truth:** profile-menu items come from the live theme payload via `useMenuSettings`, which replaces the bundled `profileMenu` array wholesale. Deleting the bundled defaults therefore does **not** stop the tiles rendering. The existing togel-only `isTogelItem` guard was generalised into **`REMOVED_ITEM_IDS` / `isRemovedItem`** (`app/components/profile/useProfileMenu.ts`), now also matching `bonushistory` / `levelsystem` on a normalised id. Any future panel removal must add its id there, not just to the defaults.
+**Alternative considered:** disabling the two items in the admin CMS per deployment. Rejected as the primary mechanism — it is per-hostname data, so a single missed site config reintroduces dead tiles. The code-level filter is a guarantee; the CMS change is optional cleanup on top.
+**Tradeoffs:** The `deposit.apiMessages.INVALID_VOUCHER` / `ACTIVE_TO_IN_PROGRESS` i18n tokens are kept — they are backend-emitted error keys, not UI strings, and removing them would break message lookup if the API ever returns them. Re-introducing any of these features means rebuilding the component, not flipping a flag.
+**Related:** ADR-017 (same removal pattern; `isTogelItem` is its ancestor).

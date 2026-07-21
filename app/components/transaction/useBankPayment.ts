@@ -3,9 +3,9 @@
  * flow for BankPaymentContent.vue.
  *
  * Extracted verbatim from the component to keep the .vue a thin presentation
- * layer. All behavior — vee-validate wiring, currency math, voucher/bonus
- * computation, receipt upload, deposit submit and voucher fetch — is preserved
- * exactly, including the original axios error-message extraction.
+ * layer. Covers vee-validate wiring, currency math and deposit submit. The
+ * receipt upload and the transaction-summary math were removed with the
+ * proof-of-transfer and summary UI.
  */
 
 import { useForm } from "vee-validate";
@@ -17,17 +17,6 @@ import {
 } from "~~/utils/swal-alert";
 import { depositSchema } from "@/schemas";
 
-/** Error body shape carried by an ofetch/$fetch error. */
-interface FetchErrorLike {
-  data?: { message?: string };
-  message?: string;
-}
-
-/** Read the API `message` from a $fetch error body, if present. */
-function fetchErrorMessage(error: unknown): string | undefined {
-  return (error as FetchErrorLike)?.data?.message;
-}
-
 export interface IBankAccount {
   id: string;
   account_name: string;
@@ -38,22 +27,6 @@ export interface IBankAccount {
   credit_fee: string;
 }
 
-export interface IVoucherIssue {
-  issue_id: string;
-  voucher_id: string;
-  voucher: string;
-  description: string;
-  valid_to: string;
-  enable_popup: boolean;
-  popup_text: string | null;
-  tiers: {
-    min_value: number;
-    reward_type: string;
-    reward_value: number;
-    cap: number;
-  }[];
-}
-
 export interface PaymentMethod {
   id: string;
   name: string;
@@ -62,23 +35,31 @@ export interface PaymentMethod {
   bankData?: IBankAccount;
 }
 
+/**
+ * Ceiling used only when the CMS has no `deposits:maximum`. The configured
+ * value wins — see `maxAmount` below.
+ */
 const MAX_DEPOSIT_AMOUNT = 100000000;
 
 export const QUICK_AMOUNTS = ["5K", "50K", "100K", "250K", "500K", "1JT"];
 
 export interface UseBankPaymentOptions {
   bankAccounts: () => IBankAccount[] | undefined;
-  paymentType?: () => string | undefined;
 }
 
 export function useBankPayment(options: UseBankPaymentOptions) {
   const siteConfig = useSiteConfig();
   const currency = useCurrency();
   const { t, locale } = useI18n();
+  const apiMessage = useApiMessage();
   const api = useApi();
 
+  // Min/max/divisible come from the CMS (`deposits:*` in /site/settings).
+  const limits = useTransactionLimits("deposits");
+
   // VeeValidate form — reactive schema so the (baked) validation messages
-  // follow the active locale instead of freezing to the first language.
+  // follow the active locale instead of freezing to the first language, and so
+  // the amount rules pick up the CMS limits once settings land.
   const {
     handleSubmit: veeHandleSubmit,
     errors: rawErrors,
@@ -87,7 +68,7 @@ export function useBankPayment(options: UseBankPaymentOptions) {
   } = useForm({
     validationSchema: computed(() => {
       void locale.value;
-      return depositSchema(t);
+      return depositSchema(t, limits.value);
     }),
     initialValues: {
       depositAmount: "0",
@@ -99,18 +80,9 @@ export function useBankPayment(options: UseBankPaymentOptions) {
   const submitted = ref(false);
   const errors = computed(() => (submitted.value ? rawErrors.value : {}));
 
-  const vouchers = ref<IVoucherIssue[]>([]);
-  const loadingVouchers = ref(false);
   const selectedPayment = ref<PaymentMethod | null>(null);
   const depositAmount = ref("0");
-  const selectedVoucher = ref<IVoucherIssue | null>(null);
 
-  // Popup state — shown when a selected voucher has enable_popup:true
-  const pendingVoucher = ref<IVoucherIssue | null>(null);
-  const showVoucherPopup = ref(false);
-
-  const selectedFile = ref<File | null>(null);
-  const fileName = ref(t("deposit.noFilesSelected"));
   const isBankModalOpen = ref(false);
 
   const bankAccountsList = computed(() => options.bankAccounts() || []);
@@ -135,69 +107,26 @@ export function useBankPayment(options: UseBankPaymentOptions) {
     setFieldValue("bankAccountId", newVal?.id || "", false);
   });
 
-  // PULSA deposits don't support vouchers — clear any prior selection so a
-  // voucher chosen under BANK/E-MONEY isn't submitted after switching to PULSA.
-  watch(
-    () => options.paymentType?.(),
-    (type) => {
-      if (type === "PULSA") selectedVoucher.value = null;
-    },
-    { immediate: true },
-  );
-
-  const bonus = computed(() => {
-    if (!selectedVoucher.value) return 0;
-
-    const sortedTiers = [...selectedVoucher.value.tiers].sort(
-      (a, b) => Number(b.min_value) - Number(a.min_value),
-    );
-    const applicableTier = sortedTiers.find(
-      (tier) => depositAmountNum.value >= Number(tier.min_value),
-    );
-
-    if (!applicableTier) return 0;
-
-    const rewardValue = Number(applicableTier.reward_value);
-    let rewardAmount =
-      applicableTier.reward_type === "percentage"
-        ? depositAmountNum.value * (rewardValue / 100)
-        : rewardValue;
-
-    const cap = Number(applicableTier.cap);
-    if (cap > 0 && rewardAmount > cap) {
-      rewardAmount = cap;
-    }
-
-    return Number(rewardAmount.toFixed(2));
-  });
-
-  const serviceFee = computed(() => {
-    if (!selectedBankAccount.value) return 0;
-    const fee =
-      selectedBankAccount.value.credit_fee_type === "percentage"
-        ? (depositAmountNum.value *
-            Number(selectedBankAccount.value.credit_fee)) /
-          100
-        : Number(selectedBankAccount.value.credit_fee);
-    return Number(fee.toFixed(2));
-  });
-
-  const netAmount = computed(() => depositAmountNum.value - serviceFee.value);
-  const totalNetAmount = computed(() => netAmount.value + bonus.value);
+  // serviceFee / netAmount lived only in the transaction-summary card, which was
+  // removed along with the proof-of-transfer upload. The fee was always 0 in
+  // practice (the fixed deposit account carries credit_fee "0"), and the backend
+  // computes the credited amount itself.
 
   function getTranslatedAmount(amount: string): string {
     return t(`common.quickAmounts.${amount}`) || amount;
-  }
-
-  function formatCurrency(amount: string | number): string {
-    const num = typeof amount === "string" ? parseFloat(amount) : amount;
-    return `${currency.symbol} ${num.toLocaleString(currency.locale)}`;
   }
 
   function formatCurrencyInput(value: string): string {
     const num = parseFloat(value || "0");
     return num.toLocaleString(currency.locale);
   }
+
+  /** CMS `deposits:maximum`, falling back to the bundled ceiling. */
+  const maxAmount = computed(() =>
+    Number.isFinite(limits.value.maximum)
+      ? limits.value.maximum
+      : MAX_DEPOSIT_AMOUNT,
+  );
 
   function handleAmountInput(event: Event) {
     const value = (event.target as HTMLInputElement).value.replace(
@@ -206,7 +135,7 @@ export function useBankPayment(options: UseBankPaymentOptions) {
     );
     const numValue = parseFloat(value);
 
-    if (isNaN(numValue) || numValue <= MAX_DEPOSIT_AMOUNT) {
+    if (isNaN(numValue) || numValue <= maxAmount.value) {
       depositAmount.value = value;
     }
   }
@@ -215,51 +144,16 @@ export function useBankPayment(options: UseBankPaymentOptions) {
     const clickedValue = amount.replace("K", "000").replace("JT", "000000");
     const currentAmount = parseFloat(depositAmount.value || "0");
     const newAmount = currentAmount + parseFloat(clickedValue);
-    const finalAmount = Math.min(newAmount, MAX_DEPOSIT_AMOUNT);
+    const finalAmount = Math.min(newAmount, maxAmount.value);
     depositAmount.value = String(finalAmount);
   }
 
   function handleMax() {
-    depositAmount.value = String(MAX_DEPOSIT_AMOUNT);
+    depositAmount.value = String(maxAmount.value);
   }
 
   function handleReset() {
     depositAmount.value = "0";
-  }
-
-  function handleVoucherChange(event: Event) {
-    const value = (event.target as HTMLSelectElement).value;
-    const selected = vouchers.value.find((v) => v.issue_id === value);
-    if (!selected) {
-      selectedVoucher.value = null;
-      return;
-    }
-    if (selected.enable_popup) {
-      pendingVoucher.value = selected;
-      showVoucherPopup.value = true;
-    } else {
-      selectedVoucher.value = selected;
-    }
-  }
-
-  function handlePopupAgree() {
-    selectedVoucher.value = pendingVoucher.value;
-    pendingVoucher.value = null;
-    showVoucherPopup.value = false;
-  }
-
-  function handlePopupDisagree() {
-    pendingVoucher.value = null;
-    showVoucherPopup.value = false;
-    selectedVoucher.value = null;
-  }
-
-  function handleFileChange(event: Event) {
-    const file = (event.target as HTMLInputElement).files?.[0];
-    if (file) {
-      selectedFile.value = file;
-      fileName.value = file.name;
-    }
   }
 
   async function handleCopy(text: string, label: string) {
@@ -302,9 +196,6 @@ export function useBankPayment(options: UseBankPaymentOptions) {
 
   function resetForm() {
     depositAmount.value = "0";
-    selectedVoucher.value = null;
-    selectedFile.value = null;
-    fileName.value = t("deposit.noFilesSelected");
     selectedPayment.value = null;
     submitted.value = false;
     veeResetForm();
@@ -316,43 +207,15 @@ export function useBankPayment(options: UseBankPaymentOptions) {
     await veeSubmit();
   };
 
-  const veeSubmit = veeHandleSubmit(async (values) => {
-    let receiptURL: string | null = null;
-
-    if (selectedFile.value) {
-      const formData = new FormData();
-      formData.append("file", selectedFile.value);
-
-      try {
-        const data = await api<{ message: string; url: string }>(
-          "/transactions/deposit/upload-receipt",
-          { method: "POST", body: formData },
-        );
-        receiptURL = data.url ?? null;
-
-        if (!receiptURL) {
-          throw new Error("No URL returned from upload");
-        }
-      } catch (error: unknown) {
-        const uploadErr = error as FetchErrorLike;
-        const errorMessage =
-          uploadErr?.data?.message ||
-          uploadErr?.message ||
-          "File upload failed";
-        await showErrorAlert(
-          t("deposit.title"),
-          `${t("deposit.errors.fileUploadFailed")}: ${errorMessage}`,
-        );
-        return;
-      }
-    }
-
+  const veeSubmit = veeHandleSubmit(async () => {
     // Backend contract (camelCase, see createDepositSchema in monkey-user-api):
     // { amount: number, receiptImage?: string | null }. The backend derives the
     // deposit account itself (no accountId) and has no voucher support.
+    // `receiptImage` is now always null — the proof-of-transfer upload was
+    // removed from the modal, so nothing calls /deposit/upload-receipt.
     const depositData = {
       amount: depositAmountNum.value,
-      receiptImage: receiptURL,
+      receiptImage: null,
     };
 
     try {
@@ -366,57 +229,26 @@ export function useBankPayment(options: UseBankPaymentOptions) {
       );
       resetForm();
     } catch (error: unknown) {
-      const depositMessage = fetchErrorMessage(error);
-      if (depositMessage) {
-        await showErrorAlert(
-          t("deposit.title"),
-          t(`deposit.apiMessages.${depositMessage}`),
-        );
-      } else {
-        await showErrorAlert(
-          t("deposit.title"),
-          t("deposit.apiMessages.INTERNAL_ERROR"),
-        );
-      }
+      await showErrorAlert(t("deposit.title"), apiMessage(error, "deposit"));
     }
   });
-
-  // Vouchers are not fetched: the backend has no /promotions endpoint and
-  // deposit carries no voucher field. The voucher UI is hidden in
-  // BankPaymentContent. (State kept so the surface can be re-enabled if a
-  // promotions API is added.)
 
   return {
     siteConfig,
     currency,
     errors,
-    vouchers,
-    loadingVouchers,
     selectedPayment,
     depositAmount,
-    selectedVoucher,
-    showVoucherPopup,
-    pendingVoucher,
-    fileName,
     isBankModalOpen,
     selectedBankAccount,
     depositAmountNum,
-    bonus,
-    serviceFee,
-    netAmount,
-    totalNetAmount,
     quickAmounts: QUICK_AMOUNTS,
     getTranslatedAmount,
-    formatCurrency,
     formatCurrencyInput,
     handleAmountInput,
     handleAmountClick,
     handleMax,
     handleReset,
-    handleVoucherChange,
-    handlePopupAgree,
-    handlePopupDisagree,
-    handleFileChange,
     handleCopy,
     handleBankSelect,
     onSubmit,

@@ -48,6 +48,7 @@ interface IPartnerDeposit {
 }
 
 const { t } = useI18n();
+const apiMessage = useApiMessage();
 
 const PENDING = 0;
 const limit = 10;
@@ -120,11 +121,9 @@ async function handleProcess(depositId: number, status: number) {
     });
     const message = body?.message || (status === 2 ? "PARTNER_DEPOSIT_APPROVED" : "PARTNER_DEPOSIT_REJECTED");
     await fetchDeposits();
-    await showSuccessAlert(t(`partner.apiMessages.${message}`));
+    await showSuccessAlert(apiMessage(message, "partner"));
   } catch (error: unknown) {
-    const err = error as { data?: { message?: string } };
-    const message = err.data?.message || "INTERNAL_ERROR";
-    await showErrorAlert(t(`partner.apiMessages.${message}`));
+    await showErrorAlert(apiMessage(error, "partner"));
   } finally {
     processingId.value = null;
   }
