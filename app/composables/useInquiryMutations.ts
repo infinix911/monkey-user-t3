@@ -145,13 +145,17 @@ export const useInquiryMutations = (onRefresh?: () => Promise<void>) => {
   };
 
   /**
-   * Request a bank account
+   * Raise a "send me a deposit account" inquiry.
+   *
+   * Title and body are the literal token `BANK_ACCOUNT_REQUEST` so the admin
+   * side can recognise the request without string matching — it is also the key
+   * the inquiry list renders through `inquiry.apiMessages.BANK_ACCOUNT_REQUEST`.
    */
   const requestBankAccount = async (): Promise<void> => {
     try {
       await axiosClient.post("/inquiries", {
-        title: "DEPOSIT_ACCOUNT_REQUEST",
-        message: "DEPOSIT_ACCOUNT_REQUEST",
+        title: "BANK_ACCOUNT_REQUEST",
+        message: "BANK_ACCOUNT_REQUEST",
       });
 
       await showSuccessAlert(
@@ -159,7 +163,11 @@ export const useInquiryMutations = (onRefresh?: () => Promise<void>) => {
         t("inquiry.bankAccountRequestSent"),
       );
 
-      router.go(0);
+      // Refresh in place when a callback exists. A router.go(0) reload would
+      // tear down whatever modal the button was pressed from (this is called
+      // from the deposit modal), so only fall back to it when there's nothing
+      // to refresh.
+      if (onRefresh) await onRefresh();
     } catch (error: unknown) {
       const translatedMessage = apiMessage(error, "inquiry");
 
