@@ -18,7 +18,8 @@
           <!-- ===== Member List tab ===== -->
           <template v-if="activeTab === 'member'">
             <!-- Search / date-range toolbar (shared PartnerFilterBar) -->
-            <PartnerFilterBar v-model:search-type="searchType" v-model:keyword="searchValue" :types="searchTypes" date>
+            <PartnerFilterBar v-model:search-type="searchType" v-model:keyword="searchValue"
+              v-model:start="memberStart" v-model:end="memberEnd" :types="searchTypes" date @search="loadMembers(1)">
               <template #prepend>
                 <button type="button" class="add-sub-btn mr-auto" :style="{ borderColor: accent, color: accent }"
                   @click="showAddSub = true">
@@ -36,7 +37,7 @@
                 <MemberTree />
               </div>
               <div class="xl:col-span-2 min-w-0">
-                <PartnerTable :columns="memberColumns" :rows="filteredMembers">
+                <PartnerTable :columns="memberColumns" :rows="memberRows">
                   <!-- Member name → opens the detail popup -->
                   <template #cell-member="{ row }">
                     <button type="button" class="font-semibold hover:underline" :style="{ color: accent }"
@@ -68,203 +69,121 @@
                         @click="openShop(row, 'DEDUCT')">−</button>
                     </div>
                   </template>
-                  <!-- Slot money -->
-                  <template #cell-slotMoney="{ row }">
-                    <button type="button" class="chip-btn" :style="{ borderColor: accent, color: accent }"
-                      @click="onSlotMoney(row)">{{ t('partnerPages.col.slotMoney') }}</button>
-                  </template>
                   <!-- Point transfer -->
                   <template #cell-pointTransfer="{ row }">
                     <button type="button" class="chip-btn" :style="{ borderColor: accent, color: accent }"
                       @click="openPoint(row)">{{ t('partnerPages.modals.pointTransfer') }}</button>
                   </template>
                 </PartnerTable>
+                <PartnerPagination v-model:page="memberPage" :total-pages="memberMeta.totalPages" @update:page="loadMembers" />
               </div>
             </div>
           </template>
 
           <!-- ===== Online Members tab ===== -->
-          <PartnerTable v-else-if="activeTab === 'online'" :columns="onlineColumns" :rows="onlineRows" />
+          <template v-else-if="activeTab === 'online'">
+            <PartnerTable :columns="onlineColumns" :rows="onlineRows" />
+            <PartnerPagination v-model:page="onlinePage" :total-pages="onlineMeta.totalPages" @update:page="loadOnline" />
+          </template>
 
           <!-- ===== Shop Transactions tab ===== -->
           <template v-else>
             <PartnerFilterBar searchable :placeholder="t('partnerPages.col.storeMember')"
-              v-model:keyword="shopReceiver" date>
+              v-model:keyword="shopReceiver" v-model:start="shopStart" v-model:end="shopEnd" date @search="loadShopTransfers(1)">
               <template #prepend>
                 <select v-model="shopTypeFilter"
                   class="h-[38px] rounded-lg bg-white/[0.04] border border-white/10 text-white text-[13px] px-3 focus:outline-none [color-scheme:dark]">
                   <option value="">{{ t('partnerPages.filters.allTypes') }}</option>
-                  <option value="ADD">{{ t('partnerPages.modals.add') }}</option>
-                  <option value="DEDUCT">{{ t('partnerPages.modals.subtract') }}</option>
+                  <option value="add">{{ t('partnerPages.modals.add') }}</option>
+                  <option value="deduct">{{ t('partnerPages.modals.subtract') }}</option>
                 </select>
               </template>
             </PartnerFilterBar>
-            <PartnerTable :columns="shopColumns" :rows="filteredShopRows" />
+            <PartnerTable :columns="shopColumns" :rows="shopRows" />
+            <PartnerPagination v-model:page="shopPage" :total-pages="shopMeta.totalPages" @update:page="loadShopTransfers" />
           </template>
         </div>
       </div>
     </div>
 
     <!-- Modals (auto-imported by filename — components.pathPrefix is false) -->
-    <ShopMoneyModal v-model="showShop" :receiver="receiver" :type="shopType" />
-    <PointTransferModal v-model="showPoint" :receiver="receiver" type="ADD" />
-    <AddSubMemberModal v-model="showAddSub" />
+    <ShopMoneyModal v-model="showShop" :receiver="receiver" :type="shopType" @submit="createShopTransfer" />
+    <PointTransferModal v-model="showPoint" :receiver="receiver" type="ADD" @submit="createPointTransfer" />
+    <AddSubMemberModal v-model="showAddSub" @submit="createMember" />
     <MemberDetailModal v-model="showDetail" :member="selectedMember" />
-    <SlotMoneyModal v-model="showSlot" :member="slotMember" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
+import { useApi } from "@/composables/useApi";
 import { useCurrency } from "@/composables/useCurrency";
+import { useToast } from "@/composables/useToast";
 import type { PartnerColumn } from "@/utils/partnerMenu";
 
 definePageMeta({ layout: "default" });
 const { t } = useI18n();
+const { accent, activeGradient, activeText } = usePartnerTheme();
+const { error, success } = useToast();
 const currency = useCurrency();
 const fmt = (v: number) => currency.formatNumber(Number(v) || 0);
+const api = useApi();
+const LIMIT = 10;
+const meta = () => ({ total: 0, page: 1, limit: LIMIT, totalPages: 0 });
+const date = (value: Date) => `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, "0")}-${String(value.getDate()).padStart(2, "0")}`;
+const today = new Date();
+const monthStart = date(new Date(today.getFullYear(), today.getMonth(), 1));
 
-// Partner palette (usePartnerTheme) for tabs + toolbar accents.
-const { accent, activeGradient, activeText } = usePartnerTheme();
-
-const tabs = [
-  { key: "member", label: "partnerMenu.members" },
-  { key: "online", label: "partnerMenu.onlineMembers" },
-  { key: "shop", label: "partnerMenu.shopTranHistory" },
-] as const;
+type MemberRow = Record<string, unknown> & { memberId: string; member: string; wallet: number };
+type PageResult<T> = { data: T[]; meta: { total: number; page: number; limit: number; totalPages: number } };
+const tabs = [{ key: "member", label: "partnerMenu.members" }, { key: "online", label: "partnerMenu.onlineMembers" }, { key: "shop", label: "partnerMenu.shopTranHistory" }] as const;
 const activeTab = ref<(typeof tabs)[number]["key"]>("member");
-
-// --- Search toolbar (client-side filter over the mock rows) ---
-const searchType = ref<string>("ID");
+const searchType = ref("username");
 const searchValue = ref("");
-const searchTypes = computed(() => [
-  { value: "ID", label: t("partnerPages.members.searchById") },
-  { value: "NICKNAME", label: t("partnerPages.members.searchByNickname") },
+const memberStart = ref(monthStart);
+const memberEnd = ref(date(today));
+const searchTypes = computed(() => [{ value: "username", label: t("partnerPages.members.searchById") }, { value: "name", label: t("partnerPages.members.searchByNickname") }]);
+const memberRows = ref<MemberRow[]>([]);
+const memberMeta = ref(meta());
+const memberPage = ref(1);
+const onlineRows = ref<Record<string, unknown>[]>([]);
+const onlineMeta = ref(meta());
+const onlinePage = ref(1);
+const shopRows = ref<Record<string, unknown>[]>([]);
+const shopMeta = ref(meta());
+const shopPage = ref(1);
+const shopReceiver = ref("");
+const shopTypeFilter = ref<"" | "add" | "deduct">("");
+const shopStart = ref(monthStart);
+const shopEnd = ref(date(today));
+
+const memberColumns = computed<PartnerColumn[]>(() => [
+  { key: "lowerCount", label: t("partnerPages.col.lowerCount"), align: "center", type: "number" }, { key: "level", label: t("partnerPages.col.level"), type: "accent" }, { key: "member", label: t("partnerPages.col.member") }, { key: "regDate", label: t("partnerPages.col.regDate") }, { key: "lastLogin", label: t("partnerPages.col.lastLogin") }, { key: "wallet", label: t("partnerPages.col.wallet"), align: "right", type: "currency" }, { key: "walletPoint", label: t("partnerPages.col.walletPoint"), align: "right", type: "currency" }, { key: "settle", label: t("partnerPages.col.settle"), align: "center", sortable: false }, { key: "pointTransfer", label: t("partnerPages.col.pointTransfer"), align: "center", sortable: false }, { key: "depAmount", label: t("partnerPages.col.depAmount"), align: "right", type: "currency" }, { key: "widAmount", label: t("partnerPages.col.widAmount"), align: "right", type: "currency" }, { key: "depWidProfit", label: t("partnerPages.col.depWidProfit"), align: "right", type: "profit" }, { key: "winAmount", label: t("partnerPages.col.winAmount"), align: "right", type: "currency" }, { key: "profit", label: t("partnerPages.col.profit"), align: "right", type: "profit" },
 ]);
+const onlineColumns = computed<PartnerColumn[]>(() => [{ key: "member", label: t("partnerPages.col.member"), type: "accent" }, { key: "nickname", label: t("partnerPages.col.nickname") }, { key: "level", label: t("partnerPages.col.level") }, { key: "lastLogin", label: t("partnerPages.col.lastLogin") }, { key: "wallet", label: t("partnerPages.col.wallet"), align: "right", type: "currency" }, { key: "walletPoint", label: t("partnerPages.col.walletPoint"), align: "right", type: "currency" }, { key: "ip", label: t("partnerPages.members.ip") }]);
+const shopColumns = computed<PartnerColumn[]>(() => [{ key: "receiver", label: t("partnerPages.col.storeMember"), type: "accent" }, { key: "type", label: t("partnerPages.col.tranType"), align: "center", type: "status" }, { key: "amount", label: t("partnerPages.col.betAmount"), align: "right", type: "currency" }, { key: "date", label: t("partnerPages.col.date") }]);
 
-// --- Modal state ---
-type MemberRow = typeof memberRows[number];
-const showShop = ref(false);
-const showPoint = ref(false);
-const showAddSub = ref(false);
-const showDetail = ref(false);
-const showSlot = ref(false);
-const shopType = ref<"ADD" | "DEDUCT">("ADD");
-const receiver = ref<{ id: string; username: string; wallet: number }>({ id: "", username: "", wallet: 0 });
-const selectedMember = ref<MemberRow | null>(null);
-const slotMember = ref<Record<string, unknown> | null>(null);
+const message = (e: unknown) => (e as { data?: { message?: string } })?.data?.message || t("common.error");
+const loadMembers = async (page = memberPage.value) => { try { const result = await api<PageResult<{ memberId: string; username: string; level: number | null; childCount: number; createdAt: string; lastLogin: string | null; walletAmount: string; pointAmount: string; deposits: string; withdrawals: string; netCashflow: string; winAmount: string; netBetAmount: string }>>("/partners/members", { params: { page, limit: LIMIT, startDate: memberStart.value, endDate: memberEnd.value, ...(searchValue.value.trim() ? { searchBy: searchType.value, search: searchValue.value.trim() } : {}) } }); memberRows.value = result.data.map((row) => ({ memberId: row.memberId, lowerCount: row.childCount, level: `LV.${row.level ?? 0}`, member: row.username, regDate: row.createdAt, lastLogin: row.lastLogin ?? "—", wallet: Number(row.walletAmount), walletPoint: Number(row.pointAmount), depAmount: Number(row.deposits), widAmount: Number(row.withdrawals), depWidProfit: Number(row.netCashflow), winAmount: Number(row.winAmount), profit: Number(row.netBetAmount) })); memberMeta.value = result.meta; memberPage.value = result.meta.page; } catch (e) { memberRows.value = []; memberMeta.value = meta(); error(message(e)); } };
+const loadOnline = async (page = onlinePage.value) => { try { const result = await api<PageResult<{ memberId: string; username: string; name: string; level: number | null; lastLogin: string; walletAmount: string; pointAmount: string; lastIp: string | null }>>("/partners/members/online", { params: { page, limit: LIMIT } }); onlineRows.value = result.data.map((row) => ({ memberId: row.memberId, member: row.username, nickname: row.name, level: `LV.${row.level ?? 0}`, lastLogin: row.lastLogin, wallet: Number(row.walletAmount), walletPoint: Number(row.pointAmount), ip: row.lastIp ?? "—" })); onlineMeta.value = result.meta; onlinePage.value = result.meta.page; } catch (e) { onlineRows.value = []; onlineMeta.value = meta(); error(message(e)); } };
+const loadShopTransfers = async (page = shopPage.value) => { try { const result = await api<PageResult<{ receiver: string; type: "add" | "deduct"; amount: string; updatedAt: string }>>("/partners/shop-transfers/sent", { params: { page, limit: LIMIT, startDate: shopStart.value, endDate: shopEnd.value, ...(shopReceiver.value.trim() ? { username: shopReceiver.value.trim() } : {}), ...(shopTypeFilter.value ? { type: shopTypeFilter.value } : {}) } }); shopRows.value = result.data.map((row) => ({ receiver: row.receiver, type: row.type, amount: Number(row.amount), date: row.updatedAt })); shopMeta.value = result.meta; shopPage.value = result.meta.page; } catch (e) { shopRows.value = []; shopMeta.value = meta(); error(message(e)); } };
 
-const openShop = (row: Record<string, unknown>, type: "ADD" | "DEDUCT") => {
-  receiver.value = { id: String(row.member), username: String(row.member), wallet: Number(row.wallet) };
-  shopType.value = type;
-  showShop.value = true;
-};
-const openPoint = (row: Record<string, unknown>) => {
-  receiver.value = { id: String(row.member), username: String(row.member), wallet: Number(row.wallet) };
-  showPoint.value = true;
-};
-const openDetail = (row: Record<string, unknown>) => {
-  selectedMember.value = row as unknown as MemberRow;
-  showDetail.value = true;
-};
-// Wallet-refresh spinner state — keyed by member. The icon spins while the
-// (dummy) refresh is in flight; replace the timeout with the real API call.
+const showShop = ref(false); const showPoint = ref(false); const showAddSub = ref(false); const showDetail = ref(false); const shopType = ref<"ADD" | "DEDUCT">("ADD"); const receiver = ref({ id: "", username: "", wallet: 0 }); const selectedMember = ref<MemberRow | null>(null);
+const openShop = (row: Record<string, unknown>, type: "ADD" | "DEDUCT") => { receiver.value = { id: String(row.memberId), username: String(row.member), wallet: Number(row.wallet) }; shopType.value = type; showShop.value = true; };
+const openPoint = (row: Record<string, unknown>) => { receiver.value = { id: String(row.memberId), username: String(row.member), wallet: Number(row.wallet) }; showPoint.value = true; };
+const openDetail = (row: Record<string, unknown>) => { selectedMember.value = row as MemberRow; showDetail.value = true; };
 const refreshingWallet = ref<Set<string>>(new Set());
-const onRefreshWallet = (row: Record<string, unknown>): void => {
-  const id = String(row.member);
+const onRefreshWallet = async (row: Record<string, unknown>) => {
+  const id = String(row.memberId);
   if (refreshingWallet.value.has(id)) return;
   refreshingWallet.value = new Set(refreshingWallet.value).add(id);
-  window.setTimeout(() => {
-    const next = new Set(refreshingWallet.value);
-    next.delete(id);
-    refreshingWallet.value = next;
-  }, 900);
+  try { await loadMembers(); } finally { const next = new Set(refreshingWallet.value); next.delete(id); refreshingWallet.value = next; }
 };
-/** Open the slot-money withdrawal modal (dummy game balance = 15% of wallet). */
-const onSlotMoney = (row: Record<string, unknown>) => {
-  slotMember.value = { ...row, slotBalance: Math.round((Number(row.wallet) || 0) * 0.15) };
-  showSlot.value = true;
-};
-
-// Columns mirror stargazer-high MembersList.vue tableHeaders (lower count →
-// level → member → dates → wallets → action columns → dep/bonus/wid → profits).
-const memberColumns = computed<PartnerColumn[]>(() => [
-  { key: "lowerCount", label: t("partnerPages.col.lowerCount"), align: "center", type: "number" },
-  { key: "level", label: t("partnerPages.col.level"), type: "accent" },
-  { key: "member", label: t("partnerPages.col.member") },
-  { key: "regDate", label: t("partnerPages.col.regDate") },
-  { key: "lastLogin", label: t("partnerPages.col.lastLogin") },
-  { key: "wallet", label: t("partnerPages.col.wallet"), align: "right", type: "currency" },
-  { key: "walletPoint", label: t("partnerPages.col.walletPoint"), align: "right", type: "currency" },
-  { key: "settle", label: t("partnerPages.col.settle"), align: "center", sortable: false },
-  { key: "slotMoney", label: t("partnerPages.col.slotMoney"), align: "center", sortable: false },
-  { key: "pointTransfer", label: t("partnerPages.col.pointTransfer"), align: "center", sortable: false },
-  { key: "depAmount", label: t("partnerPages.col.depAmount"), align: "right", type: "currency" },
-  { key: "depBonus", label: t("partnerPages.col.depBonus"), align: "right", type: "currency" },
-  { key: "widAmount", label: t("partnerPages.col.widAmount"), align: "right", type: "currency" },
-  { key: "depWidProfit", label: t("partnerPages.col.depWidProfit"), align: "right", type: "profit" },
-  { key: "winAmount", label: t("partnerPages.col.winAmount"), align: "right", type: "currency" },
-  { key: "profit", label: t("partnerPages.col.profit"), align: "right", type: "profit" },
-]);
-
-const memberRows = [
-  { lowerCount: 3, level: "LV.3", member: "player_win7", regDate: "2026-05-12", lastLogin: "2026-07-16 18:22", wallet: 1_240_000, walletPoint: 42_000, depAmount: 3_500_000, depBonus: 120_000, widAmount: 2_100_000, depWidProfit: 1_400_000, winAmount: 4_980_000, profit: 260_000 },
-  { lowerCount: 0, level: "LV.2", member: "lucky_jin", regDate: "2026-05-20", lastLogin: "2026-07-16 14:05", wallet: 680_000, walletPoint: 12_500, depAmount: 1_800_000, depBonus: 60_000, widAmount: 1_950_000, depWidProfit: -150_000, winAmount: 3_350_000, profit: -230_000 },
-  { lowerCount: 9, level: "LV.5", member: "hoyaVIP", regDate: "2026-04-02", lastLogin: "2026-07-15 23:41", wallet: 5_320_000, walletPoint: 210_000, depAmount: 9_200_000, depBonus: 320_000, widAmount: 6_400_000, depWidProfit: 2_800_000, winAmount: 8_100_000, profit: 2_800_000 },
-  { lowerCount: 0, level: "LV.1", member: "newbie_kang", regDate: "2026-07-10", lastLogin: "2026-07-16 09:12", wallet: 120_000, walletPoint: 3_000, depAmount: 300_000, depBonus: 10_000, widAmount: 150_000, depWidProfit: 150_000, winAmount: 96_000, profit: 150_000 },
-  { lowerCount: 2, level: "LV.4", member: "seoul_ace", regDate: "2026-03-18", lastLogin: "2026-07-14 20:33", wallet: 2_760_000, walletPoint: 88_000, depAmount: 6_100_000, depBonus: 210_000, widAmount: 5_800_000, depWidProfit: 300_000, winAmount: 5_600_000, profit: 300_000 },
-  { lowerCount: 0, level: "LV.2", member: "moon_bet", regDate: "2026-06-01", lastLogin: "2026-07-16 11:58", wallet: 430_000, walletPoint: 9_400, depAmount: 1_200_000, depBonus: 40_000, widAmount: 1_300_000, depWidProfit: -100_000, winAmount: 1_100_000, profit: -100_000 },
-  { lowerCount: 0, level: "LV.3", member: "star_777", regDate: "2026-05-28", lastLogin: "2026-07-13 16:02", wallet: 990_000, walletPoint: 31_500, depAmount: 2_700_000, depBonus: 90_000, widAmount: 1_600_000, depWidProfit: 1_100_000, winAmount: 2_400_000, profit: 1_100_000 },
-  { lowerCount: 0, level: "LV.1", member: "daebak_lee", regDate: "2026-07-05", lastLogin: "2026-07-16 08:47", wallet: 210_000, walletPoint: 5_600, depAmount: 500_000, depBonus: 20_000, widAmount: 300_000, depWidProfit: 200_000, winAmount: 380_000, profit: 200_000 },
-];
-
-const filteredMembers = computed(() => {
-  const q = searchValue.value.trim().toLowerCase();
-  if (!q) return memberRows;
-  return memberRows.filter((r) => String(r.member).toLowerCase().includes(q));
-});
-
-// --- Online Members tab (stargazer OnlineMembers.vue) ---
-const onlineColumns = computed<PartnerColumn[]>(() => [
-  { key: "member", label: t("partnerPages.col.member"), type: "accent" },
-  { key: "nickname", label: t("partnerPages.col.nickname") },
-  { key: "level", label: t("partnerPages.col.level") },
-  { key: "regDate", label: t("partnerPages.col.regDate") },
-  { key: "wallet", label: t("partnerPages.col.wallet"), align: "right", type: "currency" },
-  { key: "walletPoint", label: t("partnerPages.col.walletPoint"), align: "right", type: "currency" },
-  { key: "ip", label: t("partnerPages.members.ip") },
-]);
-const onlineRows = [
-  { member: "player_win7", nickname: "위너세븐", level: "LV.3", regDate: "2026-05-12", wallet: 1_240_000, walletPoint: 42_000, ip: "175.223.10.42" },
-  { member: "hoyaVIP", nickname: "호야", level: "LV.5", regDate: "2026-04-02", wallet: 5_320_000, walletPoint: 210_000, ip: "121.190.4.11" },
-  { member: "star_777", nickname: "스타", level: "LV.3", regDate: "2026-05-28", wallet: 990_000, walletPoint: 31_500, ip: "58.140.22.87" },
-];
-
-// --- Shop Transactions tab (stargazer ShopTransactions.vue) ---
-const shopColumns = computed<PartnerColumn[]>(() => [
-  { key: "receiver", label: t("partnerPages.col.storeMember"), type: "accent" },
-  { key: "type", label: t("partnerPages.col.tranType"), align: "center", type: "status" },
-  { key: "amount", label: t("partnerPages.col.betAmount"), align: "right", type: "currency" },
-  { key: "date", label: t("partnerPages.col.date") },
-]);
-const shopRows = [
-  { receiver: "seoul_ace", type: "ADD", amount: 500_000, date: "2026-07-17 15:20" },
-  { receiver: "lucky_jin", type: "DEDUCT", amount: 200_000, date: "2026-07-16 22:41" },
-  { receiver: "player_win7", type: "ADD", amount: 1_000_000, date: "2026-07-16 10:05" },
-];
-
-// Shop tab toolbar (type + receiver keyword) — filters the rows client-side.
-const shopReceiver = ref("");
-const shopTypeFilter = ref("");
-const filteredShopRows = computed(() => {
-  const q = shopReceiver.value.trim().toLowerCase();
-  return shopRows.filter(
-    (r) =>
-      (!shopTypeFilter.value || r.type === shopTypeFilter.value) &&
-      (!q || String(r.receiver).toLowerCase().includes(q)),
-  );
-});
-
+const createShopTransfer = async (body: { amount: number; type: string; receiverId: string }) => { try { await api("/partners/shop-transfers", { method: "POST", body: { ...body, type: body.type.toLowerCase() } }); showShop.value = false; success(t("common.success")); await Promise.all([loadMembers(), loadShopTransfers(1)]); } catch (e) { error(message(e)); } };
+const createPointTransfer = async (body: { amount: number; type: string; receiverId: string }) => { try { await api("/partners/point-transfers", { method: "POST", body: { ...body, type: body.type.toLowerCase() } }); showPoint.value = false; success(t("common.success")); await loadMembers(); } catch (e) { error(message(e)); } };
+const createMember = async (body: Record<string, unknown>) => { try { await api("/partners/members", { method: "POST", body }); showAddSub.value = false; success(t("common.success")); await loadMembers(1); } catch (e) { error(message(e)); } };
+watch(activeTab, (tab) => { if (tab === "online") void loadOnline(1); if (tab === "shop") void loadShopTransfers(1); });
+onMounted(() => { void loadMembers(1); });
 useSeoHead();
 </script>
 

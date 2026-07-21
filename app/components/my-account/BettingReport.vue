@@ -52,8 +52,7 @@
                 background: #505050;
                 box-shadow: 0 1.566px 1.566px 0 rgba(0, 0, 0, 0.5);
               ">
-              <!-- Only casino/slot/sport: the backend bet-histories endpoint
-                   supports these game types (no aggregate "all" or "mini"). -->
+              <option value="all">{{ t("bettingReport.all") }}</option>
               <option value="casino">{{ t("bettingReport.casino") }}</option>
               <option value="slot">{{ t("bettingReport.slot") }}</option>
               <option value="sport">{{ t("bettingReport.sport") }}</option>
@@ -356,6 +355,7 @@ function typeLabel(type?: string): string {
 }
 const providers = ref<NormalizedLobby[]>([]);
 const loadingProviders = ref(false);
+const supportedGameTypes = ["casino", "slot", "sport"] as const;
 
 // Green for a net win (positive), red for a net loss (negative), neutral at zero.
 function winLossClass(value: number): string {
@@ -396,7 +396,12 @@ async function fetchProviders(type: string) {
   }
 }
 
-// Fetch bet histories
+function sumAmounts(values: string[]): string {
+  return String(values.reduce((total, value) => total + Number(value), 0));
+}
+
+// Fetch bet histories. The API only accepts a concrete game type, so the
+// aggregate UI view combines the three supported endpoint responses locally.
 async function fetchBetHistories(page: number = 1) {
   try {
     loading.value = true;
@@ -413,18 +418,35 @@ async function fetchBetHistories(page: number = 1) {
       params.append("gameName", provider.value);
     }
 
-    const typeForRequest = gameType.value;
     const api = useApi();
-    const raw = await api(
-      `/games/bet-histories/${typeForRequest}?${params.toString()}`,
+    const typeForRequest = gameType.value;
+    const types =
+      typeForRequest === "all" ? supportedGameTypes : [typeForRequest];
+    const responses = await Promise.all(
+      types.map(async (type) => {
+        const raw = await api(`/games/bet-histories/${type}?${params.toString()}`);
+        const data = mapBetHistoriesResponse(
+          validateResponse(
+            betHistoriesResponseWireSchema,
+            raw,
+            "/games/bet-histories",
+          ),
+        );
+        return {
+          ...data,
+          data: data.data.map((row) => ({ ...row, game_type: type })),
+        };
+      }),
     );
-    const data = mapBetHistoriesResponse(
-      validateResponse(betHistoriesResponseWireSchema, raw, "/games/bet-histories"),
-    );
-    betHistories.value = data.data;
-    totalPages.value = data.pages;
-    totalRows.value = data.rows;
-    summary.value = data.summary;
+    betHistories.value = responses.flatMap((response) => response.data);
+    totalPages.value = Math.max(...responses.map((response) => response.pages));
+    totalRows.value = responses.reduce((total, response) => total + response.rows, 0);
+    summary.value = {
+      bet_amount: sumAmounts(responses.map((response) => response.summary?.bet_amount ?? "0")),
+      win_amount: sumAmounts(responses.map((response) => response.summary?.win_amount ?? "0")),
+      roll_amount: sumAmounts(responses.map((response) => response.summary?.roll_amount ?? "0")),
+      net_amount: sumAmounts(responses.map((response) => response.summary?.net_amount ?? "0")),
+    };
     currentPage.value = page;
     loadedGameType.value = typeForRequest;
   } catch (err) {

@@ -128,6 +128,9 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   notifications: () => [],
 });
+const emit = defineEmits<{
+  markedAllRead: [];
+}>();
 
 const { t } = useI18n();
 const isOpen = ref(false);
@@ -203,6 +206,7 @@ const handleMarkAllAsRead = async () => {
   try {
     const api = useApi();
     await api("/notifications/read-all", { method: "PATCH" });
+    emit("markedAllRead");
   } catch (error) {
     console.error("Failed to mark all as read:", error);
   } finally {

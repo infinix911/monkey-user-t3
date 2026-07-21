@@ -24,32 +24,26 @@
           <TextField v-model="form.nickname" :label="t('partnerPages.modals.nickname')" />
           <TextField v-model="form.password" :label="t('partnerPages.modals.password')" type="password" />
 
-          <template v-if="!form.isShop">
-            <TextField v-model="form.telno" :label="t('partnerPages.modals.phone')" />
-            <div>
-              <label class="pm-label">{{ t('partnerPages.modals.bankName') }}</label>
-              <select v-model="form.bankName" class="pm-input">
-                <option v-for="b in banks" :key="b" :value="b">{{ b }}</option>
-              </select>
-            </div>
-            <TextField v-model="form.bankAccountName" :label="t('partnerPages.modals.bankAccountName')" />
-            <TextField v-model="form.bankAccount" :label="t('partnerPages.modals.bankAccount')" type="number" />
-          </template>
+          <TextField v-model="form.mobile" :label="t('partnerPages.modals.phone')" />
+          <div>
+            <label class="pm-label">{{ t('partnerPages.modals.bankName') }}</label>
+            <select v-model="form.bankName" class="pm-input">
+              <option v-for="b in banks" :key="b" :value="b">{{ b }}</option>
+            </select>
+          </div>
+          <TextField v-model="form.bankAccountName" :label="t('partnerPages.modals.bankAccountName')" />
+          <TextField v-model="form.bankAccount" :label="t('partnerPages.modals.bankAccount')" type="text" />
         </div>
       </section>
 
       <!-- Commission settings -->
       <section>
         <h4 class="pm-section-title">{{ t('partnerPages.modals.commissionSettings') }}</h4>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-          <div>
-            <label class="pm-label">{{ t('partnerPages.modals.rollingType') }}</label>
-            <select v-model="form.rollingType" class="pm-input">
-              <option v-for="r in rollingTypes" :key="r.value" :value="r.value">{{ r.label }}</option>
-            </select>
-          </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
           <TextField v-model="form.pctRollCasino" :label="t('partnerPages.modals.casinoRolling')" type="number" />
           <TextField v-model="form.pctRollSlot" :label="t('partnerPages.modals.slotRolling')" type="number" />
+          <TextField v-model="form.pctRollSport" label="Sport rolling" type="number" />
+          <TextField v-model="form.pctRollMini" label="Mini rolling" type="number" />
         </div>
       </section>
 
@@ -62,6 +56,7 @@
 
 <script setup lang="ts">
 import { reactive, watch, computed } from "vue";
+import { useAuthStore } from "@/stores/auth";
 
 const props = defineProps<{ modelValue: boolean }>();
 const emit = defineEmits<{ "update:modelValue": [boolean]; submit: [Record<string, unknown>] }>();
@@ -74,12 +69,7 @@ const typeOptions = computed(() => [
   { value: true, label: t("partnerPages.modals.shopMember") },
 ]);
 
-const rollingTypes = computed(() => [
-  { value: 0, label: t("partnerPages.modals.rollingRolling") },
-  { value: 1, label: t("partnerPages.modals.rollingLosing") },
-]);
-
-// Common KR banks — dummy list until the bank API is wired.
+// The API has no bank directory endpoint, so this remains a local input list.
 const banks = ["KB국민은행", "신한은행", "우리은행", "하나은행", "농협은행", "카카오뱅크", "토스뱅크"];
 
 const blank = () => ({
@@ -87,22 +77,23 @@ const blank = () => ({
   username: "",
   nickname: "",
   password: "",
-  telno: "",
+  mobile: "",
   bankName: banks[0],
   bankAccountName: "",
   bankAccount: "",
-  rollingType: 0,
   pctRollCasino: 0,
   pctRollSlot: 0,
+  pctRollSport: 0,
+  pctRollMini: 0,
 });
 const form = reactive(blank());
 
 watch(() => props.modelValue, (open) => { if (open) Object.assign(form, blank()); });
 
 const onSubmit = () => {
-  // Dummy — API wired later.
-  emit("submit", { ...form });
-  emit("update:modelValue", false);
+  const upperId = useAuthStore().user.id;
+  if (!upperId) return;
+  emit("submit", { upperId, ...form });
 };
 </script>
 
