@@ -1,4 +1,4 @@
-# KNOWLEDGEBASE.md — banana-jaeisol-t3-nuxt
+# KNOWLEDGEBASE.md — monkey-user-t3
 
 > **Permanent repository encyclopedia.** Consult this BEFORE reading source code.
 > Facts verified against commit `fb66962` (2026-07-06). Line numbers drift — trust file paths and search strings.
@@ -19,7 +19,7 @@
 
 ## 1. Repository Overview
 
-- **Purpose:** User-facing gaming platform frontend (casino/slot/sport/togel; IDR market primary). This is the **"Jae/T3" fork** of banana-lucky-nuxt: single bundled design template ("Template3") + per-domain CMS theming. Deploys to `idr-demo1.jaeisol.com`-style tenant domains.
+- **Purpose:** User-facing gaming platform frontend. `monkey-user-t3` uses one bundled design template ("Template3") with CMS-driven theming.
 - **Stack:** Nuxt **4.4.2** SSR (node-server preset), Vue 3.5, TypeScript, Tailwind **v4**, Pinia 3, @nuxtjs/i18n 10 (en/id/ko/th, `no_prefix`), vee-validate + zod, vue-sonner (toasts), in-house AppDialog (SweetAlert2 removed), @nuxt/image (IPX), nuxt-security, Sentry (env-gated), ioredis (SSR caches).
 - **Backend:** `../monkey-user-api` (Bun+Elysia, HTTP + WS :4000) — the browser never talks to it directly (§4).
 - **Build/run:** Docker — Bun builds (`bun install --frozen-lockfile`, `bun run build`), **Node 22 runs** `.output/server/index.mjs` as non-root, port 3000, behind Traefik (router files written dynamically by the APIs).
@@ -29,7 +29,7 @@
 
 ### ⚠️ Legacy drift you must not trust
 
-- **The 11-brand `__BUILD_SITE__` tree-shake system is DEAD here.** `vite.define` still sets `__BUILD_SITE__` (nuxt.config.ts) but no app code reads it; the per-brand `getSiteConfig<Brand>` modules exist only inside the commented-out PWA block. Brand = runtime CMS payload per hostname.
+- The old 11-brand build-time selector (`NUXT_PUBLIC_SITE` / `__BUILD_SITE__`) was removed. Theme configuration comes from the CMS payload.
 - `assets.navigation` "bundled-only exception" no longer exists — renamed `assets.navIcons`, merged normally.
 - CMS theme endpoint is **`/site/config/theme`** (renamed from `/site/config/userpage`; useState key is still `"userPageConfig"`). `server/utils/site-currency.ts` still calls `/site/config/userpage`.
 - Root `index.js`, `homepage.html`, `public/_headers` are dead Cloudflare-Workers-era artifacts. Several "Worker isolate" comments are stale — runtime is node-server.
@@ -39,11 +39,11 @@
 ## 2. Simplified Repository Tree
 
 ```
-banana-jaeisol-t3-nuxt/
-├── nuxt.config.ts            # ★★ 503 lines; comments are ADR-grade. routeRules (GAME_* CSR-only, immutable
+monkey-user-t3/
+├── nuxt.config.ts            # ★★ routeRules (GAME_* CSR-only, immutable
 │                             #   /_nuxt|/fonts|/_ipx), CSP (script-src https: — deliberate), i18n inline config,
-│                             #   vite.define __BUILD_SITE__ (dead), esbuild.drop console, sourcemap hidden
-├── Dockerfile                # ★ bun deps → bun build → node:22-alpine runtime; ARG NUXT_PUBLIC_SITE baked
+│                             #   esbuild.drop console, sourcemap hidden
+├── Dockerfile                # ★ bun deps → bun build → node:22-alpine runtime
 ├── app/
 │   ├── app.vue               # ★★ SSR boot: awaits siteConfig+customScripts+siteSettings, locale=f(currency),
 │   │                         #   URL param handlers (telegram login/register, referral), SEO head, AppDialog mount
@@ -117,7 +117,7 @@ Browser ──HTTP──▶ Nitro (:3000)
 
 | Client        | File                        | Use for                                        | Behavior                                                                                                                                                                                                                                                                                                                                                                                       |
 | ------------- | --------------------------- | ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `useApi()`    | `app/composables/useApi.ts` | page data via `useAsyncData`, SSR + client     | server: `runtimeConfig.apiUrl` direct + forwards `cookie` header; client: `/api` + `credentials:include`. **retry: 0** (money safety), timeout 10s, CSRF double-submit (`XSRF-TOKEN` → `X-XSRF-TOKEN` on mutations), client 401 → one-shot logout latch (`sessionStorage.session_logged_out`, excludes `/auth/sign-in/username`). `.validated<T>(zodSchema, req)` throws `ApiValidationError`. |
+| `useApi()`    | `app/composables/useApi.ts` | page data via `useAsyncData`, SSR + client     | server: `NUXT_API_URL` direct + forwards `cookie` header; client: `/api` + `credentials:include`. **retry: 0** (money safety), timeout 10s, CSRF double-submit (`XSRF-TOKEN` → `X-XSRF-TOKEN` on mutations), client 401 → one-shot logout latch (`sessionStorage.session_logged_out`, excludes `/auth/sign-in/username`). `.validated<T>(zodSchema, req)` throws `ApiValidationError`. |
 | `axiosClient` | `app/lib/axios-client.ts`   | client-side mutations / imperative store calls | singleton; GET dedupe; idempotent-only retry; same CSRF + 401 latch (parity comments mandate keeping both in sync).                                                                                                                                                                                                                                                                            |
 
 - Public **user-independent** SSR fetches bypass useApi: raw `$fetch` inside `withServerCache(key, ttlMs, fetcher)` (`app/lib/serverCache.ts`) — Redis `nuxt:ssr:*` when `REDIS_HOST` set, else in-process Map; client = pass-through. **Never put a cookie-forwarding fetcher inside it** (session leak). Keys must be namespaced per host (`site-settings:<hostname>`). Current users: siteSettings, customScripts, popup banners (all 60s).
@@ -232,7 +232,7 @@ Money logic never lives in stores — mutations go through `useApi`/`axios-clien
 
 | Want                    | Search                                                 |
 | ----------------------- | ------------------------------------------------------ |
-| API base / proxy target | `getApiBase`, `NUXT_API_URL`                           |
+| API base / proxy target | `getApiBase`, `NUXT_API_URL`                            |
 | Session/auth verify     | `verifyUser`, `bn.session`, `session_logged_out`       |
 | Site config merge       | `deepMerge`, `userPageConfig`, `getDefaultThemeConfig` |
 | Feature flags           | `useFeatures`, `getFeatures`                           |
@@ -275,9 +275,9 @@ Money logic never lives in stores — mutations go through `useApi`/`axios-clien
 | Stale page for anon users         | anon page cache (`x-anon-cache` header), TTL envs                                                                                                                                                                                           |
 | Authed page blank on first paint  | expected — auth-spa SPA mode; check client fetch errors                                                                                                                                                                                     |
 | Theme field ignored               | wrong CMS path (silent ignore) — verify against `useDefaultThemeConfig.ts` interface                                                                                                                                                        |
-| Togel 404 on a deployment         | `guard.ts` currency gate; **known bug**: `server/utils/site-currency.ts` reads nonexistent `config.apiBaseInternal`/`config.public.apiBase` → falls back to localhost:4000 → soft-default IDR. Should read `useRuntimeConfig(event).apiUrl` |
+| Togel 404 on a deployment         | `guard.ts` currency gate; `server/utils/site-currency.ts` resolves the private `NUXT_API_URL` through the shared server validator. |
 | No console output in prod         | `esbuild.drop` strips console.*; use Sentry or `process.stderr.write`                                                                                                                                                                       |
-| WS won't connect                  | `/auth/ws` token fetch, ws-proxy plugin, `NUXT_WS_API_URL`                                                                                                                                                                                  |
+| WS won't connect                  | `/auth/ws` token fetch, ws-proxy plugin, `NUXT_WS_API_URL`                                                                                                                                                                                   |
 | Hydration mismatch                | `tests/hydration-check.mjs`, `useIsMobileSSR` (the only safe render gate), pre-paint CSS vars                                                                                                                                               |
 | Duplicate meta tags               | unhead dedup quirk — do NOT add `key:` to singleton metas (app.vue comment)                                                                                                                                                                 |
 

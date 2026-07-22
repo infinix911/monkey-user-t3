@@ -120,6 +120,7 @@ import { useApi } from "@/composables/useApi";
 import { useCurrency } from "@/composables/useCurrency";
 import { useToast } from "@/composables/useToast";
 import type { PartnerColumn } from "@/utils/partnerMenu";
+import type { PartnerMemberRow } from "@/interfaces/partner.interface";
 
 definePageMeta({ layout: "default" });
 const { t } = useI18n();
@@ -134,7 +135,6 @@ const date = (value: Date) => `${value.getFullYear()}-${String(value.getMonth() 
 const today = new Date();
 const monthStart = date(new Date(today.getFullYear(), today.getMonth(), 1));
 
-type MemberRow = Record<string, unknown> & { memberId: string; member: string; wallet: number };
 type PageResult<T> = { data: T[]; meta: { total: number; page: number; limit: number; totalPages: number } };
 const tabs = [{ key: "member", label: "partnerMenu.members" }, { key: "online", label: "partnerMenu.onlineMembers" }, { key: "shop", label: "partnerMenu.shopTranHistory" }] as const;
 const activeTab = ref<(typeof tabs)[number]["key"]>("member");
@@ -143,7 +143,7 @@ const searchValue = ref("");
 const memberStart = ref(monthStart);
 const memberEnd = ref(date(today));
 const searchTypes = computed(() => [{ value: "username", label: t("partnerPages.members.searchById") }, { value: "name", label: t("partnerPages.members.searchByNickname") }]);
-const memberRows = ref<MemberRow[]>([]);
+const memberRows = ref<PartnerMemberRow[]>([]);
 const memberMeta = ref(meta());
 const memberPage = ref(1);
 const onlineRows = ref<Record<string, unknown>[]>([]);
@@ -168,10 +168,15 @@ const loadMembers = async (page = memberPage.value) => { try { const result = aw
 const loadOnline = async (page = onlinePage.value) => { try { const result = await api<PageResult<{ memberId: string; username: string; name: string; level: number | null; lastLogin: string; walletAmount: string; pointAmount: string; lastIp: string | null }>>("/partners/members/online", { params: { page, limit: LIMIT } }); onlineRows.value = result.data.map((row) => ({ memberId: row.memberId, member: row.username, nickname: row.name, level: `LV.${row.level ?? 0}`, lastLogin: row.lastLogin, wallet: Number(row.walletAmount), walletPoint: Number(row.pointAmount), ip: row.lastIp ?? "—" })); onlineMeta.value = result.meta; onlinePage.value = result.meta.page; } catch (e) { onlineRows.value = []; onlineMeta.value = meta(); error(message(e)); } };
 const loadShopTransfers = async (page = shopPage.value) => { try { const result = await api<PageResult<{ receiver: string; type: "add" | "deduct"; amount: string; updatedAt: string }>>("/partners/shop-transfers/sent", { params: { page, limit: LIMIT, startDate: shopStart.value, endDate: shopEnd.value, ...(shopReceiver.value.trim() ? { username: shopReceiver.value.trim() } : {}), ...(shopTypeFilter.value ? { type: shopTypeFilter.value } : {}) } }); shopRows.value = result.data.map((row) => ({ receiver: row.receiver, type: row.type, amount: Number(row.amount), date: row.updatedAt })); shopMeta.value = result.meta; shopPage.value = result.meta.page; } catch (e) { shopRows.value = []; shopMeta.value = meta(); error(message(e)); } };
 
-const showShop = ref(false); const showPoint = ref(false); const showAddSub = ref(false); const showDetail = ref(false); const shopType = ref<"ADD" | "DEDUCT">("ADD"); const receiver = ref({ id: "", username: "", wallet: 0 }); const selectedMember = ref<MemberRow | null>(null);
+const showShop = ref(false); const showPoint = ref(false); const showAddSub = ref(false); const showDetail = ref(false); const shopType = ref<"ADD" | "DEDUCT">("ADD"); const receiver = ref({ id: "", username: "", wallet: 0 }); const selectedMember = ref<PartnerMemberRow | null>(null);
 const openShop = (row: Record<string, unknown>, type: "ADD" | "DEDUCT") => { receiver.value = { id: String(row.memberId), username: String(row.member), wallet: Number(row.wallet) }; shopType.value = type; showShop.value = true; };
 const openPoint = (row: Record<string, unknown>) => { receiver.value = { id: String(row.memberId), username: String(row.member), wallet: Number(row.wallet) }; showPoint.value = true; };
-const openDetail = (row: Record<string, unknown>) => { selectedMember.value = row as MemberRow; showDetail.value = true; };
+const openDetail = (row: Record<string, unknown>) => {
+  const member = memberRows.value.find((candidate) => candidate.memberId === String(row.memberId));
+  if (!member) return;
+  selectedMember.value = member;
+  showDetail.value = true;
+};
 const refreshingWallet = ref<Set<string>>(new Set());
 const onRefreshWallet = async (row: Record<string, unknown>) => {
   const id = String(row.memberId);

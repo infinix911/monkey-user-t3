@@ -141,7 +141,8 @@ const colSpan = computed(() => props.columns.length + (props.expandable ? 1 : 0)
 const onRowClick = (i: number) => {
   if (!props.expandable) return;
   const next = new Set(expandedRows.value);
-  next.has(i) ? next.delete(i) : next.add(i);
+  if (next.has(i)) next.delete(i);
+  else next.add(i);
   expandedRows.value = next;
 };
 

@@ -12,9 +12,9 @@
         type="button"
         class="w-4 h-4 flex items-center justify-center shrink-0"
         :style="{ color: accent }"
-        :aria-label="node.expanded ? $t('partnerPages.tree.closeAll') : $t('partnerPages.tree.openAll')"
+        :aria-label="expanded ? $t('partnerPages.tree.closeAll') : $t('partnerPages.tree.openAll')"
       >
-        <svg class="w-3 h-3 transition-transform duration-200" :class="node.expanded ? 'rotate-90' : ''"
+        <svg class="w-3 h-3 transition-transform duration-200" :class="expanded ? 'rotate-90' : ''"
           fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7" />
         </svg>
@@ -49,14 +49,14 @@
     </div>
 
     <!-- Children (recursive) -->
-    <div v-if="hasChildren && node.expanded" class="ml-4 pl-3 border-l border-white/10">
+    <div v-if="hasChildren && expanded" class="ml-4 pl-3 border-l border-white/10">
       <MemberTreeNode v-for="child in node.nodes" :key="child.id" :node="child" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref, watch } from "vue";
 import type { MemberTreeItem } from "@/utils/partnerMenu";
 
 const props = defineProps<{ node: MemberTreeItem }>();
@@ -65,10 +65,12 @@ const { t } = useI18n();
 const { accent } = usePartnerTheme();
 
 const hasChildren = computed(() => (props.node.nodes?.length ?? 0) > 0);
+const expanded = ref(Boolean(props.node.expanded));
+watch(() => props.node.expanded, (value) => { expanded.value = Boolean(value); });
 
-/** Toggle this node's expanded state (mutates the shared reactive node). */
+/** Toggle local presentation state without mutating a readonly prop. */
 const toggle = () => {
-  if (hasChildren.value) props.node.expanded = !props.node.expanded;
+  if (hasChildren.value) expanded.value = !expanded.value;
 };
 
 /** Depth → level label (본사/부본사/… mirrored as generic L1..Ln). */

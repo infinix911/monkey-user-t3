@@ -48,7 +48,7 @@ npm run test:e2e:perf  # throttled-network spec against live prod (PERF_BASE_URL
 
 ## Architecture
 
-This is the **"Jae/T3" fork** of banana-lucky-nuxt: single bundled design template ("Template3") + per-domain CMS theming. Full details in KNOWLEDGEBASE.md — summary below.
+This is **monkey-user-t3**: a single bundled design template ("Template3") with CMS-driven theming. Full details in KNOWLEDGEBASE.md — summary below.
 
 ### Nitro Proxy Layer
 
@@ -71,7 +71,7 @@ Use `useApi()` for all page data fetching — it's isomorphic:
 
 ### Site Config / Theming (CMS contract)
 
-> The old 11-brand `__BUILD_SITE__` build-time system is **dead in this fork** (define exists, nothing reads it).
+> The old 11-brand build-time selector was removed. Theme configuration is supplied by the CMS.
 
 1. **Base**: `getDefaultThemeConfig()` in `app/composables/useDefaultThemeConfig.ts` — the full typed `SiteConfig` (6 groups: identity/theme/assets/contact/integrations/seo).
 2. **Override**: CMS payload from **`/site/config/theme`** (hostname-scoped), stored in `useState('userPageConfig')` by `app/lib/siteConfig.ts` via app.vue.
@@ -120,9 +120,8 @@ transaction-ledger types moved to `app/components/DataTable.vue` and
 
 | Variable                                                      | Purpose                                                       |
 | ------------------------------------------------------------- | ------------------------------------------------------------- |
-| `NUXT_API_URL`                                                | Backend REST URL — server-only, never in browser bundle       |
-| `NUXT_WS_API_URL`                                             | Backend WS URL — server-only                                  |
-| `NUXT_PUBLIC_SITE`                                            | Legacy brand id (build ARG; mostly informational now)         |
+| `NUXT_API_URL`                                                | Backend REST URL (including `/api`) — server-only             |
+| `NUXT_WS_API_URL`                                            | Backend WS origin (without `/ws`) — server-only               |
 | `NUXT_PUBLIC_SITE_URL`                                        | Public URL for sitemap/robots                                 |
 | `REDIS_HOST` (+PORT/PASSWORD/DB)                              | Optional — enables shared SSR cache + anon page cache storage |
 | `NUXT_ENABLE_ANON_PAGE_CACHE` / `NUXT_ANON_PAGE_CACHE_TTL_MS` | Anonymous full-page SSR cache (default off / 60s)             |

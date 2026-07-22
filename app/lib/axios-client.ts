@@ -33,6 +33,7 @@ import type {
   InternalAxiosRequestConfig,
 } from "axios";
 import { getApiBase } from "@/lib/domain";
+import { getCsrfHeaders } from "@/lib/csrf";
 
 const MUTATING_METHODS = new Set(["post", "put", "patch", "delete"]);
 
@@ -81,17 +82,6 @@ const dedupeKey = (config: InternalAxiosRequestConfig): string => {
   return `${method} ${config.baseURL ?? ""}${url}?${params}`;
 };
 
-/** Read a cookie value by name (client-side only) */
-const getCookieValue = (name: string): string | null => {
-  if (typeof document === "undefined") return null;
-  const match = document.cookie.match(
-    new RegExp(
-      "(?:^|; )" + name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "=([^;]*)",
-    ),
-  );
-  return match ? decodeURIComponent(match[1]!) : null;
-};
-
 /**
  * Create configured axios instance with interceptors
  *
@@ -128,10 +118,8 @@ const createAxiosInstance = (baseURL: string): AxiosInstance => {
       config.method &&
       MUTATING_METHODS.has(config.method.toLowerCase())
     ) {
-      const csrfToken = getCookieValue("XSRF-TOKEN");
-      if (csrfToken) {
-        config.headers["X-XSRF-TOKEN"] = csrfToken;
-      }
+      for (const [name, value] of Object.entries(getCsrfHeaders()))
+        config.headers[name] = value;
     }
     return config;
   });

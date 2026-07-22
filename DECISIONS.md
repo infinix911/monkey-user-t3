@@ -1,4 +1,4 @@
-# DECISIONS.md — banana-jaeisol-t3-nuxt
+# DECISIONS.md — monkey-user-t3
 
 > Architectural decision records (ADRs). Answers **WHY**, not HOW (HOW → `KNOWLEDGEBASE.md`).
 > Inferred from implementation at commit `fb66962` (2026-07-06). Where intent is uncertain it is marked *(inferred)*.
@@ -19,9 +19,9 @@
 
 ## ADR-002 — CMS deep-merge theming over one bundled template; per-brand builds abandoned
 **Status:** Accepted (supersedes the lucky-repo 11-brand `__BUILD_SITE__` model)
-**Decision:** One typed bundled default (`getDefaultThemeConfig()`, "Template3") deep-merged under a per-hostname CMS payload from `/site/config/theme`. Brand identity, theme tokens, assets, feature surface are all data. `__BUILD_SITE__` remains defined in `vite.define` but is intentionally unused; per-brand config modules were removed.
+**Decision:** One typed bundled default (`getDefaultThemeConfig()`, "Template3") deep-merged under a CMS payload from `/site/config/theme`. Brand identity, theme tokens, assets, feature surface are all data. The obsolete `__BUILD_SITE__` build selector and per-brand config modules were removed.
 **Context:** This fork serves CMS-themed tenant deployments (e.g. `idr-demo1.jaeisol.com`); admin needs to restyle without rebuilds.
-**Alternatives:** Keep build-time brand tree-shaking (the sibling banana-lucky-nuxt approach).
+**Alternatives:** Keep the sibling project's build-time brand tree-shaking approach.
 **Reason:** N tenants without N builds; live theme preview (`?themePreview=1` postMessage bridge) becomes possible.
 **Tradeoffs:** Wrong CMS paths are silently ignored (hence the 510-line `docs/site-config-cms-fields.md` contract); CMS cannot blank a field (null falls back to bundled); `useSiteConfig()` is a non-reactive snapshot; doc drift already occurred (CLAUDE.md described the dead system).
 **Affected:** `useDefaultThemeConfig.ts`, `useSiteConfig.ts`, `app/lib/siteConfig.ts`, admin CMS form.
@@ -83,9 +83,9 @@
 
 ---
 
-## ADR-010 — Bun builds, Node 22 runs; one image per tenant
+## ADR-010 — Bun builds, Node 22 runs; one image per deployment
 **Status:** Accepted
-**Decision:** Dockerfile: `oven/bun:1-alpine` deps+build (`--frozen-lockfile`), `node:22-alpine` runtime running only `.output` as non-root. `NUXT_PUBLIC_SITE` is a build ARG (now mostly informational — see ADR-002); per-tenant config is runtime env + CMS.
+**Decision:** Dockerfile: `oven/bun:1-alpine` deps+build (`--frozen-lockfile`), `node:22-alpine` runtime running only `.output` as non-root. Deployment configuration is supplied through runtime environment variables and the CMS; no build-time site selector is supported.
 **Tradeoffs:** Two runtimes; dual lockfiles tracked (bun.lock authoritative; package-lock.json is a stale-risk decoy).
 
 ---
@@ -155,3 +155,12 @@
 **Alternative considered:** disabling the two items in the admin CMS per deployment. Rejected as the primary mechanism — it is per-hostname data, so a single missed site config reintroduces dead tiles. The code-level filter is a guarantee; the CMS change is optional cleanup on top.
 **Tradeoffs:** The `deposit.apiMessages.INVALID_VOUCHER` / `ACTIVE_TO_IN_PROGRESS` i18n tokens are kept — they are backend-emitted error keys, not UI strings, and removing them would break message lookup if the API ever returns them. Re-introducing any of these features means rebuilding the component, not flipping a flag.
 **Related:** ADR-017 (same removal pattern; `isTogelItem` is its ancestor).
+
+---
+
+## ADR-019 — Remove the build-time site selector
+**Status:** Accepted
+**Context:** `NUXT_PUBLIC_SITE` and its `__BUILD_SITE__` Vite define no longer selected any live application behavior. The remaining wiring only exposed a redundant browser global, Docker build arguments, and a disabled multi-brand PWA configuration.
+**Decision:** Remove `NUXT_PUBLIC_SITE`, `__BUILD_SITE__`, `window.__NUXT_SITE`, the associated public runtime-config field, Docker build arguments, and the disabled multi-brand PWA branch. The package and deployment examples are named `monkey-user-t3`.
+**Scope:** This does not change `NUXT_PUBLIC_SITE_URL`, host allow-listing, or CMS-driven theme configuration. Those remain the source of public URL, request-host validation, and visual configuration.
+**Tradeoffs:** Deployments cannot select a site identity at build time. Changes to theme identity continue to be made through the CMS rather than a rebuild.

@@ -1,12 +1,35 @@
-import { useRequestURL, useRuntimeConfig, useRequestHeaders } from 'nuxt/app'
+import { useRequestURL, useRequestHeaders } from 'nuxt/app'
+import { resolveCanonicalAuthority } from '~~/shared/utils/request-security'
+
+function configuredHosts(): string[] {
+  try {
+    const config = useRuntimeConfig()
+    return [
+      String((config as { allowedHosts?: string }).allowedHosts ?? ''),
+      String(config.public.siteUrl ?? ''),
+    ].filter(Boolean)
+  } catch {
+    return []
+  }
+}
+
+function serverAuthority(): string | null {
+  try {
+    const { host } = useRequestHeaders(['host'])
+    return resolveCanonicalAuthority(
+      host,
+      configuredHosts(),
+      process.env.NODE_ENV === 'production',
+    )?.authority ?? null
+  } catch {
+    return null
+  }
+}
 
 export function getHostname(): string {
   if (import.meta.server) {
-    try {
-      return useRequestURL().hostname
-    } catch {
-      return 'localhost'
-    }
+    const authority = serverAuthority()
+    return authority ? new URL(`http://${authority}`).hostname : '_invalid-host'
   }
   if (typeof window === 'undefined') return 'localhost'
   return window.location.hostname
@@ -25,11 +48,11 @@ export function getHostname(): string {
 export function forwardHostHeaders(): Record<string, string> {
   if (!import.meta.server) return {}
   try {
-    const fwd = useRequestHeaders(['host', 'x-forwarded-host', 'x-forwarded-proto'])
+    const authority = serverAuthority()
     const headers: Record<string, string> = {}
-    const host = fwd['x-forwarded-host'] || fwd.host
-    if (host) headers['x-forwarded-host'] = host
-    if (fwd['x-forwarded-proto']) headers['x-forwarded-proto'] = fwd['x-forwarded-proto']
+    if (authority) headers['x-forwarded-host'] = authority
+    if (authority)
+      headers['x-forwarded-proto'] = process.env.NODE_ENV === 'production' ? 'https' : useRequestURL().protocol.replace(':', '')
     return headers
   } catch {
     return {}
@@ -54,35 +77,27 @@ export function getSiteUrl(): string {
   return window.location.origin
 }
 
-type ServerConfig = { apiUrl?: string; wsApiUrl?: string }
-
-function readServerConfig(): ServerConfig | null {
-  try {
-    return useRuntimeConfig() as unknown as ServerConfig
-  } catch {
-    return null
-  }
+function getRequiredServerEnv(name: "NUXT_API_URL" | "NUXT_WS_API_URL"): string {
+  const value = process.env[name]?.trim()
+  if (!value) throw new Error(`${name} is not configured`)
+  return value.replace(/\/$/, "")
 }
 
 // Client always talks to its own origin — the Nitro proxy at /api forwards
-// to the real backend. Server reads NUXT_API_URL (server-only runtimeConfig)
-// to issue the SSR fetch directly to the backend host.
+// to the real backend. Server reads the private NUXT_API_URL process
+// environment variable for direct SSR fetches.
 export function getApiBase(): string {
   if (import.meta.client) return '/api'
-  const cfg = readServerConfig()
-  if (cfg?.apiUrl) return cfg.apiUrl
-  return 'http://localhost:4000/api'
+  return getRequiredServerEnv("NUXT_API_URL")
 }
 
 // Same shape for WebSockets. Client connects to wss://<frontend-host>; the
-// ws-proxy plugin upgrades that to the backend WS server. Server side
-// returns the raw backend WS URL (only used by the proxy plugin itself).
+// ws-proxy plugin upgrades that to the backend WS server. Server side returns
+// the raw NUXT_WS_API_URL (only used by the proxy plugin itself).
 export function getWsApiUrl(): string {
   if (import.meta.client) {
     const proto = window.location.protocol === 'https:' ? 'wss' : 'ws'
     return `${proto}://${window.location.host}`
   }
-  const cfg = readServerConfig()
-  if (cfg?.wsApiUrl) return cfg.wsApiUrl
-  return 'ws://localhost:4000'
+  return getRequiredServerEnv("NUXT_WS_API_URL")
 }

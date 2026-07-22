@@ -5,6 +5,8 @@
  */
 
 import { getSiteUrl } from "@/lib/domain";
+import { serializeJsonForHtml } from "~~/shared/utils/secure-serialization";
+import type { ResolvableScript } from "@unhead/vue";
 
 type GeneralCfg = {
   siteName?: string;
@@ -55,7 +57,7 @@ export function useOrganizationSchema() {
       {
         type: "application/ld+json",
         key: "schema-org",
-        innerHTML: JSON.stringify({
+        textContent: serializeJsonForHtml({
           "@context": "https://schema.org",
           "@type": mapOrgType(general?.organizationType),
           name: orgName,
@@ -84,7 +86,7 @@ export function useWebsiteSchema() {
       {
         type: "application/ld+json",
         key: "schema-website",
-        innerHTML: JSON.stringify({
+        textContent: serializeJsonForHtml({
           "@context": "https://schema.org",
           "@type": "WebSite",
           name: siteName,
@@ -111,7 +113,7 @@ export function useBreadcrumbSchema(
       {
         type: "application/ld+json",
         key: "schema-breadcrumb",
-        innerHTML: JSON.stringify({
+        textContent: serializeJsonForHtml({
           "@context": "https://schema.org",
           "@type": "BreadcrumbList",
           itemListElement: items.map((item, index) => ({
@@ -144,14 +146,14 @@ export function useItemListSchema(
   // @unhead resolves a computed field at SSR serialize time, so the schema
   // reflects async-loaded list data (lobbies/games) that isn't present yet when
   // setup first runs. Emits nothing until at least one named item exists.
-  const script = computed(() => {
+  const script = computed<ResolvableScript[]>(() => {
     const items = getItems().filter((i) => i && i.name);
     if (items.length === 0) return [];
     return [
       {
-        type: "application/ld+json",
+        type: "application/ld+json" as const,
         key,
-        innerHTML: JSON.stringify({
+        textContent: serializeJsonForHtml({
           "@context": "https://schema.org",
           "@type": "ItemList",
           numberOfItems: items.length,
@@ -192,7 +194,7 @@ export function useFaqSchema(
       {
         type: "application/ld+json",
         key,
-        innerHTML: JSON.stringify({
+        textContent: serializeJsonForHtml({
           "@context": "https://schema.org",
           "@type": "FAQPage",
           mainEntity: valid.map((i) => ({

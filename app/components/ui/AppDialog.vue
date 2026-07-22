@@ -138,8 +138,8 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
-import DOMPurify from "dompurify";
 import { useDialogQueue } from "@/composables/useDialogQueue";
+import { sanitizeHtml } from "@/utils/sanitizeHtml";
 
 const { activeDialog, confirmDialog, dismissDialog } = useDialogQueue();
 
@@ -162,18 +162,15 @@ const iconGlyph = computed(() =>
 // Confirm button shows unless explicitly disabled (default true, matching swal).
 const showConfirm = computed(() => dialog.value?.showConfirmButton !== false);
 
-const sanitize = (raw: string) =>
-  import.meta.client ? DOMPurify.sanitize(raw) : raw;
-
-const safeHtml = computed(() => sanitize(dialog.value?.html ?? ""));
+const safeHtml = computed(() => sanitizeHtml(dialog.value?.html ?? ""));
 
 // Button labels may carry inline markup (e.g. an SVG check/cross icon), matching
 // sweetalert's HTML-capable button text. Sanitized before rendering.
 const confirmLabel = computed(() =>
-  sanitize(dialog.value?.confirmButtonText || "OK"),
+  sanitizeHtml(dialog.value?.confirmButtonText || "OK"),
 );
 const cancelLabel = computed(() =>
-  sanitize(dialog.value?.cancelButtonText || "No"),
+  sanitizeHtml(dialog.value?.cancelButtonText || "No"),
 );
 
 const onBackdrop = () => {

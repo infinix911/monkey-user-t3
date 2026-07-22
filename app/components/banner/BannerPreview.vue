@@ -85,6 +85,7 @@
 </template>
 
 <script setup lang="ts">
+import type { ResolvableLink } from "@unhead/vue";
 import { computed, ref, onMounted, onUnmounted } from "vue";
 import { useApi } from "@/composables/useApi";
 import { useCarouselSwipe } from "@/composables/useCarouselSwipe";
@@ -259,7 +260,7 @@ const banners = computed<BannerPreviewItem[]>(() => bannersData.value ?? []);
 useHead(() => {
   const first = banners.value[0];
   if (!first) return {};
-  const link: Array<Record<string, string>> = [];
+  const link: ResolvableLink[] = [];
   if (first.overlay_url) {
     link.push({
       rel: "preload",

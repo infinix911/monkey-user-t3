@@ -91,3 +91,20 @@ export type PartnerDashboard = z.infer<typeof partnerDashboardSchema>;
 export type PartnerGameSummary = z.infer<typeof partnerGameSummarySchema>;
 export type PartnerGameStat = z.infer<typeof partnerGameStatSchema>;
 export type PartnerBetHistory = z.infer<typeof partnerBetHistorySchema>;
+
+/** Normalized member-list row shared by the table and detail modal. */
+export interface PartnerMemberRow extends Record<string, unknown> {
+  memberId: string;
+  level: string;
+  member: string;
+  regDate: string;
+  lastLogin: string;
+  lowerCount?: number;
+  wallet: number;
+  walletPoint: number;
+  depAmount: number;
+  widAmount: number;
+  depWidProfit: number;
+  winAmount?: number;
+  profit: number;
+}

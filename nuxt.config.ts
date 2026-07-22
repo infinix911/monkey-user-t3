@@ -1,5 +1,24 @@
 import tailwindcss from "@tailwindcss/vite";
 
+function configuredPreviewOrigins(): string[] {
+  return (process.env.NUXT_PUBLIC_ADMIN_PREVIEW_ORIGIN || "")
+    .split(",")
+    .map((raw) => {
+      try {
+        const url = new URL(raw.trim());
+        const local =
+          url.hostname === "localhost" || url.hostname === "127.0.0.1";
+        return url.origin === raw.trim() &&
+          (url.protocol === "https:" || (local && url.protocol === "http:"))
+          ? url.origin
+          : null;
+      } catch {
+        return null;
+      }
+    })
+    .filter((origin): origin is string => origin !== null);
+}
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
@@ -124,7 +143,7 @@ export default defineNuxtConfig({
         // Browser-language detection is off: language follows currency, not the
         // visitor's Accept-Language. This is what removes the root redirect.
         detectBrowserLanguage: false,
-        vueI18n: "./i18n/i18n.config.ts",
+        vueI18n: "./i18n.config.ts",
       },
     ],
     "@nuxt/fonts",
@@ -162,14 +181,6 @@ export default defineNuxtConfig({
     optimizeDeps: {
       include: ["axios", "@vue/devtools-core", "@vue/devtools-kit", "ioredis"],
     },
-    // __BUILD_SITE__ is a literal substituted at build time. When a build is
-    // pinned to one brand via NUXT_PUBLIC_SITE, useSiteConfig.ts collapses to
-    // a single `if (__BUILD_SITE__ === "lucky")` branch — Vite's tree-shaker
-    // then drops the other ten brand-config modules entirely. When unset
-    // (multi-brand dev/preview), all branches stay reachable.
-    define: {
-      __BUILD_SITE__: JSON.stringify(process.env.NUXT_PUBLIC_SITE || ""),
-    },
     // esbuild handles minification (see build.minify below). `drop` strips
     // all console.* calls and `debugger` statements in production builds —
     // same effect as the Terser pure_funcs config we used to have.
@@ -203,13 +214,10 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
-    // Server-only. Never shipped to the browser. The Nitro proxy routes
-    // (server/routes/api/[...path].ts) and the WS proxy plugin
-    // (server/plugins/ws-proxy.ts) are the only consumers.
-    apiUrl: process.env.NUXT_API_URL,
-    wsApiUrl: process.env.NUXT_WS_API_URL,
+    // Comma-separated browser-facing authorities. Unknown Host headers are
+    // rejected before SSR/cache/API proxy work. Example: example.com,www.example.com.
+    allowedHosts: process.env.NUXT_ALLOWED_HOSTS || "",
     public: {
-      site: process.env.NUXT_PUBLIC_SITE || "",
       siteUrl: process.env.NUXT_PUBLIC_SITE_URL,
       // Sentry DSN is intentionally public — it is meant to ship to the browser.
       // Sentry stays disabled (init no-ops) when this is empty.
@@ -300,10 +308,6 @@ export default defineNuxtConfig({
       ],
       script: [
         {
-          innerHTML: `window.__NUXT_SITE='${process.env.NUXT_PUBLIC_SITE || "lucky"}';`,
-          type: "text/javascript",
-        },
-        {
           innerHTML: `
             window.__pwaListeners = new Set();
             window.addEventListener('beforeinstallprompt', function(e) {
@@ -326,72 +330,6 @@ export default defineNuxtConfig({
     },
   },
 
-  // pwa: { // temporarily disabled
-  /*
-  pwa: {
-    registerType: "autoUpdate",
-    injectRegister: "auto",
-
-    manifest: (() => {
-      const site = process.env.NUXT_PUBLIC_SITE || "lucky";
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const configs: Record<string, () => any> = {
-        lucky: getSiteConfigLucky,
-        ocean: getSiteConfigOcean,
-        tiger: getSiteConfigTiger,
-        dragon: getSiteConfigDragon,
-        rabbit: getSiteConfigRabbit,
-        green: getSiteConfigGreen,
-        space: getSiteConfigSpace,
-        egypt: getSiteConfigEgypt,
-        ant: getSiteConfigAnt,
-        frankenstein: getSiteConfigFrankenstein,
-        bird: getSiteConfigBird,
-      };
-      const config = (configs[site] ?? configs["lucky"]!)();
-      const name = config.branding.siteName;
-      const icons = config.assets.icons.pwa;
-      const screenshots = config.assets.icons.pwaScreenshots ?? [];
-      return {
-        name,
-        short_name: name,
-        description: `Experience the best online gaming experience with ${name}`,
-        theme_color: "#0f172a",
-        background_color: "#0f172a",
-        id: "/",
-        display: "standalone" as const,
-        start_url: "/",
-        scope: "/",
-        lang: "en",
-        orientation: "portrait",
-        prefer_related_applications: false,
-        icons: Object.entries(icons).map(([sizes, src]) => ({
-          src: src as string,
-          sizes,
-          type: "image/png" as const,
-        })),
-        ...(screenshots.length > 0 && { screenshots }),
-      };
-    })(),
-    */
-
-  //  workbox: {
-      // Under SSR, each navigation fetches fresh HTML from the Worker —
-      // no SPA fallback needed. Only precache static assets.
-    //  navigateFallback: null,
-     // globPatterns: ["**/*.{js,css,png,svg,ico,woff2,webmanifest}"],
-     // maximumFileSizeToCacheInBytes: 4 * 1024 * 1024, // 4 MB
-   /* },
-
-    client: {
-      installPrompt: true,
-    },
-    devOptions: {
-      enabled: process.env.NODE_ENV !== "production",
-    },
-  },
-  */ // end pwa disabled
-
   security: {
     hidePoweredBy: true,
     headers: {
@@ -403,19 +341,15 @@ export default defineNuxtConfig({
         "script-src": [
           "'self'",
           "'unsafe-inline'",
-          // Game-provider launch iframes inject arbitrary third-party pixels/
-          // SDKs (e.g. Kwai/kwaiq on *.ap4r.com / *.ks-la.net, plus fbevents/
-          // GA/TikTok). Allow any HTTPS script — mirrors img-src / font-src /
-          // connect-src, which already permit `https:`.
-          "https:",
-          // The hosts below are now subsumed by `https:`; kept as intent
-          // documentation.
+          // Raw same-origin CMS scripts remain an accepted product requirement,
+          // so unsafe-inline cannot yet be removed. External scripts are still
+          // limited to the integrations the application intentionally loads.
           "https://embed.tawk.to",
           "https://va.tawk.to",
           // Cloudflare Web Analytics beacon, injected at the edge.
           "https://static.cloudflareinsights.com",
           "https://cdn.livechatinc.com",
-          "https://*.livechatinc.com",        // tracking.js loads secure-lc.*, etc.
+          "https://*.livechatinc.com",
         ],
         // @nuxt/image renders a raw inline `onerror="this.setAttribute(...)"`
         // on every SSR <img> (NuxtImg.vue). 'unsafe-hashes' + the handler's
@@ -447,9 +381,7 @@ export default defineNuxtConfig({
         "frame-ancestors": [
           "'self'",
           "http://localhost:*",
-          ...(process.env.NUXT_PUBLIC_ADMIN_PREVIEW_ORIGIN
-            ? process.env.NUXT_PUBLIC_ADMIN_PREVIEW_ORIGIN.split(",").map((s) => s.trim()).filter(Boolean)
-            : []),
+          ...configuredPreviewOrigins(),
         ],
       },
       strictTransportSecurity: {
@@ -478,8 +410,11 @@ export default defineNuxtConfig({
       },
     },
     rateLimiter: {
-      tokensPerInterval: 150,
-      interval: 300000,
+      // A normal visit makes many concurrent SSR, API, and asset requests.
+      // Keep an abuse guard, but leave enough headroom for active users and
+      // shared NAT/mobile IPs without sending them to the error page.
+      tokensPerInterval: 5000,
+      interval: 60000,
     },
     requestSizeLimiter: {
       maxRequestSizeInBytes: 10000000, // 10MB

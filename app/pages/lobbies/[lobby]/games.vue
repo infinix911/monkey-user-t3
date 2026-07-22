@@ -130,8 +130,12 @@ const totalGames = computed(() => data.value?.total ?? 0);
 const providerName = computed<string>(() => games.value[0]?.lobby ?? "");
 const providerLogo = computed<string>(() => {
   const type = String(games.value[0]?.game_type ?? "slot").toLowerCase();
-  const logos = siteConfig.assets.homepage.gameLogos as Record<string, string>;
-  const base = logos[type] ?? logos.slot;
+  const logos = siteConfig.assets.homepage.gameLogos;
+  const base = type === "casino"
+    ? logos.casino
+    : type === "sport" || type === "sports"
+      ? logos.sports
+      : logos.slot;
   // sameOrigin: the header logo is alpha-trimmed via canvas (TrimmedImage), which
   // is blocked for cross-origin CDN images (no CORS). Serve same-origin so the
   // trim works and the logo isn't tiny.

@@ -40,7 +40,7 @@ only `{amount}` (bank comes from the member profile); the DB is **not seeded**
 ## 1. Current Architecture (frontend)
 
 - **API layer:** `app/composables/useApi.ts` (isomorphic `$fetch`; SSR → `NUXT_API_URL`+cookie, client → `/api` proxy; CSRF echo; 401 auto-logout; optional `.validated<T>(zodSchema)`). Store mutations use `app/lib/axios-client.ts` (parity: CSRF + 401 latch). **Reuse both — do not add new clients.**
-- **Proxy:** `server/routes/api/[...path].ts` forwards `/api/*` → `NUXT_API_URL`. Now configured (`.env` created).
+- **Proxy:** `server/routes/api/[...path].ts` forwards `/api/*` → `NUXT_API_URL`.
 - **State:** Pinia setup stores — `auth` (identity/wallet/bank/referral), `websocket` (`/auth/ws` token → WS), `site` (SSR settings/banks), `ui` (modals/device). No persistence plugin.
 - **Validation:** vee-validate + zod in `app/schemas/*` (`auth`, `password`, `inquiry`, `transaction`).
 - **Auth flow:** login/register via components → `useApi`; `authStore.verifyUser()` (`GET /auth/get-session` via axios-client) on load; WS connects after verification; `200 null` resets the user and disconnects realtime.

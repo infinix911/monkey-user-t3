@@ -1,5 +1,22 @@
 import { getSiteUrl } from "@/lib/domain";
 import type { CustomSeoEntry } from "@/lib/siteConfig";
+import type { ResolvableLink } from "@unhead/vue";
+
+interface AmpHtmlHeadLink {
+  rel: "amphtml";
+  href: string;
+}
+
+function absoluteHttpUrl(raw: string): string | null {
+  try {
+    const url = new URL(raw);
+    return url.protocol === "http:" || url.protocol === "https:"
+      ? url.href
+      : null;
+  } catch {
+    return null;
+  }
+}
 
 function normalizeImageType(raw?: string): string | undefined {
   if (!raw) return undefined;
@@ -23,32 +40,22 @@ function normalizeImageType(raw?: string): string | undefined {
  * `<link rel="amphtml" href="…">`. Anything else (free text) → null, so a
  * malformed value doesn't emit an invalid tag.
  */
-function buildAmpLink(
-  raw?: string | null,
-): Record<string, string> | null {
+function buildAmpLink(raw?: string | null): AmpHtmlHeadLink | null {
   if (!raw) return null;
   const value = raw.trim();
   if (!value) return null;
 
-  // Full tag string — parse all attributes (name="value" / name='value').
+  // Full tag string — accept only its HTTP(S) href. Arbitrary CMS attributes
+  // must never become event handlers or unexpected link behavior.
   if (value.includes("<")) {
-    const attrs: Record<string, string> = {};
-    const attrRe = /([a-zA-Z][a-zA-Z0-9-]*)\s*=\s*"([^"]*)"|([a-zA-Z][a-zA-Z0-9-]*)\s*=\s*'([^']*)'/g;
-    let m: RegExpExecArray | null;
-    while ((m = attrRe.exec(value)) !== null) {
-      const name = m[1] ?? m[3];
-      const val = m[2] ?? m[4] ?? "";
-      if (name) attrs[name] = val;
-    }
-    return Object.keys(attrs).length ? attrs : null;
+    const match = value.match(/\bhref\s*=\s*["']([^"']+)["']/i);
+    const href = match?.[1] ? absoluteHttpUrl(match[1]) : null;
+    return href ? { rel: "amphtml", href } : null;
   }
 
   // Bare URL.
-  if (/^https?:\/\//i.test(value)) {
-    return { rel: "amphtml", href: value };
-  }
-
-  return null;
+  const href = absoluteHttpUrl(value);
+  return href ? { rel: "amphtml", href } : null;
 }
 
 /**
@@ -283,7 +290,22 @@ export function useSeoHead(pageDefaults?: {
   // set of URLs. There are no `/id|/ko|/th` variants to point at.
   // See PLAN-PAGE-LOADS-TWICE.md.
 
-  useHead(() => ({
+  useHead(() => {
+    const link: ResolvableLink[] = [
+      { rel: "canonical", href: canonicalUrl.value, key: "canonical" },
+      ...(ampLink.value ? [{ ...ampLink.value, key: "amphtml" }] : []),
+      ...(ampRedirect.value
+        ? [
+            {
+              rel: "alternate" as const,
+              href: ampRedirect.value,
+              key: "amp-redirect",
+            },
+          ]
+        : []),
+    ];
+
+    return {
     title: documentTitle.value,
     meta: [
       {
@@ -402,14 +424,7 @@ export function useSeoHead(pageDefaults?: {
           ]
         : []),
     ],
-    link: [
-      { rel: "canonical", href: canonicalUrl.value, key: "canonical" },
-      ...(ampLink.value
-        ? [{ ...ampLink.value, key: "amphtml" }]
-        : []),
-      ...(ampRedirect.value
-        ? [{ rel: "alternate", href: ampRedirect.value, key: "amp-redirect" }]
-        : []),
-    ],
-  }));
+      link,
+    };
+  });
 }

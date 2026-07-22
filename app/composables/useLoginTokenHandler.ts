@@ -8,13 +8,27 @@
  * 1. On mount, check URL for `chatId`, `token`, and optional `offline` params
  * 2. Strip sensitive params from the URL IMMEDIATELY (before any async work or GA fires)
  * 3. If `chatId` present, mark session as opened via Telegram in sessionStorage
- * 4. If both `chatId` and `token` present, navigate to the API redirect endpoint
- * 5. API verifies token, creates session, sets cookie via navigation response, redirects back
- *
- * Uses server-side redirect (GET) instead of XHR POST so the Set-Cookie header is delivered
- * via a navigation response — works reliably across all browsers and avoids cross-origin
- * XHR cookie restrictions that caused failures in production.
+ * 4. If both `chatId` and `token` are present, POST the same-origin one-time
+ *    exchange endpoint. The API sets the session cookie and returns a safe
+ *    relative redirect path.
  */
+
+import { getCsrfHeaders } from "@/lib/csrf";
+
+const TELEGRAM_CHAT_ID_PATTERN = /^-?\d{1,19}$/;
+
+function safeRedirectPath(value: unknown): string {
+  if (typeof value !== "string" || !value.startsWith("/") || value.startsWith("//"))
+    return "/";
+  try {
+    const url = new URL(value, window.location.origin);
+    return url.origin === window.location.origin
+      ? `${url.pathname}${url.search}${url.hash}`
+      : "/";
+  } catch {
+    return "/";
+  }
+}
 
 export const useLoginTokenHandler = () => {
   const route = useRoute();
@@ -52,18 +66,36 @@ export const useLoginTokenHandler = () => {
     }
 
     // 3. Skip if required params were missing or already attempted
-    if (!chatId || !token || hasAttemptedLogin.value) return;
+    if (
+      !chatId ||
+      !token ||
+      !TELEGRAM_CHAT_ID_PATTERN.test(chatId) ||
+      hasAttemptedLogin.value
+    )
+      return;
 
     hasAttemptedLogin.value = true;
 
     // Mark this as a token-based login before navigating away
     localStorage.setItem("tokenLogin", "true");
 
-    // Server-side redirect (navigation, not XHR) so the Set-Cookie header
-    // lands via the response. /api is the same-origin Nitro proxy that
-    // forwards to the backend; cookieDomainRewrite re-scopes bn.session
-    // to this origin.
-    const redirectUrl = encodeURIComponent(window.location.origin);
-    window.location.href = `/api/telegram/login-token?chat_id=${encodeURIComponent(chatId)}&token=${encodeURIComponent(token)}&redirect_url=${redirectUrl}`;
+    try {
+      const response = await $fetch<{
+        redirectPath?: string;
+        data?: { redirectPath?: string };
+      }>("/api/telegram/login-token", {
+        method: "POST",
+        credentials: "include",
+        headers: getCsrfHeaders(),
+        body: { chatId, token, redirectPath: window.location.pathname || "/" },
+        retry: 0,
+      });
+      window.location.assign(
+        safeRedirectPath(response?.data?.redirectPath ?? response?.redirectPath),
+      );
+    } catch {
+      localStorage.removeItem("tokenLogin");
+      hasAttemptedLogin.value = false;
+    }
   });
 };

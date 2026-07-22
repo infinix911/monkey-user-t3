@@ -1,25 +1,29 @@
 import { createProxyServer } from "httpxy";
 import type { Server as HttpServer } from "node:http";
 import type { Socket } from "node:net";
+import { getWebsocketHostUrl } from "../utils/upstream-config";
+import {
+  normalizeIpAddress,
+  resolveCanonicalAuthority,
+} from "../../shared/utils/request-security";
 
 /**
  * Same-origin WebSocket proxy. The browser connects to wss://<frontend-host>/ws
  * (built in app/lib/domain.ts → getWsApiUrl). This plugin captures the
  * underlying Node http server on first request and attaches an `upgrade`
- * listener that pipes /ws traffic to the backend WS server at NUXT_WS_API_URL.
+ * listener that pipes /ws traffic to the backend WS server at
+ * NUXT_WS_API_URL.
  *
- * The backend URL is server-only (runtimeConfig.wsApiUrl) and never reaches
- * the client bundle.
+ * The backend URL is read only from the server process environment and never
+ * reaches the client bundle.
  */
 export default defineNitroPlugin((nitroApp) => {
-  const cfg = useRuntimeConfig();
-  const target = cfg.wsApiUrl as string | undefined;
-
-  if (!target) {
-    // Skip silently in environments without a WS backend configured (e.g.
-    // build-time prerender). The Node server simply will not upgrade /ws.
-    return;
-  }
+  const target = getWebsocketHostUrl();
+  const runtimeConfig = useRuntimeConfig();
+  const configuredHosts = [
+    String(runtimeConfig.allowedHosts ?? ""),
+    String(runtimeConfig.public.siteUrl ?? ""),
+  ].filter(Boolean);
 
   const proxy = createProxyServer({
     target,
@@ -42,7 +46,40 @@ export default defineNitroPlugin((nitroApp) => {
     server.__wsProxyAttached = true;
 
     server.on("upgrade", (req, socket, head) => {
-      if (req.url && req.url.startsWith("/ws")) {
+      const pathname = req.url
+        ? new URL(req.url, "http://internal.invalid").pathname
+        : "";
+      if (pathname === "/ws") {
+        const authority = resolveCanonicalAuthority(
+          req.headers.host,
+          configuredHosts,
+          process.env.NODE_ENV === "production",
+        );
+        const protocol = process.env.NODE_ENV === "production" ? "https" : "http";
+        const expectedOrigin = authority ? `${protocol}://${authority.authority}` : "";
+        if (!authority || req.headers.origin !== expectedOrigin) {
+          socket.destroy();
+          return;
+        }
+
+        const clientIp =
+          normalizeIpAddress(
+            Array.isArray(req.headers["cf-connecting-ip"])
+              ? req.headers["cf-connecting-ip"][0]
+              : req.headers["cf-connecting-ip"],
+          ) ?? normalizeIpAddress(req.socket.remoteAddress);
+        delete req.headers.forwarded;
+        delete req.headers["x-forwarded-host"];
+        delete req.headers["x-forwarded-proto"];
+        delete req.headers["x-forwarded-for"];
+        delete req.headers["cf-connecting-ip"];
+        req.headers["x-forwarded-host"] = authority.authority;
+        req.headers["x-forwarded-proto"] = protocol;
+        if (clientIp) {
+          req.headers["x-forwarded-for"] = clientIp;
+          req.headers["cf-connecting-ip"] = clientIp;
+        }
+
         // httpxy's ws() takes (req, socket, opts, head) and returns a promise;
         // swallow rejections here so a failed upgrade never becomes an
         // unhandled rejection (faults still surface via the "error" handler).
