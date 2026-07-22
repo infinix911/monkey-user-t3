@@ -47,5 +47,5 @@ COPY --chown=node:node --from=build /app/.output ./.output
 USER node
 EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
-  CMD wget -q -O /dev/null http://127.0.0.1:3000/health || exit 1
+  CMD host="${NUXT_ALLOWED_HOSTS%%,*}"; test -n "$host" && wget -q -O /dev/null --header="Host: $host" http://127.0.0.1:3000/health
 CMD ["node", ".output/server/index.mjs"]
