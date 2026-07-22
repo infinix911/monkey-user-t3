@@ -18,7 +18,7 @@
 
         <!-- Games Container -->
         <div
-          :class="['w-full pt-0 pb-16 relative z-[100] px-0 lg:px-3 lg:px-2.5', !gameSectionBgEnabled ? 'xl:px-2' : 'xl:px-0']">
+          :class="['w-full pt-0 pb-8 relative z-[100] px-0 lg:px-3 lg:px-2.5', !gameSectionBgEnabled ? 'xl:px-2' : 'xl:px-0']">
           <slot />
         </div>
       </div>

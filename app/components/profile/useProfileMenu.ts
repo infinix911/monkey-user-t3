@@ -264,7 +264,12 @@ export function useProfileMenu(options: UseProfileMenuOptions) {
   const positionClasses = computed(() => {
     return isBottom.value
       ? "fixed bottom-0 left-0 right-0 mx-auto w-full max-w-[520px]"
-      : "fixed top-[73px] right-[max(0px,calc((100vw-1152px)/2))] mt-2 w-[393px]";
+      // Desktop menu renders 1:1 via `site-unzoom` (main.css) while the page
+      // behind it is zoomed, so it must anchor to ZOOMED geometry in real px:
+      // the column renders 1152px * --site-zoom wide, and the header's 73px
+      // bottom edge sits at 73px * --site-zoom. `100vw` is already real px —
+      // `zoom` does not scale viewport units. All no-ops when --site-zoom is 1.
+      : "site-unzoom fixed top-[calc(73px*var(--site-zoom))] right-[max(0px,calc((100vw-1152px*var(--site-zoom))/2))] mt-2 w-[393px]";
   });
 
   const selectedAccountSectionLabel = computed(() => {

@@ -11,6 +11,58 @@
   --mh-header-height: 65px;
   /* Self-hosted Mark font (see @font-face below). Use as font-family. */
   --font-mark: "Mark", system-ui, sans-serif;
+  --site-zoom: 1;
+}
+
+/* ---------------------------------------------------------------------------
+   Big-screen 110% zoom  (opt-in, per page)
+   ---------------------------------------------------------------------------
+   Renders a page at 110% on wide desktops — the same mechanism as Chrome's own
+   zoom control, so it looks like browser zoom without the user setting it.
+   `zoom` (not transform: scale) because it is a real layout scale: the centred
+   column, the header, the navbar and the page content grow together and
+   nothing needs repositioning.
+
+   Applied by `layouts/default.vue` to the layout content wrapper, and only on
+   the pages listed there. Two consequences worth knowing:
+     - Modals that `Teleport to="body"` land OUTSIDE the wrapper and therefore
+       render 1:1 for free (deposit, withdrawal, ...). Modals that render in
+       place are inside it and must opt out with `.site-unzoom` below.
+     - --site-zoom is set on the wrapper, NOT on :root, so it stays 1 on
+       unzoomed pages and the anchoring math below stays correct everywhere.
+
+   Deliberately UNLAYERED (not inside `@layer base`) so no Tailwind layer can
+   outrank it.
+
+   Breakpoint 1300px: the 1152px column at 110% renders 1267px wide, so 1300
+   is the narrowest viewport where it cannot overflow. Media queries and `vw`
+   are NOT affected by `zoom` — hence the plain viewport width here, and the
+   `100vw / var(--site-zoom)` correction anywhere a zoomed element positions
+   itself off the viewport.
+
+   Verify in DevTools on the homepage:
+     getComputedStyle($0).zoom === "1.1"   // $0 = the wrapper div
+--------------------------------------------------------------------------- */
+@media (min-width: 1300px) {
+  .site-zoom {
+    --site-zoom: 1.1;
+    zoom: var(--site-zoom);
+  }
+}
+
+/* Opt out a subtree while the rest of the page stays zoomed, by cancelling the
+   inherited zoom (nested zooms multiply, so 1.1 x 1/1.1 = 1). A no-op below the
+   breakpoint, where --site-zoom is already 1. Used by the profile menu, which
+   renders in place rather than teleporting.
+
+   --site-zoom is deliberately NOT reset here: it still describes what the PAGE
+   behind the subtree is doing, which is what an unzoomed-but-page-anchored
+   element needs to align itself. Inside a .site-unzoom subtree, lengths are
+   real CSS px again, so anchor to a zoomed element with `X * var(--site-zoom)`
+   (rather than the `100vw / var(--site-zoom)` form used by zoomed elements).
+   Do not nest .site-unzoom inside .site-unzoom — the zooms would compound. */
+.site-unzoom {
+  zoom: calc(1 / var(--site-zoom));
 }
 
 /* LINE Seed Font Declarations */

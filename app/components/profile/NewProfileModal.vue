@@ -137,12 +137,13 @@
 
       <!-- Sliding Panel (desktop only) -->
       <div v-if="!isBottom" ref="slidingPanelRef" :class="[
-        'fixed top-[73px] mt-2 z-[60] rounded-lg shadow-2xl border border-[2px] border-[#404040] overflow-hidden transition-all duration-300 ease-in-out',
+        'site-unzoom fixed top-[calc(73px*var(--site-zoom))] mt-2 z-[60] rounded-lg shadow-2xl border border-[2px] border-[#404040] overflow-hidden transition-all duration-300 ease-in-out',
         selectedAccountSection
           ? 'opacity-100 translate-x-0'
           : 'opacity-0 translate-x-4 pointer-events-none',
         'w-[500px] h-[600px] lg:w-[600px]',
-      ]" :style="{ right: 'calc(max(0px, (100vw - 1152px) / 2) + 401px)' }" style="background-color: black">
+      ]" :style="{ right: 'calc(max(0px, (100vw - 1152px * var(--site-zoom)) / 2) + 401px)' }"
+        style="background-color: black">
         <!-- Panel Header -->
         <div class="flex items-center justify-between px-4 py-3 border-b border-[#5C5C5C]">
           <h2 class="text-[#ffe100] text-lg font-medium" style="font-family: var(--font-line-seed)">
