@@ -3,7 +3,7 @@
        icon + text label per action, divider between. Unchanged from the
        original inline Navbar markup. -->
   <div
-    class="flex-1 min-w-[250px] h-[98px] relative flex items-center justify-center rounded-[16px] overflow-hidden"
+    class="flex-1 min-w-[250px] max-w-[311px] h-[98px] relative flex items-center justify-center rounded-[16px] overflow-hidden"
     :style="{ background: siteConfig.theme.nav.depositSectionGradient }">
     <div class="flex items-stretch justify-between w-full h-full">
       <button type="button"

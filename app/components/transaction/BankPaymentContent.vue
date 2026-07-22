@@ -7,6 +7,28 @@
            button — so the two-column split and its vertical divider went with
            them. Width now matches the withdrawal modal's max-w-md body. -->
       <div class="mt-2 md:mt-4">
+        <!-- Account request — raises a BANK_ACCOUNT_REQUEST inquiry asking
+             support for a deposit account. Sits at the very top: it's what a
+             user needs when the account card below shows no bank yet.
+             type="button" so it never submits the deposit form. -->
+        <button
+          type="button" :disabled="isRequestingAccount"
+          class="w-full h-[44px] rounded-[12px] text-[15px] font-semibold flex items-center justify-center gap-2 transition-opacity hover:opacity-85 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+          :style="{
+            backgroundColor: dep.inputBgColor,
+            color: dep.accentColor,
+            border: `1px solid ${dep.inputBorderColor}`,
+          }"
+          @click="handleAccountRequest">
+          <svg
+            class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="5" width="20" height="14" rx="2" />
+            <path d="M2 10h20" />
+          </svg>
+          {{ t("inquiry.depositAccountRequest") }}
+        </button>
+
         <div class="mb-0 md:mb-4 w-full">
           <!-- Account Info Card -->
           <div
@@ -149,6 +171,22 @@ const {
 });
 
 const dep = computed(() => siteConfig.theme.transactionmodal);
+
+// "Account request" button — posts a BANK_ACCOUNT_REQUEST inquiry. No refresh
+// callback is passed: the deposit modal has no inquiry list to refresh, and the
+// mutation's alert already confirms the request.
+const { requestBankAccount } = useInquiryMutations();
+const isRequestingAccount = ref(false);
+
+async function handleAccountRequest() {
+  if (isRequestingAccount.value) return; // guard double-submits
+  isRequestingAccount.value = true;
+  try {
+    await requestBankAccount();
+  } finally {
+    isRequestingAccount.value = false;
+  }
+}
 </script>
 
 <style scoped>

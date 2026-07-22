@@ -89,7 +89,11 @@ class="w-full h-[6px]" :style="{
           <!-- Scroll dimmer over the nav-background image -->
           <div v-if="uiStore.isNavSticky" class="absolute inset-0 pointer-events-none"
             :style="{ backgroundColor: siteConfig.theme.nav.stickyBg, zIndex: 1 }" />
-          <div class="relative z-10 w-full flex h-full items-center justify-start pl-2 pr-5"
+          <!-- justify-center (not -start): the transaction panel is capped at
+               max-w-[311px], so once the nav items don't fill the row the
+               leftover width would otherwise all pool on the right. Centering
+               splits it evenly and keeps the row visually balanced. -->
+          <div class="relative z-10 w-full flex h-full items-center justify-center pl-2 pr-5"
             :class="navSkin.layout.desktop.rowGap">
             <!-- Scrollable nav items -->
             <div class="max-w-[892px] min-w-0 relative overflow-hidden"
