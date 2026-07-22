@@ -45,12 +45,6 @@ const hasMainBackground = computed(
 const isProvidersPage = computed(
   () => pathname.value?.startsWith("/providers/") || false,
 );
-const isSlotsPage = computed(
-  () =>
-    pathname.value === "/slots" ||
-    pathname.value?.startsWith("/slots/") ||
-    false,
-);
 </script>
 
 <style scoped>

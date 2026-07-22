@@ -206,7 +206,7 @@ const gameIcons: Record<string, string> = {
 
 const gameRows = computed<Record<string, unknown>[]>(() =>
   gameSummary.value.map((summary) => ({
-    game: summary.gameType[0].toUpperCase() + summary.gameType.slice(1),
+    game: summary.gameType.charAt(0).toUpperCase() + summary.gameType.slice(1),
     icon: gameIcons[summary.gameType],
     bet: asNumber(summary.betAmount),
     win: asNumber(summary.winAmount),

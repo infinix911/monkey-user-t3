@@ -196,7 +196,6 @@ import { ref, computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useForm } from "vee-validate";
 import { useApi } from "@/composables/useApi";
-import { useToast } from "@/composables/useToast";
 import { loginSchema } from "@/schemas";
 import { useWebSocketStore } from "@/stores/websocket";
 import { showErrorAlert } from "~~/utils/swal-alert";

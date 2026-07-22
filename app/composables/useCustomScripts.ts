@@ -25,6 +25,8 @@
 
 import { getApiBase, getHostname, forwardHostHeaders } from "@/lib/domain";
 import { withServerCache } from "@/lib/serverCache";
+import { escapeInlineScript } from "~~/shared/utils/secure-serialization";
+import type { ResolvableScript } from "@unhead/vue";
 
 export interface CustomScriptEntry {
   id: number;
@@ -99,8 +101,8 @@ export async function fetchCustomScripts(): Promise<CustomScriptEntry[]> {
 export function useCustomScripts() {
   const cached = useState<CustomScriptEntry[]>("customScripts", () => []);
 
-  const tags = computed(() => {
-    const out: { script: Record<string, string | boolean | number>[] } = { script: [] };
+  const tags = computed<{ script: ResolvableScript[] }>(() => {
+    const out: { script: ResolvableScript[] } = { script: [] };
     if (!Array.isArray(cached.value)) return out;
 
     for (const entry of cached.value) {
@@ -108,7 +110,8 @@ export function useCustomScripts() {
       const bodies = extractScriptBodies(entry.script);
       for (const body of bodies) {
         out.script.push({
-          innerHTML: body,
+          type: "text/javascript",
+          innerHTML: escapeInlineScript(body),
           tagPosition: "head",
           // Title is for traceability in DevTools when admins inspect the
           // rendered page; it isn't a real <script> attribute, so namespace

@@ -119,15 +119,9 @@
 import { ref, reactive, computed, watch } from "vue";
 import { useCurrency } from "@/composables/useCurrency";
 import type { PartnerColumn } from "@/utils/partnerMenu";
+import type { PartnerMemberRow } from "@/interfaces/partner.interface";
 
-/** A member row as passed from the members table (stargazer column shape). */
-interface MemberRow {
-  level: string; member: string; regDate: string; lastLogin: string; lowerCount?: number;
-  wallet: number; walletPoint: number; depAmount: number; widAmount: number;
-  depWidProfit: number; winAmount?: number; profit: number;
-}
-
-const props = defineProps<{ modelValue: boolean; member: MemberRow | null }>();
+const props = defineProps<{ modelValue: boolean; member: PartnerMemberRow | null }>();
 defineEmits<{ "update:modelValue": [boolean] }>();
 
 const { t } = useI18n();

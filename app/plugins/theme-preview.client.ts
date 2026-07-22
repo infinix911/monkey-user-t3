@@ -26,6 +26,58 @@
 
 import type { SiteConfig } from "@/composables/useDefaultThemeConfig";
 
+const MAX_DEPTH = 12;
+const MAX_PROPERTIES = 5000;
+const BLOCKED_KEYS = new Set(["__proto__", "constructor", "prototype"]);
+
+function normalizePreviewOrigin(raw: string): string | null {
+  try {
+    const url = new URL(raw);
+    const local = url.hostname === "localhost" || url.hostname === "127.0.0.1";
+    if (url.origin !== raw || (url.protocol !== "https:" && !(local && url.protocol === "http:")))
+      return null;
+    return url.origin;
+  } catch {
+    return null;
+  }
+}
+
+/** Validate bounds and clone into fresh plain objects before making it reactive. */
+export function validateThemeDraft(value: unknown): SiteConfig | null {
+  let properties = 0;
+  const visit = (input: unknown, depth: number): unknown => {
+    if (depth > MAX_DEPTH || ++properties > MAX_PROPERTIES) throw new Error("draft too large");
+    if (input === null || typeof input === "boolean") return input;
+    if (typeof input === "number") {
+      if (!Number.isFinite(input)) throw new Error("invalid number");
+      return input;
+    }
+    if (typeof input === "string") {
+      if (input.length > 200_000) throw new Error("string too large");
+      return input;
+    }
+    if (Array.isArray(input)) return input.map((item) => visit(item, depth + 1));
+    if (typeof input !== "object") throw new Error("unsupported value");
+    const prototype = Object.getPrototypeOf(input);
+    if (prototype !== Object.prototype && prototype !== null)
+      throw new Error("non-plain object");
+    const output: Record<string, unknown> = Object.create(null);
+    for (const [key, child] of Object.entries(input as Record<string, unknown>)) {
+      if (BLOCKED_KEYS.has(key) || key.length > 128) throw new Error("invalid key");
+      output[key] = visit(child, depth + 1);
+    }
+    return output;
+  };
+
+  try {
+    const result = visit(value, 0);
+    if (!result || typeof result !== "object" || Array.isArray(result)) return null;
+    return result as SiteConfig;
+  } catch {
+    return null;
+  }
+}
+
 export default defineNuxtPlugin(() => {
   // Guard: only activate inside the preview iframe
   if (!import.meta.client) return;
@@ -46,7 +98,8 @@ export default defineNuxtPlugin(() => {
       ...rawEnv
         .split(",")
         .map((s) => s.trim())
-        .filter(Boolean),
+        .map(normalizePreviewOrigin)
+        .filter((origin): origin is string => origin !== null),
     ],
   );
 
@@ -57,30 +110,29 @@ export default defineNuxtPlugin(() => {
   );
 
   // ── 1. Signal readiness to the parent frame ─────────────────────────────
-  // Use '*' so the signal reaches the admin panel regardless of whether
-  // NUXT_PUBLIC_ADMIN_PREVIEW_ORIGIN is configured. The payload is a
-  // no-op ping with no sensitive data, so broadcasting is safe.
   onNuxtReady(() => {
-    try {
-      window.parent.postMessage({ type: "theme-preview-ready" }, "*");
-    } catch {
-      // Swallow — some browser security modes block cross-frame postMessage.
+    for (const origin of allowedOrigins) {
+      try {
+        window.parent.postMessage({ type: "theme-preview-ready" }, origin);
+      } catch {
+        // Some browser security modes block cross-frame postMessage.
+      }
     }
   });
 
   // ── 2. Listen for config updates from the parent frame ───────────────────
   const handleMessage = (event: MessageEvent): void => {
     // Reject messages from any origin not in our allowlist
-    if (!allowedOrigins.has(event.origin)) return;
+    if (event.source !== window.parent || !allowedOrigins.has(event.origin)) return;
 
     const data = event.data as Record<string, unknown> | null;
     if (!data || data["type"] !== "theme-draft") return;
 
-    const config = data["config"];
-    if (!config || typeof config !== "object") return;
+    const draft = validateThemeDraft(data["config"]);
+    if (!draft) return;
 
     // Write into shared state — useSiteConfig() reads this and re-renders
-    userPageConfig.value = config as SiteConfig;
+    userPageConfig.value = draft;
   };
 
   window.addEventListener("message", handleMessage);

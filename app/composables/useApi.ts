@@ -25,23 +25,13 @@
 import type { $Fetch } from "ofetch";
 import type { ZodIssue, ZodType } from "zod";
 import { getApiBase, forwardHostHeaders } from "@/lib/domain";
+import { getCsrfHeaders } from "@/lib/csrf";
 
 /**
  * Mutating methods get a CSRF double-submit header (parity with axios-client).
  * They are never retried (money safety) — useApi already sets `retry: 0`.
  */
 const MUTATING_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
-
-/** Read a cookie value by name (client only). */
-const getCookieValue = (name: string): string | null => {
-  if (typeof document === "undefined") return null;
-  const match = document.cookie.match(
-    new RegExp(
-      "(?:^|; )" + name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "=([^;]*)",
-    ),
-  );
-  return match ? decodeURIComponent(match[1]!) : null;
-};
 
 /**
  * Option bag accepted by the project's isomorphic `$fetch`. Derived from the
@@ -115,10 +105,9 @@ export const useApi = (): ValidatingFetch => {
       if (!import.meta.client) return;
       const method = (options.method ?? "GET").toString().toUpperCase();
       if (!MUTATING_METHODS.has(method)) return;
-      const token = getCookieValue("XSRF-TOKEN");
-      if (!token) return;
       const merged = new Headers(options.headers as HeadersInit | undefined);
-      merged.set("X-XSRF-TOKEN", token);
+      for (const [name, value] of Object.entries(getCsrfHeaders()))
+        merged.set(name, value);
       options.headers = merged;
     },
     // Clear the auto-logout latch on any successful auth response, mirroring

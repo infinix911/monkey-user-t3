@@ -246,7 +246,8 @@ const selectedLobby = ref("");
 watch(
   providers,
   (list) => {
-    if (!selectedLobby.value && list.length) selectedLobby.value = list[0].id;
+    const firstProvider = list[0];
+    if (!selectedLobby.value && firstProvider) selectedLobby.value = firstProvider.id;
   },
   { immediate: true },
 );

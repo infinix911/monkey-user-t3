@@ -16,6 +16,7 @@ import {
   showAutoAlert,
 } from "~~/utils/swal-alert";
 import { depositSchema } from "@/schemas";
+import { idempotencyHeaders } from "@/lib/idempotency";
 
 export interface IBankAccount {
   id: string;
@@ -221,6 +222,7 @@ export function useBankPayment(options: UseBankPaymentOptions) {
     try {
       await api("/transactions/deposit", {
         method: "POST",
+        headers: idempotencyHeaders(),
         body: depositData,
       });
       await showSuccessAlert(

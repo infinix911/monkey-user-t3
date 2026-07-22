@@ -172,6 +172,7 @@ import { useApi } from "@/composables/useApi";
 import { useAuthStore } from "~/stores/auth";
 import { showSuccessAlert, showErrorAlert } from "~~/utils/swal-alert";
 import { withdrawalSchema } from "@/schemas";
+import { idempotencyHeaders } from "@/lib/idempotency";
 // Min/max/divisible come from the CMS (`withdrawals:*` in /site/settings).
 
 const siteConfig = useSiteConfig();
@@ -328,6 +329,7 @@ const veeSubmit = veeHandleSubmit(async (values) => {
     const api = useApi();
     await api("/transactions/withdrawal", {
       method: "POST",
+      headers: idempotencyHeaders(),
       body: { amount: amountWithdrawal },
     });
 

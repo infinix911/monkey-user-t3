@@ -26,6 +26,18 @@
 
 const CSP_HEADER = "content-security-policy";
 
+export function normalizeFrameAncestor(raw: string): string | null {
+  try {
+    const url = new URL(raw);
+    const local = url.hostname === "localhost" || url.hostname === "127.0.0.1";
+    if (url.origin !== raw || (url.protocol !== "https:" && !(local && url.protocol === "http:")))
+      return null;
+    return url.origin;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Inject `origins` into the `frame-ancestors` directive of a CSP header string,
  * skipping any origin already present. Returns the CSP unchanged when there is
@@ -61,7 +73,8 @@ export default defineNitroPlugin((nitroApp) => {
   const origins = raw
     .split(",")
     .map((origin) => origin.trim())
-    .filter(Boolean);
+    .map(normalizeFrameAncestor)
+    .filter((origin): origin is string => origin !== null);
 
   if (origins.length === 0) return;
 

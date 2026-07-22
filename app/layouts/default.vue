@@ -278,10 +278,10 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onMounted, onUnmounted, defineAsyncComponent } from "vue";
-import DOMPurify from "dompurify";
 import { getApiBase, getHostname, forwardHostHeaders } from "@/lib/domain";
 import { withServerCache } from "@/lib/serverCache";
 import { cdn } from "@/utils/assetUrl";
+import { sanitizeHtml } from "@/utils/sanitizeHtml";
 
 const authStore = useAuthStore();
 const uiStore = useUiStore();
@@ -389,7 +389,7 @@ const customSeoFooter = computed(() => {
     (typeof rowFooter === "string" && rowFooter.trim() ? rowFooter : "") ||
     brandSiteConfig?.seo?.customSeo?.footer ||
     "";
-  return import.meta.client ? DOMPurify.sanitize(raw) : raw;
+  return sanitizeHtml(raw);
 });
 
 const bodyBgStyle = computed(() => {

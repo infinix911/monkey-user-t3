@@ -23,6 +23,7 @@
  * helper here is a no-op (pageCacheKey returns null).
  */
 import type { H3Event } from "h3";
+import { getCanonicalAuthority } from "./request-security";
 import type { Redis } from "ioredis";
 
 const KEY_PREFIX = "nuxt:anonpage:";
@@ -157,7 +158,8 @@ export function pageCacheKey(event: H3Event): string | null {
   if (!isAnonCacheableRequest(event)) return null;
 
   const url = getRequestURL(event);
-  const host = getRequestHost(event, { xForwardedHost: true });
+  const host = getCanonicalAuthority(event);
+  if (!host) return null;
   return `${KEY_PREFIX}${host}${url.pathname}${normalizedSearch(url)}`;
 }
 

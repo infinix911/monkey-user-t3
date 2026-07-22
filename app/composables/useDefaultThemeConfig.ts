@@ -121,6 +121,8 @@ export interface NavActiveKeysConfig {
 
 /** Top navigation bar colors/gradients (default + sticky states). */
 export interface ThemeNavConfig {
+    /** Gradient behind the centred desktop header while it is at the top. */
+    headerBgGradient: string;
     /** Top nav background in its default (non-scrolled) state. Hex color. */
     defaultBg: string;
     /** Top nav background once the page is scrolled (sticky). CSS color (rgba allowed). */
@@ -155,6 +157,8 @@ export interface ThemeSectionHeaderConfig {
 export interface ThemeAuthButtonConfig {
     /** Login button background (padding-box + border-box gradient). CSS background shorthand string. */
     loginBg: string;
+    /** Login button border declaration. CSS border shorthand string. */
+    loginBorder: string;
     /** Login button label gradient (clipped to text). CSS linear-gradient string. */
     loginTextGradient: string;
     /** Signup button background (padding-box + border-box gradient). CSS background shorthand string. */
@@ -460,6 +464,24 @@ export interface AssetsImagesConfig {
     defaultThumbnail: string;
     /** "Ratio" badge image used on ratio sport lobbies. Public asset path or absolute URL. */
     ratio: string;
+    /** Optional decorative media displayed to the left of desktop content. */
+    leftDecor: string;
+    /** Optional decorative media displayed to the right of desktop content. */
+    rightDecor: string;
+}
+
+/** Optional fixed decorative media flanking the desktop content column. */
+export interface AssetsDecorativeImagesConfig {
+    /** Whether either decorative media element is rendered. */
+    enabled: boolean;
+    /** Positioning and sizing for the left media container. */
+    leftContainerStyle: CssStyleMap;
+    /** Positioning and sizing for the right media container. */
+    rightContainerStyle: CssStyleMap;
+    /** Presentation overrides for the left image or video. */
+    leftMediaStyle: CssStyleMap;
+    /** Presentation overrides for the right image or video. */
+    rightMediaStyle: CssStyleMap;
 }
 
 /** Top-navigation iconography (was `assets.navigation`). */
@@ -665,6 +687,8 @@ export interface AssetsIconsConfig {
 export interface AssetsConfig {
     /** Generic site imagery. */
     images: AssetsImagesConfig;
+    /** Optional decorative images/videos flanking desktop content. */
+    decorativeImages: AssetsDecorativeImagesConfig;
     /** Top-navigation iconography (was `navigation`). */
     navIcons: AssetsNavIconsConfig;
     /** Deposit/withdraw and banking assets. */
@@ -920,6 +944,7 @@ export const getDefaultThemeConfig = (): SiteConfig => {
                 },
             },
             nav: {
+                headerBgGradient: "#000000",
                 defaultBg: "#000000",
                 stickyBg: "rgba(0, 0, 0, 0.8)",
                 activeItemColor: "#f3ef0b",
@@ -954,6 +979,7 @@ export const getDefaultThemeConfig = (): SiteConfig => {
             authButton: {
                 loginBg:
                     "linear-gradient(to bottom, #0C316C, #175FD2) padding-box, linear-gradient(to bottom, #F7E652, #C9B10C 66.8%, #F7E652) border-box",
+                loginBorder: "1.5px solid transparent",
                 loginTextGradient:
                     "linear-gradient(to right, #F7E652, #C9B10C 66.8%, #F7E652)",
                 signupBg:
@@ -1114,6 +1140,15 @@ export const getDefaultThemeConfig = (): SiteConfig => {
                 loginModalBg: "/designs/misc/modal-login-bg.webp",
                 defaultThumbnail: "/designs/misc/default.webp",
                 ratio: "/designs/misc/ratio.webp",
+                leftDecor: "",
+                rightDecor: "",
+            },
+            decorativeImages: {
+                enabled: false,
+                leftContainerStyle: {},
+                rightContainerStyle: {},
+                leftMediaStyle: {},
+                rightMediaStyle: {},
             },
             navIcons: {
                 background: "",

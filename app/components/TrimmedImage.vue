@@ -137,7 +137,7 @@ function measure() {
     let minX = sw, minY = sh, maxX = -1, maxY = -1;
     for (let y = 0; y < sh; y++) {
       for (let x = 0; x < sw; x++) {
-        if (d[(y * sw + x) * 4 + 3] > 6) {
+        if ((d[(y * sw + x) * 4 + 3] ?? 0) > 6) {
           if (x < minX) minX = x;
           if (x > maxX) maxX = x;
           if (y < minY) minY = y;

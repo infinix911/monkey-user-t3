@@ -1,12 +1,35 @@
 import { useRequestURL, useRequestHeaders } from 'nuxt/app'
+import { resolveCanonicalAuthority } from '~~/shared/utils/request-security'
+
+function configuredHosts(): string[] {
+  try {
+    const config = useRuntimeConfig()
+    return [
+      String((config as { allowedHosts?: string }).allowedHosts ?? ''),
+      String(config.public.siteUrl ?? ''),
+    ].filter(Boolean)
+  } catch {
+    return []
+  }
+}
+
+function serverAuthority(): string | null {
+  try {
+    const { host } = useRequestHeaders(['host'])
+    return resolveCanonicalAuthority(
+      host,
+      configuredHosts(),
+      process.env.NODE_ENV === 'production',
+    )?.authority ?? null
+  } catch {
+    return null
+  }
+}
 
 export function getHostname(): string {
   if (import.meta.server) {
-    try {
-      return useRequestURL().hostname
-    } catch {
-      return 'localhost'
-    }
+    const authority = serverAuthority()
+    return authority ? new URL(`http://${authority}`).hostname : '_invalid-host'
   }
   if (typeof window === 'undefined') return 'localhost'
   return window.location.hostname
@@ -25,11 +48,11 @@ export function getHostname(): string {
 export function forwardHostHeaders(): Record<string, string> {
   if (!import.meta.server) return {}
   try {
-    const fwd = useRequestHeaders(['host', 'x-forwarded-host', 'x-forwarded-proto'])
+    const authority = serverAuthority()
     const headers: Record<string, string> = {}
-    const host = fwd['x-forwarded-host'] || fwd.host
-    if (host) headers['x-forwarded-host'] = host
-    if (fwd['x-forwarded-proto']) headers['x-forwarded-proto'] = fwd['x-forwarded-proto']
+    if (authority) headers['x-forwarded-host'] = authority
+    if (authority)
+      headers['x-forwarded-proto'] = process.env.NODE_ENV === 'production' ? 'https' : useRequestURL().protocol.replace(':', '')
     return headers
   } catch {
     return {}

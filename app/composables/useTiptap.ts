@@ -1,4 +1,4 @@
-import DOMPurify from "dompurify";
+import { escapeHtml, sanitizeHtml } from "@/utils/sanitizeHtml";
 
 /** A formatting mark applied to a Tiptap text node. */
 interface TiptapMark {
@@ -37,7 +37,7 @@ export const tiptapToHtml = (node: TiptapInput): string => {
   if (typeof node === "string") return node;
 
   if (node.type === "text") {
-    let text = node.text || "";
+    let text = escapeHtml(node.text || "");
     if (node.marks) {
       for (const mark of node.marks) {
         switch (mark.type) {
@@ -57,13 +57,14 @@ export const tiptapToHtml = (node: TiptapInput): string => {
             text = `<code>${text}</code>`;
             break;
           case "link":
-            text = `<a href="${mark.attrs?.href || "#"}" target="_blank" rel="noopener">${text}</a>`;
+            text = `<a href="${escapeHtml(String(mark.attrs?.href || "#"))}" target="_blank" rel="noopener noreferrer">${text}</a>`;
             break;
           case "textStyle": {
             const styles: string[] = [];
-            if (mark.attrs?.color) styles.push(`color: ${mark.attrs.color}`);
+            if (mark.attrs?.color)
+              styles.push(`color: ${escapeHtml(String(mark.attrs.color))}`);
             if (mark.attrs?.fontSize)
-              styles.push(`font-size: ${mark.attrs.fontSize}`);
+              styles.push(`font-size: ${escapeHtml(String(mark.attrs.fontSize))}`);
             if (styles.length)
               text = `<span style="${styles.join("; ")}">${text}</span>`;
             break;
@@ -77,9 +78,10 @@ export const tiptapToHtml = (node: TiptapInput): string => {
   const children = node.content
     ? node.content.map((child) => tiptapToHtml(child)).join("")
     : "";
+  const textAlign = String(node.attrs?.textAlign ?? "").toLowerCase();
   const align =
-    node.attrs?.textAlign && node.attrs.textAlign !== "left"
-      ? ` style="text-align: ${node.attrs.textAlign}"`
+    /^(?:right|center|justify)$/.test(textAlign)
+      ? ` style="text-align: ${textAlign}"`
       : "";
 
   switch (node.type) {
@@ -87,8 +89,10 @@ export const tiptapToHtml = (node: TiptapInput): string => {
       return children;
     case "paragraph":
       return `<p${align}>${children || "<br>"}</p>`;
-    case "heading":
-      return `<h${node.attrs?.level || 2}${align}>${children}</h${node.attrs?.level || 2}>`;
+    case "heading": {
+      const level = Math.min(6, Math.max(1, Number(node.attrs?.level) || 2));
+      return `<h${level}${align}>${children}</h${level}>`;
+    }
     case "bulletList":
       return `<ul>${children}</ul>`;
     case "orderedList":
@@ -104,7 +108,7 @@ export const tiptapToHtml = (node: TiptapInput): string => {
     case "horizontalRule":
       return "<hr>";
     case "image":
-      return `<img src="${node.attrs?.src || ""}" alt="${node.attrs?.alt || ""}" />`;
+      return `<img src="${escapeHtml(String(node.attrs?.src || ""))}" alt="${escapeHtml(String(node.attrs?.alt || ""))}" />`;
     default:
       return children;
   }
@@ -118,13 +122,13 @@ export const renderTiptap = (data: TiptapInput): string => {
   if (typeof data === "string") {
     try {
       const parsed = JSON.parse(data);
-      return DOMPurify.sanitize(tiptapToHtml(parsed));
+      return sanitizeHtml(tiptapToHtml(parsed));
     } catch {
-      return DOMPurify.sanitize(data);
+      return sanitizeHtml(data);
     }
   }
   if (typeof data === "object") {
-    return DOMPurify.sanitize(tiptapToHtml(data));
+    return sanitizeHtml(tiptapToHtml(data));
   }
   return "";
 };
@@ -138,9 +142,8 @@ export const renderTiptap = (data: TiptapInput): string => {
  *   - Tiptap JSON document (`{ type, content }`)
  *   - map of values (e.g. locale-keyed) whose entries are any of the above
  *
- * DOMPurify needs a DOM, so sanitization runs only on the client. On the
- * server the raw HTML is returned unchanged — the CMS source is trusted
- * (same model used for `customSeoFooter`).
+ * The deterministic sanitizer has no DOM dependency, so SSR and hydration
+ * produce the same safe markup.
  *
  * Shared by `NoticeSection.vue` and the homepage SEO intro in `default.vue`.
  */
@@ -191,5 +194,5 @@ export const renderRichContent = (
     }
   }
 
-  return import.meta.client ? DOMPurify.sanitize(html) : html;
+  return sanitizeHtml(html);
 };
