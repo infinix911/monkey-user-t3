@@ -1,4 +1,4 @@
-# KNOWLEDGEBASE.md — banana-jaeisol-t3-nuxt
+# KNOWLEDGEBASE.md — monkey-user-t3
 
 > **Permanent repository encyclopedia.** Consult this BEFORE reading source code.
 > Facts verified against commit `fb66962` (2026-07-06). Line numbers drift — trust file paths and search strings.
@@ -19,7 +19,7 @@
 
 ## 1. Repository Overview
 
-- **Purpose:** User-facing gaming platform frontend (casino/slot/sport/togel; IDR market primary). This is the **"Jae/T3" fork** of banana-lucky-nuxt: single bundled design template ("Template3") + per-domain CMS theming. Deploys to `idr-demo1.jaeisol.com`-style tenant domains.
+- **Purpose:** User-facing gaming platform frontend. `monkey-user-t3` uses one bundled design template ("Template3") with CMS-driven theming.
 - **Stack:** Nuxt **4.4.2** SSR (node-server preset), Vue 3.5, TypeScript, Tailwind **v4**, Pinia 3, @nuxtjs/i18n 10 (en/id/ko/th, `no_prefix`), vee-validate + zod, vue-sonner (toasts), in-house AppDialog (SweetAlert2 removed), @nuxt/image (IPX), nuxt-security, Sentry (env-gated), ioredis (SSR caches).
 - **Backend:** `../monkey-user-api` (Bun+Elysia, HTTP + WS :4000) — the browser never talks to it directly (§4).
 - **Build/run:** Docker — Bun builds (`bun install --frozen-lockfile`, `bun run build`), **Node 22 runs** `.output/server/index.mjs` as non-root, port 3000, behind Traefik (router files written dynamically by the APIs).
@@ -29,7 +29,7 @@
 
 ### ⚠️ Legacy drift you must not trust
 
-- **The 11-brand `__BUILD_SITE__` tree-shake system is DEAD here.** `vite.define` still sets `__BUILD_SITE__` (nuxt.config.ts) but no app code reads it; the per-brand `getSiteConfig<Brand>` modules exist only inside the commented-out PWA block. Brand = runtime CMS payload per hostname.
+- The old 11-brand build-time selector (`NUXT_PUBLIC_SITE` / `__BUILD_SITE__`) was removed. Theme configuration comes from the CMS payload.
 - `assets.navigation` "bundled-only exception" no longer exists — renamed `assets.navIcons`, merged normally.
 - CMS theme endpoint is **`/site/config/theme`** (renamed from `/site/config/userpage`; useState key is still `"userPageConfig"`). `server/utils/site-currency.ts` still calls `/site/config/userpage`.
 - Root `index.js`, `homepage.html`, `public/_headers` are dead Cloudflare-Workers-era artifacts. Several "Worker isolate" comments are stale — runtime is node-server.
@@ -39,11 +39,11 @@
 ## 2. Simplified Repository Tree
 
 ```
-banana-jaeisol-t3-nuxt/
-├── nuxt.config.ts            # ★★ 503 lines; comments are ADR-grade. routeRules (GAME_* CSR-only, immutable
+monkey-user-t3/
+├── nuxt.config.ts            # ★★ routeRules (GAME_* CSR-only, immutable
 │                             #   /_nuxt|/fonts|/_ipx), CSP (script-src https: — deliberate), i18n inline config,
-│                             #   vite.define __BUILD_SITE__ (dead), esbuild.drop console, sourcemap hidden
-├── Dockerfile                # ★ bun deps → bun build → node:22-alpine runtime; ARG NUXT_PUBLIC_SITE baked
+│                             #   esbuild.drop console, sourcemap hidden
+├── Dockerfile                # ★ bun deps → bun build → node:22-alpine runtime
 ├── app/
 │   ├── app.vue               # ★★ SSR boot: awaits siteConfig+customScripts+siteSettings, locale=f(currency),
 │   │                         #   URL param handlers (telegram login/register, referral), SEO head, AppDialog mount

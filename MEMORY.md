@@ -1,4 +1,4 @@
-# MEMORY.md — Temporary Session Notes (banana-jaeisol-t3-nuxt)
+# MEMORY.md — Temporary Session Notes (monkey-user-t3)
 
 > **Purpose:** Scratchpad for the CURRENT work-in-progress only. Session continuity, active implementation notes, short-term TODOs.
 >

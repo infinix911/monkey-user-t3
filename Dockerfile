@@ -1,18 +1,17 @@
 # syntax=docker/dockerfile:1.7
 
 # -----------------------------------------------------------------------------
-# banana-lucky-nuxt — production image
+# monkey-user-t3 — production image
 #
 # Build:
-#   docker build -t banana-lucky-nuxt .
-#   docker build --build-arg NUXT_PUBLIC_SITE=lucky -t banana-lucky-nuxt:lucky .
+#   docker build -t monkey-user-t3 .
 #
 # Run (behind Traefik on the VPS):
 #   docker run --rm -p 3000:3000 \
 #     -e API_HOST_URL=http://api:4000/api \
 #     -e WEBSOCKET_HOST_URL=ws://api:4000 \
 #     -e REDIS_HOST=redis -e REDIS_PORT=6379 -e REDIS_PASSWORD= -e REDIS_DB=0 \
-#     banana-lucky-nuxt
+#     monkey-user-t3
 #
 # API_HOST_URL and WEBSOCKET_HOST_URL are resolved by Nitro only at container
 # start. They are never exposed to the browser: requests remain same-origin
@@ -36,15 +35,6 @@ FROM oven/bun:1-alpine AS build
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-# NUXT_PUBLIC_SITE is consumed at build time by Vite's `define` (drives the
-# __BUILD_SITE__ tree-shake) and by the <title>/<meta>/<script> head config in
-# nuxt.config.ts. Pin the brand here to ship a smaller bundle.
-# Valid: lucky | ocean | tiger | dragon | rabbit | green |
-#        space | egypt | ant | frankenstein | bird
-# Empty string ("") keeps all 11 brand configs in the bundle and dispatches by
-# hostname at runtime (dev/preview only — not recommended for prod).
-ARG NUXT_PUBLIC_SITE=""
-ENV NUXT_PUBLIC_SITE=${NUXT_PUBLIC_SITE}
 RUN bun run build
 
 FROM node:22-alpine AS runtime

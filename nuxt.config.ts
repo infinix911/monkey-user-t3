@@ -1,5 +1,4 @@
 import tailwindcss from "@tailwindcss/vite";
-import { serializeJsonForHtml } from "./shared/utils/secure-serialization";
 
 function configuredPreviewOrigins(): string[] {
   return (process.env.NUXT_PUBLIC_ADMIN_PREVIEW_ORIGIN || "")
@@ -182,14 +181,6 @@ export default defineNuxtConfig({
     optimizeDeps: {
       include: ["axios", "@vue/devtools-core", "@vue/devtools-kit", "ioredis"],
     },
-    // __BUILD_SITE__ is a literal substituted at build time. When a build is
-    // pinned to one brand via NUXT_PUBLIC_SITE, useSiteConfig.ts collapses to
-    // a single `if (__BUILD_SITE__ === "lucky")` branch — Vite's tree-shaker
-    // then drops the other ten brand-config modules entirely. When unset
-    // (multi-brand dev/preview), all branches stay reachable.
-    define: {
-      __BUILD_SITE__: JSON.stringify(process.env.NUXT_PUBLIC_SITE || ""),
-    },
     // esbuild handles minification (see build.minify below). `drop` strips
     // all console.* calls and `debugger` statements in production builds —
     // same effect as the Terser pure_funcs config we used to have.
@@ -227,7 +218,6 @@ export default defineNuxtConfig({
     // rejected before SSR/cache/API proxy work. Example: example.com,www.example.com.
     allowedHosts: process.env.NUXT_ALLOWED_HOSTS || "",
     public: {
-      site: process.env.NUXT_PUBLIC_SITE || "",
       siteUrl: process.env.NUXT_PUBLIC_SITE_URL,
       // Sentry DSN is intentionally public — it is meant to ship to the browser.
       // Sentry stays disabled (init no-ops) when this is empty.
@@ -318,10 +308,6 @@ export default defineNuxtConfig({
       ],
       script: [
         {
-          innerHTML: `window.__NUXT_SITE=${serializeJsonForHtml(process.env.NUXT_PUBLIC_SITE || "lucky")};`,
-          type: "text/javascript",
-        },
-        {
           innerHTML: `
             window.__pwaListeners = new Set();
             window.addEventListener('beforeinstallprompt', function(e) {
@@ -343,72 +329,6 @@ export default defineNuxtConfig({
       ],
     },
   },
-
-  // pwa: { // temporarily disabled
-  /*
-  pwa: {
-    registerType: "autoUpdate",
-    injectRegister: "auto",
-
-    manifest: (() => {
-      const site = process.env.NUXT_PUBLIC_SITE || "lucky";
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const configs: Record<string, () => any> = {
-        lucky: getSiteConfigLucky,
-        ocean: getSiteConfigOcean,
-        tiger: getSiteConfigTiger,
-        dragon: getSiteConfigDragon,
-        rabbit: getSiteConfigRabbit,
-        green: getSiteConfigGreen,
-        space: getSiteConfigSpace,
-        egypt: getSiteConfigEgypt,
-        ant: getSiteConfigAnt,
-        frankenstein: getSiteConfigFrankenstein,
-        bird: getSiteConfigBird,
-      };
-      const config = (configs[site] ?? configs["lucky"]!)();
-      const name = config.branding.siteName;
-      const icons = config.assets.icons.pwa;
-      const screenshots = config.assets.icons.pwaScreenshots ?? [];
-      return {
-        name,
-        short_name: name,
-        description: `Experience the best online gaming experience with ${name}`,
-        theme_color: "#0f172a",
-        background_color: "#0f172a",
-        id: "/",
-        display: "standalone" as const,
-        start_url: "/",
-        scope: "/",
-        lang: "en",
-        orientation: "portrait",
-        prefer_related_applications: false,
-        icons: Object.entries(icons).map(([sizes, src]) => ({
-          src: src as string,
-          sizes,
-          type: "image/png" as const,
-        })),
-        ...(screenshots.length > 0 && { screenshots }),
-      };
-    })(),
-    */
-
-  //  workbox: {
-      // Under SSR, each navigation fetches fresh HTML from the Worker —
-      // no SPA fallback needed. Only precache static assets.
-    //  navigateFallback: null,
-     // globPatterns: ["**/*.{js,css,png,svg,ico,woff2,webmanifest}"],
-     // maximumFileSizeToCacheInBytes: 4 * 1024 * 1024, // 4 MB
-   /* },
-
-    client: {
-      installPrompt: true,
-    },
-    devOptions: {
-      enabled: process.env.NODE_ENV !== "production",
-    },
-  },
-  */ // end pwa disabled
 
   security: {
     hidePoweredBy: true,
