@@ -410,8 +410,11 @@ export default defineNuxtConfig({
       },
     },
     rateLimiter: {
-      tokensPerInterval: 150,
-      interval: 300000,
+      // A normal visit makes many concurrent SSR, API, and asset requests.
+      // Keep an abuse guard, but leave enough headroom for active users and
+      // shared NAT/mobile IPs without sending them to the error page.
+      tokensPerInterval: 5000,
+      interval: 60000,
     },
     requestSizeLimiter: {
       maxRequestSizeInBytes: 10000000, // 10MB
