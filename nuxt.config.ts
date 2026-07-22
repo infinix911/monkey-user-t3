@@ -55,6 +55,14 @@ export default defineNuxtConfig({
       headers: { "cache-control": "public, max-age=31536000, immutable" },
     },
 
+    // The `banana` asset tree moved under `public/designs/`, but CMS-stored
+    // site-config rows still point at the old `/banana/*` URLs (site logo, nav
+    // icons, banners). Those paths live in the DB, not in this repo, so forward
+    // them instead of rewriting every row. `public/banana/` is empty — nothing
+    // else resolves under this prefix. Safe to drop once the CMS rows are
+    // migrated to `/designs/banana/*`.
+    "/banana/**": { redirect: { to: "/designs/banana/**", statusCode: 301 } },
+
     // IPX image optimization routes — exempt from the per-user rate limiter
     // (a single page can trigger 50+ concurrent transforms; the global
     // 150 req/5 min limit is too tight for asset requests), and cache the
