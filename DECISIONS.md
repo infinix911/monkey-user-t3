@@ -8,7 +8,7 @@
 
 ## ADR-001 — Same-origin Nitro BFF proxy for REST and WebSocket
 **Status:** Accepted
-**Decision:** The browser only ever talks to the Nuxt origin. REST goes through `server/routes/api/[...path].ts` (h3 `proxyRequest` → server-only `NUXT_API_URL`, `cookieDomainRewrite {"*":""}` so `bn.session`/`XSRF-TOKEN` attach to the frontend origin, `x-forwarded-host/proto` set, streaming). WebSockets upgrade on `/ws` via `server/plugins/ws-proxy.ts` (httpxy → `NUXT_WS_API_URL`; httpxy replaced deprecated `http-proxy`, commit cd2f7e8).
+**Decision:** The browser only ever talks to the Nuxt origin. REST goes through `server/routes/api/[...path].ts` (h3 `proxyRequest` → server-only `API_HOST_URL`, `cookieDomainRewrite {"*":""}` so `bn.session`/`XSRF-TOKEN` attach to the frontend origin, `x-forwarded-host/proto` set, streaming). WebSockets upgrade on `/ws` via `server/plugins/ws-proxy.ts` (httpxy → `WEBSOCKET_HOST_URL`; httpxy replaced deprecated `http-proxy`, commit cd2f7e8).
 **Context:** Backend (Bun/Elysia HTTP + WS :4000) runs as an internal Docker service behind Traefik; exposing it needs CORS + public hostnames.
 **Alternatives:** CORS + direct calls; Traefik-level path routing.
 **Reason:** Single origin removes CORS and cookie-domain problems entirely; backend host never reaches the browser bundle.

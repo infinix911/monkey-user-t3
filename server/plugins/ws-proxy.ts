@@ -1,25 +1,20 @@
 import { createProxyServer } from "httpxy";
 import type { Server as HttpServer } from "node:http";
 import type { Socket } from "node:net";
+import { getWebsocketHostUrl } from "../utils/upstream-config";
 
 /**
  * Same-origin WebSocket proxy. The browser connects to wss://<frontend-host>/ws
  * (built in app/lib/domain.ts → getWsApiUrl). This plugin captures the
  * underlying Node http server on first request and attaches an `upgrade`
- * listener that pipes /ws traffic to the backend WS server at NUXT_WS_API_URL.
+ * listener that pipes /ws traffic to the backend WS server at
+ * WEBSOCKET_HOST_URL.
  *
- * The backend URL is server-only (runtimeConfig.wsApiUrl) and never reaches
- * the client bundle.
+ * The backend URL is read only from the server process environment and never
+ * reaches the client bundle.
  */
 export default defineNitroPlugin((nitroApp) => {
-  const cfg = useRuntimeConfig();
-  const target = cfg.wsApiUrl as string | undefined;
-
-  if (!target) {
-    // Skip silently in environments without a WS backend configured (e.g.
-    // build-time prerender). The Node server simply will not upgrade /ws.
-    return;
-  }
+  const target = getWebsocketHostUrl();
 
   const proxy = createProxyServer({
     target,

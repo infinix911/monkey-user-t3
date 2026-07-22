@@ -69,14 +69,14 @@ banana-jaeisol-t3-nuxt/
 │   │                         #   theme-preview (postMessage bridge w/ admin CMS)
 │   └── interfaces/ types/    # domain types; barrel interfaces/index.ts = single source of truth
 ├── server/
-│   ├── routes/api/[...path].ts   # ★★ THE proxy: proxyRequest → NUXT_API_URL, cookieDomainRewrite "*"→"",
+│   ├── routes/api/[...path].ts   # ★★ THE proxy: proxyRequest → API_HOST_URL, cookieDomainRewrite "*"→"",
 │   │                             #   x-forwarded-host/proto, streams. /api/* namespace fully claimed
 │   ├── routes/{robots.txt,sitemap.xml}.ts  # dynamic; sitemap ALL_PAGES list is HAND-MAINTAINED
 │   ├── middleware/           # alphabetical order MATTERS: anon-page-cache (serve) → auth-spa (bn.session ⇒
 │   │                         #   noSSR/SPA mode) → guard (GAME_ cookie gate + togel 404 on non-IDR) → locale-redirect
 │   ├── plugins/              # anon-page-cache (store), cache-bypass-authenticated (no-store for authed +
 │   │                         #   optional CDN-Cache-Control), csp-admin-frame-ancestors, inline-critical-css,
-│   │                         #   ws-proxy (httpxy /ws → NUXT_WS_API_URL)
+│   │                         #   ws-proxy (httpxy /ws → WEBSOCKET_HOST_URL)
 │   └── utils/                # anonPageCache ★, features.ts, site-currency.ts (⚠ bug — see §16)
 ├── i18n/locales/{en,id,ko,th}.json  # flat 54–91KB files; ko/th drift (missing footer, stray Faq)
 ├── tests/                    # e2e/ (13 Playwright specs + fixtures/api-mocks.ts ★), component/ (payload pins),
@@ -90,8 +90,8 @@ banana-jaeisol-t3-nuxt/
 
 ```
 Browser ──HTTP──▶ Nitro (:3000)
-  ├─ /api/*  → server/routes/api/[...path].ts → proxyRequest(NUXT_API_URL)   [cookie domain rewrite]
-  ├─ /ws     → server/plugins/ws-proxy.ts (httpxy upgrade) → NUXT_WS_API_URL
+  ├─ /api/*  → server/routes/api/[...path].ts → proxyRequest(API_HOST_URL)   [cookie domain rewrite]
+  ├─ /ws     → server/plugins/ws-proxy.ts (httpxy upgrade) → WEBSOCKET_HOST_URL
   └─ HTML GET:
        anon-page-cache middleware ──HIT──▶ cached HTML (x-anon-cache: HIT), renderer never runs
        │ MISS
@@ -117,7 +117,7 @@ Browser ──HTTP──▶ Nitro (:3000)
 
 | Client        | File                        | Use for                                        | Behavior                                                                                                                                                                                                                                                                                                                                                                                       |
 | ------------- | --------------------------- | ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `useApi()`    | `app/composables/useApi.ts` | page data via `useAsyncData`, SSR + client     | server: `runtimeConfig.apiUrl` direct + forwards `cookie` header; client: `/api` + `credentials:include`. **retry: 0** (money safety), timeout 10s, CSRF double-submit (`XSRF-TOKEN` → `X-XSRF-TOKEN` on mutations), client 401 → one-shot logout latch (`sessionStorage.session_logged_out`, excludes `/auth/sign-in/username`). `.validated<T>(zodSchema, req)` throws `ApiValidationError`. |
+| `useApi()`    | `app/composables/useApi.ts` | page data via `useAsyncData`, SSR + client     | server: `API_HOST_URL` direct + forwards `cookie` header; client: `/api` + `credentials:include`. **retry: 0** (money safety), timeout 10s, CSRF double-submit (`XSRF-TOKEN` → `X-XSRF-TOKEN` on mutations), client 401 → one-shot logout latch (`sessionStorage.session_logged_out`, excludes `/auth/sign-in/username`). `.validated<T>(zodSchema, req)` throws `ApiValidationError`. |
 | `axiosClient` | `app/lib/axios-client.ts`   | client-side mutations / imperative store calls | singleton; GET dedupe; idempotent-only retry; same CSRF + 401 latch (parity comments mandate keeping both in sync).                                                                                                                                                                                                                                                                            |
 
 - Public **user-independent** SSR fetches bypass useApi: raw `$fetch` inside `withServerCache(key, ttlMs, fetcher)` (`app/lib/serverCache.ts`) — Redis `nuxt:ssr:*` when `REDIS_HOST` set, else in-process Map; client = pass-through. **Never put a cookie-forwarding fetcher inside it** (session leak). Keys must be namespaced per host (`site-settings:<hostname>`). Current users: siteSettings, customScripts, popup banners (all 60s).
@@ -151,7 +151,7 @@ Resolution chain (verified, replaces the stale CLAUDE.md story):
 - Layout variants are config-driven: `theme.nav.type` (`png`|`gif`) → `useNavSkin()` registry picks NavGlyph mode + transaction panel component.
 - Feature flags derive from currency: `useFeatures()` → `{payments: currency!=='THB'}`; server twin `server/utils/features.ts` (keep in sync).
 - **Add a brand-config field:** typed field + default in `useDefaultThemeConfig.ts` → consume via `useSiteConfig().<group>.<field>`. Nothing else to wire (the interface JSDoc is the field documentation).
-- **New tenant/brand:** deploy a container per domain, point `NUXT_API_URL` at its backend, author everything in the admin CMS, upload assets to the Linode CDN (`cdn()` in `app/utils/assetUrl.ts` maps `/designs/**`).
+- **New tenant/brand:** deploy a container per domain, point `API_HOST_URL` at its backend, author everything in the admin CMS, upload assets to the Linode CDN (`cdn()` in `app/utils/assetUrl.ts` maps `/designs/**`).
 
 ---
 
@@ -232,7 +232,7 @@ Money logic never lives in stores — mutations go through `useApi`/`axios-clien
 
 | Want                    | Search                                                 |
 | ----------------------- | ------------------------------------------------------ |
-| API base / proxy target | `getApiBase`, `NUXT_API_URL`                           |
+| API base / proxy target | `getApiBase`, `API_HOST_URL`                            |
 | Session/auth verify     | `verifyUser`, `bn.session`, `session_logged_out`       |
 | Site config merge       | `deepMerge`, `userPageConfig`, `getDefaultThemeConfig` |
 | Feature flags           | `useFeatures`, `getFeatures`                           |
@@ -275,9 +275,9 @@ Money logic never lives in stores — mutations go through `useApi`/`axios-clien
 | Stale page for anon users         | anon page cache (`x-anon-cache` header), TTL envs                                                                                                                                                                                           |
 | Authed page blank on first paint  | expected — auth-spa SPA mode; check client fetch errors                                                                                                                                                                                     |
 | Theme field ignored               | wrong CMS path (silent ignore) — verify against `useDefaultThemeConfig.ts` interface                                                                                                                                                        |
-| Togel 404 on a deployment         | `guard.ts` currency gate; **known bug**: `server/utils/site-currency.ts` reads nonexistent `config.apiBaseInternal`/`config.public.apiBase` → falls back to localhost:4000 → soft-default IDR. Should read `useRuntimeConfig(event).apiUrl` |
+| Togel 404 on a deployment         | `guard.ts` currency gate; `server/utils/site-currency.ts` resolves the private `API_HOST_URL` through the shared server validator. |
 | No console output in prod         | `esbuild.drop` strips console.*; use Sentry or `process.stderr.write`                                                                                                                                                                       |
-| WS won't connect                  | `/auth/ws` token fetch, ws-proxy plugin, `NUXT_WS_API_URL`                                                                                                                                                                                  |
+| WS won't connect                  | `/auth/ws` token fetch, ws-proxy plugin, `WEBSOCKET_HOST_URL`                                                                                                                                                                                |
 | Hydration mismatch                | `tests/hydration-check.mjs`, `useIsMobileSSR` (the only safe render gate), pre-paint CSS vars                                                                                                                                               |
 | Duplicate meta tags               | unhead dedup quirk — do NOT add `key:` to singleton metas (app.vue comment)                                                                                                                                                                 |
 

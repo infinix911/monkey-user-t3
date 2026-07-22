@@ -9,12 +9,14 @@
 #
 # Run (behind Traefik on the VPS):
 #   docker run --rm -p 3000:3000 \
-#     -e NUXT_PUBLIC_SITE=lucky \
-#     -e NUXT_PUBLIC_SITE_URL=https://luckylah.com \
-#     -e NUXT_API_URL=https://api.example.internal/api \
-#     -e NUXT_WS_API_URL=ws://api.example.internal:4000 \
+#     -e API_HOST_URL=http://api:4000/api \
+#     -e WEBSOCKET_HOST_URL=ws://api:4000 \
 #     -e REDIS_HOST=redis -e REDIS_PORT=6379 -e REDIS_PASSWORD= -e REDIS_DB=0 \
 #     banana-lucky-nuxt
+#
+# API_HOST_URL and WEBSOCKET_HOST_URL are resolved by Nitro only at container
+# start. They are never exposed to the browser: requests remain same-origin
+# /api and /ws and are forwarded by Nuxt's server-side proxies.
 #
 # REDIS_* are OPTIONAL and runtime-only (point at the same Redis as the backend
 # for a shared, restart-surviving SSR cache). Without them the SSR cache falls
@@ -51,7 +53,9 @@ ENV NODE_ENV=production
 ENV PORT=3000
 ENV NITRO_PORT=3000
 ENV HOST=0.0.0.0
-COPY --from=build /app/.output ./.output
+COPY --chown=node:node --from=build /app/.output ./.output
 USER node
 EXPOSE 3000
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+  CMD wget -q -O /dev/null http://127.0.0.1:3000/health || exit 1
 CMD ["node", ".output/server/index.mjs"]

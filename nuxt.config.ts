@@ -203,11 +203,6 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
-    // Server-only. Never shipped to the browser. The Nitro proxy routes
-    // (server/routes/api/[...path].ts) and the WS proxy plugin
-    // (server/plugins/ws-proxy.ts) are the only consumers.
-    apiUrl: process.env.NUXT_API_URL,
-    wsApiUrl: process.env.NUXT_WS_API_URL,
     public: {
       site: process.env.NUXT_PUBLIC_SITE || "",
       siteUrl: process.env.NUXT_PUBLIC_SITE_URL,

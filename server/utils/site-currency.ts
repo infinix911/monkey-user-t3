@@ -1,4 +1,5 @@
 import type { H3Event } from "h3";
+import { getApiHostUrl } from "./upstream-config";
 
 /**
  * Server-side currency resolver — counterpart to `useSiteCurrency()`.
@@ -33,12 +34,7 @@ export async function getSiteCurrency(event: H3Event): Promise<SiteCurrency> {
   const hit = cache.get(host);
   if (hit && Date.now() < hit.exp) return hit.currency;
 
-  const config = useRuntimeConfig(event) as unknown as {
-    apiBaseInternal?: string;
-    public: { apiBase?: string };
-  };
-  const base =
-    config.apiBaseInternal || config.public.apiBase || "http://localhost:4000/api";
+  const base = getApiHostUrl();
 
   try {
     const res = await $fetch<{ data?: { currency?: unknown } }>(

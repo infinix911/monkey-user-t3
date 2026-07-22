@@ -1,4 +1,4 @@
-import { useRequestURL, useRuntimeConfig, useRequestHeaders } from 'nuxt/app'
+import { useRequestURL, useRequestHeaders } from 'nuxt/app'
 
 export function getHostname(): string {
   if (import.meta.server) {
@@ -54,35 +54,27 @@ export function getSiteUrl(): string {
   return window.location.origin
 }
 
-type ServerConfig = { apiUrl?: string; wsApiUrl?: string }
-
-function readServerConfig(): ServerConfig | null {
-  try {
-    return useRuntimeConfig() as unknown as ServerConfig
-  } catch {
-    return null
-  }
+function getRequiredServerEnv(name: "API_HOST_URL" | "WEBSOCKET_HOST_URL"): string {
+  const value = process.env[name]?.trim()
+  if (!value) throw new Error(`${name} is not configured`)
+  return value.replace(/\/$/, "")
 }
 
 // Client always talks to its own origin — the Nitro proxy at /api forwards
-// to the real backend. Server reads NUXT_API_URL (server-only runtimeConfig)
-// to issue the SSR fetch directly to the backend host.
+// to the real backend. Server reads the private API_HOST_URL process
+// environment variable for direct SSR fetches.
 export function getApiBase(): string {
   if (import.meta.client) return '/api'
-  const cfg = readServerConfig()
-  if (cfg?.apiUrl) return cfg.apiUrl
-  return 'http://localhost:4000/api'
+  return getRequiredServerEnv("API_HOST_URL")
 }
 
 // Same shape for WebSockets. Client connects to wss://<frontend-host>; the
-// ws-proxy plugin upgrades that to the backend WS server. Server side
-// returns the raw backend WS URL (only used by the proxy plugin itself).
+// ws-proxy plugin upgrades that to the backend WS server. Server side returns
+// the raw WEBSOCKET_HOST_URL (only used by the proxy plugin itself).
 export function getWsApiUrl(): string {
   if (import.meta.client) {
     const proto = window.location.protocol === 'https:' ? 'wss' : 'ws'
     return `${proto}://${window.location.host}`
   }
-  const cfg = readServerConfig()
-  if (cfg?.wsApiUrl) return cfg.wsApiUrl
-  return 'ws://localhost:4000'
+  return getRequiredServerEnv("WEBSOCKET_HOST_URL")
 }

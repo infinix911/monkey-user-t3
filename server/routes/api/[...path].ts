@@ -1,9 +1,10 @@
 import { proxyRequest, getRequestHost, getRequestProtocol } from "h3";
+import { getApiHostUrl } from "../../utils/upstream-config";
 
 /**
  * Same-origin REST proxy. Forwards /api/<anything> from the browser to the
- * backend at NUXT_API_URL. The backend URL is server-only (runtimeConfig.apiUrl)
- * and never reaches the client bundle.
+ * backend at API_HOST_URL. The backend URL is read only from the server
+ * process environment and never reaches the client bundle.
  *
  * `cookieDomainRewrite: { "*": "" }` strips the Domain attribute from any
  * Set-Cookie the backend returns, so cookies (bn.session, XSRF-TOKEN) attach
@@ -15,15 +16,7 @@ import { proxyRequest, getRequestHost, getRequestProtocol } from "h3";
  * passes through unchanged so the API can see the real client IP.
  */
 export default defineEventHandler(async (event) => {
-  const cfg = useRuntimeConfig();
-  const apiUrl = cfg.apiUrl as string | undefined;
-
-  if (!apiUrl) {
-    throw createError({
-      statusCode: 500,
-      statusMessage: "NUXT_API_URL is not configured",
-    });
-  }
+  const apiUrl = getApiHostUrl();
 
   const path = (event.context.params?.path as string | undefined) ?? "";
   const search = getRequestURL(event).search;
