@@ -1,7 +1,7 @@
 /**
  * useApi — isomorphic $fetch wrapper for SSR-safe API calls.
  *
- * - On server: targets the private API_HOST_URL environment variable and
+ * - On server: targets the private NUXT_API_URL environment variable and
  *   forwards the incoming request's Cookie header so authenticated SSR data
  *   renders for the visitor's session.
  * - On client: targets the same-origin /api prefix, which is forwarded by

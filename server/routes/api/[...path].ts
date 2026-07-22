@@ -8,7 +8,7 @@ import {
 
 /**
  * Same-origin REST proxy. Forwards /api/<anything> from the browser to the
- * backend at API_HOST_URL. The backend URL is read only from the server
+ * backend at NUXT_API_URL. The backend URL is read only from the server
  * process environment and never reaches the client bundle.
  *
  * `cookieDomainRewrite: { "*": "" }` strips the Domain attribute from any

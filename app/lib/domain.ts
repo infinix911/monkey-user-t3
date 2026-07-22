@@ -77,27 +77,27 @@ export function getSiteUrl(): string {
   return window.location.origin
 }
 
-function getRequiredServerEnv(name: "API_HOST_URL" | "WEBSOCKET_HOST_URL"): string {
+function getRequiredServerEnv(name: "NUXT_API_URL" | "NUXT_WS_API_URL"): string {
   const value = process.env[name]?.trim()
   if (!value) throw new Error(`${name} is not configured`)
   return value.replace(/\/$/, "")
 }
 
 // Client always talks to its own origin — the Nitro proxy at /api forwards
-// to the real backend. Server reads the private API_HOST_URL process
+// to the real backend. Server reads the private NUXT_API_URL process
 // environment variable for direct SSR fetches.
 export function getApiBase(): string {
   if (import.meta.client) return '/api'
-  return getRequiredServerEnv("API_HOST_URL")
+  return getRequiredServerEnv("NUXT_API_URL")
 }
 
 // Same shape for WebSockets. Client connects to wss://<frontend-host>; the
 // ws-proxy plugin upgrades that to the backend WS server. Server side returns
-// the raw WEBSOCKET_HOST_URL (only used by the proxy plugin itself).
+// the raw NUXT_WS_API_URL (only used by the proxy plugin itself).
 export function getWsApiUrl(): string {
   if (import.meta.client) {
     const proto = window.location.protocol === 'https:' ? 'wss' : 'ws'
     return `${proto}://${window.location.host}`
   }
-  return getRequiredServerEnv("WEBSOCKET_HOST_URL")
+  return getRequiredServerEnv("NUXT_WS_API_URL")
 }

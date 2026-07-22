@@ -332,7 +332,7 @@ interface IPopupBanner {
 const popupApiBase = getApiBase();
 const popupCacheKey = `banners-popup:${getHostname()}`;
 // Forward the visitor's host so the multi-tenant backend returns THIS site's
-// popup banners on SSR. This raw $fetch hits API_HOST_URL directly (bypassing
+// popup banners on SSR. This raw $fetch hits NUXT_API_URL directly (bypassing
 // the Nitro proxy that normally sets x-forwarded-host), so without this the
 // backend resolves the default tenant. Resolved synchronously in setup —
 // forwardHostHeaders/useRequestHeaders need the request context, lost past an await.

@@ -1,5 +1,5 @@
 function requireAbsoluteUrl(
-  variable: "API_HOST_URL" | "WEBSOCKET_HOST_URL",
+  variable: "NUXT_API_URL" | "NUXT_WS_API_URL",
   protocols: readonly string[],
 ): string {
   const value = process.env[variable]?.trim();
@@ -22,9 +22,9 @@ function requireAbsoluteUrl(
 }
 
 export function getApiHostUrl(): string {
-  return requireAbsoluteUrl("API_HOST_URL", ["http:", "https:"]);
+  return requireAbsoluteUrl("NUXT_API_URL", ["http:", "https:"]);
 }
 
 export function getWebsocketHostUrl(): string {
-  return requireAbsoluteUrl("WEBSOCKET_HOST_URL", ["ws:", "wss:"]);
+  return requireAbsoluteUrl("NUXT_WS_API_URL", ["ws:", "wss:"]);
 }

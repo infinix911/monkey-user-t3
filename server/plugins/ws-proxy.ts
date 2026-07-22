@@ -12,7 +12,7 @@ import {
  * (built in app/lib/domain.ts → getWsApiUrl). This plugin captures the
  * underlying Node http server on first request and attaches an `upgrade`
  * listener that pipes /ws traffic to the backend WS server at
- * WEBSOCKET_HOST_URL.
+ * NUXT_WS_API_URL.
  *
  * The backend URL is read only from the server process environment and never
  * reaches the client bundle.

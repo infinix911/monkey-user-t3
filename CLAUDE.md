@@ -52,13 +52,13 @@ This is **monkey-user-t3**: a single bundled design template ("Template3") with 
 
 ### Nitro Proxy Layer
 
-The browser never contacts the backend directly. All `/api/*` requests hit the same-origin Nitro proxy (`server/routes/api/[...path].ts`), which forwards them to `API_HOST_URL` (server-only env var) with `cookieDomainRewrite` so `bn.session` attaches to the frontend origin. WebSockets proxy via `server/plugins/ws-proxy.ts` (httpxy) → `WEBSOCKET_HOST_URL`. The `/api/*` namespace is fully claimed — never add `server/api/**` routes.
+The browser never contacts the backend directly. All `/api/*` requests hit the same-origin Nitro proxy (`server/routes/api/[...path].ts`), which forwards them to `NUXT_API_URL` (server-only env var) with `cookieDomainRewrite` so `bn.session` attaches to the frontend origin. WebSockets proxy via `server/plugins/ws-proxy.ts` (httpxy) → `NUXT_WS_API_URL`. The `/api/*` namespace is fully claimed — never add `server/api/**` routes.
 
 ### SSR API Pattern
 
 Use `useApi()` for all page data fetching — it's isomorphic:
 
-- **Server**: targets `API_HOST_URL` directly and forwards the request's `cookie` header.
+- **Server**: targets `NUXT_API_URL` directly and forwards the request's `cookie` header.
 - **Client**: targets `/api` (same-origin proxy), `credentials: include`.
 
 `retry: 0` always (money safety). Client-side mutations from stores use `app/lib/axios-client.ts` (kept in deliberate parity with useApi's CSRF + 401-latch logic). Never call `$fetch`/axios directly against the backend URL. Public user-independent SSR fetches go through `withServerCache()` with raw `$fetch` (no cookies — leak risk otherwise).
@@ -120,8 +120,8 @@ transaction-ledger types moved to `app/components/DataTable.vue` and
 
 | Variable                                                      | Purpose                                                       |
 | ------------------------------------------------------------- | ------------------------------------------------------------- |
-| `API_HOST_URL`                                                | Backend REST URL (including `/api`) — server-only             |
-| `WEBSOCKET_HOST_URL`                                         | Backend WS origin (without `/ws`) — server-only               |
+| `NUXT_API_URL`                                                | Backend REST URL (including `/api`) — server-only             |
+| `NUXT_WS_API_URL`                                            | Backend WS origin (without `/ws`) — server-only               |
 | `NUXT_PUBLIC_SITE_URL`                                        | Public URL for sitemap/robots                                 |
 | `REDIS_HOST` (+PORT/PASSWORD/DB)                              | Optional — enables shared SSR cache + anon page cache storage |
 | `NUXT_ENABLE_ANON_PAGE_CACHE` / `NUXT_ANON_PAGE_CACHE_TTL_MS` | Anonymous full-page SSR cache (default off / 60s)             |
