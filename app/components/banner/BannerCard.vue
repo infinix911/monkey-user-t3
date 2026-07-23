@@ -16,8 +16,14 @@
            this box, so the modal auto-sizes to the 380/500 image ratio. -->
       <div class="relative z-10 flex flex-col items-center justify-center px-1.5 pt-0">
         <div class="relative w-full mx-auto rounded-[6px] overflow-hidden" :style="imageBoxStyle">
-          <NuxtImg :src="banner.image" :alt="banner.title || $t('common.banner')" :width="380" :height="500" fit="cover"
-            class="block w-full h-full object-cover object-top" @error="onImageError" />
+          <!-- `blob:`/`data:` sources (admin theme-preview object URLs) exist
+               only in this browser, so IPX cannot fetch them — they bypass
+               <NuxtImg> and go straight to a plain <img>. -->
+          <img v-if="isLocalObjectUrl(banner.image)" :src="banner.image"
+            :alt="banner.title || $t('common.banner')" width="380" height="500"
+            class="block w-full h-full object-cover object-top" @error="onImageError">
+          <NuxtImg v-else :src="banner.image" :alt="banner.title || $t('common.banner')" :width="380" :height="500"
+            fit="cover" class="block w-full h-full object-cover object-top" @error="onImageError" />
         </div>
       </div>
 
@@ -91,6 +97,9 @@ const imageBoxStyle = computed(() => ({
   aspectRatio: "380 / 500",
   border: `0.5px solid ${pb.value.borderColor}`,
 }));
+
+const isLocalObjectUrl = (url: string): boolean =>
+  !!url && (url.startsWith("blob:") || url.startsWith("data:"));
 
 const onImageError = (e: Event | string) => {
   if (typeof e === "string") return;

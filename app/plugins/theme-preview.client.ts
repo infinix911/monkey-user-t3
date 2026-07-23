@@ -42,6 +42,27 @@ function normalizePreviewOrigin(raw: string): string | null {
   }
 }
 
+/**
+ * A `blob:` URL is only dereferenceable by the origin that created it — the
+ * browser partitions its blob store per origin. So a `blob:https://admin.host/…`
+ * minted in the admin panel can NEVER be loaded by this iframe, whatever the
+ * CSP says; the request fails before it reaches the network.
+ *
+ * The admin must post the File/Blob itself (structured clone handles it) so the
+ * iframe can mint its own same-origin object URL — see the Blob branch in
+ * `validateThemeDraft`. Until it does, a foreign blob URL is dropped rather
+ * than rendered, so the previous image stays instead of a broken-image icon.
+ */
+function isForeignBlobUrl(value: string): boolean {
+  if (!value.startsWith("blob:")) return false;
+  try {
+    // The part after `blob:` is the owning origin.
+    return new URL(value.slice(5)).origin !== window.location.origin;
+  } catch {
+    return true;
+  }
+}
+
 /** Validate bounds and clone into fresh plain objects before making it reactive. */
 export function validateThemeDraft(value: unknown): SiteConfig | null {
   let properties = 0;
@@ -54,10 +75,18 @@ export function validateThemeDraft(value: unknown): SiteConfig | null {
     }
     if (typeof input === "string") {
       if (input.length > 200_000) throw new Error("string too large");
-      return input;
+      // Unusable in this document — drop it so the merge falls back instead of
+      // rendering a broken image.
+      return isForeignBlobUrl(input) ? null : input;
     }
     if (Array.isArray(input)) return input.map((item) => visit(item, depth + 1));
     if (typeof input !== "object") throw new Error("unsupported value");
+    // A File/Blob survives structured clone, so the admin can post the picked
+    // file directly. Mint a same-origin object URL the iframe can actually
+    // load. (Must precede the plain-object check — a Blob is not plain.)
+    if (typeof Blob !== "undefined" && input instanceof Blob) {
+      return URL.createObjectURL(input);
+    }
     const prototype = Object.getPrototypeOf(input);
     if (prototype !== Object.prototype && prototype !== null)
       throw new Error("non-plain object");

@@ -22,7 +22,10 @@
     <div v-if="isPartnerPage" class="fixed inset-0 -z-[5] pointer-events-none"
       style="background: radial-gradient(120% 90% at 50% 0%, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.86) 70%, rgba(0,0,0,0.94) 100%);" />
 
-    <div class="flex flex-col w-full min-w-0">
+    <!-- `site-zoom` renders this page at 110% on wide desktops (main.css).
+         Opt-in per page — see isZoomPage. Modals that Teleport to body sit
+         outside this wrapper and stay 1:1. -->
+    <div class="flex flex-col w-full min-w-0" :class="{ 'site-zoom': isZoomPage }">
       <!-- Header — spacer height comes from the --mh-header-height CSS var
            (set pre-paint by app.vue's inline script) so it matches the fixed
            header on the very first paint with no hydration flash. -->
@@ -377,6 +380,26 @@ const rtpBannerSrc = cdn("/designs/rtp-banner.png");
 // announcement, and the game Navbar is replaced by the partner nav.
 const isPartnerPage = computed(() =>
   route.path.startsWith(localePath("/partner")),
+);
+
+// Pages that render at 110% on wide desktops (the `site-zoom` class, main.css).
+// Deliberately an allow-list rather than a global rule — every other page stays
+// 1:1. Matched EXACTLY, so nested routes (e.g. /lobbies/{id}, GAME_* launches)
+// are not zoomed even where they share this layout.
+const ZOOM_PAGES = [
+  "/",
+  "/hot",
+  "/slots",
+  "/casino",
+  "/sports",
+  "/mini",
+  "/fishing",
+  "/virtual",
+  "/slot-rtp",
+];
+
+const isZoomPage = computed(() =>
+  ZOOM_PAGES.some((p) => route.path === localePath(p)),
 );
 
 const customSeoMatch = useCustomSeoMatch();
