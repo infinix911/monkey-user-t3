@@ -204,8 +204,9 @@
           </div>
         </div>
 
-        <!-- Reply Text Area -->
-        <div>
+        <!-- Reply Text Area — hidden on app-raised inquiries, which the member
+             has nothing to reply to. -->
+        <div v-if="!isAppRaised">
           <textarea
             v-model="replyText"
             :placeholder="t('inquiry.writeReplyPlaceholder')"
@@ -224,6 +225,7 @@
             {{ isClosing ? t("inquiry.closing") : t("inquiry.closeInquiry") }}
           </button>
           <button
+            v-if="!isAppRaised"
             class="bg-[#285EFF] hover:bg-[#1D4ED8] active:bg-[#1E40AF] text-white px-4 py-2 md:px-5 md:py-2.5 rounded-lg transition-colors font-medium text-sm md:text-base shadow-sm cursor-pointer flex items-center gap-2 font-normal"
             @click="handleSendReply"
           >
@@ -311,6 +313,16 @@ const translateToken = (value: string): string => {
   const key = `inquiry.apiMessages.${value}`;
   return te(key) ? t(key) : value;
 };
+
+/**
+ * Inquiries the app raised on the member's behalf rather than ones they typed.
+ * They are a one-way record for the admin to act on, so there is nothing for the
+ * member to reply to — the reply box and its send button are hidden. Closing the
+ * ticket stays available.
+ */
+const APP_RAISED_TITLES = new Set(["BANK_ACCOUNT_REQUEST"]);
+
+const isAppRaised = computed(() => APP_RAISED_TITLES.has(props.inquiry.title));
 
 const isUserReply = (reply: { sender_type: string }): boolean => {
   return reply.sender_type === "member" || reply.sender_type === "user";
