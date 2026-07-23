@@ -6,13 +6,20 @@
         <!-- Frosted premium backdrop -->
         <div class="absolute inset-0 bg-black/60 pm-backdrop" @click="close" />
 
-        <!-- Panel -->
+        <!-- Panel. The themed `cardBg` is painted on an absolutely positioned
+             layer over the panel's own opaque base rather than on the panel
+             itself: `theme.partner.cardBgColor` is a card token and themes are
+             free to give it alpha, which is fine for in-page cards sitting on
+             the page background but would let the page bleed through a modal.
+             Header/body carry `relative` so they stack above that layer. -->
         <Transition name="pm-scale">
           <div v-if="modelValue" class="pm-panel relative w-full max-h-[90dvh] flex flex-col rounded-2xl border overflow-hidden"
             :class="widthClass"
-            :style="{ background: cardBg, borderColor: 'rgba(255,255,255,0.10)', '--pb-accent': accent }">
+            :style="{ borderColor: 'rgba(255,255,255,0.10)', '--pb-accent': accent }">
+            <div class="absolute inset-0 pointer-events-none" aria-hidden="true" :style="{ background: cardBg }" />
+
             <!-- Header -->
-            <div class="flex items-center gap-2 px-5 py-3.5 border-b border-white/10 shrink-0"
+            <div class="relative flex items-center gap-2 px-5 py-3.5 border-b border-white/10 shrink-0"
               :style="{ background: headBg }">
               <span class="w-1 h-5 rounded-full shrink-0" :style="{ background: accent, boxShadow: `0 0 8px ${accent}` }" />
               <h3 class="text-white text-sm font-extrabold uppercase tracking-wide">{{ title }}</h3>
@@ -25,7 +32,7 @@
             </div>
 
             <!-- Body -->
-            <div class="px-5 py-5 overflow-y-auto scrollbar-none">
+            <div class="relative px-5 py-5 overflow-y-auto scrollbar-none">
               <slot />
             </div>
           </div>
@@ -79,8 +86,11 @@ onUnmounted(() => {
   -webkit-backdrop-filter: blur(8px) saturate(1.1);
 }
 
-/* Elevated panel — layered soft shadow reads above the blurred backdrop. */
+/* Elevated panel — layered soft shadow reads above the blurred backdrop.
+   The opaque base guarantees the dialog is never see-through no matter what
+   alpha a theme document puts on `theme.partner.cardBgColor`. */
 .pm-panel {
+  background-color: #0F0F0F;
   box-shadow:
     0 1px 2px 0 rgba(0, 0, 0, 0.5),
     0 32px 64px -24px rgba(0, 0, 0, 0.85);
