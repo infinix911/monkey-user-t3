@@ -19,7 +19,7 @@
           <div class="notice-card w-full rounded-[24px] overflow-hidden">
             <!-- Scrollable Content -->
             <div
-              class="overflow-y-auto px-6 pt-7 md:px-8 md:pt-8 notice-content"
+              class="overflow-y-auto overflow-x-hidden px-6 pt-7 md:px-8 md:pt-8 notice-content"
               style="max-height: calc(100vh - 300px)"
             >
               <!-- eslint-disable-next-line vue/no-v-html -->
@@ -171,6 +171,30 @@ const handleDisagree = () => {
   color: #cbd5e1;
   font-size: 0.9rem;
   line-height: 1.75;
+  /* The body is admin-authored, so it may contain a long unbroken run (a URL,
+     or prose whose spaces were lost in the CMS). Break inside such a run rather
+     than let it widen the card and raise a horizontal scrollbar. */
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* Children that carry their own intrinsic width must scroll inside themselves
+   or shrink — never push the modal wider than the card. */
+.notice-content img,
+.notice-content video {
+  max-width: 100%;
+  height: auto;
+}
+
+.notice-content pre {
+  white-space: pre-wrap;
+  overflow-x: auto;
+}
+
+.notice-content table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
 }
 
 .notice-content p {
