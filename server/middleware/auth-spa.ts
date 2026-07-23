@@ -21,8 +21,24 @@
  * Runs before the renderer like the other server middleware. Order relative to
  * anon-page-cache.ts is irrelevant: that middleware is already a no-op whenever a
  * bn.session cookie is present.
+ *
+ * DEFAULT IS NOW OFF. SPA mode is what pushed the banner, SEO/site-config and
+ * custom-script fetches into the browser for logged-in users: with no server
+ * render there is no server fetch, so the client had to make those calls and
+ * they showed up in the Network tab. Keeping SSR for authenticated requests
+ * means `useAsyncData` resolves them on the server and hydrates from the
+ * payload, so the browser makes none of them.
+ *
+ * The trade this reintroduces is the one described above: authenticated
+ * renders are uncacheable, so each one costs the render core. Set
+ * `NUXT_AUTH_SPA=true` to restore the old shed-load behaviour if that becomes
+ * the binding constraint again.
  */
+const AUTH_SPA_ENABLED = process.env.NUXT_AUTH_SPA === "true";
+
 export default defineEventHandler((event) => {
+  if (!AUTH_SPA_ENABLED) return; // authenticated requests keep SSR
+
   // Cheap gate: only document (HTML) GETs render — skip APIs/assets entirely.
   if ((event.method || "GET").toUpperCase() !== "GET") return;
   const accept = getHeader(event, "accept") || "";
