@@ -584,6 +584,7 @@
       "INVALID_VOUCHER": "Invalid or expired voucher",
       "MEMBER_NOT_FOUND": "Member not found",
       "PENDING_DEPOSIT_REQUEST_FOUND": "You already have a pending deposit request",
+      "DEPOSIT_COOLDOWN_ACTIVE": "You recently requested a deposit. Please try again after few minutes.",
       "BANK_ACCOUNT_NOT_FOUND": "Bank account not found",
       "INTERNAL_ERROR": "An internal error occurred. Please try again later",
       "ACTIVE_TO_IN_PROGRESS": "You have an active promotion turnover in progress. Please complete it before making a new deposit with a voucher.",
