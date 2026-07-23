@@ -96,42 +96,6 @@ import {
   type BannerCarouselItem as BannerPreviewItem,
 } from "@/interfaces/site.interface";
 
-// Domains idr-demo2 … idr-demo11 drive their hero banner from the theme config
-// (`/site/config/theme` → `banners`) instead of the `/site/banners-new/carousel`
-// endpoint. SSR-safe host check (useRequestURL resolves on server and client).
-function isThemeBannerHost(): boolean {
-  try {
-    const host = useRequestURL().hostname.toLowerCase();
-    // Dev: localhost mirrors the demo domains so the theme-banner path (fed by
-    // the /site/config/theme override) is testable locally.
-    // if (host === "localhost" || host === "127.0.0.1") return true;
-    const m = /^idr-demo(\d+)\./.exec(host);
-    if (!m) return false;
-    const n = Number(m[1]);
-    return n >= 2 && n <= 11;
-  } catch {
-    return false;
-  }
-}
-
-// Normalize the theme config's `banners` value (a single object, occasionally
-// an array) into the carousel's BannerPreviewItem[] shape.
-function themeBannersToCarousel(cfg: unknown): BannerPreviewItem[] {
-  const raw = (cfg as { banners?: unknown } | null)?.banners;
-  const list = Array.isArray(raw) ? raw : raw ? [raw] : [];
-  return list
-    .map((b) => b as Partial<BannerPreviewItem>)
-    .filter((b) => typeof b.main_url === "string" && b.main_url.length > 0)
-    .map((b) => ({
-      main_url: b.main_url as string,
-      overlay_url: b.overlay_url ?? null,
-      main_url_mobile: b.main_url_mobile || (b.main_url as string),
-      overlay_url_mobile: b.overlay_url_mobile ?? null,
-      sort: b.sort ?? 0,
-    }))
-    .sort((a, b) => a.sort - b.sort);
-}
-
 // Mobile vs desktop is a *viewport* decision, but it must stay SSR-safe: render
 // only one branch (the off-screen branch's <video>/<img> must not be in the DOM
 // or the browser fetches its bytes) and avoid a hydration mismatch. So we seed
@@ -151,6 +115,13 @@ const syncIsMobile = () => {
 const isVideo = (url: string): boolean => {
   return url?.endsWith(".mp4") || url?.endsWith(".webm");
 };
+
+// `blob:` (admin theme-preview object URLs) and `data:` sources exist only in
+// the visitor's browser, so IPX cannot fetch them — it would emit an /_ipx/
+// URL that 404s. They are already local and need no optimizing, so they are
+// handed to the <img> untouched.
+const isLocalObjectUrl = (url: string): boolean =>
+  url.startsWith("blob:") || url.startsWith("data:");
 
 // Route banner stills through @nuxt/image (IPX) so the LCP banner ships as a
 // sized WebP instead of a raw full-size Linode JPG. We generate the optimized
@@ -178,7 +149,7 @@ const bannerBoxStyle = computed(() =>
     : { aspectRatio: BANNER_AR_DESKTOP },
 );
 const optimize = (url: string | null | undefined, width: number): string => {
-  if (!url || isVideo(url)) return url ?? "";
+  if (!url || isVideo(url) || isLocalObjectUrl(url)) return url ?? "";
   try {
     return img(url, { format: "webp", width });
   } catch {
@@ -228,16 +199,9 @@ function stopAutoPlay() {
 
 const api = useApi();
 
-const useThemeBanners = isThemeBannerHost();
-
 const { data: bannersData, pending: isLoading } = await useAsyncData<
   BannerPreviewItem[]
 >("banners-carousel", async () => {
-  // idr-demo2 … idr-demo11: build the carousel from the theme config's
-  // `banners` key (already loaded via /site/config/theme) — no extra API call.
-  if (useThemeBanners) {
-    return themeBannersToCarousel(siteConfig);
-  }
   try {
     const raw = await api("/site/banners-new/carousel");
     const list = mapBannersCarouselResponse(

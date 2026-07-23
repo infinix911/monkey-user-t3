@@ -336,7 +336,12 @@ export default defineNuxtConfig({
       // Replaced by CSP frame-ancestors below, which supports multiple origins.
       xFrameOptions: false,
       contentSecurityPolicy: {
-        "img-src": ["'self'", "data:", "https:"],
+        // `blob:` is required by the admin theme-preview bridge: the CMS hands
+        // the iframe object URLs for images picked locally but not yet
+        // uploaded. Without it the browser blocks them and the banner renders
+        // empty. Object URLs are same-origin and revocable, so this does not
+        // widen the surface the way a remote host would.
+        "img-src": ["'self'", "data:", "blob:", "https:"],
         "font-src": ["'self'", "https:", "data:"],
         "script-src": [
           "'self'",
