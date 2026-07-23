@@ -617,7 +617,19 @@
       "device": "Device"
     },
     "changePassword": "Change Password",
-    "faq": "F&Q"
+    "faq": "F&Q",
+    "transactionLogs": {
+      "date": "Date",
+      "description": "Description",
+      "status": "Status",
+      "amount": "Amount",
+      "lastBalance": "Last Balance",
+      "statuses": {
+        "new": "Pending",
+        "completed": "Completed",
+        "failed": "Failed"
+      }
+    }
   },
   "promotion": {
     "promotion": "Promotion",

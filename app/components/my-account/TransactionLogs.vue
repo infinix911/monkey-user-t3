@@ -34,13 +34,13 @@
             </tr>
             <tr v-for="(item, index) in ledgerData" v-else :key="index"
               class="border-b last:border-b-0" style="background-color: #505050; border-color: #7a7a7a">
-              <!-- Tanggal -->
+              <!-- Date -->
               <td class="px-1 py-1.5 text-center text-[#e2e2e2] text-xs lg:text-sm whitespace-nowrap"
                 style="font-family: var(--font-line-seed)">
                 <div>{{ formatDate(item.created_at) }}</div>
                 <div class="text-[10px] text-gray-400">{{ formatTime(item.created_at) }}</div>
               </td>
-              <!-- Keterangan -->
+              <!-- Description -->
               <td class="px-2 py-1.5 text-center text-[#e2e2e2] text-xs lg:text-sm"
                 style="font-family: var(--font-line-seed)">
                 {{ item.transaction }}
@@ -50,10 +50,10 @@
                 <span
                   class="inline-flex items-center px-2 py-0.5 rounded-full font-medium capitalize text-[10px] lg:text-xs"
                   :class="statusBadgeClass(item.status)">
-                  {{ item.status }}
+                  {{ statusLabel(item.status) }}
                 </span>
               </td>
-              <!-- Saldo -->
+              <!-- Amount -->
               <td class="px-2 py-1.5 text-center text-[#e2e2e2] text-xs lg:text-sm whitespace-nowrap"
                 style="font-family: var(--font-line-seed)">
                 {{ formatAmount(item.amount) }}
@@ -86,7 +86,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useApi } from "@/composables/useApi";
 import { validateResponse } from "@/lib/validateResponse";
 import {
@@ -96,8 +96,27 @@ import {
   type LedgerStatus,
 } from "@/interfaces/ledger";
 
+const { t, te } = useI18n();
+// Ledger amounts follow the deployment currency, not a pinned locale.
+const { formatNumber } = useCurrency();
+
 // Column headers for the account transaction ledger.
-const columns = ["Tanggal", "Keterangan", "Status", "Saldo", "Last Balance"];
+const columns = computed(() => [
+  t("myAccount.transactionLogs.date"),
+  t("myAccount.transactionLogs.description"),
+  t("myAccount.transactionLogs.status"),
+  t("myAccount.transactionLogs.amount"),
+  t("myAccount.transactionLogs.lastBalance"),
+]);
+
+/**
+ * `status` is a closed enum from the backend, so it can be translated. The
+ * `transaction` column is free-form backend text and is passed through as-is.
+ */
+function statusLabel(status: LedgerStatus): string {
+  const key = `myAccount.transactionLogs.statuses.${status}`;
+  return te(key) ? t(key) : status;
+}
 
 const PAGE_SIZE = 50;
 const loading = ref(false);
@@ -131,10 +150,7 @@ function formatAmount(value: string | null | undefined): string {
   if (value == null) return "0";
   const num = parseFloat(value);
   if (isNaN(num) || num === 0) return "0";
-  return new Intl.NumberFormat("id-ID", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(num);
+  return formatNumber(num);
 }
 
 async function fetchLedger(page: number) {

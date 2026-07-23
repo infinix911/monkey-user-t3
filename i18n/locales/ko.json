@@ -617,7 +617,19 @@
       "device": "기기"
     },
     "changePassword": "비밀번호 변경",
-    "faq": "FAQ"
+    "faq": "FAQ",
+    "transactionLogs": {
+      "date": "날짜",
+      "description": "내용",
+      "status": "상태",
+      "amount": "금액",
+      "lastBalance": "거래 후 잔액",
+      "statuses": {
+        "new": "대기중",
+        "completed": "완료",
+        "failed": "실패"
+      }
+    }
   },
   "promotion": {
     "promotion": "프로모션",
