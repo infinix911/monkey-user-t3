@@ -121,6 +121,11 @@ export function useProfileMenu(options: UseProfileMenuOptions) {
     inquiry: { labelKey: "profile.inquiry", image: profileMenu.inquiry },
     contact: { labelKey: "profile.contact", image: profileMenu.contact },
     livechat: { labelKey: "common.liveChat", image: profileMenu.livechat },
+    // RTP (slot-RTP page). The live CMS places it on page 1, so it needs a
+    // label here as well as in PAGE2_ITEM_DEFAULTS — without it the id would
+    // fall through to prettifyItemId() and render as "Rtp". Icon comes from
+    // the API `image`.
+    rtp: { labelKey: "navbar.rtp", image: "" },
   };
 
   // Hardcoded fallback list (used when API returns nothing)

@@ -584,6 +584,7 @@
       "INVALID_VOUCHER": "유효하지 않거나 만료된 바우처",
       "MEMBER_NOT_FOUND": "회원을 찾을 수 없습니다",
       "PENDING_DEPOSIT_REQUEST_FOUND": "이미 대기 중인 입금 요청이 있습니다",
+      "DEPOSIT_COOLDOWN_ACTIVE": "최근에 입금을 요청하셨습니다. 잠시 후 다시 시도해 주세요.",
       "BANK_ACCOUNT_NOT_FOUND": "은행 계좌를 찾을 수 없습니다",
       "INTERNAL_ERROR": "내부 오류가 발생했습니다. 잠시 후 다시 시도하세요",
       "ACTIVE_TO_IN_PROGRESS": "진행 중인 프로모션 턴오버가 있습니다. 바우처를 사용한 새 입금 전에 완료해 주세요.",
@@ -616,7 +617,19 @@
       "device": "기기"
     },
     "changePassword": "비밀번호 변경",
-    "faq": "FAQ"
+    "faq": "FAQ",
+    "transactionLogs": {
+      "date": "날짜",
+      "description": "내용",
+      "status": "상태",
+      "amount": "금액",
+      "lastBalance": "거래 후 잔액",
+      "statuses": {
+        "new": "대기중",
+        "completed": "완료",
+        "failed": "실패"
+      }
+    }
   },
   "promotion": {
     "promotion": "프로모션",

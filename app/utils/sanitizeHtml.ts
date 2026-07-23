@@ -102,8 +102,17 @@ function sanitizeAttributes(tag: string, raw: string): string {
   return attributes.length ? ` ${attributes.join(" ")}` : "";
 }
 
+/**
+ * Markup that carries no rendered content: comments (including the unclosed
+ * `<!-- …` tail some CMS editors save), doctypes, CDATA and XML processing
+ * instructions. These are dropped outright — escaping them instead would
+ * print the literal `<!-- Header -->` text into the page.
+ */
+const DROPPED_MARKUP = /<!--[\s\S]*?(?:-->|$)|<![\s\S]*?>|<\?[\s\S]*?(?:\?>|>)/g;
+
 /** A deterministic strict allowlist used during both SSR and hydration. */
 export function sanitizeHtml(raw: string): string {
+  raw = raw.replace(DROPPED_MARKUP, "");
   let result = "";
   let offset = 0;
   const tagPattern = /<[^>]*>/g;
