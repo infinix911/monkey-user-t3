@@ -27,7 +27,7 @@
           <span
             class="text-white text-base md:text-sm lg:text-base flex-1 font-bold"
           >
-            {{ inquiry.title }}
+            {{ translateToken(inquiry.title) }}
           </span>
         </div>
 
@@ -107,7 +107,7 @@
           <div class="flex-1">
             <div class="text-[#545454] rounded-lg">
               <p class="text-base leading-relaxed break-words text-black">
-                {{ extractTextFromMessage(inquiry.message) }}
+                {{ translateToken(extractTextFromMessage(inquiry.message)) }}
               </p>
             </div>
           </div>
@@ -258,7 +258,7 @@ interface Emits {
 const props = defineProps<Props>();
 const emit = defineEmits<Emits>();
 
-const { t } = useI18n();
+const { t, te } = useI18n();
 const repliesContainerRef = ref<HTMLDivElement | null>(null);
 const replyText = ref("");
 
@@ -294,6 +294,23 @@ const statusBadgeClass = computed(() => {
       return "bg-transparent text-white border border-white";
   }
 });
+
+/**
+ * Render app-raised inquiries through their i18n label.
+ *
+ * Some inquiries are raised by the app rather than typed by the member — the
+ * deposit modal's "account request" posts the literal token
+ * `BANK_ACCOUNT_REQUEST` as both title and body so the admin side can recognise
+ * it without string matching (see `useInquiryMutations.requestBankAccount`).
+ * Left alone those tokens reach the screen verbatim, so token-shaped values are
+ * looked up in `inquiry.apiMessages.<TOKEN>`. Anything the member actually
+ * typed is not token-shaped and passes through untouched.
+ */
+const translateToken = (value: string): string => {
+  if (!/^[A-Z0-9_]+$/.test(value)) return value;
+  const key = `inquiry.apiMessages.${value}`;
+  return te(key) ? t(key) : value;
+};
 
 const isUserReply = (reply: { sender_type: string }): boolean => {
   return reply.sender_type === "member" || reply.sender_type === "user";
