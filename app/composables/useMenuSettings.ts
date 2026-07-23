@@ -18,15 +18,25 @@ export interface MenuSetting {
   image: string;
 }
 
-/** Normalize one raw `assets.profileMenu` entry into a MenuSetting. */
+/**
+ * Normalize one raw `assets.profileMenu` entry into a MenuSetting.
+ *
+ * The visibility flag is read under BOTH spellings: the live `/site/config/theme`
+ * payload sends `isActive`, while the bundled default and the typed
+ * {@link ProfileMenuItem} contract use `is_active`. Reading only one of them
+ * makes every item resolve to `enabled: false`, which empties both page filters
+ * in `useProfileMenu` and silently falls the modal back to its hardcoded item
+ * list — i.e. the CMS config appears to be ignored entirely.
+ */
 function toMenuSetting(raw: unknown): MenuSetting | null {
   if (!raw || typeof raw !== "object") return null;
-  const d = raw as Partial<ProfileMenuItem>;
+  const d = raw as Partial<ProfileMenuItem> & { isActive?: boolean };
   const item = typeof d.key === "string" ? d.key : "";
   if (!item) return null;
+  const active = d.is_active ?? d.isActive;
   return {
     item,
-    enabled: Boolean(d.is_active),
+    enabled: Boolean(active),
     page: Number(d.page) || 1,
     sort: Number(d.sort) || 0,
     image: typeof d.image === "string" ? d.image : "",
