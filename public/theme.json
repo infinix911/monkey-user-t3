@@ -1,471 +1,422 @@
 {
-    "seo": {
-        "meta": {
-            "defaultMetaTitle": "KIMAKTOTO | Daftar & Login Resmi Situs HK Pools  Dengan Hadiah 4D Terbesar",
-            "defaultMetaKeywords": "kimaktoto, kimak toto, kimaktoto login, kimaktoto daftar, kimaktoto link alternatif",
-            "defaultMetaDescription": "KIMAKTOTO hadir dengan akses HK Pools terpercaya, informasi pasaran yang selalu diperbarui, dan sistem permainan yang responsif. Pilihan tepat bagi Anda yang ingin menikmati pengalaman Toto Online dengan hadiah 4D terbesar"
-        },
-        "robot": {
-            "nosnippet": false,
-            "maxSnippet": "",
-            "defaultIndex": true,
-            "noimageindex": false,
-            "defaultFollow": true
-        },
-        "social": {
-            "defaultOgImage": "/storage/kimak/KIMAKS-mobile-TOGEL.webp",
-            "defaultOgTitle": "KIMAKTOTO | Daftar & Login Resmi  Situs HK Pools Dengan Hadiah 4D Terbesar",
-            "twitterCardType": "summary_large_image",
-            "defaultOgImageType": "WEBP",
-            "defaultOgImageWidth": 1099,
-            "defaultTwitterImage": "/storage/kimak/KIMAKS-mobile-TOGEL.webp",
-            "defaultTwitterTitle": "KIMAKTOTO | Daftar & Login Resmi  Situs HK Pools Dengan Hadiah 4D Terbesar",
-            "defaultOgDescription": "KIMAKTOTO hadir dengan akses HK Pools terpercaya, informasi pasaran yang selalu diperbarui, dan sistem permainan yang responsif. Pilihan tepat bagi Anda yang ingin menikmati pengalaman Toto Online",
-            "defaultOgImageHeight": 535,
-            "defaultTwitterImageType": "WEBP",
-            "defaultTwitterImageWidth": 1099,
-            "defaultTwitterDescription": "KIMAKTOTO hadir dengan akses HK Pools terpercaya, informasi pasaran yang selalu diperbarui, dan sistem permainan yang responsif. Pilihan tepat bagi Anda yang ingin menikmati pengalaman Toto Online",
-            "defaultTwitterImageHeight": 535
-        },
-        "general": {
-            "ampTag": "\u003Clink rel=\"amphtml\" href=\"https://akses-kimaktoto.xyz/amp.html\"\u003E",
-            "favicon": "/designs/logo/ocean.webp",
-            "siteUrl": "https://www.kimaktoto.com/",
-            "siteName": "Kimaktoto",
-            "authorName": "Kimaktoto",
-            "ampPageRedirect": "",
-            "organizationName": "Kimaktoto",
-            "organizationType": "Company"
-        },
-        "customSeo": {
-            "footer": "\u003Cfooter style=\"background:#0f0f0f;color:#ddd;padding:40px 20px 30px;font-family:Arial,Helvetica,sans-serif;line-height:1.7;\"\u003E\n\n  \u003C!-- Header --\u003E\n  \u003Cdiv style=\"max-width:1100px;margin:0 auto 30px;\"\u003E\n    \u003Ch2 style=\"color:#fff;font-size:24px;margin:0 0 12px;\"\u003EKIMAKTOTO | Situs Resmi Login &amp; Daftar Online\u003C/h2\u003E\n    \u003Cp style=\"color:#aaa;font-size:15px;margin:0;\"\u003E\n      \u003Ca href=\"https://www.kimaktoto.com/\" style=\"color:#4ade80;text-decoration:none;\"\u003E\u003Cstrong\u003EKIMAKTOTO\u003C/strong\u003E\u003C/a\u003E merupakan situs resmi yang menyediakan pasaran HK Pools terlengkap dengan hadiah 4D terbesar. \n      Platform ini memberikan kemudahan akses melalui desktop maupun mobile dengan sistem yang cepat, \n      aman, dan transparan. Dengan live draw resmi serta hasil keluaran yang cepat dan akurat, \n      \u003Ca href=\"https://www.kimaktoto.com/\" style=\"color:#4ade80;text-decoration:none;\"\u003E\u003Cstrong\u003EKIMAKTOTO\u003C/strong\u003E\u003C/a\u003E menjadi pilihan utama bagi pecinta togel Hongkong di Indonesia.\n    \u003C/p\u003E\n  \u003C/div\u003E\n\n  \u003Chr style=\"border:none;border-top:1px solid #333;max-width:1100px;margin:0 auto 30px;\"\u003E\n\n  \u003C!-- Layanan Permainan --\u003E\n  \u003Cdiv style=\"max-width:1100px;margin:0 auto 30px;\"\u003E\n    \u003Ch3 style=\"color:#fff;font-size:18px;margin:0 0 15px;\"\u003ELayanan Permainan Lengkap KIMAKTOTO\u003C/h3\u003E\n    \u003Cul style=\"list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:8px 20px;\"\u003E\n      \u003Cli style=\"color:#ddd;font-size:15px;\"\u003E \u003Ca href=\"https://www.kimaktoto.com/\" style=\"color:#4ade80;text-decoration:none;\"\u003E\u003Cstrong\u003EKIMAKTOTO\u003C/strong\u003E\u003C/a\u003E — Pasaran HK Pools dengan hasil live draw tercepat\u003C/li\u003E\n      \u003Cli style=\"color:#ddd;font-size:15px;\"\u003E \u003Ca href=\"https://www.kimaktoto.com/\" style=\"color:#4ade80;text-decoration:none;\"\u003E\u003Cstrong\u003EDaftar KIMAKTOTO\u003C/strong\u003E\u003C/a\u003E — Akses penuh semua pasaran togel internasional\u003C/li\u003E\n      \u003Cli style=\"color:#ddd;font-size:15px;\"\u003E \u003Ca href=\"https://www.kimaktoto.com/\" style=\"color:#4ade80;text-decoration:none;\"\u003E\u003Cstrong\u003ELogin KIMAKTOTO\u003C/strong\u003E\u003C/a\u003E — Masuk cepat &amp; aman kapan saja\u003C/li\u003E\n      \u003Cli style=\"color:#ddd;font-size:15px;\"\u003E \u003Cstrong\u003EPrediksi HK Hari Ini\u003C/strong\u003E — Update harian akurat &amp; terpercaya\u003C/li\u003E\n      \u003Cli style=\"color:#ddd;font-size:15px;\"\u003E\u003Cstrong\u003EPaito Warna HK\u003C/strong\u003E — Data lengkap untuk analisis\u003C/li\u003E\n      \u003Cli style=\"color:#ddd;font-size:15px;\"\u003E \u003Cstrong\u003ELive Draw HK\u003C/strong\u003E — Hasil keluaran resmi real-time\u003C/li\u003E\n    \u003C/ul\u003E\n  \u003C/div\u003E\n\n  \u003Chr style=\"border:none;border-top:1px solid #333;max-width:1100px;margin:0 auto 30px;\"\u003E\n\n  \u003C!-- Keunggulan --\u003E\n  \u003Cdiv style=\"max-width:1100px;margin:0 auto 30px;\"\u003E\n    \u003Ch3 style=\"color:#fff;font-size:18px;margin:0 0 15px;\"\u003EKeunggulan KIMAKTOTO\u003C/h3\u003E\n    \u003Cul style=\"list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:8px;\"\u003E\n      \u003Cli style=\"color:#4ade80;font-size:15px;\"\u003E✓ Akses \u003Ca href=\"https://www.kimaktoto.com/\" style=\"color:#4ade80;text-decoration:none;\"\u003E\u003Cstrong\u003EKIMAKTOTO\u003C/strong\u003E\u003C/a\u003E cepat dan responsif\u003C/li\u003E\n      \u003Cli style=\"color:#4ade80;font-size:15px;\"\u003E✓ Tampilan mobile-friendly\u003C/li\u003E\n      \u003Cli style=\"color:#4ade80;font-size:15px;\"\u003E✓ Proses transaksi cepat &amp; praktis\u003C/li\u003E\n      \u003Cli style=\"color:#4ade80;font-size:15px;\"\u003E✓ Hadiah 4D terbesar di kelasnya\u003C/li\u003E\n      \u003Cli style=\"color:#4ade80;font-size:15px;\"\u003E✓ Live draw HK resmi &amp; transparan\u003C/li\u003E\n      \u003Cli style=\"color:#4ade80;font-size:15px;\"\u003E✓ Minimal deposit terjangkau\u003C/li\u003E\n      \u003Cli style=\"color:#4ade80;font-size:15px;\"\u003E✓ Layanan pelanggan 24 jam\u003C/li\u003E\n      \u003Cli style=\"color:#4ade80;font-size:15px;\"\u003E✓ Link alternatif \u003Ca href=\"https://www.kimaktoto.com/\" style=\"color:#4ade80;text-decoration:none;\"\u003E\u003Cstrong\u003EKIMAKTOTO\u003C/strong\u003E\u003C/a\u003E selalu tersedia\u003C/li\u003E\n    \u003C/ul\u003E\n  \u003C/div\u003E\n\n  \u003Chr style=\"border:none;border-top:1px solid #333;max-width:1100px;margin:0 auto 30px;\"\u003E\n\n  \u003C!-- Link Resmi --\u003E\n  \u003Cdiv style=\"max-width:1100px;margin:0 auto 30px;\"\u003E\n    \u003Ch3 style=\"color:#fff;font-size:18px;margin:0 0 12px;\"\u003ELink Resmi KIMAKTOTO\u003C/h3\u003E\n    \u003Cp style=\"color:#aaa;font-size:15px;margin:0;\"\u003E\n      Untuk mendapatkan akses terbaru dan login resmi, pastikan selalu menggunakan \n      \u003Ca href=\"https://www.kimaktoto.com/\" style=\"color:#4ade80;text-decoration:none;\"\u003E\u003Cstrong\u003ELink Resmi KIMAKTOTO\u003C/strong\u003E\u003C/a\u003E yang valid. \n      Hindari situs palsu dan salin alamat domain resmi yang tertera di halaman ini.\n    \u003C/p\u003E\n  \u003C/div\u003E\n\n  \u003Chr style=\"border:none;border-top:1px solid #333;max-width:1100px;margin:0 auto 30px;\"\u003E\n\n  \u003C!-- Tentang --\u003E\n  \u003Cdiv style=\"max-width:1100px;margin:0 auto;\"\u003E\n    \u003Ch3 style=\"color:#fff;font-size:18px;margin:0 0 12px;\"\u003ETentang KIMAKTOTO\u003C/h3\u003E\n    \u003Cp style=\"color:#aaa;font-size:15px;margin:0;\"\u003E\n      \u003Ca href=\"https://www.kimaktoto.com/\" style=\"color:#4ade80;text-decoration:none;\"\u003E\u003Cstrong\u003EKIMAKTOTO\u003C/strong\u003E\u003C/a\u003E terus berkembang sebagai platform togel online terpercaya yang fokus pada pasaran HK Pools. \n      Dengan hadiah 4D terbesar, sistem transaksi yang aman, dan layanan pelanggan profesional, \n      \u003Ca href=\"https://www.kimaktoto.com/\" style=\"color:#4ade80;text-decoration:none;\"\u003E\u003Cstrong\u003EKIMAKTOTO\u003C/strong\u003E\u003C/a\u003E berkomitmen memberikan pengalaman bermain yang nyaman dan menguntungkan bagi seluruh member.\n    \u003C/p\u003E\n  \u003C/div\u003E\n\n\u003C/footer\u003E"
-        },
-        "canonicalMeta": {
-            "SEO_CANONICAL_META": {
-                "author": "jaeisol",
-                "google": "notranslate",
-                "rating": "general",
-                "robots": "index, follow",
-                "og:type": "website",
-                "language": "id-ID",
-                "googlebot": "index, follow",
-                "og:locale": "id_ID",
-                "publisher": "jaeisol",
-                "geo.region": "ID-JK",
-                "geo.country": "ID",
-                "distribution": "global",
-                "geo.placename": "Jakarta",
-                "og:locale:alternate": "en_US"
-            }
-        },
-        "customSeoRows": []
+  "seo": {
+    "meta": {
+      "defaultMetaTitle": "JAEISOL | 공식 로그인 & 회원가입 온라인 게임 사이트",
+      "defaultMetaKeywords": "jaeisol, 재이솔, jaeisol 로그인, jaeisol 회원가입, jaeisol 주소, 온라인 카지노, 슬롯",
+      "defaultMetaDescription": "JAEISOL은 슬롯, 라이브 카지노, 스포츠를 한곳에서 제공하는 온라인 게임 사이트입니다. 빠른 입출금, 모바일 최적화 화면, 24시간 고객센터로 언제 어디서나 안전하게 이용하실 수 있습니다."
     },
-    "theme": {
-        "ui": {
-            "langSelectorBg": "#000000"
-        },
-        "nav": {
-            "type": "png",
-            "gifBg": "/designs/template-1/navbar/gif-bg/03.gif",
-            "icons": {
-                "hot": "/designs/banana/theme/hot-icon-optimized-1782395532169.webp",
-                "mini": "/designs/banana/theme/mini-icon-optimized-1782396091443.webp",
-                "slot": "/designs/banana/theme/slot-icon-optimized-1782395661345.webp",
-                "sport": "/designs/banana/theme/sport-icon-optimized-1782395825566.webp",
-                "casino": "/designs/banana/theme/casino-icon-optimized-1782395725967.webp",
-                "fishing": "/designs/banana/theme/fishing-icon-optimized-1782396049473.webp",
-                "virtual": "/designs/banana/theme/virtual-icon-optimized-1782395959578.webp"
-            },
-            "stickyBg": "rgba(0,0,0,1)",
-            "defaultBg": "#000000",
-            "gifBorder": "/designs/template-1/navbar/border/05.webp",
-            "activeItemColor": "#ea5100",
-            "depositSectionGradient": "linear-gradient(to right, #C61E04 0%, #FF5137 50.48%, #C61E04 100%)"
-        },
-        "bottomNav": {
-            "barGradientStops": {
-                "dark": "#fa7e02",
-                "light": "#fa7e02",
-                "midDark": "#000000",
-                "postEdge": "#000000"
-            },
-            "promoCircleGradient": "linear-gradient(to bottom, #FFB300 0%, #E86A00 50%, #DA4101 100%)"
-        },
-        "cardFrame": {
-            "bgColor": "#000000",
-            "borderColor": "#f7a800",
-            "bandGradient": "linear-gradient(180deg,\n#FFC400 0%,\n#FF8A00 6%,\nrgba(255,138,0,0.18) 15%,\nrgba(0,0,0,0) 48%,\n#111111 80%,\n#000000 95%,\n#FF6A00 100%)",
-            "placeholderBg": "#ffffff"
-        },
-        "authButton": {
-            "loginBg": "linear-gradient(to bottom, #1E1E1E, #1E1E1E) padding-box, linear-gradient( to bottom, #FFFFFF 0%, #E5E5E5 35%, #BFBFBF 50%, #E5E5E5 65%, #FFFFFF 100% ) border-box",
-            "signupBg": "linear-gradient(to bottom, #FFB300 0%, #E86A00 50%, #DA4101 100%)",
-            "loginTextGradient": "linear-gradient(to right, #FFFFFF, #F5F5F5 66.8%, #FFFFFF)",
-            "mobileAuthSectionBg": "linear-gradient(to right, #000000, #1A1A1A 30%, #FFB300 50%, #1A1A1A 70%, #000000)"
-        },
-        "brandColor": "#ffffff",
-        "loginModal": {
-            "accentColor": "#beb6ae",
-            "borderColor": "#ff7700",
-            "bandGradient": "linear-gradient(180deg, #D67A12 0%, #B95A00 20%, #7A3200 45%, #2C1200 70%, #02010A 100%)",
-            "modalBgColor": "#000000",
-            "buttonTextColor": "#000000",
-            "buttonGradientColor": "linear-gradient(180deg, #FBAD00 0%, #FF7800 100%)"
-        },
-        "logoStyles": {
-            "loginModal": {
-                "width": "248px"
-            },
-            "mobileHeader": {
-                "width": "auto",
-                "height": "36px",
-                "marginBottom": "10px"
-            },
-            "profileModal": {
-                "width": "145px",
-                "height": "auto",
-                "margin-bottom": "6px"
-            },
-            "desktopHeader": {
-                "maxWidth": "282px",
-                "maxHeight": "75px"
-            },
-            "loginModalContainer": {
-                "top": "-45px"
-            }
-        },
-        "themeColor": "#000000",
-        "bodyBgColor": "#000000",
-        "noticeModal": {
-            "agreeColor": "#34D399",
-            "borderColor": "rgba(255, 255, 255, 0.14)",
-            "cardGradient": "linear-gradient(180deg, #3A3D44 0%, #14151A 5%, #0A0A0C 10%, #0A0A0C 90%, #14151A 95%, #2A2C31 100%)",
-            "dividerColor": "rgba(255, 255, 255, 0.10)",
-            "modalBgColor": "#0A0A0C",
-            "disagreeColor": "#FB7185"
-        },
-        "popupBanner": {
-            "accentColor": "#FF7A00",
-            "borderColor": "#C2691A",
-            "bandGradient": "linear-gradient(180deg, #D67A12 0%, #B95A00 20%, #7A3200 45%, #2C1200 70%, #02010A 100%)",
-            "modalBgColor": "#0A0A0A",
-            "blockButtonBgColor": "#140A02",
-            "blockButtonTextColor": "#E7C9A6",
-            "blockButtonBorderColor": "#C2691A"
-        },
-        "signupModal": {
-            "accentColor": "#FF7A00",
-            "borderColor": "#C2691A",
-            "inputBgColor": "#0D0D0D",
-            "modalBgColor": "#000000",
-            "inputTextColor": "#FFFFFF",
-            "inputBorderColor": "#A85C2E",
-            "buttonGradientColor": "linear-gradient(180deg, #FBAD00 0%, #FF7800 100%)",
-            "inputPlaceholderColor": "#6F6F6F"
-        },
-        "announcement": {
-            "text": "🔥 #NS - KIMAKTOTO - SITUS GAME ONLINE TERPERCAYA 🔥 | MIN DEPO 5K | MIN WD 50K | DEPOSIT MUDAH 24 JAM | BONUS MENARIK SETIAP HARI | SELAMAT BERMAIN & SEMOGA CUAN BERLIMPAH! ",
-            "mobileBg": "#000000",
-            "textFill": "#ffffff",
-            "mobileIcon": "/designs/template-3/announcement-icon.png",
-            "textStroke": "#000000",
-            "desktopGradient": "#000000"
-        },
-        "sectionHeader": {
-            "gradient": "linear-gradient(90deg, #000000 0%, #DA4101 30%, #fa8c02 50%, #fa8c02 70%, #000000 100%)"
-        },
-        "transactionmodal": {
-            "accentColor": "#FF7A00",
-            "borderColor": "#C2691A",
-            "inputBgColor": "#0D0D0D",
-            "modalBgColor": "#000000",
-            "buttonBgColor": "#FF7A00",
-            "inputTextColor": "#FFFFFF",
-            "buttonTextColor": "#000000",
-            "inputBorderColor": "#A85C2E",
-            "buttonBgHoverColor": "#E66E00",
-            "quickAmountBgColor": "#1C1C1C",
-            "buttonGradientColor": "linear-gradient(180deg, #FBAD00 0%, #FF7800 100%)",
-            "quickAmountTextColor": "#FFFFFF",
-            "showDepositImageTitle": false,
-            "quickAmountBgHoverColor": "#2A2A2A",
-            "buttonGradientHoverColor": "linear-gradient(180deg, #FFBB1F 0%, #FF8A1F 100%)",
-            "showWithdrawalImageTitle": false
-        },
-        "mobileHeaderHeight": 63,
-        "navMenuItemMarginTop": "10px",
-        "mobileBannerAspectRatio": "1516 / 750",
-        "panel": {
-            "actionColor": "#FF7A00",
-            "panelBorder": "#C2691A",
-            "panelGradient": "linear-gradient(180deg, #0A0A0A 0%, #000000 100%)",
-            "headerGradient": "linear-gradient(to bottom, rgba(255,122,0,0.9), rgba(20,20,20,0.95), rgba(198,105,26,0.9))",
-            "contentPanelGradient": "linear-gradient(180deg, #0D0D0D 0%, #000000 100%)",
-            "tableHeaderBackground": "#1C1C1C",
-            "gameTypeBtnActiveBorder": "#FF7A00",
-            "gameTypeBtnActiveShadow": "0 0 8px rgba(255,122,0,0.25)",
-            "gameTypeBtnActiveGradient": "linear-gradient(to right, #B95A00, #FF7A00, #B95A00)"
-        },
-        "partner": {
-            "accentColor": "#FF7A00",
-            "borderColor": "rgba(255,255,255,0.07)",
-            "panelBgColor": "linear-gradient(180deg, #0a0a0c 0%, #050506 100%)",
-            "cardBgColor": "rgba(255,255,255,0.02)",
-            "headBgColor": "rgba(255,255,255,0.025)",
-            "activeTextColor": "#000000",
-            "watermarkEmoji": "👑"
-        }
+    "robot": {
+      "nosnippet": false,
+      "maxSnippet": "",
+      "defaultIndex": true,
+      "noimageindex": false,
+      "defaultFollow": true
     },
-    "assets": {
-        "icons": {
-            "pwa": {
-                "72x72": "/designs/logo/ocean.webp",
-                "96x96": "/designs/logo/ocean.webp",
-                "128x128": "/designs/logo/ocean.webp",
-                "144x144": "/designs/logo/ocean.webp",
-                "152x152": "/designs/logo/ocean.webp",
-                "192x192": "/designs/logo/ocean.webp",
-                "384x384": "/designs/logo/ocean.webp",
-                "512x512": "/designs/logo/ocean.webp"
-            }
-        },
-        "images": {
-            "gold": "https://banana.sg-sin-1.linodeobjects.com/dragon/stones/gold.webp",
-            "ratio": "/designs/misc/ratio.webp",
-            "girlGif": "",
-            "loginModalBg": "/designs/misc/modal-login-bg.webp",
-            "mainBackground": "/designs/banana/imageAssets/image-50-1-1778909515732.png",
-            "defaultThumbnail": "/designs/misc/default.webp",
-            "fixedMainBackground": false,
-            "mainBackgroundMobile": false
-        },
-        "homepage": {
-            "gameBg": {
-                "slot": "/designs/template-3/game-thumbnail-bg/28.webp",
-                "sport": "/designs/template-3/game-thumbnail-bg/30.webp",
-                "casino": "/designs/template-3/game-thumbnail-bg/29.webp",
-                "sportRatio": ""
-            },
-            "gameFrame": {
-                "slot": "/designs/template-3/frame.png",
-                "sport": "/designs/template-3/frame.png",
-                "casino": "/designs/template-3/frame.png"
-            },
-            "gameLogos": {
-                "slot": "/designs/slot-logo",
-                "casino": "/designs/casino-logo",
-                "sports": "/designs/sport-logo"
-            },
-            "gameSectionBg": {
-                "image": "",
-                "enabled": false,
-                "mobileOnly": false,
-                "mobileStyle": "",
-                "desktopStyle": ""
-            },
-            "ratioSportIds": [],
-            "gameCharacters": {
-                "slot": "/designs/template-3/slots-character",
-                "casino": "/designs/template-3/casino-character",
-                "sports": "/designs/template-3/sports-character"
-            },
-            "gameCharacterOverrides": {
-                "slot": {},
-                "casino": {},
-                "sports": {}
-            }
-        },
-        "navIcons": {
-            "arrowRight": "/designs/navigation/arrow-right.webp",
-            "background": "",
-            "depositIcon": "/designs/template-3/nav-icons/deposit.png",
-            "withdrawIcon": "/designs/template-3/nav-icons/withdraw.png"
-        },
-        "lobbyCard": {
-            "topBorder": "/designs/gif-border/top-border.webp",
-            "bottomBorder": "/designs/gif-border/bottom-border.webp",
-            "thumbnailBgPathWeb": "/designs/banana/ocean/gif/thumbnail-bg/web",
-            "thumbnailBgPathMobile": "/designs/banana/ocean/gif/thumbnail-bg/mobile"
-        },
-        "profileMenu": [
-            {
-                "key": "rtp",
-                "page": 1,
-                "sort": 1,
-                "image": "/designs/banana/menu-icons/group-595-1782999084030.webp",
-                "is_active": true
-            },
-            {
-                "key": "livechat",
-                "page": 1,
-                "sort": 2,
-                "image": "/designs/menu/livechat.webp",
-                "is_active": true
-            },
-            {
-                "key": "transaksi",
-                "page": 1,
-                "sort": 3,
-                "image": "/designs/menu/transaction.webp",
-                "is_active": true
-            },
-            {
-                "key": "activity",
-                "page": 1,
-                "sort": 4,
-                "image": "/designs/menu/activity.webp",
-                "is_active": true
-            },
-            {
-                "key": "referral",
-                "page": 1,
-                "sort": 5,
-                "image": "/designs/menu/referral.webp",
-                "is_active": true
-            },
-            {
-                "key": "bettingReport",
-                "page": 1,
-                "sort": 6,
-                "image": "/designs/menu/betting-report.webp",
-                "is_active": true
-            },
-            {
-                "key": "history",
-                "page": 1,
-                "sort": 7,
-                "image": "/designs/menu/history.webp",
-                "is_active": true
-            },
-            {
-                "key": "contact",
-                "page": 1,
-                "sort": 8,
-                "image": "/designs/menu/contact.webp",
-                "is_active": true
-            },
-            {
-                "key": "changePassword",
-                "page": 1,
-                "sort": 9,
-                "image": "/designs/menu/change-pass.webp",
-                "is_active": true
-            },
-            {
-                "key": "promotion",
-                "page": 1,
-                "sort": 10,
-                "image": "/designs/menu/promotion.webp",
-                "is_active": true
-            },
-            {
-                "key": "apk",
-                "page": 1,
-                "sort": 11,
-                "image": "/designs/menu/apk.webp",
-                "is_active": true
-            },
-            {
-                "key": "telegram",
-                "page": 1,
-                "sort": 12,
-                "image": "/designs/menu/telegram.webp",
-                "is_active": false
-            },
-            {
-                "key": "invoice",
-                "page": 2,
-                "sort": 1,
-                "image": "/designs/menu/invoice.webp",
-                "is_active": true
-            },
-            {
-                "key": "hadiah",
-                "page": 2,
-                "sort": 2,
-                "image": "/designs/menu/reward.webp",
-                "is_active": true
-            },
-            {
-                "key": "caraBermain",
-                "page": 2,
-                "sort": 3,
-                "image": "/designs/menu/guide.webp",
-                "is_active": true
-            },
-            {
-                "key": "meanang",
-                "page": 2,
-                "sort": 4,
-                "image": "/designs/menu/trophy.webp",
-                "is_active": true
-            },
-            {
-                "key": "faq",
-                "page": 2,
-                "sort": 5,
-                "image": "/designs/menu/faq.webp",
-                "is_active": true
-            },
-            {
-                "key": "loginHistory",
-                "page": 2,
-                "sort": 6,
-                "image": "/designs/menu/login.webp",
-                "is_active": true
-            },
-            {
-                "key": "levelSystem",
-                "page": 2,
-                "sort": 7,
-                "image": "/designs/menu/level.webp",
-                "is_active": true
-            },
-            {
-                "key": "bonusHistory",
-                "page": 2,
-                "sort": 8,
-                "image": "/designs/menu/bonus-history.webp",
-                "is_active": true
-            },
-            {
-                "key": "inquiry",
-                "page": 2,
-                "sort": 9,
-                "image": "/designs/menu/inquiry.webp",
-                "is_active": true
-            }
-        ],
-        "transaction": {
-            "bankNoImage": "/designs/banks/NOIMAGE.webp",
-            "depositIcon": "",
-            "bankBasePath": "https://sg-sin-1.linodeobjects.com/banana/ocean/banks",
-            "withdrawIcon": "",
-            "bankAccountNoImage": "/designs/banks/accountlist/NOIMG.webp",
-            "bankAccountListPath": "https://sg-sin-1.linodeobjects.com/banana/ocean/banks/accountlist"
-        }
+    "social": {
+      "defaultOgImage": "/storage/kimak/KIMAKS-mobile-TOGEL.webp",
+      "defaultOgTitle": "JAEISOL | 공식 로그인 & 회원가입 온라인 게임 사이트",
+      "twitterCardType": "summary_large_image",
+      "defaultOgImageType": "WEBP",
+      "defaultOgImageWidth": 1099,
+      "defaultTwitterImage": "/storage/kimak/KIMAKS-mobile-TOGEL.webp",
+      "defaultTwitterTitle": "JAEISOL | 공식 로그인 & 회원가입 온라인 게임 사이트",
+      "defaultOgDescription": "JAEISOL은 슬롯, 라이브 카지노, 스포츠를 한곳에서 제공하는 온라인 게임 사이트입니다. 빠른 입출금, 모바일 최적화 화면, 24시간 고객센터로 언제 어디서나 안전하게 이용하실 수 있습니다.",
+      "defaultOgImageHeight": 535,
+      "defaultTwitterImageType": "WEBP",
+      "defaultTwitterImageWidth": 1099,
+      "defaultTwitterDescription": "JAEISOL은 슬롯, 라이브 카지노, 스포츠를 한곳에서 제공하는 온라인 게임 사이트입니다. 빠른 입출금, 모바일 최적화 화면, 24시간 고객센터로 언제 어디서나 안전하게 이용하실 수 있습니다.",
+      "defaultTwitterImageHeight": 535
     },
-    "contact": {
-        "handles": {
-            "line": "-",
-            "telegram": "@KIMAKTOTO",
-            "whatsapp": "6282174092123",
-            "messenger": "-"
-        }
+    "general": {
+      "ampTag": "<link rel=\"amphtml\" href=\"https://akses-jaeisol.xyz/amp.html\">",
+      "favicon": "/designs/logo/ocean.webp",
+      "siteUrl": "https://www.jaeisol.com/",
+      "siteName": "Jaeisol",
+      "authorName": "Jaeisol",
+      "ampPageRedirect": "",
+      "organizationName": "Jaeisol",
+      "organizationType": "Company"
     },
-    "identity": {
-        "logo": "/designs/banana/theme/kiiiiiiiimmm-mmmmmmmmaaaaaaaaaaaaaaaaaaax-1781619514685.webp",
-        "slug": "ocean",
-        "favicon": "/designs/banana/theme/kimakicon-1781679808366.webp",
-        "siteName": "KIMAKTOTO",
-        "logoPopup": "/designs/banana/theme/kiiiiiiiimmm-mmmmmmmmaaaaaaaaaaaaaaaaaaax-1781619514685.webp",
-        "logoMobile": "/designs/banana/theme/kiiiiiiiimmm-mmmmmmmmaaaaaaaaaaaaaaaaaaax-1781619514685.webp",
-        "description": "KIMAKTOTO hadir dengan akses HK Pools terpercaya, informasi pasaran yang selalu diperbarui, dan sistem permainan yang responsif. Pilihan tepat bagi Anda yang ingin menikmati pengalaman Toto Online,"
+    "customSeo": {
+      "footer": "<footer style=\"background:#0f0f0f;color:#ddd;padding:40px 20px 30px;font-family:Arial,Helvetica,sans-serif;line-height:1.7;\">\n\n  <!-- Header -->\n  <div style=\"max-width:1100px;margin:0 auto 30px;\">\n    <h2 style=\"color:#fff;font-size:24px;margin:0 0 12px;\">JAEISOL | 공식 로그인 &amp; 회원가입 사이트</h2>\n    <p style=\"color:#aaa;font-size:15px;margin:0;\">\n      <a href=\"https://www.jaeisol.com/\" style=\"color:#4ade80;text-decoration:none;\"><strong>JAEISOL</strong></a>은 슬롯, 라이브 카지노, 스포츠를 한곳에서 즐길 수 있는 공식 온라인 게임 사이트입니다.\n      PC와 모바일 모두에서 빠르고 안전하게 이용할 수 있으며, 투명한 운영과 신속한 처리를 원칙으로 합니다.\n      실시간 게임 환경과 안정적인 접속 속도로 <a href=\"https://www.jaeisol.com/\" style=\"color:#4ade80;text-decoration:none;\"><strong>JAEISOL</strong></a>은 많은 회원들의 선택을 받고 있습니다.\n    </p>\n  </div>\n\n  <hr style=\"border:none;border-top:1px solid #333;max-width:1100px;margin:0 auto 30px;\">\n\n  <!-- 게임 서비스 -->\n  <div style=\"max-width:1100px;margin:0 auto 30px;\">\n    <h3 style=\"color:#fff;font-size:18px;margin:0 0 15px;\">JAEISOL 게임 서비스</h3>\n    <ul style=\"list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:8px 20px;\">\n      <li style=\"color:#ddd;font-size:15px;\"> <a href=\"https://www.jaeisol.com/\" style=\"color:#4ade80;text-decoration:none;\"><strong>슬롯 게임</strong></a> — 다양한 제공사의 최신 슬롯</li>\n      <li style=\"color:#ddd;font-size:15px;\"> <a href=\"https://www.jaeisol.com/\" style=\"color:#4ade80;text-decoration:none;\"><strong>라이브 카지노</strong></a> — 실시간 딜러와 함께하는 테이블 게임</li>\n      <li style=\"color:#ddd;font-size:15px;\"> <a href=\"https://www.jaeisol.com/\" style=\"color:#4ade80;text-decoration:none;\"><strong>스포츠</strong></a> — 실시간 경기 배팅</li>\n      <li style=\"color:#ddd;font-size:15px;\"><strong>미니 게임</strong> — 짧고 빠르게 즐기는 게임</li>\n      <li style=\"color:#ddd;font-size:15px;\"><strong>회원가입</strong> — 간편한 가입 절차</li>\n      <li style=\"color:#ddd;font-size:15px;\"> <strong>로그인</strong> — 언제든지 빠르고 안전하게</li>\n    </ul>\n  </div>\n\n  <hr style=\"border:none;border-top:1px solid #333;max-width:1100px;margin:0 auto 30px;\">\n\n  <!-- 장점 -->\n  <div style=\"max-width:1100px;margin:0 auto 30px;\">\n    <h3 style=\"color:#fff;font-size:18px;margin:0 0 15px;\">JAEISOL의 장점</h3>\n    <ul style=\"list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:8px 20px;\">\n      <li style=\"color:#ddd;font-size:15px;\">✓ 빠르고 안정적인 접속</li>\n      <li style=\"color:#ddd;font-size:15px;\">✓ 모바일 최적화 화면</li>\n      <li style=\"color:#ddd;font-size:15px;\">✓ 신속하고 간편한 입출금</li>\n      <li style=\"color:#ddd;font-size:15px;\">✓ 다양한 게임 제공사</li>\n      <li style=\"color:#ddd;font-size:15px;\">✓ 투명한 운영</li>\n      <li style=\"color:#ddd;font-size:15px;\">✓ 부담 없는 최소 입금액</li>\n      <li style=\"color:#ddd;font-size:15px;\">✓ 24시간 고객센터</li>\n      <li style=\"color:#ddd;font-size:15px;\">✓ 공식 주소 상시 안내</li>\n    </ul>\n  </div>\n\n  <hr style=\"border:none;border-top:1px solid #333;max-width:1100px;margin:0 auto 30px;\">\n\n  <!-- 공식 주소 -->\n  <div style=\"max-width:1100px;margin:0 auto 30px;\">\n    <h3 style=\"color:#fff;font-size:18px;margin:0 0 15px;\">JAEISOL 공식 주소</h3>\n    <p style=\"color:#aaa;font-size:15px;margin:0;\">\n      최신 접속 주소와 공식 로그인은 반드시 유효한 <strong>JAEISOL 공식 주소</strong>를 이용해 주세요.\n      유사 사이트를 피하시고, 이 페이지에 안내된 공식 도메인을 확인해 주시기 바랍니다.\n    </p>\n  </div>\n\n  <hr style=\"border:none;border-top:1px solid #333;max-width:1100px;margin:0 auto 30px;\">\n\n  <!-- 소개 -->\n  <div style=\"max-width:1100px;margin:0 auto 30px;\">\n    <h3 style=\"color:#fff;font-size:18px;margin:0 0 15px;\">JAEISOL 소개</h3>\n    <p style=\"color:#aaa;font-size:15px;margin:0;\">\n      <a href=\"https://www.jaeisol.com/\" style=\"color:#4ade80;text-decoration:none;\"><strong>JAEISOL</strong></a>은 신뢰할 수 있는 온라인 게임 플랫폼으로 꾸준히 성장하고 있습니다.\n      안전한 거래 시스템과 전문적인 고객 지원을 바탕으로,\n      <a href=\"https://www.jaeisol.com/\" style=\"color:#4ade80;text-decoration:none;\"><strong>JAEISOL</strong></a>은 모든 회원에게 편안하고 만족스러운 이용 경험을 제공하기 위해 노력하고 있습니다.\n    </p>\n  </div>\n\n</footer>"
     },
-    "integrations": {
-        "tawkTo": {
-            "widgetId": null,
-            "propertyId": null
-        }
+    "canonicalMeta": {
+      "SEO_CANONICAL_META": {
+        "author": "jaeisol",
+        "google": "notranslate",
+        "rating": "general",
+        "robots": "index, follow",
+        "og:type": "website",
+        "language": "id-ID",
+        "googlebot": "index, follow",
+        "og:locale": "id_ID",
+        "publisher": "jaeisol",
+        "geo.region": "ID-JK",
+        "geo.country": "ID",
+        "distribution": "global",
+        "geo.placename": "Jakarta",
+        "og:locale:alternate": "en_US"
+      }
+    },
+    "customSeoRows": []
+  },
+  "theme": {
+    "ui": {
+      "langSelectorBg": "#000000"
+    },
+    "nav": {
+      "type": "png",
+      "gifBg": "/designs/template-1/navbar/gif-bg/03.gif",
+      "icons": {
+        "hot": "/designs/banana/theme/hot-icon-optimized-1782395532169.webp",
+        "mini": "/designs/banana/theme/mini-icon-optimized-1782396091443.webp",
+        "slot": "/designs/banana/theme/slot-icon-optimized-1782395661345.webp",
+        "sport": "/designs/banana/theme/sport-icon-optimized-1782395825566.webp",
+        "casino": "/designs/banana/theme/casino-icon-optimized-1782395725967.webp",
+        "fishing": "/designs/banana/theme/fishing-icon-optimized-1782396049473.webp",
+        "virtual": "/designs/banana/theme/virtual-icon-optimized-1782395959578.webp"
+      },
+      "stickyBg": "rgba(0,0,0,1)",
+      "defaultBg": "#000000",
+      "gifBorder": "/designs/template-1/navbar/border/05.webp",
+      "activeItemColor": "#ea5100",
+      "depositSectionGradient": "linear-gradient(to right, #C61E04 0%, #FF5137 50.48%, #C61E04 100%)"
+    },
+    "bottomNav": {
+      "barGradientStops": {
+        "dark": "#fa7e02",
+        "light": "#fa7e02",
+        "midDark": "#000000",
+        "postEdge": "#000000"
+      },
+      "promoCircleGradient": "linear-gradient(to bottom, #FFB300 0%, #E86A00 50%, #DA4101 100%)"
+    },
+    "cardFrame": {
+      "bgColor": "#000000",
+      "borderColor": "#f7a800",
+      "bandGradient": "linear-gradient(180deg,\n#FFC400 0%,\n#FF8A00 6%,\nrgba(255,138,0,0.18) 15%,\nrgba(0,0,0,0) 48%,\n#111111 80%,\n#000000 95%,\n#FF6A00 100%)",
+      "placeholderBg": "#ffffff"
+    },
+    "authButton": {
+      "loginBg": "linear-gradient(to bottom, #1E1E1E, #1E1E1E) padding-box, linear-gradient( to bottom, #FFFFFF 0%, #E5E5E5 35%, #BFBFBF 50%, #E5E5E5 65%, #FFFFFF 100% ) border-box",
+      "signupBg": "linear-gradient(to bottom, #FFB300 0%, #E86A00 50%, #DA4101 100%)",
+      "loginTextGradient": "linear-gradient(to right, #FFFFFF, #F5F5F5 66.8%, #FFFFFF)",
+      "mobileAuthSectionBg": "linear-gradient(to right, #000000, #1A1A1A 30%, #FFB300 50%, #1A1A1A 70%, #000000)"
+    },
+    "brandColor": "#ffffff",
+    "loginModal": {
+      "accentColor": "#beb6ae",
+      "borderColor": "#ff7700",
+      "bandGradient": "linear-gradient(180deg, #D67A12 0%, #B95A00 20%, #7A3200 45%, #2C1200 70%, #02010A 100%)",
+      "modalBgColor": "#000000",
+      "buttonTextColor": "#000000",
+      "buttonGradientColor": "linear-gradient(180deg, #FBAD00 0%, #FF7800 100%)"
+    },
+    "logoStyles": {
+      "loginModal": {
+        "width": "248px"
+      },
+      "mobileHeader": {
+        "width": "auto",
+        "height": "36px",
+        "marginBottom": "10px"
+      },
+      "profileModal": {
+        "width": "145px",
+        "height": "auto",
+        "margin-bottom": "6px"
+      },
+      "desktopHeader": {
+        "maxWidth": "282px",
+        "maxHeight": "75px"
+      },
+      "loginModalContainer": {
+        "top": "-45px"
+      }
+    },
+    "themeColor": "#000000",
+    "bodyBgColor": "#000000",
+    "noticeModal": {
+      "agreeColor": "#34D399",
+      "borderColor": "rgba(255, 255, 255, 0.14)",
+      "cardGradient": "linear-gradient(180deg, #3A3D44 0%, #14151A 5%, #0A0A0C 10%, #0A0A0C 90%, #14151A 95%, #2A2C31 100%)",
+      "dividerColor": "rgba(255, 255, 255, 0.10)",
+      "modalBgColor": "#0A0A0C",
+      "disagreeColor": "#FB7185"
+    },
+    "popupBanner": {
+      "accentColor": "#FF7A00",
+      "borderColor": "#C2691A",
+      "bandGradient": "linear-gradient(180deg, #D67A12 0%, #B95A00 20%, #7A3200 45%, #2C1200 70%, #02010A 100%)",
+      "modalBgColor": "#0A0A0A",
+      "blockButtonBgColor": "#140A02",
+      "blockButtonTextColor": "#E7C9A6",
+      "blockButtonBorderColor": "#C2691A"
+    },
+    "signupModal": {
+      "accentColor": "#FF7A00",
+      "borderColor": "#C2691A",
+      "inputBgColor": "#0D0D0D",
+      "modalBgColor": "#000000",
+      "inputTextColor": "#FFFFFF",
+      "inputBorderColor": "#A85C2E",
+      "buttonGradientColor": "linear-gradient(180deg, #FBAD00 0%, #FF7800 100%)",
+      "inputPlaceholderColor": "#6F6F6F"
+    },
+    "announcement": {
+      "text": "🔥 JAEISOL - 신뢰할 수 있는 온라인 게임 사이트 🔥 | 최소 입금 5천원 | 최소 출금 5만원 | 24시간 간편 입금 | 매일 다양한 보너스 | 즐거운 게임 되세요!",
+      "mobileBg": "#000000",
+      "textFill": "#ffffff",
+      "mobileIcon": "/designs/template-3/announcement-icon.png",
+      "textStroke": "#000000",
+      "desktopGradient": "#000000"
+    },
+    "sectionHeader": {
+      "gradient": "linear-gradient(90deg, #000000 0%, #DA4101 30%, #fa8c02 50%, #fa8c02 70%, #000000 100%)"
+    },
+    "transactionmodal": {
+      "accentColor": "#FF7A00",
+      "borderColor": "#C2691A",
+      "inputBgColor": "#0D0D0D",
+      "modalBgColor": "#000000",
+      "buttonBgColor": "#FF7A00",
+      "inputTextColor": "#FFFFFF",
+      "buttonTextColor": "#000000",
+      "inputBorderColor": "#A85C2E",
+      "buttonBgHoverColor": "#E66E00",
+      "quickAmountBgColor": "#1C1C1C",
+      "buttonGradientColor": "linear-gradient(180deg, #FBAD00 0%, #FF7800 100%)",
+      "quickAmountTextColor": "#FFFFFF",
+      "showDepositImageTitle": false,
+      "quickAmountBgHoverColor": "#2A2A2A",
+      "buttonGradientHoverColor": "linear-gradient(180deg, #FFBB1F 0%, #FF8A1F 100%)",
+      "showWithdrawalImageTitle": false
+    },
+    "mobileHeaderHeight": 63,
+    "navMenuItemMarginTop": "10px",
+    "mobileBannerAspectRatio": "1516 / 750",
+    "panel": {
+      "actionColor": "#FF7A00",
+      "panelBorder": "#C2691A",
+      "panelGradient": "linear-gradient(180deg, #0A0A0A 0%, #000000 100%)",
+      "headerGradient": "linear-gradient(to bottom, rgba(255,122,0,0.9), rgba(20,20,20,0.95), rgba(198,105,26,0.9))",
+      "contentPanelGradient": "linear-gradient(180deg, #0D0D0D 0%, #000000 100%)",
+      "tableHeaderBackground": "#1C1C1C",
+      "gameTypeBtnActiveBorder": "#FF7A00",
+      "gameTypeBtnActiveShadow": "0 0 8px rgba(255,122,0,0.25)",
+      "gameTypeBtnActiveGradient": "linear-gradient(to right, #B95A00, #FF7A00, #B95A00)"
+    },
+    "partner": {
+      "accentColor": "#FF7A00",
+      "borderColor": "rgba(255,255,255,0.07)",
+      "panelBgColor": "linear-gradient(180deg, #0a0a0c 0%, #050506 100%)",
+      "cardBgColor": "rgba(255,255,255,0.02)",
+      "headBgColor": "rgba(255,255,255,0.025)",
+      "activeTextColor": "#000000",
+      "watermarkEmoji": "👑"
     }
+  },
+  "assets": {
+    "icons": {
+      "pwa": {
+        "72x72": "/designs/logo/ocean.webp",
+        "96x96": "/designs/logo/ocean.webp",
+        "128x128": "/designs/logo/ocean.webp",
+        "144x144": "/designs/logo/ocean.webp",
+        "152x152": "/designs/logo/ocean.webp",
+        "192x192": "/designs/logo/ocean.webp",
+        "384x384": "/designs/logo/ocean.webp",
+        "512x512": "/designs/logo/ocean.webp"
+      }
+    },
+    "images": {
+      "gold": "https://banana.sg-sin-1.linodeobjects.com/dragon/stones/gold.webp",
+      "ratio": "/designs/misc/ratio.webp",
+      "girlGif": "",
+      "loginModalBg": "/designs/misc/modal-login-bg.webp",
+      "mainBackground": "/designs/banana/imageAssets/image-50-1-1778909515732.png",
+      "defaultThumbnail": "/designs/misc/default.webp",
+      "fixedMainBackground": false,
+      "mainBackgroundMobile": false
+    },
+    "homepage": {
+      "gameBg": {
+        "slot": "/designs/template-3/game-thumbnail-bg/28.webp",
+        "sport": "/designs/template-3/game-thumbnail-bg/30.webp",
+        "casino": "/designs/template-3/game-thumbnail-bg/29.webp",
+        "sportRatio": ""
+      },
+      "gameFrame": {
+        "slot": "/designs/template-3/frame.png",
+        "sport": "/designs/template-3/frame.png",
+        "casino": "/designs/template-3/frame.png"
+      },
+      "gameLogos": {
+        "slot": "/designs/slot-logo",
+        "casino": "/designs/casino-logo",
+        "sports": "/designs/sport-logo"
+      },
+      "gameSectionBg": {
+        "image": "",
+        "enabled": false,
+        "mobileOnly": false,
+        "mobileStyle": "",
+        "desktopStyle": ""
+      },
+      "ratioSportIds": [],
+      "gameCharacters": {
+        "slot": "/designs/template-3/slots-character",
+        "casino": "/designs/template-3/casino-character",
+        "sports": "/designs/template-3/sports-character"
+      },
+      "gameCharacterOverrides": {
+        "slot": {},
+        "casino": {},
+        "sports": {}
+      }
+    },
+    "navIcons": {
+      "arrowRight": "/designs/navigation/arrow-right.webp",
+      "background": "",
+      "depositIcon": "/designs/template-3/nav-icons/deposit.png",
+      "withdrawIcon": "/designs/template-3/nav-icons/withdraw.png"
+    },
+    "lobbyCard": {
+      "topBorder": "/designs/gif-border/top-border.webp",
+      "bottomBorder": "/designs/gif-border/bottom-border.webp",
+      "thumbnailBgPathWeb": "/designs/banana/ocean/gif/thumbnail-bg/web",
+      "thumbnailBgPathMobile": "/designs/banana/ocean/gif/thumbnail-bg/mobile"
+    },
+    "profileMenu": [
+      {
+        "key": "rtp",
+        "page": 1,
+        "sort": 1,
+        "image": "/designs/banana/menu-icons/group-595-1782999084030.webp",
+        "is_active": true
+      },
+      {
+        "key": "livechat",
+        "page": 1,
+        "sort": 2,
+        "image": "/designs/menu/livechat.webp",
+        "is_active": true
+      },
+      {
+        "key": "transaksi",
+        "page": 1,
+        "sort": 3,
+        "image": "/designs/menu/transaction.webp",
+        "is_active": true
+      },
+      {
+        "key": "activity",
+        "page": 1,
+        "sort": 4,
+        "image": "/designs/menu/activity.webp",
+        "is_active": true
+      },
+      {
+        "key": "referral",
+        "page": 1,
+        "sort": 5,
+        "image": "/designs/menu/referral.webp",
+        "is_active": true
+      },
+      {
+        "key": "bettingReport",
+        "page": 1,
+        "sort": 6,
+        "image": "/designs/menu/betting-report.webp",
+        "is_active": true
+      },
+      {
+        "key": "history",
+        "page": 1,
+        "sort": 7,
+        "image": "/designs/menu/history.webp",
+        "is_active": true
+      },
+      {
+        "key": "contact",
+        "page": 1,
+        "sort": 8,
+        "image": "/designs/menu/contact.webp",
+        "is_active": true
+      },
+      {
+        "key": "changePassword",
+        "page": 1,
+        "sort": 9,
+        "image": "/designs/menu/change-pass.webp",
+        "is_active": true
+      },
+      {
+        "key": "apk",
+        "page": 1,
+        "sort": 11,
+        "image": "/designs/menu/apk.webp",
+        "is_active": true
+      },
+      {
+        "key": "telegram",
+        "page": 1,
+        "sort": 12,
+        "image": "/designs/menu/telegram.webp",
+        "is_active": false
+      },
+      {
+        "key": "faq",
+        "page": 2,
+        "sort": 5,
+        "image": "/designs/menu/faq.webp",
+        "is_active": true
+      },
+      {
+        "key": "loginHistory",
+        "page": 2,
+        "sort": 6,
+        "image": "/designs/menu/login.webp",
+        "is_active": true
+      },
+      {
+        "key": "inquiry",
+        "page": 2,
+        "sort": 8,
+        "image": "/designs/menu/inquiry.webp",
+        "is_active": true
+      }
+    ],
+    "transaction": {
+      "bankNoImage": "/designs/banks/NOIMAGE.webp",
+      "depositIcon": "",
+      "bankBasePath": "https://sg-sin-1.linodeobjects.com/banana/ocean/banks",
+      "withdrawIcon": "",
+      "bankAccountNoImage": "/designs/banks/accountlist/NOIMG.webp",
+      "bankAccountListPath": "https://sg-sin-1.linodeobjects.com/banana/ocean/banks/accountlist"
+    }
+  },
+  "contact": {
+    "handles": {
+      "line": "-",
+      "telegram": "@JAEISOL",
+      "whatsapp": "6282174092123",
+      "messenger": "-"
+    }
+  },
+  "identity": {
+    "logo": "/designs/banana/theme/kiiiiiiiimmm-mmmmmmmmaaaaaaaaaaaaaaaaaaax-1781619514685.webp",
+    "slug": "ocean",
+    "favicon": "/designs/banana/theme/kimakicon-1781679808366.webp",
+    "siteName": "JAEISOL",
+    "logoPopup": "/designs/banana/theme/kiiiiiiiimmm-mmmmmmmmaaaaaaaaaaaaaaaaaaax-1781619514685.webp",
+    "logoMobile": "/designs/banana/theme/kiiiiiiiimmm-mmmmmmmmaaaaaaaaaaaaaaaaaaax-1781619514685.webp",
+    "description": "JAEISOL은 슬롯, 라이브 카지노, 스포츠를 한곳에서 제공하는 온라인 게임 사이트입니다. 빠른 입출금, 모바일 최적화 화면, 24시간 고객센터로 언제 어디서나 안전하게 이용하실 수 있습니다."
+  },
+  "integrations": {
+    "tawkTo": {
+      "widgetId": null,
+      "propertyId": null
+    }
+  }
 }
