@@ -68,13 +68,13 @@
             "type": "png",
             "gifBg": "/designs/template-1/navbar/gif-bg/03.gif",
             "icons": {
-                "hot": "/banana/theme/hot-icon-optimized-1782395532169.webp",
-                "mini": "/banana/theme/mini-icon-optimized-1782396091443.webp",
-                "slot": "/banana/theme/slot-icon-optimized-1782395661345.webp",
-                "sport": "/banana/theme/sport-icon-optimized-1782395825566.webp",
-                "casino": "/banana/theme/casino-icon-optimized-1782395725967.webp",
-                "fishing": "/banana/theme/fishing-icon-optimized-1782396049473.webp",
-                "virtual": "/banana/theme/virtual-icon-optimized-1782395959578.webp"
+                "hot": "/designs/banana/theme/hot-icon-optimized-1782395532169.webp",
+                "mini": "/designs/banana/theme/mini-icon-optimized-1782396091443.webp",
+                "slot": "/designs/banana/theme/slot-icon-optimized-1782395661345.webp",
+                "sport": "/designs/banana/theme/sport-icon-optimized-1782395825566.webp",
+                "casino": "/designs/banana/theme/casino-icon-optimized-1782395725967.webp",
+                "fishing": "/designs/banana/theme/fishing-icon-optimized-1782396049473.webp",
+                "virtual": "/designs/banana/theme/virtual-icon-optimized-1782395959578.webp"
             },
             "stickyBg": "rgba(0,0,0,1)",
             "defaultBg": "#000000",
@@ -234,7 +234,7 @@
             "ratio": "/designs/misc/ratio.webp",
             "girlGif": "",
             "loginModalBg": "/designs/misc/modal-login-bg.webp",
-            "mainBackground": "/banana/imageAssets/image-50-1-1778909515732.png",
+            "mainBackground": "/designs/banana/imageAssets/image-50-1-1778909515732.png",
             "defaultThumbnail": "/designs/misc/default.webp",
             "fixedMainBackground": false,
             "mainBackgroundMobile": false
@@ -284,15 +284,15 @@
         "lobbyCard": {
             "topBorder": "/designs/gif-border/top-border.webp",
             "bottomBorder": "/designs/gif-border/bottom-border.webp",
-            "thumbnailBgPathWeb": "/banana/ocean/gif/thumbnail-bg/web",
-            "thumbnailBgPathMobile": "/banana/ocean/gif/thumbnail-bg/mobile"
+            "thumbnailBgPathWeb": "/designs/banana/ocean/gif/thumbnail-bg/web",
+            "thumbnailBgPathMobile": "/designs/banana/ocean/gif/thumbnail-bg/mobile"
         },
         "profileMenu": [
             {
                 "key": "rtp",
                 "page": 1,
                 "sort": 1,
-                "image": "/banana/menu-icons/group-595-1782999084030.webp",
+                "image": "/designs/banana/menu-icons/group-595-1782999084030.webp",
                 "is_active": true
             },
             {
@@ -454,12 +454,12 @@
         }
     },
     "identity": {
-        "logo": "/banana/theme/kiiiiiiiimmm-mmmmmmmmaaaaaaaaaaaaaaaaaaax-1781619514685.webp",
+        "logo": "/designs/banana/theme/kiiiiiiiimmm-mmmmmmmmaaaaaaaaaaaaaaaaaaax-1781619514685.webp",
         "slug": "ocean",
-        "favicon": "/banana/theme/kimakicon-1781679808366.webp",
+        "favicon": "/designs/banana/theme/kimakicon-1781679808366.webp",
         "siteName": "KIMAKTOTO",
-        "logoPopup": "/banana/theme/kiiiiiiiimmm-mmmmmmmmaaaaaaaaaaaaaaaaaaax-1781619514685.webp",
-        "logoMobile": "/banana/theme/kiiiiiiiimmm-mmmmmmmmaaaaaaaaaaaaaaaaaaax-1781619514685.webp",
+        "logoPopup": "/designs/banana/theme/kiiiiiiiimmm-mmmmmmmmaaaaaaaaaaaaaaaaaaax-1781619514685.webp",
+        "logoMobile": "/designs/banana/theme/kiiiiiiiimmm-mmmmmmmmaaaaaaaaaaaaaaaaaaax-1781619514685.webp",
         "description": "KIMAKTOTO hadir dengan akses HK Pools terpercaya, informasi pasaran yang selalu diperbarui, dan sistem permainan yang responsif. Pilihan tepat bagi Anda yang ingin menikmati pengalaman Toto Online,"
     },
     "integrations": {
