@@ -181,7 +181,7 @@ export default defineNuxtConfig({
     optimizeDeps: {
       include: ["axios", "@vue/devtools-core", "@vue/devtools-kit", "ioredis"],
     },
-    // esbuild handles minification (see build.minify below). `drop` strips
+    // OXC handles minification (see build.minify below). Its compressor strips
     // all console.* calls and `debugger` statements in production builds —
     // same effect as the Terser pure_funcs config we used to have.
     // Lighthouse Best Practices counts every console.warn / console.error
@@ -189,16 +189,32 @@ export default defineNuxtConfig({
     // stripping at build time keeps source readable while shipping clean
     // production output. Real errors should be reported via a telemetry
     // pipeline, not the browser console.
-    esbuild: {
-      drop: ["console", "debugger"],
-    },
     build: {
       cssCodeSplit: true,
-      minify: "esbuild",
+      minify: "oxc",
+      rolldownOptions: {
+        output: {
+          minify: {
+            compress: {
+              dropConsole: true,
+              dropDebugger: true,
+            },
+          },
+        },
+      },
       // Hidden source maps for Lighthouse + Sentry upload without exposing the
       // sourceMappingURL comment in the served JS. NOTE: must be "hidden", not
       // `true` — `true` appends the sourceMappingURL pointer we intend to omit.
       sourcemap: "hidden",
+    },
+  },
+
+  hooks: {
+    // Nuxt's Vite integration configures OXC for TS/JSX transforms. Remove
+    // any legacy esbuild transform options after all module config hooks have
+    // run so Vite does not ignore them and emit its OXC/esbuild conflict.
+    "vite:extendConfig": (viteConfig) => {
+      delete (viteConfig as { esbuild?: unknown }).esbuild;
     },
   },
 

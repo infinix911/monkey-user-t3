@@ -99,7 +99,7 @@
 
 ## ADR-012 — Perf/deploy hardening cluster *(inferred, each documented in nuxt.config comments)*
 **Status:** Accepted
-**Decision:** `experimental.appManifest: false` (stale-HTML 404s after deploy); `inline-critical-css` Nitro plugin (kills ~450ms black flash, +23KB/doc); `esbuild.drop: console,debugger` (prod console is a no-op — use Sentry or `process.stderr`); `sourcemap: "hidden"` + Sentry upload; `compressPublicAssets` gzip+brotli; viewport zoom disabled (iOS input auto-zoom; accessibility tradeoff acknowledged); IPX rate-limit exemption; immutable cache headers for hashed assets.
+**Decision:** `experimental.appManifest: false` (stale-HTML 404s after deploy); `inline-critical-css` Nitro plugin (kills ~450ms black flash, +23KB/doc); OXC `dropConsole`/`dropDebugger` minification (prod console is a no-op — use Sentry or `process.stderr`); `sourcemap: "hidden"` + Sentry upload; `compressPublicAssets` gzip+brotli; viewport zoom disabled (iOS input auto-zoom; accessibility tradeoff acknowledged); IPX rate-limit exemption; immutable cache headers for hashed assets.
 
 ---
 

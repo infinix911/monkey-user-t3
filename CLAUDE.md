@@ -132,7 +132,7 @@ transaction-ledger types moved to `app/components/DataTable.vue` and
 ## Notable Config Decisions (details in DECISIONS.md)
 
 - `experimental.appManifest: false` — prevents 404s from stale HTML after deploys (ADR-012).
-- `vite.esbuild.drop: ["console","debugger"]` — prod console is a no-op; use Sentry or `process.stderr.write`.
+- `vite.build.rolldownOptions.output.minify.compress.dropConsole` — prod console is a no-op; use Sentry or `process.stderr.write`.
 - CSP `script-src https:` is deliberately loose (game-provider pixels) — ADR-011.
 - SweetAlert2 is REMOVED — use `showSwalAlert()`/`fireDialog()` (in-house AppDialog, ADR-009). Do not import sweetalert2.
 - `components.pathPrefix: false` — flat component namespace.
