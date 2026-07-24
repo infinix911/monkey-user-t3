@@ -42,25 +42,69 @@ function safeUrl(value: string, image: boolean): string | null {
   return null;
 }
 
+/**
+ * CSS properties an admin may use to lay out and style rich content — the
+ * custom-SEO footer, notices and dialog copy are authored as HTML in the CMS and
+ * routinely carry a grid/flex layout with their own spacing, borders and
+ * backgrounds. Every property here is inert on its own (it can only paint or
+ * position within the element's own box); the value guard below strips the parts
+ * of CSS that can load or run anything. Note `position`, `transform`, `z-index`,
+ * `content` and `cursor` are deliberately excluded so admin markup can never lay
+ * an invisible overlay over the real UI (clickjacking).
+ */
+const ALLOWED_STYLE_PROPS = new Set([
+  // typography
+  "color", "font", "font-family", "font-size", "font-weight", "font-style",
+  "line-height", "letter-spacing", "word-spacing", "text-align",
+  "text-decoration", "text-transform", "text-shadow", "text-indent",
+  "white-space", "word-break", "overflow-wrap", "word-wrap", "vertical-align",
+  "list-style", "list-style-type", "list-style-position",
+  // box model
+  "margin", "margin-top", "margin-right", "margin-bottom", "margin-left",
+  "padding", "padding-top", "padding-right", "padding-bottom", "padding-left",
+  "width", "min-width", "max-width", "height", "min-height", "max-height",
+  "box-sizing", "overflow", "overflow-x", "overflow-y",
+  // border / background / effects
+  "background", "background-color", "background-position", "background-size",
+  "background-repeat", "background-clip",
+  "border", "border-top", "border-right", "border-bottom", "border-left",
+  "border-color", "border-style", "border-width", "border-radius",
+  "box-shadow", "opacity", "outline", "aspect-ratio",
+  // layout
+  "display", "flex", "flex-direction", "flex-wrap", "flex-flow", "flex-grow",
+  "flex-shrink", "flex-basis", "justify-content", "justify-items",
+  "justify-self", "align-items", "align-content", "align-self", "gap",
+  "row-gap", "column-gap", "order",
+  "grid", "grid-template", "grid-template-columns", "grid-template-rows",
+  "grid-template-areas", "grid-auto-flow", "grid-auto-columns",
+  "grid-auto-rows", "grid-column", "grid-row", "grid-area", "grid-gap",
+  "place-items", "place-content", "place-self",
+]);
+
+/**
+ * Value fragments that can pull in an external resource, execute, or escape the
+ * CSS context. Any declaration whose value matches is dropped whole. `url()` is
+ * intentionally banned outright (so `background-image` cannot fetch/track);
+ * layout functions like `repeat()`, `minmax()`, `calc()` remain allowed.
+ */
+const UNSAFE_STYLE_VALUE =
+  /url\(|image-set\(|-webkit-image-set\(|expression\(|javascript:|vbscript:|data:|@import|behavior|-moz-binding|[<>\\]/i;
+
 function safeStyle(value: string): string {
   const declarations: string[] = [];
   for (const declaration of value.split(";")) {
-    const [rawName, ...rest] = declaration.split(":");
-    const name = rawName?.trim().toLowerCase();
-    const styleValue = rest.join(":").trim().toLowerCase();
+    const colon = declaration.indexOf(":");
+    if (colon < 0) continue;
+    const name = declaration.slice(0, colon).trim().toLowerCase();
+    const styleValue = declaration.slice(colon + 1).trim();
     if (!name || !styleValue) continue;
-    if (name === "text-align" && /^(?:left|right|center|justify)$/.test(styleValue))
-      declarations.push(`${name}:${styleValue}`);
-    if (name === "font-size" && /^\d{1,3}(?:\.\d{1,2})?(?:px|rem|em|%)$/.test(styleValue))
-      declarations.push(`${name}:${styleValue}`);
-    if (name === "color" && /^(?:#[0-9a-f]{3,8}|[a-z]{1,20})$/.test(styleValue))
-      declarations.push(`${name}:${styleValue}`);
-    if (name === "font-weight" && /^(?:normal|bold|[1-9]00)$/.test(styleValue))
-      declarations.push(`${name}:${styleValue}`);
-    if (name === "font-style" && /^(?:normal|italic)$/.test(styleValue))
-      declarations.push(`${name}:${styleValue}`);
-    if (name === "text-decoration" && /^(?:none|underline|line-through)$/.test(styleValue))
-      declarations.push(`${name}:${styleValue}`);
+    if (!ALLOWED_STYLE_PROPS.has(name)) continue;
+    // Length cap + token/comment guard: keep any one declaration from smuggling
+    // an oversized or obfuscated (comment-split) payload past the checks above.
+    if (styleValue.length > 300) continue;
+    if (styleValue.includes("/*") || styleValue.includes("*/")) continue;
+    if (UNSAFE_STYLE_VALUE.test(styleValue)) continue;
+    declarations.push(`${name}:${styleValue}`);
   }
   return declarations.join(";");
 }
