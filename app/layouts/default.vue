@@ -218,8 +218,11 @@
              non-empty footer string. -->
         <div v-if="customSeoFooter" class="w-full bg-black/70">
           <!-- eslint-disable-next-line vue/no-v-html -->
+          <!-- No forced text-align here: the footer HTML is admin-authored and
+               sanitizeHtml preserves its own layout/alignment, so alignment is
+               the author's call (add text-align in the CMS to centre). -->
           <footer
-            class="custom-seo-footer w-full xl:w-[1152px] mx-auto px-4 py-6 text-sm text-white text-center [&_*]:!text-center"
+            class="custom-seo-footer w-full xl:w-[1152px] mx-auto px-4 py-6 text-sm text-white"
             v-html="customSeoFooter" />
         </div>
 
