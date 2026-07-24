@@ -122,10 +122,9 @@ useOrganizationSchema();
 useWebsiteSchema();
 useBreadcrumbSchema([{ name: "Home", path: "/" }]);
 useFaqSchema(
-  (tm("home.faq.items") as Array<{ q: unknown; a: unknown }>).map((item) => ({
-    question: rt(item.q as string),
-    answer: rt(item.a as string),
-  })),
+  normalizeFaqSchemaItems(tm("home.faq.items"), (message) =>
+    rt(message as string),
+  ),
 );
 
 const _router = useRouter();

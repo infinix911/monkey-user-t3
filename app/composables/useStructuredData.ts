@@ -178,6 +178,29 @@ export function useItemListSchema(
 }
 
 /**
+ * Convert vue-i18n's linked-message values into plain FAQ schema entries.
+ * `tm()` returns the key string when lazy messages are unavailable, so treat
+ * every non-array or malformed value as no FAQ data instead of crashing SSR.
+ */
+export function normalizeFaqSchemaItems(
+  value: unknown,
+  resolveMessage: (message: unknown) => string,
+): Array<{ question: string; answer: string }> {
+  if (!Array.isArray(value)) return [];
+
+  const items: Array<{ question: string; answer: string }> = [];
+  for (const item of value) {
+    if (!item || typeof item !== "object") continue;
+    const { q, a } = item as { q?: unknown; a?: unknown };
+    if (q == null || a == null) continue;
+    const question = resolveMessage(q);
+    const answer = resolveMessage(a);
+    if (question && answer) items.push({ question, answer });
+  }
+  return items;
+}
+
+/**
  * FAQPage JSON-LD — rich-result eligible. Pass plain-text question/answer
  * pairs; entries missing either field are dropped, and nothing is emitted when
  * no valid pair remains.

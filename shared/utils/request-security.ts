@@ -1,9 +1,29 @@
 const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
+const INTERNAL_I18N_MESSAGES_ROUTE =
+  /^\/_i18n\/[A-Za-z0-9_-]+\/[A-Za-z0-9-]+\/messages\.json$/;
 
 export interface CanonicalAuthority {
   authority: string;
   hostname: string;
   port: string;
+}
+
+/**
+ * Nuxt i18n loads lazy locale messages during production SSR through Nitro's
+ * in-process fetch adapter. That adapter uses `Host: localhost` and a mock
+ * socket with no peer address. Keep this exception limited to the generated
+ * public messages route so real requests still require an allowed authority.
+ */
+export function isTrustedInternalI18nRequest(
+  rawHost: string | undefined,
+  remoteAddress: string | undefined,
+  pathname: string,
+): boolean {
+  return (
+    rawHost?.trim().toLowerCase() === "localhost" &&
+    !remoteAddress &&
+    INTERNAL_I18N_MESSAGES_ROUTE.test(pathname)
+  );
 }
 
 /** Parse a Host header without accepting credentials, paths, lists, or fragments. */
