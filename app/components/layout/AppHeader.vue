@@ -87,20 +87,6 @@
                   currency.formatNumber(authStore.user.point_wallet) }}</span>
                 <span class="text-white/55 text-[13px] font-semibold leading-none">P</span>
               </button>
-              <!-- Partner — links straight to the partner dashboard (no dropdown). -->
-              <NuxtLink to="/partner-dashboard" :aria-label="$t('header.partner')"
-                class="flex items-center gap-1.5 h-[37px] pl-1.5 pr-3 rounded-full bg-black/45 backdrop-blur-sm shadow-[0_2px_6px_rgba(0,0,0,0.35)] cursor-pointer transition-transform hover:scale-[1.03]">
-                <span class="w-6 h-6 xl:w-6.5 xl:h-6.5 rounded-full flex items-center justify-center shrink-0"
-                  :style="{ background: siteConfig.theme.brandColor }">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-black" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                      d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" />
-                  </svg>
-                </span>
-                <span class="text-white font-bold text-[15px] uppercase tracking-tight leading-none">{{
-                  $t('header.partner') }}</span>
-              </NuxtLink>
               <div class="relative flex items-center">
                 <NotificationDropdown :notifications="notifications" @marked-all-read="markNotificationsRead">
                   <div class="relative cursor-pointer" aria-haspopup="dialog">
@@ -217,8 +203,7 @@
               </span>
             </div>
           </div>
-          <!-- Point conversion + partner links are desktop-only — on mobile the
-               header stays compact (partner nav lives in the in-page sidebar). -->
+          <!-- Point conversion is desktop-only — on mobile the header stays compact. -->
           <div class="contents">
             <!-- Notification bell — hidden on the mobile header. -->
             <div class="absolute top-[-25px] right-2 z-10 hidden">

@@ -19,8 +19,8 @@ type SitemapPage = {
 // (`assets.navIcons.menuItems`) — the nav config lives in a client composable
 // that isn't cleanly importable here, so this stays the single server-side
 // source of truth. Authenticated / sensitive pages (history, invoice,
-// partner-deposit/withdraw, activity) are intentionally omitted and
-// additionally carry a `noindex` meta tag.
+// activity) are intentionally omitted and additionally carry a `noindex`
+// meta tag.
 const ALL_PAGES: SitemapPage[] = [
   { path: "/", changefreq: "daily", priority: "1.0" },
   { path: "/hot", changefreq: "daily", priority: "0.9" },
@@ -31,7 +31,6 @@ const ALL_PAGES: SitemapPage[] = [
   { path: "/fishing", changefreq: "weekly", priority: "0.7" },
   { path: "/virtual", changefreq: "weekly", priority: "0.7" },
   { path: "/promotions", changefreq: "weekly", priority: "0.6" },
-  { path: "/partner", changefreq: "monthly", priority: "0.3" },
 ];
 
 export default defineEventHandler(async (event) => {

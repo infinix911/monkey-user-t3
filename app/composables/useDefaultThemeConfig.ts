@@ -358,28 +358,6 @@ export interface ThemePanelConfig {
     actionColor: string;
 }
 
-/**
- * Partner-section (partner dashboard) theme tokens. Independent from the shared
- * `theme.panel.*` palette so the partner UI can be re-skinned on its own.
- * Consumed by `usePartnerTheme` — read `theme.partner.<leaf>` directly.
- */
-export interface ThemePartnerConfig {
-    /** Accent — icons, active states, table-header text, active-tab gradient base. Hex color. */
-    accentColor: string;
-    /** Container border — nav bar, body container, cards. CSS color. */
-    borderColor: string;
-    /** Container background — nav bar, partner body, drawers. CSS gradient/color string. */
-    panelBgColor: string;
-    /** Card background — section cards, tables, submenus. CSS gradient/color string. */
-    cardBgColor: string;
-    /** Table header background. CSS color. */
-    headBgColor: string;
-    /** Text color on the active tab / primary button. Hex color. */
-    activeTextColor: string;
-    /** Large decorative background watermark emoji (empty = none). Single emoji. */
-    watermarkEmoji: string;
-}
-
 /** All colors, gradients, and layout tokens (the "Theme" CMS tab). */
 export interface ThemeConfig {
     /** Primary brand color (accents, highlights). Hex color. */
@@ -426,8 +404,6 @@ export interface ThemeConfig {
     bottomNav: ThemeBottomNavConfig;
     /** Shared account/activity panel theme tokens. */
     panel: ThemePanelConfig;
-    /** Partner-section (partner dashboard) theme tokens. */
-    partner: ThemePartnerConfig;
 }
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -1104,20 +1080,6 @@ export const getDefaultThemeConfig = (): SiteConfig => {
                     "linear-gradient(135deg, rgba(20,20,20,0.6), rgba(10,22,25,0.6), rgba(15,15,15,0.6))",
                 panelBorder: "rgba(0,180,216,0.15)",
                 actionColor: "#00B4D8",
-            },
-            // Partner-section palette. Defaults mirror the ocean `panel.*`
-            // tokens so the partner UI stays consistent when a theme document
-            // does not override `theme.partner.*`.
-            partner: {
-                accentColor: "#0077B6",
-                borderColor: "rgba(0,180,216,0.15)",
-                panelBgColor:
-                    "linear-gradient(135deg, rgba(20,20,20,0.6), rgba(10,22,25,0.6), rgba(15,15,15,0.6))",
-                cardBgColor:
-                    "linear-gradient(180deg, #002A3A 0%, #0F0F0F 14.42%, #0F0F0F 82.69%, #001A2E 100%)",
-                headBgColor: "#002A3A",
-                activeTextColor: "#000000",
-                watermarkEmoji: "👑",
             },
         },
 

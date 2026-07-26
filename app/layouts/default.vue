@@ -17,11 +17,6 @@
       right: '0',
     }" />
 
-    <!-- Partner focus dim — darkens the site background so the partner section
-         becomes the visual focus. -->
-    <div v-if="isPartnerPage" class="fixed inset-0 -z-[5] pointer-events-none"
-      style="background: radial-gradient(120% 90% at 50% 0%, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.86) 70%, rgba(0,0,0,0.94) 100%);" />
-
     <!-- `site-zoom` renders this page at 110% on wide desktops (main.css).
          Opt-in per page — see isZoomPage. Modals that Teleport to body sit
          outside this wrapper and stay 1:1. -->
@@ -41,8 +36,8 @@
       <!-- Normal page content — always mounted; hidden with v-show while
            the notice is pending. -->
       <div v-show="!uiStore.showNoticeModal">
-        <!-- Announcement Bar (desktop lg+: above the banner). Hidden on the RTP + partner pages. -->
-        <div v-if="!isRtpPage && !isPartnerPage" class="hidden lg:block w-full xl:w-[1152px] mx-auto">
+        <!-- Announcement Bar (desktop lg+: above the banner). Hidden on the RTP page. -->
+        <div v-if="!isRtpPage" class="hidden lg:block w-full xl:w-[1152px] mx-auto">
           <div
             class="w-full shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] max-h-[30px] md:max-h-[40px] md:min-h-[40px] min-h-[32px] md:h-[40px] flex justify-center"
             :style="{ background: brandSiteConfig.theme.announcement.desktopGradient }">
@@ -57,8 +52,8 @@
           </div>
         </div>
 
-        <!-- Banner (collapsed on sticky-navbar pages until scrolled past, so navbar sits under header). Hidden on partner pages. -->
-        <div v-if="!isPartnerPage" id="banner-container" ref="bannerContainer"
+        <!-- Banner (collapsed on sticky-navbar pages until scrolled past, so navbar sits under header). -->
+        <div id="banner-container" ref="bannerContainer"
           class="w-full xl:w-[1152px] mx-auto transition-[height,visibility] duration-200" :style="!initialScrollDone && isNavbarStickyPage
             ? { height: 0, overflow: 'hidden', visibility: 'hidden' }
             : {}
@@ -76,7 +71,7 @@
              (NOT CSS sticky): html/body have `overflow-x: auto`, which disables
              position:sticky for descendants. The navbar's fixed top + stick
              trigger are offset by this bar's height (announcementHeight). -->
-        <div v-if="!isRtpPage && !isPartnerPage" class="block lg:hidden w-full xl:w-[1152px] mx-auto">
+        <div v-if="!isRtpPage" class="block lg:hidden w-full xl:w-[1152px] mx-auto">
           <div ref="announcementBar"
             class="w-full shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] max-h-[30px] md:max-h-[41px] md:min-h-[41px] min-h-[30px] md:h-[41px] flex justify-center"
             :class="effectiveNavFixed ? 'fixed left-0 right-0 z-40' : ''"
@@ -107,7 +102,7 @@
              reads separately from the image); when the nav is a solid colour it
              already blends into this black strip, so the padding is dropped to
              avoid a big undifferentiated gap. -->
-        <div v-if="!authStore.isAuthenticated && !isRtpPage && !isPartnerPage"
+        <div v-if="!authStore.isAuthenticated && !isRtpPage"
           class="block min-[690px]:hidden w-full xl:w-[1152px] mx-auto flex items-center justify-center gap-2 pt-3"
           :class="brandSiteConfig.assets.navIcons.background ? 'pb-3' : 'pb-0'"
           :style="{ background: '#000000' }">
@@ -169,9 +164,8 @@
             </div>
           </template>
 
-          <!-- Navbar — hidden on the RTP page (own provider tabs) and partner
-               pages (replaced by the partner nav below). -->
-          <div v-if="!isRtpPage && !isPartnerPage" ref="navbarAnchor" class="relative z-20">
+          <!-- Navbar — hidden on the RTP page (own provider tabs). -->
+          <div v-if="!isRtpPage" ref="navbarAnchor" class="relative z-20">
             <div :class="effectiveNavFixed ? 'fixed left-0 right-0 z-40' : ''"
               :style="effectiveNavFixed ? { top: (headerHeight + announcementHeight) + 'px' } : {}">
               <Navbar />
@@ -179,31 +173,10 @@
             <div v-if="effectiveNavFixed" :style="{ height: navbarHeight + 'px' }" />
           </div>
 
-          <!-- Partner nav — partner-section navigation in place of the game nav. -->
-          <div v-if="isPartnerPage" class="relative z-20">
-            <PartnerNav />
-          </div>
-
           <!-- Main Content -->
           <main ref="mainContent" class="relative overflow-y-hidden overflow-x-auto mt-0 z-10">
             <div class="relative z-10 w-full">
-              <!-- Partner body — its own themed container, visually separate
-                   from the partner nav container above it. Desktop (lg+) only:
-                   on mobile the panel chrome is dropped (no bg/border/padding)
-                   so the page doesn't feel crowded on small screens. -->
-              <div v-if="isPartnerPage" class="w-full px-0 lg:px-4 pt-3 pb-10">
-                <div class="partner-body relative lg:rounded-2xl lg:border overflow-hidden"
-                  :style="{ '--pb-bg': siteConfig.theme.partner.panelBgColor, '--pb-border': siteConfig.theme.partner.borderColor, '--pb-accent': siteConfig.theme.partner.accentColor }">
-                  <!-- Cosmo artwork — top-right of the panel, clipped by the
-                       panel's rounded corners + overflow-hidden, masked so it
-                       melts into the dark toward the bottom-left. -->
-                  <div class="partner-cosmos" aria-hidden="true" />
-                  <div class="relative z-[1]">
-                    <slot />
-                  </div>
-                </div>
-              </div>
-              <slot v-else />
+              <slot />
             </div>
           </main>
         </div>
@@ -378,12 +351,6 @@ const localePath = useLocalePath();
 // on the asset CDN) instead of the rotating BannerPreview carousel.
 const isRtpPage = computed(() => route.path === localePath("/slot-rtp"));
 const rtpBannerSrc = cdn("/designs/rtp-banner.png");
-
-// Partner section (/partner, /partner-deposit, /partner-withdraw): no banner or
-// announcement, and the game Navbar is replaced by the partner nav.
-const isPartnerPage = computed(() =>
-  route.path.startsWith(localePath("/partner")),
-);
 
 // Pages that render at 110% on wide desktops (the `site-zoom` class, main.css).
 // Deliberately an allow-list rather than a global rule — every other page stays
@@ -745,53 +712,6 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* ---------------------------------------------------------------------------
-   Partner cosmic backdrop — orange planet-glow + starfield, top-right, pure
-   CSS. Sits behind the partner nav (z-20) and content (z-10) at z-0, masked so
-   it dissolves into the dark page below.
-   --------------------------------------------------------------------------- */
-.partner-cosmos {
-  position: absolute;
-  top: 0;
-  right: 0;
-  z-index: 0;
-  width: min(1000px, 68%);
-  height: 230px;
-  pointer-events: none;
-  background: url("/designs/partner/cosmo.webp") right top / cover no-repeat;
-  /* Radial mask keeps the planet (top-right) crisp and dissolves the artwork
-     toward the bottom-left so it melts into the panel — no hard edges. */
-  -webkit-mask-image: radial-gradient(145% 130% at 100% 0%, #000 42%, rgba(0, 0, 0, 0.5) 64%, transparent 84%);
-  mask-image: radial-gradient(145% 130% at 100% 0%, #000 42%, rgba(0, 0, 0, 0.5) 64%, transparent 84%);
-}
-
-/* Smaller on phones/tablets so the header doesn't feel busy. */
-@media (max-width: 1023px) {
-  .partner-cosmos {
-    width: 82%;
-    height: 160px;
-    opacity: 0.9;
-  }
-}
-
-/* Partner body container — themed premium panel (theme.partner.*), a separate
-   container from the partner nav bar above it. Panel chrome only at lg+; on
-   mobile the content sits directly on the page. The cosmo artwork (.partner-cosmos)
-   lives inside it, clipped to its rounded top-right. */
-@media (min-width: 1024px) {
-  .partner-body {
-    background: var(--pb-bg);
-    border-color: var(--pb-border);
-    backdrop-filter: blur(16px) saturate(1.1);
-    -webkit-backdrop-filter: blur(16px) saturate(1.1);
-    /* Layered premium shadow: a tight contact shadow + a soft ambient drop. */
-    box-shadow:
-      0 1px 2px 0 rgba(0, 0, 0, 0.4),
-      0 24px 60px -28px rgba(0, 0, 0, 0.9),
-      inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
-  }
-}
-
 .seo-link {
   display: inline-block;
   padding: 4px 10px;

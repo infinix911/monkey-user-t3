@@ -200,6 +200,8 @@ export function useProfileMenu(options: UseProfileMenuOptions) {
   // - togel group (invoice … carabermain): ADR togel/qris removal — routes gone.
   // - bonushistory / levelsystem: backed only by GET /promotions/bonuses and
   //   GET /promotions/level-rewards, which don't exist in monkey-user-api.
+  // - partner group: ADR-020 — the /partner* routes, components, and partner
+  //   deposit/withdraw flows are gone.
   const REMOVED_ITEM_IDS = new Set([
     "invoice",
     "meanang",
@@ -209,6 +211,16 @@ export function useProfileMenu(options: UseProfileMenuOptions) {
     "carabermain",
     "bonushistory",
     "levelsystem",
+    "partner",
+    "partnerdashboard",
+    "partnerdeposit",
+    "partnerwithdraw",
+    "partnermembers",
+    "partnersettlement",
+    "partnersettlements",
+    "partnersettlementrequest",
+    "partnerbethistory",
+    "partnergamestats",
   ]);
   const isRemovedItem = (id: string) =>
     REMOVED_ITEM_IDS.has(id.replace(/[^a-z]/gi, "").toLowerCase());

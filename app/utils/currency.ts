@@ -90,16 +90,3 @@ export function formatWallet(value: string | number): string {
 export function formatWalletAmount(value: string | number): string {
   return formatAmountNumber(value, "IDR");
 }
-
-/**
- * Whole-number THB formatting for the partner/affiliate program, which is
- * intentionally pinned to Thai baht (th-TH, no fraction digits) regardless of
- * the deployment currency — do NOT route this through useCurrency(). Extracted
- * verbatim from four identical local copies in the partner list components.
- */
-export function formatPartnerAmount(num: number): string {
-  return num.toLocaleString("th-TH", {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  });
-}

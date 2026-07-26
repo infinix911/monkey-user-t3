@@ -37,8 +37,9 @@ export function isOpenedViaTelegram(): boolean {
 }
 
 /**
- * Check if the session was opened via Telegram Offline bot
- * (uses partner deposit/withdraw instead of regular deposit/withdraw)
+ * Check if the session was opened via Telegram Offline bot.
+ * Currently unused — the offline deposit/withdraw variant it used to gate was
+ * the partner flow, removed with the partner section.
  */
 export function isOpenedViaTelegramOffline(): boolean {
   if (typeof window === "undefined") return false;
