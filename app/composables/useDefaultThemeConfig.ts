@@ -358,6 +358,20 @@ export interface ThemePanelConfig {
     actionColor: string;
 }
 
+/** Desktop left-rail shell (lg+ two-column layout). */
+export interface ThemeSidebarConfig {
+    /** Rail container border. CSS border shorthand. */
+    border: string;
+    /** Rail container background. CSS color (rgba/hex). */
+    bg: string;
+    /** Rule between the game and account groups. Hex color. */
+    divider: string;
+    /** Label color for the active route. Hex color. */
+    activeItemColor: string;
+    /** Row hover background. CSS color (rgba). */
+    hoverBg: string;
+}
+
 /** All colors, gradients, and layout tokens (the "Theme" CMS tab). */
 export interface ThemeConfig {
     /** Primary brand color (accents, highlights). Hex color. */
@@ -404,6 +418,8 @@ export interface ThemeConfig {
     bottomNav: ThemeBottomNavConfig;
     /** Shared account/activity panel theme tokens. */
     panel: ThemePanelConfig;
+    /** Desktop left-rail shell (lg+ two-column layout). */
+    sidebar: ThemeSidebarConfig;
 }
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -660,6 +676,36 @@ export interface AssetsIconsConfig {
 }
 
 /** All image/icon assets (the "Assets" CMS tab). */
+/**
+ * Left-rail iconography. Separate from `navIcons` because the rail uses the
+ * flat monochrome set in /designs/navigation, not the top nav's coloured webp
+ * icons — the two surfaces are themed independently.
+ */
+export interface AssetsSidebarIconsConfig {
+    /** "Hot"/featured game rail icon. Public asset path or absolute URL. */
+    hot: string;
+    /** Slot game rail icon. Public asset path or absolute URL. */
+    slot: string;
+    /** Live casino rail icon. Public asset path or absolute URL. */
+    casino: string;
+    /** Sports rail icon. Public asset path or absolute URL. */
+    sport: string;
+    /** Mini games rail icon. Public asset path or absolute URL. */
+    mini: string;
+    /** Notice rail icon. Public asset path or absolute URL. */
+    notice: string;
+    /** Promotion rail icon. Public asset path or absolute URL. */
+    promotion: string;
+    /** Customer inquiry rail icon. Public asset path or absolute URL. */
+    inquiry: string;
+    /** Transaction-history rail icon. Public asset path or absolute URL. */
+    transaction: string;
+    /** Betting-history rail icon. Public asset path or absolute URL. */
+    betting: string;
+    /** Change-password rail icon. Public asset path or absolute URL. */
+    password: string;
+}
+
 export interface AssetsConfig {
     /** Generic site imagery. */
     images: AssetsImagesConfig;
@@ -677,6 +723,8 @@ export interface AssetsConfig {
     profileMenu: ProfileMenuItem[];
     /** PWA manifest icon assets. */
     icons: AssetsIconsConfig;
+    /** Desktop left-rail iconography. */
+    sidebarIcons: AssetsSidebarIconsConfig;
 }
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -952,6 +1000,13 @@ export const getDefaultThemeConfig = (): SiteConfig => {
                 gradient:
                     "linear-gradient(90deg, #001F50 0%, #204D97 50.48%, #001F50 100%)",
             },
+            sidebar: {
+                border: "1px solid #B04C00",
+                bg: "rgba(0, 0, 0, 0.6)",
+                divider: "#434343",
+                activeItemColor: "#FF8A21",
+                hoverBg: "rgba(255, 255, 255, 0.06)",
+            },
             authButton: {
                 loginBg:
                     "linear-gradient(to bottom, #0C316C, #175FD2) padding-box, linear-gradient(to bottom, #F7E652, #C9B10C 66.8%, #F7E652) border-box",
@@ -1196,6 +1251,19 @@ export const getDefaultThemeConfig = (): SiteConfig => {
             ],
             icons: {
                 pwa: { ...PWA_ICONS },
+            },
+            sidebarIcons: {
+                hot: "/designs/navigation/hot.png",
+                slot: "/designs/navigation/slots.png",
+                casino: "/designs/navigation/casino.png",
+                sport: "/designs/navigation/sports.png",
+                mini: "/designs/navigation/mini.png",
+                notice: "/designs/navigation/Group 306.png",
+                promotion: "/designs/navigation/Group 301.png",
+                inquiry: "/designs/navigation/Group 302.png",
+                transaction: "/designs/navigation/Group 303.png",
+                betting: "/designs/navigation/Group 304.png",
+                password: "/designs/navigation/Group 305.png",
             },
         },
 

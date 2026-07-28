@@ -942,5 +942,19 @@
       "INTERNAL_ERROR": "오류가 발생했습니다. 다시 시도해 주세요."
     },
     "available": "보유 포인트"
+  },
+  "sidebar": {
+    "label": "메인 메뉴",
+    "hot": "인기게임",
+    "slot": "슬롯게임",
+    "mini": "미니게임",
+    "sport": "토갤스포츠",
+    "casino": "라이브카지노",
+    "notice": "공지사항",
+    "promotion": "프로모션",
+    "inquiry": "고객문의",
+    "transaction": "거래내역",
+    "betting": "배팅내역",
+    "password": "비밀번호 변경"
   }
 }

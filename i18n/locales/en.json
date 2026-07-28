@@ -942,5 +942,19 @@
       "INTERNAL_ERROR": "Something went wrong. Please try again."
     },
     "available": "Available Points"
+  },
+  "sidebar": {
+    "label": "Main menu",
+    "hot": "Popular games",
+    "slot": "Slot games",
+    "mini": "Mini games",
+    "sport": "Sports",
+    "casino": "Live casino",
+    "notice": "Notice",
+    "promotion": "Promotion",
+    "inquiry": "Customer inquiry",
+    "transaction": "Transaction history",
+    "betting": "Betting history",
+    "password": "Change password"
   }
 }

@@ -83,7 +83,13 @@ export const useUiStore = defineStore("ui", () => {
     showContactModal.value = open;
   };
 
-  const setShowProfileModal = (open: boolean) => {
+  // Which "My Account" section the profile modal should land on when it opens
+  // (`null` = the menu itself). The desktop sidebar sets this so a rail item can
+  // deep-link straight into e.g. the transaction ledger; the modal clears it.
+  const profileSection = ref<string | null>(null);
+
+  const setShowProfileModal = (open: boolean, section: string | null = null) => {
+    profileSection.value = open ? section : null;
     showProfileModal.value = open;
   };
 
@@ -152,6 +158,7 @@ export const useUiStore = defineStore("ui", () => {
     showFaqModal,
     showContactModal,
     showProfileModal,
+    profileSection,
     showDepositModal,
     showWithdrawalModal,
     showPointModal,

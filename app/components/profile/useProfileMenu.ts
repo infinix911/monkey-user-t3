@@ -567,6 +567,14 @@ export function useProfileMenu(options: UseProfileMenuOptions) {
     options.isOpen,
     (newVal) => {
       if (newVal) {
+        // A caller (the desktop sidebar) can ask for a specific section, so the
+        // rail's 거래내역 / 배팅내역 / 비밀번호 변경 items open their panel directly
+        // instead of dropping the user on the menu. Unknown ids are ignored, so
+        // a stale CMS id degrades to the menu rather than a blank panel.
+        const requested = uiStore.profileSection;
+        if (requested && options.isAccountSection(requested)) {
+          selectedAccountSection.value = requested;
+        }
         if (import.meta.client) {
           document.addEventListener("mousedown", handleClickOutside);
           document.addEventListener("keydown", handleEscape);

@@ -36,6 +36,17 @@
       <!-- Normal page content — always mounted; hidden with v-show while
            the notice is pending. -->
       <div v-show="!uiStore.showNoticeModal">
+        <!-- Two columns from lg: the left rail, then the existing content stack.
+             Below lg this wrapper is inert (no flex), so the single-column
+             mobile/tablet layout — and all the sticky/scroll machinery tuned to
+             it — is untouched. The rail replaces the desktop category bar, so
+             Navbar below is rendered with `:desktop="false"`. -->
+        <div class="lg:flex lg:w-full lg:max-w-[1400px] lg:mx-auto lg:items-start lg:gap-3 lg:px-2">
+          <div class="hidden lg:block lg:w-[215px] lg:flex-shrink-0 lg:pt-3">
+            <AppSidebar />
+          </div>
+
+          <div class="min-w-0 lg:flex-1">
         <!-- Announcement Bar (desktop lg+: above the banner). Hidden on the RTP page. -->
         <div v-if="!isRtpPage" class="hidden lg:block w-full xl:w-[1152px] mx-auto">
           <div
@@ -168,7 +179,7 @@
           <div v-if="!isRtpPage" ref="navbarAnchor" class="relative z-20">
             <div :class="effectiveNavFixed ? 'fixed left-0 right-0 z-40' : ''"
               :style="effectiveNavFixed ? { top: (headerHeight + announcementHeight) + 'px' } : {}">
-              <Navbar />
+              <Navbar :desktop="false" />
             </div>
             <div v-if="effectiveNavFixed" :style="{ height: navbarHeight + 'px' }" />
           </div>
@@ -179,6 +190,8 @@
               <slot />
             </div>
           </main>
+        </div>
+          </div>
         </div>
 
         <!-- Mobile Bottom Navigation — shown for guests too (the bar renders a

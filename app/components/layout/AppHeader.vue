@@ -5,10 +5,18 @@
          gradient is applied to the centred 1152px content row only. -->
     <div class="hidden min-[690px]:block relative h-full transition-colors duration-300"
       :style="{ backgroundColor: isScrolled ? siteConfig.theme.nav.stickyBg : 'transparent' }">
-      <div class="pr-1.5 relative flex items-end justify-between max-w-[1152px] mx-auto h-full pb-2.5"
-        :style="{ background: isScrolled ? 'transparent' : siteConfig.theme.nav.headerBgGradient }">
-        <!-- Left: Logo (hidden while the notice modal is open) -->
-        <div v-show="!uiStore.showNoticeModal" class="flex items-end gap-2">
+      <!-- max-w matches the two-column wrapper in layouts/default.vue, so the
+           logo lands above the left rail and the user controls over the content
+           column. Keep the two in step if either width changes. -->
+      <!-- No background of its own: at the top the header floats over the hero,
+           and once scrolled the wrapper above supplies `nav.stickyBg`. The row
+           used to paint `nav.headerBgGradient` in the unscrolled state, which is
+           exactly the state that must now be transparent. -->
+      <div class="pr-1.5 relative flex items-end justify-between max-w-[1152px] lg:max-w-[1400px] lg:px-2 mx-auto h-full pb-2.5">
+        <!-- Left: Logo (hidden while the notice modal is open). Its lg width is
+             the rail's, so the logo sits over the rail and everything after it
+             starts at the content column's left edge. -->
+        <div v-show="!uiStore.showNoticeModal" class="flex items-end gap-2 lg:w-[215px] lg:flex-shrink-0">
           <NuxtLink to="/" class="flex items-center justify-center flex-shrink-0">
             <NuxtImg :src="siteConfig.identity.logo" :alt="siteConfig.identity.siteName"
               class="h-auto w-auto cursor-pointer object-contain flex-shrink-0 ml-2"
@@ -16,9 +24,14 @@
           </NuxtLink>
         </div>
 
-        <!-- Right: Language + Auth buttons / User profile -->
-        <div v-show="!uiStore.showNoticeModal" class="font-medium flex items-center gap-1 relative">
+        <!-- Content column: the account bar sits at its leading edge and the
+             auth/language/menu controls at its trailing edge, so the header
+             lines up with the two columns beneath it. -->
+        <div v-show="!uiStore.showNoticeModal" class="font-medium flex flex-1 min-w-0 items-center justify-between gap-3 relative">
           <template v-if="!isAuthenticated">
+            <!-- Guests have no account bar; the spacer holds the leading edge so
+                 the buttons stay pinned to the trailing one. -->
+            <span aria-hidden="true" />
             <!-- Login + Sign up buttons grouped -->
             <div class="flex items-center gap-1">
               <!-- Login: gold gradient border + gold gradient text -->
@@ -37,9 +50,8 @@
                 @click="showSignupModal">
                 <span class="block w-full text-center truncate">{{ $t('header.signUp') }}</span>
               </button>
-            </div>
             <!-- Language selector -->
-            <div data-lang-selector class="mx-2">
+            <div data-lang-selector class="ms-2">
               <div class="relative">
                 <button
                   class="inline-flex justify-center items-center gap-1 px-1 h-[30px] xl:h-[30px] rounded-[7px] text-white/90 cursor-pointer hover:opacity-90 transition-opacity"
@@ -61,19 +73,25 @@
                 </div>
               </div>
             </div>
+            </div>
             <!-- Hamburger menu omitted for guests (login/sign-up only). -->
           </template>
           <!-- Authenticated: Wallet box + Notification + Language -->
           <template v-else>
-            <!-- User info — homepage pill:
-                 white username, blue balance, no background. -->
-            <UserBalancePill layout="inline" coin-class="w-5.5 h-5.5 xl:w-6.5 xl:h-6.5" username-class="text-[17px]"
-              symbol-class="text-[17px]" amount-class="text-[17px]"
-              pill-class="flex items-center h-[37px] px-4 rounded-full bg-black/45 backdrop-blur-sm shadow-[0_2px_6px_rgba(0,0,0,0.35)]" />
-            <div class="flex items-center gap-3 ml-3 mr-1">
+            <!-- Account bar — identity, balances, and the three actions in ONE
+                 surface. The parts used to carry a background each, which read
+                 as three disconnected pills once they moved to the column's
+                 leading edge. `show-refresh` is the pill's own wallet reload. -->
+            <div
+              class="flex items-center h-[37px] pl-4 pr-1.5 gap-2 rounded-full bg-black/45 backdrop-blur-sm shadow-[0_2px_6px_rgba(0,0,0,0.35)]">
+              <UserBalancePill layout="inline" coin-class="w-5.5 h-5.5 xl:w-6.5 xl:h-6.5" username-class="text-[17px]"
+                symbol-class="text-[17px]" amount-class="text-[17px]" show-refresh
+                refresh-icon-class="w-4 h-4"
+                pill-class="flex items-center" />
+              <span class="w-px h-5 bg-white/15 flex-shrink-0" aria-hidden="true" />
               <!-- Point conversion — opens the point-to-balance modal. -->
               <button type="button" :aria-label="$t('point.title')"
-                class="flex items-center gap-1.5 h-[37px] pl-1.5 pr-3 rounded-full bg-black/45 backdrop-blur-sm shadow-[0_2px_6px_rgba(0,0,0,0.35)] cursor-pointer transition-transform hover:scale-[1.03]"
+                class="flex items-center gap-1.5 h-[30px] pl-1 pr-2 rounded-full cursor-pointer transition-colors hover:bg-white/10"
                 @click="uiStore.setShowPointModal(true)">
                 <span class="w-6 h-6 xl:w-6.5 xl:h-6.5 rounded-full flex items-center justify-center shrink-0"
                   :style="{ background: siteConfig.theme.brandColor }">
@@ -87,7 +105,8 @@
                   currency.formatNumber(authStore.user.point_wallet) }}</span>
                 <span class="text-white/55 text-[13px] font-semibold leading-none">P</span>
               </button>
-              <div class="relative flex items-center">
+              <span class="w-px h-5 bg-white/15 flex-shrink-0" aria-hidden="true" />
+              <div class="relative flex items-center px-1">
                 <NotificationDropdown :notifications="notifications" @marked-all-read="markNotificationsRead">
                   <div class="relative cursor-pointer" aria-haspopup="dialog">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -108,6 +127,10 @@
                   </div>
                 </NotificationDropdown>
               </div>
+            </div>
+
+            <!-- Trailing controls -->
+            <div class="flex items-center gap-1 flex-shrink-0">
               <div class="relative" data-lang-selector>
                 <button
                   class="inline-flex justify-center items-center gap-1 px-1 h-[30px] xl:h-[30px] rounded-[7px] text-white/90 cursor-pointer hover:opacity-90 transition-opacity"
@@ -128,11 +151,10 @@
                   </button>
                 </div>
               </div>
-            </div>
             <!-- Hamburger menu (far right) — hidden on the iPad-mini range
                  (690-1023px) once authenticated; reachable via the bottom nav. -->
             <button v-show="!uiStore.showNoticeModal"
-              class="hidden lg:flex items-center justify-center transition-opacity hover:opacity-90 cursor-pointer ml-1"
+              class="hidden lg:flex items-center justify-center transition-opacity hover:opacity-90 cursor-pointer ms-1"
               :aria-label="$t('header.menu')" data-hamburger-menu="true" @click="openProfileModal">
               <svg viewBox="0 0 49 34" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"
                 focusable="false" class="w-[47px] h-[33px]">
@@ -141,6 +163,7 @@
                   fill="white" />
               </svg>
             </button>
+            </div>
           </template>
         </div>
       </div>
