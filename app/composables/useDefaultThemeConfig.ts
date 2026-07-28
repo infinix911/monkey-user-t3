@@ -492,6 +492,16 @@ export interface AssetsNavIconsConfig {
      * Public asset path or absolute URL.
      */
     withdrawIcon: string;
+    /** Gold coin beside the wallet balance in the desktop account bar. Public asset path or absolute URL. */
+    walletIcon: string;
+    /** Blue "P" beside the point balance in the desktop account bar. Public asset path or absolute URL. */
+    pointIcon: string;
+    /** Point-conversion (swap) action in the desktop account bar. Public asset path or absolute URL. */
+    swapIcon: string;
+    /** Wallet-reload action in the desktop account bar. Public asset path or absolute URL. */
+    refreshIcon: string;
+    /** Notification bell in the desktop account bar. Public asset path or absolute URL. */
+    bellIcon: string;
 }
 
 /** Deposit/withdraw and banking assets. */
@@ -1188,6 +1198,11 @@ export const getDefaultThemeConfig = (): SiteConfig => {
                 arrowRight: "/designs/navigation/arrow-right.webp",
                 depositIcon: "/designs/template-3/nav-icons/deposit.png",
                 withdrawIcon: "/designs/template-3/nav-icons/withdraw.png",
+                walletIcon: "/designs/navigation/Group 605.png",
+                pointIcon: "/designs/navigation/Group 604.png",
+                swapIcon: "/designs/navigation/swap_horiz_24dp_FFFFFF 1.png",
+                refreshIcon: "/designs/navigation/refresh_24dp_434343 1.png",
+                bellIcon: "/designs/navigation/notifications_none_24dp_EFEFEF 1.png",
             },
             transaction: {
                 bankAccountListPath:
