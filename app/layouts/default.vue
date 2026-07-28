@@ -42,7 +42,7 @@
              it — is untouched. The rail replaces the desktop category bar, so
              Navbar below is rendered with `:desktop="false"`. -->
         <div class="lg:flex lg:w-full lg:max-w-[1400px] lg:mx-auto lg:items-start lg:gap-3 lg:px-2">
-          <div class="hidden lg:block lg:w-[215px] lg:flex-shrink-0 lg:pt-3">
+          <div class="hidden lg:block lg:w-[215px] lg:flex-shrink-0 pt-0">
             <AppSidebar />
           </div>
 
@@ -50,7 +50,7 @@
         <!-- Announcement Bar (desktop lg+: above the banner). Hidden on the RTP page. -->
         <div v-if="!isRtpPage" class="hidden lg:block w-full xl:w-[1152px] mx-auto">
           <div
-            class="w-full shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] max-h-[30px] md:max-h-[40px] md:min-h-[40px] min-h-[32px] md:h-[40px] flex justify-center"
+            class="w-full rounded-t-[10px] shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] max-h-[30px] md:max-h-[40px] md:min-h-[40px] min-h-[32px] md:h-[40px] flex justify-center"
             :style="{ background: brandSiteConfig.theme.announcement.desktopGradient }">
             <div
               class="w-full flex items-center justify-center gap-1.5 md:gap-4 pr-2 md:pr-6 pl-2 md:pl-3 overflow-visible">

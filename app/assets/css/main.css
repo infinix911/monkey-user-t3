@@ -675,6 +675,144 @@
 }
 
 /* ---------------------------------------------------------------------------
+   Shared account-surface vocabulary
+   ---------------------------------------------------------------------------
+   The classes below dress every OTHER themed surface — the "My account" panels
+   (betting report, transaction logs, login history, referral, activity, change
+   password), the inquiry/FAQ/contact/promotion modals — out of the same
+   `theme.transactionmodal` palette the deposit/withdraw modals use, so the CMS
+   retheming those two modals retheres all of them.
+
+   Vars come from `useModalTheme()`, set once on a host that wraps the surfaces
+   (the rail panel, the profile modal, each standalone modal) and inherited from
+   there. Everything derives from a var — do not reintroduce literal greys here.
+--------------------------------------------------------------------------- */
+
+/* Hairline rule/divider — the input border, softened. */
+.tm-line {
+  border-color: color-mix(in srgb, var(--tm-input-border) 45%, transparent);
+}
+
+/* Raised surface: cards, table shells, list rows. */
+.tm-card {
+  background: var(--tm-chip);
+  border: 1px solid color-mix(in srgb, var(--tm-input-border) 35%, transparent);
+}
+
+/* Form control. Focus styling comes from the `.tm-modal` rules above. */
+.tm-field {
+  background: var(--tm-input-bg);
+  border: 1px solid var(--tm-input-border);
+  color: var(--tm-input-text);
+  border-radius: 8px;
+}
+
+.tm-field:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Data tables: header band, body rows, and the rule between them. */
+.tm-thead {
+  background: color-mix(in srgb, var(--tm-accent) 12%, var(--body-bg));
+}
+
+.tm-thead th {
+  color: var(--tm-accent);
+}
+
+.tm-row {
+  background: var(--tm-chip);
+}
+
+.tm-row-strip:nth-child(even) {
+  background: color-mix(in srgb, var(--tm-chip) 60%, var(--body-bg));
+}
+
+.tm-row-hover:hover {
+  background: var(--tm-chip-hover);
+}
+
+/* Primary action — the same gradient the deposit/withdraw submit buttons use. */
+.tm-btn {
+  background: var(--tm-btn-grad, var(--tm-btn-bg));
+  color: var(--tm-btn-text);
+}
+
+.tm-btn:hover:not(:disabled) {
+  background: var(--tm-btn-grad-hover, var(--tm-btn-bg));
+}
+
+.tm-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Secondary/neutral action — outline, so one primary stays dominant. */
+.tm-btn-ghost {
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--tm-input-border) 70%, transparent);
+  color: color-mix(in srgb, var(--tm-input-text) 80%, transparent);
+}
+
+.tm-btn-ghost:hover:not(:disabled) {
+  color: var(--tm-input-text);
+  border-color: var(--tm-accent);
+  background: color-mix(in srgb, var(--tm-accent) 10%, transparent);
+}
+
+.tm-btn-ghost:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Accent text (section labels, active states, totals). */
+.tm-accent-text {
+  color: var(--tm-accent);
+}
+
+/* Strong accent band — an opened accordion/ticket header. Heavier than
+   `.tm-thead` so the open row reads as selected, not just as a header. */
+.tm-accent-bar {
+  background: color-mix(in srgb, var(--tm-accent) 30%, var(--body-bg));
+}
+
+/* Chat bubble for the member's own message (the other side uses `.tm-card`). */
+.tm-bubble-self {
+  background: color-mix(in srgb, var(--tm-accent) 75%, var(--body-bg));
+  color: var(--tm-input-text);
+}
+
+/* Muted body text — one grey for every secondary label. */
+.tm-muted {
+  color: color-mix(in srgb, var(--tm-input-text) 55%, transparent);
+}
+
+/* Themed thin scrollbar, replacing the default light one on dark panels. */
+.tm-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--tm-input-border) 70%, transparent) transparent;
+}
+
+.tm-scroll::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.tm-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tm-scroll::-webkit-scrollbar-thumb {
+  background-color: color-mix(in srgb, var(--tm-input-border) 70%, transparent);
+  border-radius: 3px;
+}
+
+.tm-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: var(--tm-accent);
+}
+
+/* ---------------------------------------------------------------------------
    Shared transition vocabulary (unscoped, app-wide)
    ---------------------------------------------------------------------------
    One central set of Vue <Transition> classes so every consumer that uses a

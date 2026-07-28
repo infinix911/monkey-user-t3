@@ -2,6 +2,12 @@
   <GamePageLayout>
     <h1 class="sr-only">{{ $t('home.seo.pageTitles.slots') }} - {{ siteConfig.identity.siteName }}</h1>
 
+    <!-- Section title — same gradient bar the homepage puts above each row
+         (app/pages/index.vue), so the dedicated page opens with the identical
+         icon + label. Rendered outside the state branches: the title belongs to
+         the page, not to a particular fetch state. -->
+    <GameSectionHeader name="slots" :label="$t('navbar.slot')" />
+
     <!-- Loading State -->
     <div v-if="isLoading" class="w-full py-8 text-white text-center">
       <p class="text-lg text-gray-400">{{ $t("common.loading") }}</p>

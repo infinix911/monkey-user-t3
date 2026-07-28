@@ -3,12 +3,13 @@
     <Transition name="app-dialog">
       <div
         v-if="dialog"
-        class="fixed inset-0 z-[100000] flex items-center justify-center p-4 bg-black/60"
+        class="tm-modal fixed inset-0 z-[100000] flex items-center justify-center p-4 bg-black/60"
+        :style="modalTheme"
         @click.self="onBackdrop"
       >
         <div
           :key="dialog.id"
-          class="app-dialog-card animate-scale-in w-full max-w-[26rem] rounded-[18px] border-[1.5px] border-[#404040] bg-[#1e1e1e] p-6 text-center shadow-2xl"
+          class="app-dialog-card modal-body-fill modal-gradient-border animate-scale-in w-full max-w-[26rem] rounded-[18px] p-6 text-center shadow-2xl"
           role="dialog"
           aria-modal="true"
         >
@@ -16,7 +17,7 @@
           <button
             v-if="dialog.showCloseButton"
             type="button"
-            class="absolute right-4 top-4 text-[#9a9a9a] hover:text-white cursor-pointer text-xl leading-none"
+            class="tm-muted absolute right-4 top-4 hover:text-white cursor-pointer text-xl leading-none"
             aria-label="Close"
             @click="dismissDialog"
           >
@@ -26,7 +27,8 @@
           <!-- Loading spinner -->
           <div v-if="dialog.loading" class="flex justify-center mb-4">
             <span
-              class="inline-block h-12 w-12 rounded-full border-4 border-[#404040] border-t-[#04c000] animate-spin"
+              class="inline-block h-12 w-12 rounded-full border-4 animate-spin"
+              :style="{ borderColor: 'color-mix(in srgb, var(--tm-input-border) 45%, transparent)', borderTopColor: 'var(--tm-accent)' }"
             />
           </div>
 
@@ -73,21 +75,21 @@
           </div>
 
           <h2
-            class="font-line-seed text-[#ffe100] text-[1.3rem] font-bold leading-snug break-words"
+            class="font-line-seed tm-accent-text text-[1.3rem] font-bold leading-snug break-words"
           >
             {{ dialog.title }}
           </h2>
 
           <div
             v-if="dialog.html"
-            class="font-line-seed text-[#d0d0d0] text-[0.95rem] mt-2 break-words"
+            class="font-line-seed tm-muted text-[0.95rem] mt-2 break-words"
           >
             <!-- eslint-disable-next-line vue/no-v-html -->
             <span v-html="safeHtml" />
           </div>
           <p
             v-else-if="dialog.text"
-            class="font-line-seed text-[#d0d0d0] text-[0.95rem] mt-2 break-words whitespace-pre-line"
+            class="font-line-seed tm-muted text-[0.95rem] mt-2 break-words whitespace-pre-line"
           >
             {{ dialog.text }}
           </p>
@@ -123,11 +125,11 @@
           <!-- Timer progress bar -->
           <div
             v-if="dialog.timer && dialog.timerProgressBar"
-            class="mt-4 h-1 w-full overflow-hidden rounded bg-[#404040]"
+            class="tm-card mt-4 h-1 w-full overflow-hidden rounded"
           >
             <div
-              class="h-full bg-[rgba(255,225,0,0.5)] app-dialog-timerbar"
-              :style="{ animationDuration: `${dialog.timer}ms` }"
+              class="h-full app-dialog-timerbar"
+              :style="{ background: 'color-mix(in srgb, var(--tm-accent) 50%, transparent)', animationDuration: `${dialog.timer}ms` }"
             />
           </div>
         </div>
@@ -142,6 +144,9 @@ import { useDialogQueue } from "@/composables/useDialogQueue";
 import { sanitizeHtml } from "@/utils/sanitizeHtml";
 
 const { activeDialog, confirmDialog, dismissDialog } = useDialogQueue();
+
+/** Deposit/withdraw palette — the app's alerts share the modal chrome. */
+const modalTheme = useModalTheme();
 
 const dialog = activeDialog;
 const confirmBtn = ref<HTMLButtonElement | null>(null);

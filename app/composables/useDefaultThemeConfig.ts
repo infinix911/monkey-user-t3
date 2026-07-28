@@ -704,6 +704,22 @@ export interface AssetsSidebarIconsConfig {
     betting: string;
     /** Change-password rail icon. Public asset path or absolute URL. */
     password: string;
+    /** Referral rail icon. Public asset path or absolute URL. */
+    referral: string;
+    /** Login-history rail icon. Public asset path or absolute URL. */
+    loginHistory: string;
+    /** Activity rail icon. Public asset path or absolute URL. */
+    activity: string;
+    /** APK install rail icon. Public asset path or absolute URL. */
+    apk: string;
+    /** Telegram rail icon. Public asset path or absolute URL. */
+    telegram: string;
+    /** Contact rail icon. Public asset path or absolute URL. */
+    contact: string;
+    /** Live-chat rail icon. Public asset path or absolute URL. */
+    livechat: string;
+    /** Slot-RTP rail icon. Public asset path or absolute URL. */
+    rtp: string;
 }
 
 export interface AssetsConfig {
@@ -1264,6 +1280,14 @@ export const getDefaultThemeConfig = (): SiteConfig => {
                 transaction: "/designs/navigation/Group 303.png",
                 betting: "/designs/navigation/Group 304.png",
                 password: "/designs/navigation/Group 305.png",
+                referral: "/designs/navigation/referral.png",
+                loginHistory: "/designs/navigation/login-history.png",
+                activity: "/designs/navigation/activity.png",
+                apk: "/designs/navigation/apk.png",
+                telegram: "/designs/navigation/telegram.png",
+                contact: "/designs/navigation/contact.png",
+                livechat: "/designs/navigation/livechat.png",
+                rtp: "/designs/navigation/rtp.png",
             },
         },
 

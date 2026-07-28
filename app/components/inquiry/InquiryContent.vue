@@ -4,27 +4,27 @@
     <div class="flex-shrink-0 px-0 py-6">
       <div class="flex gap-2 md:gap-3">
         <template v-if="!showForm">
+          <!-- Destructive action: an outline button, so the yellow "write"
+               button next to it stays the one primary call to action. -->
           <button
-            class="font-medium rounded-lg w-full flex items-center justify-center gap-1 text-white px-4 py-2.5 hover:opacity-90 transition-opacity text-sm md:text-base cursor-pointer"
-            style="background: #d6d6d6"
+            class="tm-btn-ghost font-medium rounded-lg w-full flex items-center justify-center gap-1.5 px-4 py-2.5 hover:!text-[#FF7575] hover:!border-[#FF7575]/60 hover:!bg-[#FF7575]/10 transition-colors text-sm md:text-base cursor-pointer"
             @click="handleDeleteAll"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              width="18"
-              height="18"
+              width="16"
+              height="16"
               viewBox="0 0 18 24"
-              fill="none"
+              fill="currentColor"
             >
               <path
                 d="M1.28571 21.3333C1.28571 22.8 2.44286 24 3.85714 24H14.1429C15.5571 24 16.7143 22.8 16.7143 21.3333V5.33333H1.28571V21.3333ZM3.85714 8H14.1429V21.3333H3.85714V8ZM13.5 1.33333L12.2143 0H5.78571L4.5 1.33333H0V4H18V1.33333H13.5Z"
-                fill="black"
               />
             </svg>
-            <span class="text-black">{{ t("inquiry.deleteAll") }}</span>
+            <span>{{ t("inquiry.deleteAll") }}</span>
           </button>
           <button
-            class="font-medium w-full flex items-center justify-center gap-1 bg-[#FFE100] text-[#1A1A1A] px-4 py-2.5 rounded-lg hover:opacity-90 transition-opacity font-semibold text-sm md:text-base shadow-sm cursor-pointer"
+            class="tm-btn font-medium w-full flex items-center justify-center gap-1 px-4 py-2.5 rounded-lg transition-opacity font-semibold text-sm md:text-base shadow-sm cursor-pointer"
             @click="handleWriteInquiry"
           >
             <svg
@@ -36,7 +36,7 @@
             >
               <path
                 d="M0 15.8339V20H4.16609L16.4533 7.71282L12.2872 3.54673L0 15.8339ZM19.675 4.49104C20.1083 4.05777 20.1083 3.35787 19.675 2.92459L17.0754 0.324955C16.6421 -0.108318 15.9422 -0.108318 15.509 0.324955L13.4759 2.35801L17.642 6.52409L19.675 4.49104Z"
-                fill="black"
+                fill="currentColor"
               />
             </svg>
             <span>{{ t("inquiry.writeInquiry") }}</span>
@@ -44,7 +44,7 @@
         </template>
         <template v-else>
           <button
-            class="w-full flex items-center justify-center gap-2 bg-[#9E9E9E] text-white px-4 py-2.5 md:px-5 md:py-3 rounded-lg hover:opacity-90 active:opacity-80 transition-all duration-200 font-medium text-sm md:text-base cursor-pointer"
+            class="tm-btn-ghost w-full flex items-center justify-center gap-2 px-4 py-2.5 md:px-5 md:py-3 rounded-lg transition-all duration-200 font-medium text-sm md:text-base cursor-pointer"
             @click="handleBack"
           >
             <svg
@@ -68,7 +68,7 @@
     </div>
 
     <!-- Scrollable Content -->
-    <div class="flex-1 overflow-y-auto promotion-scroll px-0 pb-4 font-medium">
+    <div class="tm-scroll flex-1 overflow-y-auto px-0 pb-4 font-medium">
       <!-- Write Inquiry Form -->
       <WriteInquiry
         v-if="showForm"
@@ -106,7 +106,7 @@
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            class="w-16 h-16 text-gray-400"
+            class="tm-muted w-16 h-16"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -118,7 +118,7 @@
               d="M2.25 13.5h3.86a2.25 2.25 0 012.012 1.244l.256.512a2.25 2.25 0 002.013 1.244h3.218a2.25 2.25 0 002.013-1.244l.256-.512a2.25 2.25 0 012.013-1.244h3.859m-19.5.338V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18v-4.162c0-.224-.034-.447-.1-.661L19.24 5.338a2.25 2.25 0 00-2.15-1.588H6.911a2.25 2.25 0 00-2.15 1.588L2.35 13.177a2.25 2.25 0 00-.1.661z"
             />
           </svg>
-          <p class="text-gray-400 text-base md:text-lg">
+          <p class="tm-muted text-base md:text-lg">
             {{ t("inquiry.noInquiries") }}
           </p>
         </div>
@@ -132,7 +132,7 @@
             <!-- Previous Button -->
             <button
               :disabled="currentPage === 1 || isLoadingPage"
-              class="flex items-center gap-1 text-white hover:text-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors px-2 py-1 border border-white/30 hover:border-white/50 disabled:border-gray-600 rounded cursor-pointer"
+              class="tm-btn-ghost flex items-center gap-1 transition-colors px-2 py-1 rounded cursor-pointer"
               @click="handlePageChange(currentPage - 1)"
             >
               <svg
@@ -157,18 +157,15 @@
             <!-- Page Numbers -->
             <div class="flex items-center gap-1">
               <template v-for="(page, index) in getPageNumbers()" :key="index">
-                <span v-if="page === '...'" class="text-white px-2 text-sm"
+                <span v-if="page === '...'" class="tm-muted px-2 text-sm"
                   >...</span
                 >
                 <button
                   v-else
                   :disabled="isLoadingPage"
                   :class="[
-                    'min-w-[32px] h-8 px-3 text-sm font-medium transition-all duration-200 border rounded cursor-pointer',
-                    page === currentPage
-                      ? 'text-white font-bold border-white'
-                      : 'text-white/80 hover:text-white border-white/30 hover:border-white/50',
-                    'disabled:opacity-50 disabled:cursor-not-allowed disabled:border-gray-600',
+                    'min-w-[32px] h-8 px-3 text-sm font-medium transition-all duration-200 rounded cursor-pointer',
+                    page === currentPage ? 'tm-btn font-bold' : 'tm-btn-ghost',
                   ]"
                   @click="handlePageChange(page as number)"
                 >
@@ -180,7 +177,7 @@
             <!-- Next Button -->
             <button
               :disabled="currentPage === totalPages || isLoadingPage"
-              class="flex items-center gap-1 text-white hover:text-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors px-2 py-1 border border-white/30 hover:border-white/50 disabled:border-gray-600 rounded cursor-pointer"
+              class="tm-btn-ghost flex items-center gap-1 transition-colors px-2 py-1 rounded cursor-pointer"
               @click="handlePageChange(currentPage + 1)"
             >
               <span class="text-sm hidden sm:inline">{{

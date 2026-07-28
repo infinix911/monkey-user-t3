@@ -3,8 +3,8 @@
     <Transition name="modal">
       <div
         v-if="isOpen"
-        class="fixed inset-0 z-50 flex items-start justify-center"
-        :class="'bg-[#131313]'"
+        class="tm-modal modal-body-fill fixed inset-0 z-50 flex items-start justify-center"
+        :style="modalTheme"
       >
         <div
           class="!gap-0 bg-transparent border-0 p-0 w-full max-w-[calc(100%-2rem)] lg:max-w-4xl shadow-2xl flex flex-col lg:h-auto rounded-none lg:rounded-xl overflow-hidden m-0 lg:m-auto lg:mt-8"
@@ -17,7 +17,7 @@
               {{ t("inquiry.title") }}
             </h2>
             <button
-              class="transition-colors hover:text-gray-300 cursor-pointer text-white"
+              class="tm-muted transition-colors hover:text-white cursor-pointer"
               :aria-label="t('common.close')"
               @click="handleCloseClick"
             >
@@ -40,7 +40,7 @@
 
           <!-- Modal Content - With Background -->
           <div
-            class="px-4 relative flex-1 min-h-0 bg-[#2a2a2a] lg:bg-[#131313] rounded-xl mx-4 lg:mx-0 lg:rounded-none flex flex-col"
+            class="tm-card lg:!bg-transparent lg:!border-0 px-4 relative flex-1 min-h-0 rounded-xl mx-4 lg:mx-0 lg:rounded-none flex flex-col"
             style="min-height: 500px"
           >
             <InquiryContent
@@ -81,6 +81,9 @@ const emit = defineEmits<Emits>();
 
 const { t } = useI18n();
 const uiStore = useUiStore();
+
+/** Deposit/withdraw palette, inherited by InquiryContent and its cards. */
+const modalTheme = useModalTheme();
 
 const INQUIRY_DATE_RANGE = 30;
 const INQUIRY_LIMIT = 10;

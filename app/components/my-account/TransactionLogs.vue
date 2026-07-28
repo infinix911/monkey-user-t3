@@ -5,11 +5,11 @@
        `h-full flex flex-col min-h-0` so the table is the only scroll region. -->
   <div class="pt-2 h-full flex flex-col min-h-0">
     <!-- Table Section: flex-1 + min-h-0 makes this the single scroll region. -->
-    <div class="bg-gray-700 overflow-hidden mb-4 min-w-0 flex-1 min-h-0">
+    <div class="tm-card rounded-lg overflow-hidden mb-4 min-w-0 flex-1 min-h-0">
       <div class="overflow-auto h-full">
         <table class="w-full lg:min-w-max">
           <thead>
-            <tr style="background-color: #161616">
+            <tr class="tm-thead">
               <th v-for="col in columns" :key="col"
                 class="px-1 py-1.5 text-center text-white font-semibold text-[11px] lg:text-sm leading-tight whitespace-normal lg:whitespace-nowrap"
                 style="font-family: var(--font-line-seed)">
@@ -19,29 +19,29 @@
           </thead>
           <tbody>
             <tr v-if="loading">
-              <td :colspan="columns.length" class="px-2 py-8 text-center" style="background-color: #505050">
+              <td :colspan="columns.length" class="tm-row px-2 py-8 text-center">
                 <span class="text-white" style="font-family: var(--font-line-seed)">
                   {{ $t('common.loadingTransactions') }}
                 </span>
               </td>
             </tr>
             <tr v-else-if="ledgerData.length === 0">
-              <td :colspan="columns.length" class="px-2 py-8 text-center" style="background-color: #505050">
-                <span class="text-gray-400" style="font-family: var(--font-line-seed)">
+              <td :colspan="columns.length" class="tm-row px-2 py-8 text-center">
+                <span class="tm-muted" style="font-family: var(--font-line-seed)">
                   {{ $t('common.noTransactionsFound') }}
                 </span>
               </td>
             </tr>
             <tr v-for="(item, index) in ledgerData" v-else :key="index"
-              class="border-b last:border-b-0" style="background-color: #505050; border-color: #7a7a7a">
+              class="tm-row tm-line border-b last:border-b-0">
               <!-- Date -->
-              <td class="px-1 py-1.5 text-center text-[#e2e2e2] text-xs lg:text-sm whitespace-nowrap"
+              <td class="px-1 py-1.5 text-center text-white/85 text-xs lg:text-sm whitespace-nowrap"
                 style="font-family: var(--font-line-seed)">
                 <div>{{ formatDate(item.created_at) }}</div>
-                <div class="text-[10px] text-gray-400">{{ formatTime(item.created_at) }}</div>
+                <div class="tm-muted text-[10px]">{{ formatTime(item.created_at) }}</div>
               </td>
               <!-- Description -->
-              <td class="px-2 py-1.5 text-center text-[#e2e2e2] text-xs lg:text-sm"
+              <td class="px-2 py-1.5 text-center text-white/85 text-xs lg:text-sm"
                 style="font-family: var(--font-line-seed)">
                 {{ item.transaction }}
               </td>
@@ -54,12 +54,12 @@
                 </span>
               </td>
               <!-- Amount -->
-              <td class="px-2 py-1.5 text-center text-[#e2e2e2] text-xs lg:text-sm whitespace-nowrap"
+              <td class="px-2 py-1.5 text-center text-white/85 text-xs lg:text-sm whitespace-nowrap"
                 style="font-family: var(--font-line-seed)">
                 {{ formatAmount(item.amount) }}
               </td>
               <!-- Last Balance -->
-              <td class="px-2 py-1.5 text-center text-[#e2e2e2] text-xs lg:text-sm whitespace-nowrap"
+              <td class="px-2 py-1.5 text-center text-white/85 text-xs lg:text-sm whitespace-nowrap"
                 style="font-family: var(--font-line-seed)">
                 {{ formatAmount(item.wallet_after) }}
               </td>
@@ -73,13 +73,13 @@
          pages, so we avoid rendering every page button). -->
     <div v-if="!loading && totalPages > 1" class="flex items-center justify-center gap-3">
       <button type="button" :disabled="currentPage <= 1"
-        class="px-3 py-1 rounded bg-[#505050] text-white text-sm disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+        class="tm-btn-ghost px-3 py-1 rounded text-sm cursor-pointer"
         @click="goToPage(currentPage - 1)">&lt;</button>
       <span class="text-white text-sm" style="font-family: var(--font-line-seed)">
         {{ currentPage }} / {{ totalPages }}
       </span>
       <button type="button" :disabled="currentPage >= totalPages"
-        class="px-3 py-1 rounded bg-[#505050] text-white text-sm disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+        class="tm-btn-ghost px-3 py-1 rounded text-sm cursor-pointer"
         @click="goToPage(currentPage + 1)">&gt;</button>
     </div>
   </div>
@@ -190,6 +190,6 @@ thead th {
   position: sticky;
   top: 0;
   z-index: 20;
-  background-color: #161616;
+  background: color-mix(in srgb, var(--tm-accent) 12%, var(--body-bg));
 }
 </style>

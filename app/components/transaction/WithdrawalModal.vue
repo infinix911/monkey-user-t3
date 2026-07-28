@@ -43,16 +43,9 @@
 const siteConfig = useSiteConfig();
 const dep = computed(() => siteConfig.theme.transactionmodal);
 
-// Panel border + input theming — fed to the shared `.modal-gradient-border` /
-// `.tm-modal` classes (main.css), the same border deposit + signup use.
-const borderStyle = computed(() => ({
-  "--body-bg": dep.value.modalBgColor,
-  "--b-mid": dep.value.borderColor,
-  "--b-accent": dep.value.accentColor,
-  // Shared input theming (placeholder + focus) for fields inside `.tm-modal`.
-  "--tm-input-ph": dep.value.inputPlaceholderColor,
-  "--tm-accent": dep.value.accentColor,
-}));
+// Panel border + input theming — the shared bundle every themed surface uses
+// (`.modal-gradient-border` / `.tm-modal` in main.css).
+const borderStyle = useModalTheme();
 
 const _props = defineProps<{
   isOpen: boolean;

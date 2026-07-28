@@ -16,10 +16,15 @@
         <!-- Left: Logo (hidden while the notice modal is open). Its lg width is
              the rail's, so the logo sits over the rail and everything after it
              starts at the content column's left edge. -->
-        <div v-show="!uiStore.showNoticeModal" class="flex items-end gap-2 lg:w-[215px] lg:flex-shrink-0">
-          <NuxtLink to="/" class="flex items-center justify-center flex-shrink-0">
+        <div v-show="!uiStore.showNoticeModal" class="flex items-end gap-2 lg:w-[215px] lg:flex-shrink-0 lg:ps-2">
+          <NuxtLink to="/" class="flex items-center justify-center flex-shrink-0 lg:w-full">
+            <!-- From `lg` the rail's width is the logo's limit: the config style
+                 caps it at 282px, wider than the 215px column, and `flex-shrink-0`
+                 means it would otherwise overflow across the account bar. `w-full`
+                 binds it to the column (max-height still clamps tall marks), so
+                 there is no second width to keep in sync with the layout. -->
             <NuxtImg :src="siteConfig.identity.logo" :alt="siteConfig.identity.siteName"
-              class="h-auto w-auto cursor-pointer object-contain flex-shrink-0 ml-2"
+              class="h-auto w-auto cursor-pointer object-contain flex-shrink-0 ml-2 lg:ml-0 lg:w-full"
               :style="siteConfig.theme.logoStyles.desktopHeader" />
           </NuxtLink>
         </div>
@@ -151,18 +156,23 @@
                   </button>
                 </div>
               </div>
-            <!-- Hamburger menu (far right) — hidden on the iPad-mini range
-                 (690-1023px) once authenticated; reachable via the bottom nav. -->
-            <button v-show="!uiStore.showNoticeModal"
-              class="hidden lg:flex items-center justify-center transition-opacity hover:opacity-90 cursor-pointer ms-1"
-              :aria-label="$t('header.menu')" data-hamburger-menu="true" @click="openProfileModal">
-              <svg viewBox="0 0 49 34" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"
-                focusable="false" class="w-[47px] h-[33px]">
-                <path
-                  d="M0 33.5V27.9167H48.7721V33.5H0ZM0 19.5417V13.9583H48.7721V19.5417H0ZM0 5.58333V0H48.7721V5.58333H0Z"
-                  fill="white" />
-              </svg>
-            </button>
+              <!-- Logout — sits after the language selector and matches its
+                   pill (same height/radius/background) so the trailing group
+                   reads as one row of controls. `authStore.logout()` already
+                   posts /auth/logout, clears state and returns home. -->
+              <button type="button" :aria-label="$t('auth.logout')"
+                class="inline-flex justify-center items-center gap-1.5 px-2 h-[30px] rounded-[7px] text-white/90 cursor-pointer hover:opacity-90 transition-opacity"
+                :style="{ backgroundColor: siteConfig.theme.ui.langSelectorBg }" @click="handleLogout">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                  <path d="m16 17 5-5-5-5" />
+                  <path d="M21 12H9" />
+                </svg>
+                <span class="text-[13px] font-semibold whitespace-nowrap">{{ $t('auth.logout') }}</span>
+              </button>
+            <!-- No desktop menu trigger: from `lg` the left rail carries the
+                 profile menu, so NewProfileModal is a mobile-only surface. -->
             </div>
           </template>
         </div>
@@ -292,7 +302,7 @@
   <SignupModal v-if="signupModalMounted" :is-open="uiStore.showSignupModal" @close="handleCloseSignupModal" />
 
   <NewProfileModal v-if="uiStore.showProfileModal" :is-open="uiStore.showProfileModal"
-    :position="profileModalMobile ? 'bottom' : 'top'" @close="uiStore.setShowProfileModal(false)" />
+    @close="uiStore.setShowProfileModal(false)" />
 
   <PointConversionModal v-if="uiStore.showPointModal" :is-open="uiStore.showPointModal"
     @close="uiStore.setShowPointModal(false)" />
@@ -387,11 +397,6 @@ const openLiveChat = () => {
 // (set pre-paint by app.vue's inline script). `isMobile` is still needed by
 // the template (modal positioning).
 const isMobile = ref(false);
-// The profile modal uses its mobile (full-screen "bottom") layout for the
-// whole tablet range too — anything below lg (1024px), which includes iPad
-// mini — and only switches to the desktop sliding panel at lg+.
-const profileModalMobile = ref(false);
-
 // Desktop header is transparent over the hero, then fades to the sticky
 // background colour once the user scrolls past the top of the page.
 const isScrolled = ref(false);
@@ -409,10 +414,9 @@ const openProfileModal = () => {
 
 const updateMobileScale = () => {
   // The header switches to its desktop design at >=690px; below that it's a
-  // fixed-height mobile bar (no viewport scaling). `isMobile` still drives
-  // modal positioning; --mh-scale stays 1 (the mobile header no longer scales).
+  // fixed-height mobile bar (no viewport scaling). --mh-scale stays 1 (the
+  // mobile header no longer scales).
   isMobile.value = window.innerWidth < 690;
-  profileModalMobile.value = window.innerWidth < 1024;
   document.documentElement.style.setProperty("--mh-scale", "1");
 };
 
@@ -526,6 +530,20 @@ const handleClickOutside = (event: MouseEvent) => {
   const target = event.target as Element;
   if (!target.closest("[data-lang-selector]")) {
     showLangDropdown.value = false;
+  }
+};
+
+// Header logout. The store owns the whole sequence (POST /auth/logout, clear
+// auth + site state, wipe auth localStorage, navigate home), so this is just a
+// guard against a double click while that is in flight.
+const isLoggingOut = ref(false);
+const handleLogout = async () => {
+  if (isLoggingOut.value) return;
+  isLoggingOut.value = true;
+  try {
+    await authStore.logout();
+  } finally {
+    isLoggingOut.value = false;
   }
 };
 

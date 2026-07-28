@@ -162,13 +162,7 @@ const dep = computed(() => siteConfig.theme.transactionmodal);
 const accent = computed(() => dep.value.accentColor);
 
 // Shared `.tm-modal` chrome tokens (same as DepositModal/Withdrawal/signup).
-const borderStyle = computed(() => ({
-  "--body-bg": dep.value.modalBgColor,
-  "--b-mid": dep.value.borderColor,
-  "--b-accent": dep.value.accentColor,
-  "--tm-input-ph": dep.value.inputPlaceholderColor,
-  "--tm-accent": dep.value.accentColor,
-}));
+const borderStyle = useModalTheme();
 
 // Same quick-amount set as the deposit/withdraw modals.
 const QUICK_AMOUNTS = [

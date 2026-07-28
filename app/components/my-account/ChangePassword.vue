@@ -11,12 +11,12 @@
             <input
               v-model="oldPasswordField" :type="showOldPassword ? 'text' : 'password'" :disabled="isSubmitting"
               :class="[
-                'w-full px-4 py-2 pr-10 bg-white text-gray-800 rounded-[4px] border-2 border-transparent outline-none transition-colors disabled:bg-gray-100 disabled:text-gray-500',
-                errors.oldPassword ? 'border-red-500' : 'focus:border-blue-500',
+                'tm-field w-full px-4 py-2 pr-10 outline-none transition-colors',
+                errors.oldPassword ? '!border-red-500' : '',
               ]" :aria-label="t('password.CurrentPassword')">
             <button
               type="button" :disabled="isSubmitting"
-              class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-800 disabled:text-gray-400 transition-colors"
+              class="tm-muted absolute right-3 top-1/2 -translate-y-1/2 hover:text-white disabled:opacity-50 transition-colors cursor-pointer"
               @click="showOldPassword = !showOldPassword">
               <svg
                 v-if="showOldPassword" class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none"
@@ -51,12 +51,12 @@
             <input
               v-model="newPasswordField" :type="showNewPassword ? 'text' : 'password'" :disabled="isSubmitting"
               :class="[
-                'w-full px-4 py-2 pr-10 bg-white text-gray-800 rounded-[4px] border-2 border-transparent outline-none transition-colors disabled:bg-gray-100 disabled:text-gray-500',
-                errors.newPassword ? 'border-red-500' : 'focus:border-blue-500',
+                'tm-field w-full px-4 py-2 pr-10 outline-none transition-colors',
+                errors.newPassword ? '!border-red-500' : '',
               ]" :aria-label="t('password.newPassword')">
             <button
               type="button" :disabled="isSubmitting"
-              class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-800 disabled:text-gray-400 transition-colors"
+              class="tm-muted absolute right-3 top-1/2 -translate-y-1/2 hover:text-white disabled:opacity-50 transition-colors cursor-pointer"
               @click="showNewPassword = !showNewPassword">
               <svg
                 v-if="showNewPassword" class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none"
@@ -91,14 +91,12 @@
             <input
               v-model="confirmPasswordField" :type="showConfirmPassword ? 'text' : 'password'"
               :disabled="isSubmitting" :class="[
-                'w-full px-4 py-2 pr-10 bg-white text-gray-800 rounded-[4px] border-2 border-transparent outline-none transition-colors disabled:bg-gray-100 disabled:text-gray-500',
-                errors.confirmPassword
-                  ? 'border-red-500'
-                  : 'focus:border-blue-500',
+                'tm-field w-full px-4 py-2 pr-10 outline-none transition-colors',
+                errors.confirmPassword ? '!border-red-500' : '',
               ]" :aria-label="t('password.confirmPassword')">
             <button
               type="button" :disabled="isSubmitting"
-              class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-800 disabled:text-gray-400 transition-colors"
+              class="tm-muted absolute right-3 top-1/2 -translate-y-1/2 hover:text-white disabled:opacity-50 transition-colors cursor-pointer"
               @click="showConfirmPassword = !showConfirmPassword">
               <svg
                 v-if="showConfirmPassword" class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none"
@@ -128,7 +126,7 @@
         <div class="relative mb-[50px] mt-[45px]">
           <button
             type="submit" :disabled="isSubmitting"
-            class="w-full text-lg lg:text-xl font-semibold bg-[#FFE100] hover:bg-[#e6cc00] disabled:opacity-60 disabled:cursor-not-allowed text-black py-3 lg:py-4 rounded-[4px] transition-all hover:scale-[1.02] active:scale-95">
+            class="tm-btn w-full text-lg lg:text-xl font-semibold py-3 lg:py-4 rounded-lg transition-all hover:scale-[1.02] active:scale-95 cursor-pointer">
             {{
               isSubmitting
                 ? t("password.updatingButton")
