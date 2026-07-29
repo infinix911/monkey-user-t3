@@ -10,10 +10,17 @@
          rest defer via native `loading="lazy"` on the card image. Native lazy
          reliably loads on horizontal carousel scroll AND pagination, unlike the
          previous IntersectionObserver mount-gating which left off-screen cards
-         stuck as gray skeletons. -->
-      <GameCarousel v-if="hotGames.length > 0" :step="208" :per-page="5">
+         stuck as gray skeletons.
+
+         Card width shows exactly 6 per row and no 7th sliver: the 1202px
+         content column less the five 6px `gap-1.5` gutters, over 6 —
+         (1202 - 30) / 6 = 195.3, floored to 195 so the row totals 1200 and
+         the 7th card starts past the column edge. `step` is one card plus its
+         gutter (195 + 6). Re-derive both if the content column or the gap
+         changes. Every row on this page uses the same figures. -->
+      <GameCarousel v-if="hotGames.length > 0" :step="201" :per-page="6">
         <div v-for="(game, idx) in hotGames" :key="game.id"
-          class="flex-shrink-0 w-[calc((100vw_-_24px)/3)] md:w-[191px]">
+          class="flex-shrink-0 w-[calc((100vw_-_24px)/3)] md:w-[195px]">
           <HotGameCard :game="game" :eager="idx < FIRST_ROW_COUNT" :priority="idx < 3" fluid aspect="240 / 313.04"
             @click="handleGameClick(game)" />
         </div>
@@ -21,36 +28,36 @@
 
       <!-- Slot section -->
       <GameSectionHeader name="slots" :label="$t('navbar.slot')" />
-      <GameCarousel v-if="slotProviders.length > 0" :step="208" :per-page="5">
+      <GameCarousel v-if="slotProviders.length > 0" :step="201" :per-page="6">
         <div v-for="provider in slotProviders" :key="`slot-${provider.id}`"
-          class="flex-shrink-0 w-[calc((100vw_-_24px)/3)] md:w-[191px]">
+          class="flex-shrink-0 w-[calc((100vw_-_24px)/3)] md:w-[195px]">
           <HomeGameCard :game="provider" game-type="slot" fluid aspect="240 / 313.04" />
         </div>
       </GameCarousel>
 
       <!-- Casino section -->
       <GameSectionHeader name="casino" :label="$t('navbar.casino')" />
-      <GameCarousel v-if="casinoProviders.length > 0" :step="208" :per-page="5">
+      <GameCarousel v-if="casinoProviders.length > 0" :step="201" :per-page="6">
         <div v-for="provider in casinoProviders" :key="`casino-${provider.id}`"
-          class="flex-shrink-0 w-[calc((100vw_-_24px)/3)] md:w-[191px]">
+          class="flex-shrink-0 w-[calc((100vw_-_24px)/3)] md:w-[195px]">
           <HomeGameCard :game="provider" game-type="casino" fluid aspect="240 / 313.04" />
         </div>
       </GameCarousel>
 
       <!-- Sports section -->
       <GameSectionHeader name="sports" :label="$t('navbar.sports')" />
-      <GameCarousel v-if="sportsProviders.length > 0" :step="208" :per-page="5">
+      <GameCarousel v-if="sportsProviders.length > 0" :step="201" :per-page="6">
         <div v-for="provider in sportsProviders" :key="`sports-${provider.id}`"
-          class="flex-shrink-0 w-[calc((100vw_-_24px)/3)] md:w-[191px]">
+          class="flex-shrink-0 w-[calc((100vw_-_24px)/3)] md:w-[195px]">
           <HomeGameCard :game="provider" game-type="sports" fluid aspect="240 / 313.04" />
         </div>
       </GameCarousel>
 
       <!-- Mini Games section -->
       <GameSectionHeader name="mini" :label="$t('navbar.mini')" />
-      <GameCarousel v-if="miniGames.length > 0" :step="208" :per-page="5">
+      <GameCarousel v-if="miniGames.length > 0" :step="201" :per-page="6">
         <div v-for="game in miniGames" :key="`mini-${game.id}`"
-          class="flex-shrink-0 w-[calc((100vw_-_24px)/3)] md:w-[191px]">
+          class="flex-shrink-0 w-[calc((100vw_-_24px)/3)] md:w-[195px]">
           <HotGameCard :game="game" fluid aspect="240 / 313.04" @click="handleGameClick(game)" />
         </div>
       </GameCarousel>

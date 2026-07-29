@@ -188,12 +188,15 @@
                   </button>
                 </div>
               </div>
-              <!-- Logout — sits after the language selector and matches its
-                   pill (same height/radius/background) so the trailing group
-                   reads as one row of controls. `authStore.logout()` already
-                   posts /auth/logout, clears state and returns home. -->
+              <!-- Logout — sized to the guest login/sign-up buttons (37x125),
+                   so the header's primary action is the same target in both
+                   signed-in and signed-out states. It keeps the language
+                   selector's radius and background, so it still reads as part
+                   of the trailing control group rather than as a third auth
+                   button. `authStore.logout()` already posts /auth/logout,
+                   clears state and returns home. -->
               <button type="button" :aria-label="$t('auth.logout')"
-                class="inline-flex justify-center items-center gap-1.5 px-2 h-[30px] rounded-[7px] text-white/90 cursor-pointer hover:opacity-90 transition-opacity"
+                class="inline-flex justify-center items-center gap-1.5 px-3 h-[37px] w-[125px] rounded-[7px] text-white/90 cursor-pointer hover:opacity-90 transition-opacity"
                 :style="{ backgroundColor: siteConfig.theme.ui.langSelectorBg }" @click="handleLogout">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none"
                   stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
