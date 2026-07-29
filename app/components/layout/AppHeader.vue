@@ -50,7 +50,7 @@
             <div class="flex items-center gap-1">
               <!-- Login: gold gradient border + gold gradient text -->
               <button
-                class="cursor-pointer h-[37px] w-[125px] px-3 rounded-[4px] flex items-center justify-center font-extrabold italic uppercase text-[15px] tracking-tight transition-transform hover:scale-[1.03]"
+                class="cursor-pointer h-[35px] w-[113px] px-3 rounded-[4px] flex items-center justify-center font-extrabold italic uppercase text-[15px] tracking-tight transition-transform hover:scale-[1.03]"
                 :style="{ background: siteConfig.theme.authButton.loginBg, border: siteConfig.theme.authButton.loginBorder, boxShadow: '0 5px 5px rgba(0,0,0,0.25)' }"
                 @click="showLoginModal">
                 <span class="block w-full text-center truncate"
@@ -59,7 +59,7 @@
               </button>
               <!-- Sign up: blue gradient border + white text -->
               <button
-                class="cursor-pointer h-[37px] w-[125px] px-3 rounded-[4px] flex items-center justify-center font-extrabold italic uppercase text-[15px] tracking-tight text-white transition-transform hover:scale-[1.03]"
+                class="cursor-pointer h-[35px] w-[113px] px-3 rounded-[4px] flex items-center justify-center font-extrabold italic uppercase text-[15px] tracking-tight text-white transition-transform hover:scale-[1.03]"
                 :style="{ background: siteConfig.theme.authButton.signupBg, border: '1.5px solid transparent', boxShadow: '0 5px 5px rgba(0,0,0,0.25)' }"
                 @click="showSignupModal">
                 <span class="block w-full text-center truncate">{{ $t('header.signUp') }}</span>
@@ -188,7 +188,7 @@
                   </button>
                 </div>
               </div>
-              <!-- Logout — sized to the guest login/sign-up buttons (37x125),
+              <!-- Logout — sized to the guest login/sign-up buttons (35x113),
                    so the header's primary action is the same target in both
                    signed-in and signed-out states. It keeps the language
                    selector's radius and background, so it still reads as part
@@ -196,7 +196,7 @@
                    button. `authStore.logout()` already posts /auth/logout,
                    clears state and returns home. -->
               <button type="button" :aria-label="$t('auth.logout')"
-                class="inline-flex justify-center items-center gap-1.5 px-3 h-[37px] w-[125px] rounded-[7px] text-white/90 cursor-pointer hover:opacity-90 transition-opacity"
+                class="inline-flex justify-center items-center gap-1.5 px-3 h-[35px] w-[113px] rounded-[7px] text-white/90 cursor-pointer hover:opacity-90 transition-opacity"
                 :style="{ backgroundColor: siteConfig.theme.ui.langSelectorBg }" @click="handleLogout">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none"
                   stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

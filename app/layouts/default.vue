@@ -17,10 +17,13 @@
       right: '0',
     }" />
 
-    <!-- `site-zoom` renders this page at 102% on wide desktops (main.css).
-         Opt-in per page — see isZoomPage. Modals that Teleport to body sit
-         outside this wrapper and stay 1:1. -->
-    <div class="flex flex-col w-full min-w-0" :class="{ 'site-zoom': isZoomPage }">
+    <!-- Pages render 1:1. The `site-zoom` 102% big-screen zoom used to be
+         applied here for the game pages, but it scaled the content column past
+         its stated 1202px (1202 x 1.02 = 1226 on screen) along with every card
+         and label inside it. The CSS mechanism is still in main.css — re-add
+         `:class="{ 'site-zoom': isZoomPage }"` here to bring it back, and
+         restore the ZOOM_PAGES allow-list with it. -->
+    <div class="flex flex-col w-full min-w-0">
       <!-- Header — spacer height comes from the --mh-header-height CSS var
            (set pre-paint by app.vue's inline script) so it matches the fixed
            header on the very first paint with no hydration flash. -->
@@ -95,7 +98,7 @@
              trigger are offset by this bar's height (announcementHeight). -->
         <div v-if="!isRtpPage" class="block lg:hidden w-full xl:w-[1152px] mx-auto">
           <div ref="announcementBar"
-            class="w-full shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] max-h-[30px] md:max-h-[41px] md:min-h-[41px] min-h-[30px] md:h-[41px] flex justify-center"
+            class="w-full shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] h-[36px] min-h-[36px] max-h-[36px] flex justify-center"
             :class="effectiveNavFixed ? 'fixed left-0 right-0 z-40' : ''"
             :style="[{ background: brandSiteConfig.theme.announcement.mobileBg }, effectiveNavFixed ? { top: headerHeight + 'px' } : {}]">
             <div
@@ -376,25 +379,9 @@ const localePath = useLocalePath();
 const isRtpPage = computed(() => route.path === localePath("/slot-rtp"));
 const rtpBannerSrc = cdn("/designs/rtp-banner.png");
 
-// Pages that render at 102% on wide desktops (the `site-zoom` class, main.css).
-// Deliberately an allow-list rather than a global rule — every other page stays
-// 1:1. Matched EXACTLY, so nested routes (e.g. /lobbies/{id}, GAME_* launches)
-// are not zoomed even where they share this layout.
-const ZOOM_PAGES = [
-  "/",
-  "/hot",
-  "/slots",
-  "/casino",
-  "/sports",
-  "/mini",
-  "/fishing",
-  "/virtual",
-  "/slot-rtp",
-];
-
-const isZoomPage = computed(() =>
-  ZOOM_PAGES.some((p) => route.path === localePath(p)),
-);
+// The 102% big-screen zoom is off: it rendered the 1202px content column at
+// 1226px. The allow-list that drove it lived here — see the template comment on
+// the layout wrapper for how to restore it.
 
 const customSeoMatch = useCustomSeoMatch();
 

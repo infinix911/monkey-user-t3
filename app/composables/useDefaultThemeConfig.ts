@@ -48,13 +48,16 @@ export interface IdentityConfig {
 export interface ThemeAnnouncementConfig {
     /** Scrolling announcement message text. Plain text (empty = none / CMS-driven). */
     text: string;
-    /** Stroke (outline) color of the scrolling announcement text. Hex color. */
+    /**
+     * Stroke (outline) color of the scrolling announcement text. Hex color;
+     * empty means no outline — the text renders in `textFill` alone.
+     */
     textStroke: string;
     /** Fill color of the scrolling announcement text. Hex color. */
     textFill: string;
     /** Desktop announcement bar background. CSS linear-gradient string. */
     desktopGradient: string;
-    /** Mobile announcement bar background. Hex color. */
+    /** Mobile announcement bar background. CSS color or linear-gradient string. */
     mobileBg: string;
     /** Leading icon on the mobile announcement bar. Public asset path or absolute URL. */
     mobileIcon: string;

@@ -15,8 +15,15 @@
 }
 
 /* ---------------------------------------------------------------------------
-   Big-screen 102% zoom  (opt-in, per page)
+   Big-screen 102% zoom  (opt-in, per page — CURRENTLY UNUSED)
    ---------------------------------------------------------------------------
+   NOTE: no page applies `.site-zoom` today. It was dropped from
+   `layouts/default.vue` because it rendered the 1202px content column at
+   1226px. The rules below are kept so the effect can be switched back on from
+   the layout; `--site-zoom` stays 1 meanwhile, which keeps every
+   `var(--site-zoom)` correction (AppSidebar's panel geometry, `.site-unzoom`)
+   a no-op rather than wrong.
+
    Renders a page at 102% on wide desktops — the same mechanism as Chrome's own
    zoom control, so it looks like browser zoom without the user setting it.
    `zoom` (not transform: scale) because it is a real layout scale: the centred
@@ -93,6 +100,25 @@
   font-family: "IBM Plex Sans Condensed";
   src: url("/fonts/IBMPlexSansCondensed-SemiBold.ttf") format("truetype");
   font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Noto Sans — announcement ticker text. Regular (400) only; the file is the
+   Google latin subset, so non-latin glyphs (Korean) fall through to the next
+   family in the stack (LINE Seed). */
+@font-face {
+  font-family: "Noto Sans";
+  src: url("/fonts/NotoSans-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Noto Sans";
+  src: url("/fonts/NotoSans-Bold.woff2") format("woff2");
+  font-weight: 700;
   font-style: normal;
   font-display: swap;
 }

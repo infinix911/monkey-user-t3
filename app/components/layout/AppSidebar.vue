@@ -7,34 +7,51 @@
     :aria-label="$t('sidebar.label')">
     <!-- Deposit / withdraw. Deliberately the SAME background token the top
          nav's transaction panel uses (theme.nav.depositSectionGradient) rather
-         than a second gradient, so the two surfaces can never drift apart. -->
+         than a second gradient, so the two surfaces can never drift apart.
+
+         Measured off the reference render, container-relative (186x67 = the
+         210px rail less its px-3 gutters, by h-[67px]):
+           icon      32x32 deposit; withdraw matches on height and keeps its
+                     own 96x87 ratio via `w-auto` (so it renders 35x32)
+           gap       4px between icon and label
+           label     12px, leading-none (hangul inks ~10px of that)
+           divider   1px, inset 10px top and bottom -> 47px tall
+         32 + 4 + 12 = 48 in a 67px box, centred, which puts the icon 9.5px
+         below the top edge and the label ink ~10px above the bottom — within
+         ~1.5px of the reference render throughout. The width/height
+         attributes are per-icon (deposit art is square, withdraw is 96x87) and
+         exist only as an aspect hint against layout shift — `w-auto` and
+         `object-contain` do the real sizing.
+
+         Both halves are flex-1 and centre their own content, so the pair stays
+         symmetric whatever the labels translate to. -->
     <div v-if="features.payments" class="px-3 pt-[10px]">
       <div
         class="h-[67px] rounded-[8px] overflow-hidden flex items-stretch"
         :style="{ background: siteConfig.theme.nav.depositSectionGradient }">
         <button
           type="button"
-          class="flex-1 flex flex-col items-center justify-center gap-1 text-white cursor-pointer hover:bg-white/5 transition-colors duration-200"
+          class="flex-1 flex flex-col items-center justify-center gap-0.5 text-white cursor-pointer hover:bg-white/5 transition-colors duration-200"
           @click="onDeposit">
           <img
             :src="siteConfig.assets.navIcons.depositIcon"
             :alt="$t('navbar.deposit')"
-            width="36"
+            width="32"
             height="32"
-            class="h-[32px] w-auto object-contain"
+            class="h-[32px] w-[32px] object-contain"
             loading="eager"
             decoding="async">
           <span class="text-[12px] font-bold leading-none tracking-tight">{{ $t('navbar.deposit') }}</span>
         </button>
-        <div class="w-px bg-white/70 my-[9px]" />
+        <div class="w-px bg-white/70 my-[10px]" />
         <button
           type="button"
-          class="flex-1 flex flex-col items-center justify-center gap-1 text-white cursor-pointer hover:bg-white/5 transition-colors duration-200"
+          class="flex-1 flex flex-col items-center justify-center gap-0.5 text-white cursor-pointer hover:bg-white/5 transition-colors duration-200"
           @click="onWithdraw">
           <img
             :src="siteConfig.assets.navIcons.withdrawIcon"
             :alt="$t('navbar.withdraw')"
-            width="36"
+            width="35"
             height="32"
             class="h-[32px] w-auto object-contain"
             loading="eager"
@@ -284,7 +301,11 @@ function rowStyle(active: boolean): Record<string, string> {
   };
 }
 
-const gameItems = computed(() => [
+/**
+ * Every category the rail can show. `id` doubles as the lobby `game_type` the
+ * availability read matches on, except HOT — see the filter below.
+ */
+const ALL_GAME_ITEMS = computed(() => [
   { id: "hot", path: "/hot", labelKey: "sidebar.hot", icon: icons.value.hot },
   { id: "slot", path: "/slots", labelKey: "sidebar.slot", icon: icons.value.slot },
   { id: "mini", path: "/mini", labelKey: "sidebar.mini", icon: icons.value.mini },
@@ -294,6 +315,20 @@ const gameItems = computed(() => [
   { id: "fishing", path: "/fishing", labelKey: "sidebar.fishing", icon: icons.value.fishing },
   { id: "virtual", path: "/virtual", labelKey: "sidebar.virtual", icon: icons.value.virtual },
 ]);
+
+const { hasLobbies } = useGameCategoryAvailability();
+
+/**
+ * Categories with no lobby behind them are dropped: the row would otherwise
+ * lead to a page holding a section header and nothing else. HOT is exempt — it
+ * is a curated slice of slot games, not a lobby type, so the lobby read can
+ * never vouch for it.
+ */
+const gameItems = computed(() =>
+  ALL_GAME_ITEMS.value.filter(
+    (item) => item.id === "hot" || hasLobbies(item.id),
+  ),
+);
 
 /**
  * Whether a rail route is the current one. Mirrors Navbar's rule so the rail and

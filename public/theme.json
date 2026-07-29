@@ -168,7 +168,7 @@
       "mobileBg": "#000000",
       "textFill": "#ffffff",
       "mobileIcon": "/designs/template-3/announcement-icon.png",
-      "textStroke": "#000000",
+      "textStroke": "",
       "desktopGradient": "#000000"
     },
     "sectionHeader": {
