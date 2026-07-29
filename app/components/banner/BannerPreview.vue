@@ -1,5 +1,7 @@
 ﻿<template>
-  <div class="w-full xl:w-[1152px] mx-auto">
+  <!-- No fixed width here: the layout's banner container sizes this, and pinning
+       to 1152px would re-cap the banner inside the wider content column. -->
+  <div class="w-full mx-auto">
     <div id="banner-container" class="bg-black w-full relative overflow-hidden z-10">
       <!-- Loading State -->
       <div v-if="isLoading" class="w-full flex items-center justify-center bg-black" :style="bannerBoxStyle">
@@ -137,11 +139,14 @@ const BANNER_W = { desktop: 1280, mobile: 800 } as const;
 // stayed 450px tall even on a sub-1152 width (far too tall between 768–1152px),
 // and the mobile banner was too tall on narrow phones / too short on wide ones.
 // Mobile is config-driven (theme.mobileBannerAspectRatio, from
-// /api/site/config/theme); desktop matches the canonical 1152×450 slot (still
-// exactly 450px at the full 1152 width). Placeholder/loading states reuse the
-// active box style so there is no layout jump when banners resolve.
+// /api/site/config/theme); desktop is NOT — it has no CMS key and is pinned
+// here. The ratio is expressed against the content column so it resolves to a
+// round height at full width: 1202 / 451 is exactly 451px in the 1202px column
+// (layouts/default.vue). Re-derive it if that column width changes, or the
+// banner height drifts. Placeholder/loading states reuse the active box style
+// so there is no layout jump when banners resolve.
 const siteConfig = useSiteConfig();
-const BANNER_AR_DESKTOP = "1152 / 450";
+const BANNER_AR_DESKTOP = "1202 / 451";
 const BANNER_AR_MOBILE = siteConfig.theme.mobileBannerAspectRatio || "375 / 190";
 const bannerBoxStyle = computed(() =>
   isMobile.value

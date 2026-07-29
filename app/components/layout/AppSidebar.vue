@@ -2,7 +2,7 @@
   <!-- Rail shell. Colours come from theme.sidebar (border #B04C00 / 60% black /
        #434343 rule) so the CMS can retheme it like every other surface. -->
   <aside
-    class="w-full rounded-[8px] overflow-hidden"
+    class="font-inter w-full rounded-[8px] overflow-hidden"
     :style="{ border: sidebar.border, background: sidebar.bg }"
     :aria-label="$t('sidebar.label')">
     <!-- Deposit / withdraw. Deliberately the SAME background token the top
@@ -236,8 +236,10 @@ const RAIL_ICON_IDS: Record<string, keyof AssetsSidebarIconsConfig> = {
 
 /**
  * Panel geometry: pinned to the content column's left edge, i.e. flush beside
- * the rail with the layout's own 12px gutter (rail column 215px + `lg:px-2` 8px
- * + `lg:gap-3` 12px = 235px past the centred 1400px shell's left edge).
+ * the rail with the layout's own gutter (rail column 210px + `lg:px-2` 8px
+ * + `lg:gap-7` 28px = 246px past the centred 1456px shell's left edge). Derived
+ * from the rail width and gap in layouts/default.vue — change either and this
+ * moves by the same amount, or the panel detaches from the content column.
  *
  * Every viewport unit here is divided by `--site-zoom`. The panel is `fixed`
  * INSIDE the zoomed wrapper (layouts/default.vue `.site-zoom`), so its offsets
@@ -247,8 +249,8 @@ const RAIL_ICON_IDS: Record<string, keyof AssetsSidebarIconsConfig> = {
  * the content column.
  */
 const panelStyle = {
-  left: "calc(max(0px, (100vw / var(--site-zoom, 1) - 1400px) / 2) + 235px)",
-  maxWidth: "calc(100vw / var(--site-zoom, 1) - 260px)",
+  left: "calc(max(0px, (100vw / var(--site-zoom, 1) - 1456px) / 2) + 246px)",
+  maxWidth: "calc(100vw / var(--site-zoom, 1) - 271px)",
   maxHeight: "calc(100vh / var(--site-zoom, 1) - 120px)",
 };
 
@@ -259,9 +261,11 @@ const icons = computed(() => siteConfig.assets.sidebarIcons);
 // Measured off the reference render: a 31px row pitch, a 28px icon box inset
 // 14px from the panel edge (8px list padding + 6px row padding), and a 19px gap
 // to a 15px label. The icon art sits ~4px inside its box (the 83x82 source
-// canvas), which is why the gap reads wider than it is declared. The 15px comes
-// out of the label widths: LINE Seed KR advances hangul at 0.883em, so the
-// reference's 3.5em-wide "공지사항" measuring ~52px pins the size exactly.
+// canvas), which is why the gap reads wider than it is declared. The 15px was
+// originally pinned off LINE Seed KR's hangul advance (0.883em); the rail now
+// renders in Inter (`font-inter` on the <aside>), which ships no hangul, so
+// Korean labels fall through to the system hangul face and their widths no
+// longer follow that derivation — re-measure before trusting it again.
 const ROW_CLASS =
   "group w-full flex items-center gap-[19px] px-1.5 h-[31px] rounded-[6px] text-[15px] font-medium cursor-pointer transition-colors duration-150 hover:bg-[var(--sb-hover)]";
 
@@ -286,6 +290,9 @@ const gameItems = computed(() => [
   { id: "mini", path: "/mini", labelKey: "sidebar.mini", icon: icons.value.mini },
   { id: "sport", path: "/sports", labelKey: "sidebar.sport", icon: icons.value.sport },
   { id: "casino", path: "/casino", labelKey: "sidebar.casino", icon: icons.value.casino },
+  // Fishing before virtual, matching the order the mobile Navbar renders them in.
+  { id: "fishing", path: "/fishing", labelKey: "sidebar.fishing", icon: icons.value.fishing },
+  { id: "virtual", path: "/virtual", labelKey: "sidebar.virtual", icon: icons.value.virtual },
 ]);
 
 /**

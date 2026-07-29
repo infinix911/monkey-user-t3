@@ -1,5 +1,5 @@
 <template>
-  <section id="provider-games" class="w-full max-w-[1152px] mb-[2rem]">
+  <section id="provider-games" class="w-full mb-[2rem]">
     <header v-if="logo || showSearch !== false" class="flex justify-between gap-2 mb-5 lg:mb-7"
       :class="logo ? 'flex-row items-end px-2 pt-4' : 'flex-col items-end px-2 sm:flex-row'">
       <!-- Left: provider logo (lobby pages). TrimmedImage alpha-scans the asset,

@@ -213,6 +213,7 @@
     "markRead": "Mark Read",
     "success": "Done",
     "bankAccountRequestSent": "Your bank account request has been submitted. Our team will review it and update you shortly.",
+    "accountRequestConfirmation": "Would you like to request a bank account?",
     "markReadSuccess": "Inquiry marked as read successfully.",
     "deleteSuccess": "Inquiry deleted successfully.",
     "markAllReadSuccess": "All inquiries marked as read successfully.",
@@ -297,6 +298,7 @@
     "error": "Something went wrong",
     "you": "You",
     "retry": "Retry",
+    "refreshBalance": "Refresh balance",
     "play": "Play",
     "loadMore": "Load More",
     "goBack": "Go Back",
@@ -791,7 +793,9 @@
     "logoAlt": "LUCKY ONLINE CASINO",
     "mobileLogoAlt": "LUCKY",
     "userIconAlt": "User icon",
-    "menu": "Menu"
+    "menu": "Menu",
+    "honorific": "",
+    "walletUnit": ""
   },
   "sideMenu": {
     "myAccount": "My Account"
@@ -950,6 +954,8 @@
     "mini": "Mini games",
     "sport": "Sports",
     "casino": "Live casino",
+    "fishing": "Fishing games",
+    "virtual": "Virtual games",
     "notice": "Notice",
     "promotion": "Promotion",
     "inquiry": "Customer inquiry",

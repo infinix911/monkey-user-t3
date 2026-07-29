@@ -702,6 +702,10 @@ export interface AssetsSidebarIconsConfig {
     sport: string;
     /** Mini games rail icon. Public asset path or absolute URL. */
     mini: string;
+    /** Fishing games rail icon. Public asset path or absolute URL. */
+    fishing: string;
+    /** Virtual games rail icon. Public asset path or absolute URL. */
+    virtual: string;
     /** Notice rail icon. Public asset path or absolute URL. */
     notice: string;
     /** Promotion rail icon. Public asset path or absolute URL. */
@@ -1289,6 +1293,8 @@ export const getDefaultThemeConfig = (): SiteConfig => {
                 casino: "/designs/navigation/casino.png",
                 sport: "/designs/navigation/sports.png",
                 mini: "/designs/navigation/mini.png",
+                fishing: "/designs/navigation/fishing.png",
+                virtual: "/designs/navigation/virtual.png",
                 notice: "/designs/navigation/Group 306.png",
                 promotion: "/designs/navigation/Group 301.png",
                 inquiry: "/designs/navigation/Group 302.png",

@@ -15,9 +15,9 @@
 }
 
 /* ---------------------------------------------------------------------------
-   Big-screen 110% zoom  (opt-in, per page)
+   Big-screen 102% zoom  (opt-in, per page)
    ---------------------------------------------------------------------------
-   Renders a page at 110% on wide desktops — the same mechanism as Chrome's own
+   Renders a page at 102% on wide desktops — the same mechanism as Chrome's own
    zoom control, so it looks like browser zoom without the user setting it.
    `zoom` (not transform: scale) because it is a real layout scale: the centred
    column, the header, the navbar and the page content grow together and
@@ -34,24 +34,28 @@
    Deliberately UNLAYERED (not inside `@layer base`) so no Tailwind layer can
    outrank it.
 
-   Breakpoint 1300px: the 1152px column at 110% renders 1267px wide, so 1300
-   is the narrowest viewport where it cannot overflow. Media queries and `vw`
-   are NOT affected by `zoom` — hence the plain viewport width here, and the
-   `100vw / var(--site-zoom)` correction anywhere a zoomed element positions
-   itself off the viewport.
+   Breakpoint 1200px: the desktop shell is a 1456px MAX-width whose content
+   column is `flex-1`, so it shrinks with the viewport and the zoom cannot make
+   it overflow. The only rigid element is the 210px sidebar rail, which clears
+   1200/1.02 = 1176px of layout space with room to spare. The breakpoint is
+   therefore a taste call — where the zoom starts to read as deliberate — not a
+   derived limit; re-check it against the rail only if the rail becomes wider or
+   the zoom rises sharply. Media queries and `vw` are NOT affected by `zoom` —
+   hence the plain viewport width here, and the `100vw / var(--site-zoom)`
+   correction anywhere a zoomed element positions itself off the viewport.
 
    Verify in DevTools on the homepage:
-     getComputedStyle($0).zoom === "1.1"   // $0 = the wrapper div
+     getComputedStyle($0).zoom === "1.02"   // $0 = the wrapper div
 --------------------------------------------------------------------------- */
-@media (min-width: 1300px) {
+@media (min-width: 1200px) {
   .site-zoom {
-    --site-zoom: 1.1;
+    --site-zoom: 1.02;
     zoom: var(--site-zoom);
   }
 }
 
 /* Opt out a subtree while the rest of the page stays zoomed, by cancelling the
-   inherited zoom (nested zooms multiply, so 1.1 x 1/1.1 = 1). A no-op below the
+   inherited zoom (nested zooms multiply, so 1.02 x 1/1.02 = 1). A no-op below the
    breakpoint, where --site-zoom is already 1. Used by the profile menu, which
    renders in place rather than teleporting.
 
@@ -717,8 +721,13 @@
   background: color-mix(in srgb, var(--tm-accent) 12%, var(--body-bg));
 }
 
+/* Header labels are always white, never the theme accent — the accent band
+   behind them (`.tm-thead`) is what marks the row as a header, and accent-on-
+   accent reads as low contrast. This selector is (0,1,1), so it outranks a
+   `text-white` utility on the <th>; keep the colour here rather than pushing it
+   back into the markup, or the two disagree again. */
 .tm-thead th {
-  color: var(--tm-accent);
+  color: #ffffff;
 }
 
 .tm-row {

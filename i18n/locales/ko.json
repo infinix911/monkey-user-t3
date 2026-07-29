@@ -213,6 +213,7 @@
     "markRead": "읽음 처리",
     "success": "완료",
     "bankAccountRequestSent": "은행 계좌 요청이 접수되었습니다. 저희 팀이 검토 후 곧 안내해 드리겠습니다.",
+    "accountRequestConfirmation": "계좌를 문의하시겠습니까?",
     "markReadSuccess": "문의가 읽음 처리되었습니다.",
     "deleteSuccess": "문의가 삭제되었습니다.",
     "markAllReadSuccess": "모든 문의를 읽음 처리했습니다.",
@@ -297,6 +298,7 @@
     "error": "문제가 발생했습니다",
     "you": "당신",
     "retry": "다시 시도",
+    "refreshBalance": "잔액 새로고침",
     "play": "플레이",
     "loadMore": "더 불러오기",
     "goBack": "뒤로 가기",
@@ -791,7 +793,9 @@
     "logoAlt": "LUCKY 온라인 카지노",
     "mobileLogoAlt": "LUCKY",
     "userIconAlt": "사용자 아이콘",
-    "menu": "메뉴"
+    "menu": "메뉴",
+    "honorific": "님",
+    "walletUnit": "원"
   },
   "sideMenu": {
     "myAccount": "내 계정"
@@ -950,6 +954,8 @@
     "mini": "미니게임",
     "sport": "토갤스포츠",
     "casino": "라이브카지노",
+    "fishing": "낚시게임",
+    "virtual": "버추얼게임",
     "notice": "공지사항",
     "promotion": "프로모션",
     "inquiry": "고객문의",

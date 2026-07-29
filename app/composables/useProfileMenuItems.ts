@@ -184,7 +184,14 @@ export function useProfileMenuItems() {
     s: MenuSetting,
     defaults: Record<string, Omit<MenuItem, "id">>,
   ): MenuItem {
-    const known = defaults[s.item];
+    // Fall back to the page-1 map before prettifying. The CMS decides which page
+    // an item sits on, so any id it moves to page 2 that PAGE2_ITEM_DEFAULTS
+    // does not list loses its label and renders the prettified id instead —
+    // "Inquiry" in a Korean UI. That has already been patched one id at a time
+    // (activity, livechat, rtp); resolving against page 1 fixes the whole class,
+    // since an item means the same thing whichever page it is placed on.
+    // prettifyItemId stays the last resort, for ids neither map knows.
+    const known = defaults[s.item] ?? MENU_ITEM_DEFAULTS[s.item];
     return {
       id: s.item,
       labelKey: known?.labelKey ?? prettifyItemId(s.item),

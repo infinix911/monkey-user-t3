@@ -17,7 +17,7 @@
       right: '0',
     }" />
 
-    <!-- `site-zoom` renders this page at 110% on wide desktops (main.css).
+    <!-- `site-zoom` renders this page at 102% on wide desktops (main.css).
          Opt-in per page — see isZoomPage. Modals that Teleport to body sit
          outside this wrapper and stay 1:1. -->
     <div class="flex flex-col w-full min-w-0" :class="{ 'site-zoom': isZoomPage }">
@@ -41,14 +41,25 @@
              mobile/tablet layout — and all the sticky/scroll machinery tuned to
              it — is untouched. The rail replaces the desktop category bar, so
              Navbar below is rendered with `:desktop="false"`. -->
-        <div class="lg:flex lg:w-full lg:max-w-[1400px] lg:mx-auto lg:items-start lg:gap-3 lg:px-2">
-          <div class="hidden lg:block lg:w-[215px] lg:flex-shrink-0 pt-0">
+        <!-- 1456px shell = the 1202px content column + 210px rail + 28px gap +
+             16px `lg:px-2` gutters. Sized from the content column, so adjust it
+             here if the rail, the gap or the gutters change. -->
+        <div class="lg:flex lg:w-full lg:max-w-[1456px] lg:mx-auto lg:items-start lg:gap-7 lg:px-2">
+          <div class="hidden lg:block lg:w-[210px] lg:flex-shrink-0 pt-0">
             <AppSidebar />
           </div>
 
-          <div class="min-w-0 lg:flex-1">
+          <!-- Content column. `lg:flex-1` takes the space the rail leaves;
+               `lg:max-w-[1202px]` states the intended width outright so it is
+               declared here rather than only implied by the shell arithmetic
+               above, and cannot drift if the shell, rail or gap changes. -->
+          <div class="min-w-0 lg:flex-1 lg:max-w-[1202px]">
         <!-- Announcement Bar (desktop lg+: above the banner). Hidden on the RTP page. -->
-        <div v-if="!isRtpPage" class="hidden lg:block w-full xl:w-[1152px] mx-auto">
+        <!-- Fills the content column rather than pinning to a fixed 1152px: the
+             column is capped at 1202px by its wrapper, so a fixed width here
+             would leave dead space either side and break alignment with the
+             banner directly below. -->
+        <div v-if="!isRtpPage" class="hidden lg:block w-full mx-auto">
           <div
             class="w-full rounded-t-[10px] shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] max-h-[30px] md:max-h-[40px] md:min-h-[40px] min-h-[32px] md:h-[40px] flex justify-center"
             :style="{ background: brandSiteConfig.theme.announcement.desktopGradient }">
@@ -65,7 +76,7 @@
 
         <!-- Banner (collapsed on sticky-navbar pages until scrolled past, so navbar sits under header). -->
         <div id="banner-container" ref="bannerContainer"
-          class="w-full xl:w-[1152px] mx-auto transition-[height,visibility] duration-200" :style="!initialScrollDone && isNavbarStickyPage
+          class="w-full mx-auto transition-[height,visibility] duration-200" :style="!initialScrollDone && isNavbarStickyPage
             ? { height: 0, overflow: 'hidden', visibility: 'hidden' }
             : {}
             ">
@@ -167,7 +178,7 @@
               isGameBgFixed
                 ? 'fixed left-1/2 -translate-x-1/2 top-0'
                 : 'absolute left-1/2 -translate-x-1/2',
-            ]" :style="{ width: '100%', maxWidth: '1152px' }">
+            ]" :style="{ width: '100%' }">
               <div :style="{
                 ...siteConfig.assets.homepage.gameSectionBg.desktopStyle,
                 backgroundImage: `url('${siteConfig.assets.homepage.gameSectionBg.image}')`,
@@ -208,7 +219,7 @@
                sanitizeHtml preserves its own layout/alignment, so alignment is
                the author's call (add text-align in the CMS to centre). -->
           <footer
-            class="custom-seo-footer w-full xl:w-[1152px] mx-auto px-4 py-6 text-sm text-white"
+            class="custom-seo-footer w-full mx-auto px-4 py-6 text-sm text-white"
             v-html="customSeoFooter" />
         </div>
 
@@ -218,7 +229,7 @@
     </div>
 
     <!-- Decorative side media — fixed behind content, desktop (lg+) only. An
-         mp4 (or image fallback) on each flank of the centred 1152px column,
+         mp4 (or image fallback) on each flank of the centred content column,
          masked to fade out toward the bottom. Gated by deferredReady so the
          autoplay <video> codec setup never competes with LCP. -->
     <div v-if="siteConfig.assets.decorativeImages?.enabled && deferredReady"
@@ -365,7 +376,7 @@ const localePath = useLocalePath();
 const isRtpPage = computed(() => route.path === localePath("/slot-rtp"));
 const rtpBannerSrc = cdn("/designs/rtp-banner.png");
 
-// Pages that render at 110% on wide desktops (the `site-zoom` class, main.css).
+// Pages that render at 102% on wide desktops (the `site-zoom` class, main.css).
 // Deliberately an allow-list rather than a global rule — every other page stays
 // 1:1. Matched EXACTLY, so nested routes (e.g. /lobbies/{id}, GAME_* launches)
 // are not zoomed even where they share this layout.
