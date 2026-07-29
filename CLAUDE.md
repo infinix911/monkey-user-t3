@@ -116,6 +116,18 @@ under `theme.togel.*` moved to **`theme.panel.*`**; the generic `DataTable` and
 transaction-ledger types moved to `app/components/DataTable.vue` and
 `app/interfaces/ledger.ts`.
 
+### Partner section removed
+
+The **partner/affiliate section was fully removed** from this app (ADR-020): the
+`/partner*` pages, `app/components/partner/**`, the partner deposit/withdraw
+transaction content, `usePartnerTheme`, `partner.interface.ts`,
+`utils/partnerMenu.ts`, the `theme.partner.*` token group, the `pm-*`/`quick-*`
+CSS utilities, and the `partner*` i18n trees. `layouts/default.vue` no longer
+has an `isPartnerPage` branch. Partner-facing features belong in the sibling
+`monkey-partner` app — do not re-add them here. New partner ids must go in
+`REMOVED_ITEM_IDS` (`app/components/profile/useProfileMenu.ts`), since the CMS
+is the source of profile-menu truth.
+
 ## Key Environment Variables
 
 | Variable                                                      | Purpose                                                       |

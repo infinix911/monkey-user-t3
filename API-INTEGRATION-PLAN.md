@@ -176,12 +176,13 @@ only `{amount}` (bank comes from the member profile); the DB is **not seeded**
 - **Options:** (a) keep static/mock and clearly mark as not-integrated; (b) request backend endpoints; (c) hide promotions UI until backend exists. **Decouple deposit from vouchers now** so M4 isn't blocked by this.
 - **Complexity:** N/A (blocked) — decision required.
 
-### M12 — Partner section ❌ (no backend)
+### M12 — Partner section ✅ CLOSED (section removed, ADR-020)
 
-- **Frontend now:** 8 partner pages + `PartnerDepositList/WithdrawalList/TransactionHistoryList` + member tree/modals, all **mock** and calling `/partner/*` that don't exist.
-- **Backend:** none.
-- **Options:** (a) leave as mock/dummy (current), flagged clearly; (b) request a partner API surface; (c) feature-flag the whole section off until backend exists. **Do not attempt integration** until endpoints exist.
-- **Complexity:** N/A (blocked) — largest scope gap; needs product/backend decision.
+- **Resolution:** the partner section was **deleted from this app** rather than
+  integrated — pages, `app/components/partner/**`, partner deposit/withdraw
+  content, theme tokens, and i18n are gone. Partner features live in the sibling
+  `monkey-partner` app. No `/partner/*` endpoint is needed here.
+- **Historical context (pre-removal):** 8 partner pages + `PartnerDepositList/WithdrawalList/TransactionHistoryList` + member tree/modals, all **mock** and calling `/partner/*` that don't exist. Options weighed were mock / request an API / feature-flag off; removal was chosen.
 
 ---
 
