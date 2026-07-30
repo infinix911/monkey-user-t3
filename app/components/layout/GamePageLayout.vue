@@ -8,7 +8,7 @@
 
       <div class="game-page-bg relative z-20 flex w-full flex-col items-center px-1.5 lg:px-0"
         :class="{ 'game-page-bg--solid': hasMainBackground }"
-        :style="{ '--game-page-bg': siteConfig.theme.bodyBgColor }">
+        :style="{ '--game-page-bg': gamePageBg }">
         <!-- Background blur layer (hidden on providers page) -->
         <div v-if="!isProvidersPage && !gameSectionBgEnabled && !hasMainBackground"
           class="hidden lg:block w-full min-h-full absolute top-0 left-0" style="
@@ -41,6 +41,17 @@ const hasMainBackground = computed(
   () => !!siteConfig.assets.images.mainBackground,
 );
 
+/**
+ * The game column's background: `theme.bodyBgColor` at 90% opacity, so a little
+ * of the page background reads through the column instead of it being a fully
+ * opaque panel. Mixed here rather than at each `background-color` in the
+ * stylesheet, so the mobile fill and the desktop `--solid` fill cannot drift
+ * apart. `color-mix` takes the CMS colour in whatever form it ships (hex/rgba).
+ */
+const gamePageBg = computed(
+  () => `color-mix(in srgb, ${siteConfig.theme.bodyBgColor} 90%, transparent)`,
+);
+
 // Check page types
 const isProvidersPage = computed(
   () => pathname.value?.startsWith("/providers/") || false,
@@ -48,10 +59,10 @@ const isProvidersPage = computed(
 </script>
 
 <style scoped>
-/* Mobile/iPad-portrait: solid bodyBgColor fills the container. Desktop +
-   iPad-landscape (>=1024px): transparent so the page background image shows
-   through. Done via CSS var + media query because an inline :style would
-   override any Tailwind lg: utility. */
+/* Mobile/iPad-portrait: bodyBgColor at 90% opacity fills the container (see
+   `gamePageBg`). Desktop + iPad-landscape (>=1024px): fully transparent so the
+   page background image shows through. Done via CSS var + media query because
+   an inline :style would override any Tailwind lg: utility. */
 .game-page-bg {
   background-color: var(--game-page-bg);
 }
