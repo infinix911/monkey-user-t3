@@ -102,7 +102,13 @@
                  the announcement bar directly beneath it: 37→32px tall, 17→15px
                  figures, 14→13px suffixes, 20→18px icons, and the ms-7 (28px)
                  group spacing to ms-5 (20px). Change these together — shrinking
-                 the type alone just leaves the bar looking padded. -->
+                 the type alone just leaves the bar looking padded.
+                 The three ACTION icons (swap · refresh · bell) are the one
+                 exception at 24px: the reference render inks them at 16px
+                 (refresh) and ~19.7px (bell), which is a 24px box against the
+                 72x72 source canvases they are `object-contain`ed into. The
+                 wallet/point icons stay 18px — the reference inks that coin at
+                 17px, so they already match. -->
             <div class="flex items-center h-[32px] px-3 rounded-[10px] bg-[#262626] whitespace-nowrap">
               <!-- Identity. `honorific` is the Korean "님" suffix; it is an empty
                    string in locales that have no equivalent, hence the guard. -->
@@ -137,22 +143,22 @@
                 <button type="button" :aria-label="$t('point.title')"
                   class="shrink-0 cursor-pointer opacity-90 hover:opacity-100 transition-opacity"
                   @click="uiStore.setShowPointModal(true)">
-                  <NuxtImg :src="siteConfig.assets.navIcons.swapIcon" alt="" aria-hidden="true" width="18" height="18"
-                    class="w-[18px] h-[18px] object-contain" />
+                  <NuxtImg :src="siteConfig.assets.navIcons.swapIcon" alt="" aria-hidden="true" width="24" height="24"
+                    class="w-[24px] h-[24px] object-contain" />
                 </button>
                 <!-- Wallet reload. The art ships in #434343, so it is tinted to
                      white here rather than shipping a second copy of the file. -->
                 <button type="button" :aria-label="$t('common.refreshBalance')" :disabled="isRefreshingWallet"
                   class="shrink-0 cursor-pointer opacity-90 hover:opacity-100 transition-opacity disabled:opacity-60"
                   :class="{ 'spin-once': isRefreshingWallet }" @click="refreshWallet">
-                  <NuxtImg :src="siteConfig.assets.navIcons.refreshIcon" alt="" aria-hidden="true" width="18"
-                    height="18" class="account-bar-icon-light w-[18px] h-[18px] object-contain" />
+                  <NuxtImg :src="siteConfig.assets.navIcons.refreshIcon" alt="" aria-hidden="true" width="24"
+                    height="24" class="account-bar-icon-light w-[24px] h-[24px] object-contain" />
                 </button>
                 <NotificationDropdown :notifications="notifications" @marked-all-read="markNotificationsRead">
                   <div class="relative cursor-pointer opacity-90 hover:opacity-100 transition-opacity"
                     aria-haspopup="dialog">
-                    <NuxtImg :src="siteConfig.assets.navIcons.bellIcon" alt="" aria-hidden="true" width="18" height="18"
-                      class="w-[18px] h-[18px] object-contain" />
+                    <NuxtImg :src="siteConfig.assets.navIcons.bellIcon" alt="" aria-hidden="true" width="24" height="24"
+                      class="w-[24px] h-[24px] object-contain" />
                     <div v-if="unreadNotificationCount > 0"
                       class="absolute -top-1.5 -right-1.5 min-w-4 h-4 px-1 bg-red-500 rounded-full flex items-center justify-center">
                       <span class="text-white text-[10px] font-bold leading-none">{{

@@ -5,10 +5,12 @@
   <div
     ref="viewport"
     class="relative flex flex-1 items-center justify-start overflow-hidden min-w-0 w-full py-1 px-2 md:px-4">
+    <!-- No font-weight utility on the track: `textStyle` owns the weight, since
+         it depends on whether an outline is being painted. -->
     <div
       v-if="hasText"
       ref="track"
-      class="announce-scroll whitespace-nowrap font-bold leading-normal"
+      class="announce-scroll whitespace-nowrap leading-normal"
       :class="sizeClass"
       :style="[textStyle, { animationDuration: duration }]">
       {{ text }}
@@ -48,20 +50,22 @@ const textStyle = computed(() => {
     // latin-subset Noto file doesn't carry.
     fontFamily: '"Noto Sans", "LINE Seed", system-ui, sans-serif',
     letterSpacing: '0.5px',
-    // Bold: at ticker sizes a 0.6px outline eats most of a 400-weight glyph,
-    // which reads as a dark smudge rather than as the fill colour.
-    fontWeight: 700,
   };
 
   // Without an outline the text is painted as a plain colour — using the
   // stroke/text-fill pair here would leave `-webkit-text-fill-color` overriding
   // `color` for no reason and can render an invisible hairline in some engines.
+  // The weight drops with the outline: 700 exists only to survive the stroke
+  // (see below), and an unstroked 700 ticker just reads as heavy.
   if (!hasStroke.value) {
-    return { ...base, color: props.textFill };
+    return { ...base, fontWeight: 500, color: props.textFill };
   }
 
   return {
     ...base,
+    // Bold: at ticker sizes a 0.6px outline eats most of a 400-weight glyph,
+    // which reads as a dark smudge rather than as the fill colour.
+    fontWeight: 700,
     WebkitTextStroke: `0.6px ${props.textStroke}`,
     WebkitTextFillColor: props.textFill,
   };

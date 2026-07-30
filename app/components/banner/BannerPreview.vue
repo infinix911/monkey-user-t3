@@ -138,15 +138,16 @@ const BANNER_W = { desktop: 1280, mobile: 800 } as const;
 // way at every size. A fixed height cropped inconsistently — the desktop banner
 // stayed 450px tall even on a sub-1152 width (far too tall between 768–1152px),
 // and the mobile banner was too tall on narrow phones / too short on wide ones.
-// Mobile is config-driven (theme.mobileBannerAspectRatio, from
-// /api/site/config/theme); desktop is NOT — it has no CMS key and is pinned
-// here. The ratio is expressed against the content column so it resolves to a
-// round height at full width: 1202 / 451 is exactly 451px in the 1202px column
-// (layouts/default.vue). Re-derive it if that column width changes, or the
-// banner height drifts. Placeholder/loading states reuse the active box style
-// so there is no layout jump when banners resolve.
+// Both are config-driven (theme.desktopBannerAspectRatio /
+// theme.mobileBannerAspectRatio, from /api/site/config/theme) with the bundled
+// defaults below as fallback. The desktop ratio is expressed against the content
+// column so it resolves to a round height at full width: 1202 / 300 is exactly
+// 300px in the 1202px column (layouts/default.vue). Re-derive it if that column
+// width changes, or the banner height drifts. Placeholder/loading states reuse
+// the active box style so there is no layout jump when banners resolve.
 const siteConfig = useSiteConfig();
-const BANNER_AR_DESKTOP = "1202 / 451";
+const BANNER_AR_DESKTOP =
+  siteConfig.theme.desktopBannerAspectRatio || "1202 / 300";
 const BANNER_AR_MOBILE = siteConfig.theme.mobileBannerAspectRatio || "375 / 190";
 const bannerBoxStyle = computed(() =>
   isMobile.value

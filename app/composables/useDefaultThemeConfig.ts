@@ -383,6 +383,12 @@ export interface ThemeConfig {
     themeColor: string;
     /** Page body background. Hex color. */
     bodyBgColor: string;
+    /**
+     * Aspect ratio of the desktop banner slot. CSS aspect-ratio string, expressed
+     * against the 1202px content column so it resolves to a round height at full
+     * width (e.g. "1202 / 300" = 300px tall).
+     */
+    desktopBannerAspectRatio: string;
     /** Aspect ratio of the mobile banner slot. CSS aspect-ratio string (e.g. "375 / 190"). */
     mobileBannerAspectRatio: string;
     /**
@@ -969,6 +975,7 @@ export const getDefaultThemeConfig = (): SiteConfig => {
             brandColor: "#0077B6",
             themeColor: "#000000",
             bodyBgColor: "#000000",
+            desktopBannerAspectRatio: "1202 / 300",
             mobileBannerAspectRatio: "375 / 190",
             // Mobile/tablet header design height (scaled by min(1, vw/786)).
             // Read in sync by app.vue (pre-paint), AppHeader, and default.vue.

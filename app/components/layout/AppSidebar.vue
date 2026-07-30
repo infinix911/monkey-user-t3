@@ -279,14 +279,15 @@ const icons = computed(() => siteConfig.assets.sidebarIcons);
 /** One shared row shape, so the two groups cannot drift apart. */
 // Measured off the reference render: a 31px row pitch, a 28px icon box inset
 // 14px from the panel edge (8px list padding + 6px row padding), and a 19px gap
-// to a 15px label. The icon art sits ~4px inside its box (the 83x82 source
-// canvas), which is why the gap reads wider than it is declared. The 15px was
-// originally pinned off LINE Seed KR's hangul advance (0.883em); the rail now
-// renders in Inter (`font-inter` on the <aside>), which ships no hangul, so
-// Korean labels fall through to the system hangul face and their widths no
-// longer follow that derivation — re-measure before trusting it again.
+// to the label. The icon art sits ~4px inside its box (the 83x82 source
+// canvas), which is why the gap reads wider than it is declared. The label is
+// 14px by design choice — it was 15px, pinned off LINE Seed KR's hangul advance
+// (0.883em), but the rail now renders in Inter (`font-inter` on the <aside>),
+// which ships no hangul, so Korean labels fall through to the system hangul face
+// and their widths never followed that derivation anyway. Deposit/withdraw are
+// NOT on this row shape and keep their own 12px labels.
 const ROW_CLASS =
-  "group w-full flex items-center gap-[19px] px-1.5 h-[31px] rounded-[6px] text-[15px] font-medium cursor-pointer transition-colors duration-150 hover:bg-[var(--sb-hover)]";
+  "group w-full flex items-center gap-[19px] px-1.5 h-[31px] rounded-[6px] text-[14px] font-medium cursor-pointer transition-colors duration-150 hover:bg-[var(--sb-hover)]";
 
 /**
  * Per-row colour: the active route takes the accent, everything else is white.
