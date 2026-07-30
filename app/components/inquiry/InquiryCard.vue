@@ -93,10 +93,17 @@
       </div>
     </div>
 
-    <!-- Expanded Content -->
+    <!-- Expanded Content. Slides open and closed against the thread's real
+         height — see the transition hooks. -->
+    <Transition
+      :css="false"
+      @enter="onExpandEnter"
+      @after-enter="onExpandAfterEnter"
+      @leave="onExpandLeave"
+    >
     <div
       v-if="isExpanded"
-      class="overflow-hidden rounded-b-[18px] inquiry-expand-animation -mt-2.5"
+      class="overflow-hidden rounded-b-[18px] -mt-2.5"
     >
       <div
         class="tm-card border-t-0 rounded-b-[18px] rounded-t-none pt-[22px] px-4 pb-4 space-y-4 font-normal"
@@ -270,6 +277,7 @@
         </div>
       </div>
     </div>
+    </Transition>
   </div>
 </template>
 
@@ -432,25 +440,54 @@ const handleSendReply = () => {
   emit("sendReply", props.inquiry.id, replyText.value.trim());
   replyText.value = "";
 };
+
+/**
+ * Expand/collapse motion for the thread.
+ *
+ * Driven from JS (`:css="false"`) rather than a keyframe because the distance is
+ * the thread's own height, which is only known at runtime — replies, an empty
+ * state and a reply box all produce different sizes. The keyframe this replaced
+ * animated `max-height` to a fixed 1000px, so a ~400px thread finished growing a
+ * third of the way through and the rest of the duration read as a pause.
+ *
+ * Height is released to `auto` once open, so a thread that grows afterwards (a
+ * reply arriving, replies finishing loading) is not clipped by a stale pixel
+ * height.
+ */
+const EXPAND_MS = 300;
+const COLLAPSE_MS = 250;
+
+function onExpandEnter(el: Element, done: () => void): void {
+  const node = el as HTMLElement;
+  node.style.height = "0px";
+  node.style.opacity = "0";
+  // Read back to force layout, so the browser treats the next assignment as a
+  // change to animate rather than folding both into one frame.
+  void node.offsetHeight;
+  node.style.transition = `height ${EXPAND_MS}ms ease-out, opacity ${EXPAND_MS}ms ease-out`;
+  node.style.height = `${node.scrollHeight}px`;
+  node.style.opacity = "1";
+  window.setTimeout(done, EXPAND_MS);
+}
+
+function onExpandAfterEnter(el: Element): void {
+  const node = el as HTMLElement;
+  node.style.height = "auto";
+  node.style.transition = "";
+}
+
+function onExpandLeave(el: Element, done: () => void): void {
+  const node = el as HTMLElement;
+  node.style.height = `${node.scrollHeight}px`;
+  void node.offsetHeight;
+  node.style.transition = `height ${COLLAPSE_MS}ms ease-in, opacity ${COLLAPSE_MS}ms ease-in`;
+  node.style.height = "0px";
+  node.style.opacity = "0";
+  window.setTimeout(done, COLLAPSE_MS);
+}
 </script>
 
 <style scoped>
-.inquiry-expand-animation {
-  animation: slideDown 0.3s ease-out;
-  max-height: 1000px;
-  opacity: 1;
-}
-
-@keyframes slideDown {
-  0% {
-    max-height: 0;
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  100% {
-    max-height: 1000px;
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
+/* The expand/collapse motion lives in the transition hooks above: the distance
+   is the thread's runtime height, which a keyframe cannot know. */
 </style>

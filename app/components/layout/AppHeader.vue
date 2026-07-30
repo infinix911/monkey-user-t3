@@ -100,16 +100,34 @@
                  bar in layouts/default.vue uses on its top corners. -->
             <!-- Sized down as one system so the bar reads at the same weight as
                  the announcement bar directly beneath it: 37→32px tall, 17→15px
-                 figures, 14→13px suffixes, 20→18px icons, and the ms-7 (28px)
-                 group spacing to ms-5 (20px). Change these together — shrinking
-                 the type alone just leaves the bar looking padded.
+                 figures, 14→13px suffixes, 20→18px icons. Change these together —
+                 shrinking the type alone just leaves the bar looking padded.
                  The three ACTION icons (swap · refresh · bell) are the one
                  exception at 24px: the reference render inks them at 16px
                  (refresh) and ~19.7px (bell), which is a 24px box against the
                  72x72 source canvases they are `object-contain`ed into. The
                  wallet/point icons stay 18px — the reference inks that coin at
-                 17px, so they already match. -->
-            <div class="flex items-center h-[32px] px-3 rounded-[10px] bg-[#262626] whitespace-nowrap">
+                 17px, so they already match.
+
+                 SPACING is measured off that same render, which segments into
+                 identity · wallet · point · actions with ~38-40px between the
+                 groups (ms-10) and ~17px of bar padding (px-4). Ink-to-ink the
+                 gaps read 47/40/41px, but the first is inflated by 님 being a
+                 full-width hangul glyph whose advance runs past its ink, and the
+                 last by the swap art's 3px of internal padding — so the groups
+                 are spaced uniformly rather than to those raw numbers. Within a
+                 group the gaps are small (gap-1 / gap-1.5) and already match.
+
+                 WIDTH is a share of the banner: this sits in the header's
+                 content column — the same column the banner occupies below — so
+                 a percentage tracks it at every viewport without a hardcoded
+                 pixel value. The reference measures 569px of bar against a
+                 1200px column (47.4%); 45% is the chosen setting. `min-w-fit` is
+                 the floor: the bar never shrinks below its own content, so a long
+                 username or a ten-digit balance widens it instead of
+                 overflowing. -->
+            <div
+              class="flex items-center h-[32px] px-4 w-[45%] min-w-fit rounded-[10px] bg-[#262626] whitespace-nowrap">
               <!-- Identity. `honorific` is the Korean "님" suffix; it is an empty
                    string in locales that have no equivalent, hence the guard. -->
               <span class="flex items-baseline gap-1">
@@ -119,7 +137,7 @@
               </span>
 
               <!-- Wallet balance -->
-              <span class="flex items-center gap-1.5 ms-5">
+              <span class="flex items-center gap-1.5 ms-10">
                 <NuxtImg :src="siteConfig.assets.navIcons.walletIcon" alt="" aria-hidden="true" width="18" height="18"
                   class="w-[18px] h-[18px] object-contain shrink-0" />
                 <span class="font-bold text-[15px] tabular-nums leading-none"
@@ -129,7 +147,7 @@
               </span>
 
               <!-- Point balance -->
-              <span class="flex items-center gap-1.5 ms-5">
+              <span class="flex items-center gap-1.5 ms-10">
                 <NuxtImg :src="siteConfig.assets.navIcons.pointIcon" alt="" aria-hidden="true" width="18" height="18"
                   class="w-[18px] h-[18px] object-contain shrink-0" />
                 <span class="font-bold text-[15px] tabular-nums leading-none"
@@ -137,8 +155,15 @@
                     currency.formatNumber(authStore.user.point_wallet) }}</span>
               </span>
 
+              <!-- Spacer: the bar is a fixed 45% of the column, so it is usually
+                   wider than its contents. This absorbs that slack, which pins
+                   the three action icons to the trailing edge instead of leaving
+                   a gap after the bell. `ms-10` below stays the MINIMUM gap, for
+                   when the balances grow enough to consume the slack. -->
+              <span class="flex-1" aria-hidden="true" />
+
               <!-- Actions -->
-              <div class="flex items-center gap-2.5 ms-5">
+              <div class="flex items-center gap-2.5 ms-10">
                 <!-- Point conversion — opens the point-to-balance modal. -->
                 <button type="button" :aria-label="$t('point.title')"
                   class="shrink-0 cursor-pointer opacity-90 hover:opacity-100 transition-opacity"

@@ -52,7 +52,11 @@ function amountRules(
 }
 
 /**
- * Withdrawal amount schema.
+ * Withdrawal amount + account-password confirmation schema.
+ *
+ * The password is the member's own login password, re-typed to confirm the
+ * withdrawal; the server verifies it. Only presence is checked here — guessing
+ * at a length would reject a legacy password the member actually has.
  *
  * @param t - i18n translator.
  * @param limits - Live limits from `useTransactionLimits("withdrawals")`.
@@ -66,6 +70,9 @@ export const withdrawalSchema = (t: TFn, limits: TransactionLimits) =>
         max: "withdrawal.validation.amountMaximum",
         step: "withdrawal.validation.amountDivisible",
       }),
+      password: z
+        .string()
+        .min(1, t("withdrawal.validation.passwordRequired")),
     }),
   );
 

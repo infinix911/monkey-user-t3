@@ -104,7 +104,18 @@
       "INVALID_CURRENT_PASSWORD": "현재 비밀번호가 올바르지 않습니다.",
       "PASSWORD_NOT_SAME": "새 비밀번호가 일치하지 않습니다.",
       "INTERNAL_ERROR": "내부 오류가 발생했습니다. 잠시 후 다시 시도하세요."
-    }
+    },
+    "show": "비밀번호 표시",
+    "hide": "비밀번호 숨기기",
+    "tabs": {
+      "login": "로그인 비밀번호",
+      "withdrawal": "출금 비밀번호"
+    },
+    "withdrawalHint": "출금 확인에 필요한 비밀번호입니다. 로그인 비밀번호와는 별개입니다.",
+    "currentWithdrawalPassword": "현재 출금 비밀번호",
+    "newWithdrawalPassword": "새 출금 비밀번호",
+    "confirmWithdrawalPassword": "새 출금 비밀번호 확인",
+    "withdrawalSuccess": "출금 비밀번호가 성공적으로 변경되었습니다."
   },
   "withdrawal": {
     "title": "출금",
@@ -120,7 +131,8 @@
       "amountInvalid": "유효한 금액을 입력하세요",
       "amountMinimum": "최소 출금 금액은 {min}입니다",
       "amountMaximum": "최대 출금 금액은 {max}입니다",
-      "amountDivisible": "출금 금액은 {step} 단위여야 합니다"
+      "amountDivisible": "출금 금액은 {step} 단위여야 합니다",
+      "passwordRequired": "비밀번호를 입력하세요"
     },
     "withdrawCheck": "출금 금액은 10,000 이상이어야 합니다.",
     "success": "출금 요청이 완료되었습니다.",
@@ -162,11 +174,14 @@
       "INSUFFICIENT_ROLL": "롤링 금액 부족",
       "PENDING_WITHDRAWAL_REQUEST_FOUND": "진행 중인 출금 요청이 있습니다",
       "INSUFFICIENT_BALANCE": "잔액이 부족합니다",
-      "PROMOTION_DEPOSIT_TO_NOT_MET": "프로모션 입금 턴오버 요건이 충족되지 않았습니다. 출금 전 필요한 턴오버를 완료해 주세요."
+      "PROMOTION_DEPOSIT_TO_NOT_MET": "프로모션 입금 턴오버 요건이 충족되지 않았습니다. 출금 전 필요한 턴오버를 완료해 주세요.",
+      "INVALID_PASSWORD": "비밀번호가 올바르지 않습니다."
     },
     "selectMethod": "출금 방법 선택",
     "confirmLine1": "입력하신 정보가 정확한지 확인하세요.",
-    "confirmLine2": "자금은 위의 전자지갑 번호로 전송됩니다."
+    "confirmLine2": "자금은 위의 전자지갑 번호로 전송됩니다.",
+    "password": "비밀번호",
+    "passwordPlaceholder": "확인을 위해 비밀번호를 입력하세요"
   },
   "inquiry": {
     "depositAccountRequest": "은행 계좌 요청",

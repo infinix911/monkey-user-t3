@@ -4,8 +4,7 @@
        stacked sections and the dedicated pages identical. More space above than
        below, so the bar reads as belonging to the row it introduces rather than
        floating between two. GameCarousel's own `py-1` adds 4px on each side. -->
-  <div
-    class="game-section-bar relative z-10 w-full h-8 md:h-[45px] flex items-center px-4 mt-4 mb-2 md:mt-6 md:mb-3"
+  <div class="game-section-bar relative z-10 w-full h-8 md:h-[45px] flex items-center px-4 mt-4 mb-2 md:mt-6 md:mb-3"
     :style="{ background: siteConfig.theme.sectionHeader.gradient }">
     <!-- Icon and label are sized off the bar height (~58% and ~40% of it), so
          the pair keeps the reference proportions at both breakpoints instead of
@@ -26,9 +25,12 @@
              works out the same as the 12px this started at — but it read too
              small on the real page. 16px against the 18px title is as close as
              the two can sit before the subtitle stops reading as subordinate. -->
-        <span
-          v-if="latinLabel"
-          class="font-normal uppercase leading-none text-[13px] md:text-[16px] tracking-wide text-[#B5B5B5]">{{
+        <!-- Nudged down 1px on top of the baseline alignment: the title renders
+             in a system hangul fallback (Inter ships no hangul) whose baseline
+             sits fractionally below Inter's, so the two are flush by CSS but
+             read as misaligned. Measured off the reference at ~1px. -->
+        <span v-if="latinLabel"
+          class="relative top-[2px] font-normal uppercase leading-none text-[13px] md:text-[16px] tracking-wide text-[#B5B5B5]">{{
             latinLabel }}</span>
       </span>
     </div>
@@ -81,7 +83,7 @@ const latinLabel = computed<string>(() => {
    while the dedicated category pages (hot/slots/casino/…) open with an sr-only
    <h1> that takes the :first-child slot without occupying any flow space. */
 .game-section-bar:first-child,
-.sr-only + .game-section-bar {
+.sr-only+.game-section-bar {
   margin-top: 9px;
 }
 </style>

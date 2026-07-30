@@ -536,6 +536,26 @@
     -moz-osx-font-smoothing: auto;
     text-rendering: optimizeSpeed;
   }
+
+  /* `position: sticky` resolves against the nearest scroll container. The
+     `overflow-x` above made BODY one — and body never scrolls vertically, so
+     sticky descendants could never engage. That is the constraint the navbar
+     and announcement bar work around by driving `fixed` from JS.
+
+     From lg up, the 320px min-width case cannot arise, so body stops being a
+     scroll container there and sticky resolves against the document as it
+     should. `html` keeps `overflow-x: auto` at every width, so a page wider
+     than the viewport still scrolls horizontally — the scrolling just happens
+     at document level instead of on body.
+
+     This is what lets the desktop rail use real sticky. A JS-positioned
+     equivalent updates only after the browser has painted the scroll frame, so
+     it always trails by one frame and reads as jitter when scrolling fast. */
+  @media (min-width: 1024px) {
+    body {
+      overflow-x: visible !important;
+    }
+  }
 }
 
 /* Firefox scrollbar */

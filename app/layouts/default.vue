@@ -48,8 +48,20 @@
              16px `lg:px-2` gutters. Sized from the content column, so adjust it
              here if the rail, the gap or the gutters change. -->
         <div class="lg:flex lg:w-full lg:max-w-[1456px] lg:mx-auto lg:items-start lg:gap-7 lg:px-2">
-          <div class="hidden lg:block lg:w-[210px] lg:flex-shrink-0 pt-0">
-            <AppSidebar />
+          <!-- The rail pins under the header on scroll with real `position:
+               sticky` — main.css drops body's `overflow-x` from lg up so sticky
+               can engage. Compositor-driven, so it does not trail the scroll the
+               way a JS-positioned equivalent does.
+
+               `lg:self-stretch` is what makes it release at the footer: it
+               overrides the row's `items-start` so this column spans the full
+               shell height, and a sticky element cannot travel past its own
+               parent. The rail therefore rides up with the page exactly as the
+               shell ends — no scroll handler, no second threshold. -->
+          <div class="hidden lg:block lg:self-stretch lg:w-[210px] lg:flex-shrink-0 pt-0">
+            <div class="lg:sticky" :style="railStyle">
+              <AppSidebar />
+            </div>
           </div>
 
           <!-- Content column. `lg:flex-1` takes the space the rail leaves;
@@ -480,6 +492,22 @@ watch(effectiveNavFixed, (fixed) => {
 }, { immediate: true });
 
 /**
+ * Sticky offset for the desktop rail. Only `headerHeight` is dynamic, and it
+ * changes on resize rather than on scroll, so this costs nothing per frame —
+ * the browser does the scroll work.
+ *
+ * The height cap plus `overflow-y: auto` matter because the rail is a long list:
+ * while stuck it no longer scrolls with the page, so on a short viewport its
+ * lower items would be unreachable without a scroller of its own. 12px of
+ * breathing room keeps the rounded bottom edge off the viewport edge.
+ */
+const railStyle = computed(() => ({
+  top: `${headerHeight.value}px`,
+  maxHeight: `calc(100vh - ${headerHeight.value + 12}px)`,
+  overflowY: "auto" as const,
+}));
+
+/**
  * Measure navbar height for the spacer
  */
 const measureNavbarHeight = () => {
@@ -534,6 +562,13 @@ const scrollWork = () => {
       isNavbarStickyPage.value ||
       rect.top <= headerHeight.value + announcementHeight.value;
   }
+
+  // Desktop rail: pin it under the header once its column would scroll past.
+  // The column is `hidden` below lg, so the breakpoint is checked rather than
+  // trusting a zeroed rect. Measuring `left` on every pass keeps the pinned rail
+  // aligned through resizes and horizontal scrolling for free.
+  // The desktop rail needs nothing here: it is `position: sticky`, so the
+  // browser positions it on the compositor without a scroll handler.
 };
 
 const handleScroll = () => {
