@@ -4,25 +4,23 @@
     <div class="mb-6 flex flex-col gap-3">
       <!-- Date Row -->
       <div class="flex flex-col gap-1 w-full">
-        <label class="font-medium text-gray-400 text-[10px] md:text-xs whitespace-nowrap">
+        <label class="tm-muted font-medium text-[10px] md:text-xs whitespace-nowrap">
           {{ t("bettingReport.date") }}
         </label>
         <div class="flex gap-2 items-center w-full">
           <input
             v-model="dateFrom" type="date" :disabled="loading"
-            class="flex-1 min-w-0 px-2 py-1.5 text-white text-xs md:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-            style="background: #505050; border-radius: 2.349px">
+            class="tm-field flex-1 min-w-0 px-2 py-1.5 text-xs md:text-sm">
           <span class="text-white text-sm">-</span>
           <input
             v-model="dateTo" type="date" :disabled="loading" :min="minToDate"
-            class="flex-1 min-w-0 px-2 py-1.5 text-white text-xs md:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-            style="background: #505050; border-radius: 2.349px">
+            class="tm-field flex-1 min-w-0 px-2 py-1.5 text-xs md:text-sm">
         </div>
       </div>
 
       <!-- Time Row -->
       <div class="flex flex-col gap-1 w-full">
-        <label class="font-medium text-gray-400 text-[10px] md:text-xs whitespace-nowrap">
+        <label class="tm-muted font-medium text-[10px] md:text-xs whitespace-nowrap">
           {{ t("bettingReport.time") }}
         </label>
         <div class="flex gap-2 items-center w-full">
@@ -39,19 +37,14 @@
       <div class="flex gap-2 w-full">
         <!-- Game Type -->
         <div class="flex flex-col gap-1 flex-1 min-w-0">
-          <label class="font-medium text-gray-400 text-[10px] md:text-xs whitespace-nowrap">
+          <label class="tm-muted font-medium text-[10px] md:text-xs whitespace-nowrap">
             {{ t("bettingReport.gameType") }}
           </label>
           <div class="relative w-full">
             <select
               v-model="gameType" :disabled="loading"
-              class="w-full px-2 py-1.5 text-white appearance-none pr-7 disabled:opacity-50 disabled:cursor-not-allowed text-xs md:text-sm"
-              style="
-                font-family: var(--font-line-seed);
-                border-radius: 2.349px;
-                background: #505050;
-                box-shadow: 0 1.566px 1.566px 0 rgba(0, 0, 0, 0.5);
-              ">
+              class="tm-field w-full px-2 py-1.5 appearance-none pr-7 text-xs md:text-sm"
+              style="font-family: var(--font-line-seed)">
               <option value="all">{{ t("bettingReport.all") }}</option>
               <option value="casino">{{ t("bettingReport.casino") }}</option>
               <option value="slot">{{ t("bettingReport.slot") }}</option>
@@ -66,19 +59,14 @@
         </div>
         <!-- Provider -->
         <div class="flex flex-col gap-1 flex-1 min-w-0">
-          <label class="font-medium text-gray-400 text-[10px] md:text-xs whitespace-nowrap">
+          <label class="tm-muted font-medium text-[10px] md:text-xs whitespace-nowrap">
             {{ t("bettingReport.provider") }}
           </label>
           <div class="relative w-full">
             <select
               v-model="provider" :disabled="loading || loadingProviders || gameType === 'all'"
-              class="w-full px-2 py-1.5 text-white appearance-none pr-7 disabled:opacity-50 disabled:cursor-not-allowed text-xs md:text-sm"
-              style="
-                font-family: var(--font-line-seed);
-                border-radius: 2.349px;
-                background: #505050;
-                box-shadow: 0 1.566px 1.566px 0 rgba(0, 0, 0, 0.5);
-              ">
+              class="tm-field w-full px-2 py-1.5 appearance-none pr-7 text-xs md:text-sm"
+              style="font-family: var(--font-line-seed)">
               <option value="">{{ t("bettingReport.allProviders") }}</option>
               <option v-for="lobby in providers" :key="lobby.id" :value="lobby.game_name">
                 {{ lobby.game_name }}
@@ -96,8 +84,8 @@
       <!-- Search button -->
       <button
         :disabled="loading"
-        class="font-medium bg-[#FFE100] hover:bg-[#e6cc00] disabled:opacity-50 disabled:cursor-not-allowed text-black font-bold px-3 py-1.5 transition-colors w-full text-xs md:text-sm"
-        style="border-radius: 2.349px" @click="handleSearch">
+        class="tm-btn rounded-lg font-bold px-3 py-1.5 transition-colors w-full text-xs md:text-sm"
+        @click="handleSearch">
         {{ t("bettingReport.search") }}
       </button>
     </div>
@@ -106,45 +94,45 @@
     <!-- flex-1 + min-h-0 makes this the ONLY scroll region: it fills the
          space left by the filters/pagination so the modal panel itself never
          needs a second scrollbar. min-w-0 lets it shrink horizontally too. -->
-    <div class="bg-gray-700 overflow-hidden mb-6 min-w-0 flex-1 min-h-0">
+    <div class="tm-card rounded-lg overflow-hidden mb-6 min-w-0 flex-1 min-h-0">
       <!-- Single scroll viewport for BOTH axes: scrollbars stay on the table. -->
-      <div class="overflow-auto h-full">
+      <div class="tm-scroll overflow-auto h-full">
         <table class="w-full lg:min-w-max">
           <thead>
-            <tr style="background-color: #161616">
+            <tr class="tm-thead">
               <th
-                class="px-1 py-1.5 text-center text-white font-semibold text-[11px] lg:text-sm leading-tight whitespace-normal lg:whitespace-nowrap"
+                class="px-1 py-1.5 text-center font-semibold text-[11px] lg:text-sm leading-tight whitespace-normal lg:whitespace-nowrap"
                 style="font-family: var(--font-line-seed)">
                 {{ t("bettingReport.date") }}
               </th>
               <th
                 v-if="showTypeColumn"
-                class="px-1 py-1.5 text-center text-white font-semibold text-[11px] lg:text-sm leading-tight whitespace-normal lg:whitespace-nowrap"
+                class="px-1 py-1.5 text-center font-semibold text-[11px] lg:text-sm leading-tight whitespace-normal lg:whitespace-nowrap"
                 style="font-family: var(--font-line-seed)">
                 {{ t("bettingReport.gameType") }}
               </th>
               <th
-                class="px-1 py-1.5 text-center text-white font-semibold text-[11px] lg:text-sm leading-tight whitespace-normal lg:whitespace-nowrap"
+                class="px-1 py-1.5 text-center font-semibold text-[11px] lg:text-sm leading-tight whitespace-normal lg:whitespace-nowrap"
                 style="font-family: var(--font-line-seed)">
                 {{ t("bettingReport.game") }}
               </th>
               <th
-                class="px-1 py-1.5 text-center text-white font-semibold text-[11px] lg:text-sm leading-tight whitespace-normal lg:whitespace-nowrap"
+                class="px-1 py-1.5 text-center font-semibold text-[11px] lg:text-sm leading-tight whitespace-normal lg:whitespace-nowrap"
                 style="font-family: var(--font-line-seed)">
                 {{ t("bettingReport.room") }}
               </th>
               <th
-                class="px-1 py-1.5 text-center text-white font-semibold text-[11px] lg:text-sm leading-tight whitespace-normal lg:whitespace-nowrap"
+                class="px-1 py-1.5 text-center font-semibold text-[11px] lg:text-sm leading-tight whitespace-normal lg:whitespace-nowrap"
                 style="font-family: var(--font-line-seed)">
                 {{ t("bettingReport.betAmount") }}
               </th>
               <th
-                class="px-1 py-1.5 text-center text-white font-semibold text-[11px] lg:text-sm leading-tight whitespace-normal lg:whitespace-nowrap"
+                class="px-1 py-1.5 text-center font-semibold text-[11px] lg:text-sm leading-tight whitespace-normal lg:whitespace-nowrap"
                 style="font-family: var(--font-line-seed)">
                 {{ t("bettingReport.winAmount") }}
               </th>
               <th
-                class="px-1 py-1.5 text-center text-white font-semibold text-[11px] lg:text-sm leading-tight whitespace-normal lg:whitespace-nowrap"
+                class="px-1 py-1.5 text-center font-semibold text-[11px] lg:text-sm leading-tight whitespace-normal lg:whitespace-nowrap"
                 style="font-family: var(--font-line-seed)">
                 {{ t("bettingReport.winLoss") }}
               </th>
@@ -152,57 +140,57 @@
           </thead>
           <tbody>
             <tr v-if="loading">
-              <td :colspan="showTypeColumn ? 7 : 6" class="px-2 py-8 text-center" style="background-color: #505050">
+              <td :colspan="showTypeColumn ? 7 : 6" class="tm-row px-2 py-8 text-center">
                 <span class="text-white" style="font-family: var(--font-line-seed)">{{ t("bettingReport.loading")
                 }}</span>
               </td>
             </tr>
             <tr v-else-if="error">
-              <td :colspan="showTypeColumn ? 7 : 6" class="px-2 py-8 text-center" style="background-color: #505050">
+              <td :colspan="showTypeColumn ? 7 : 6" class="tm-row px-2 py-8 text-center">
                 <span class="text-red-400" style="font-family: var(--font-line-seed)">{{ error }}</span>
               </td>
             </tr>
             <tr v-else-if="betHistories.length === 0">
-              <td :colspan="showTypeColumn ? 7 : 6" class="px-2 py-8 text-center" style="background-color: #505050">
-                <span class="text-gray-400" style="font-family: var(--font-line-seed)">{{ t("bettingReport.noData")
+              <td :colspan="showTypeColumn ? 7 : 6" class="tm-row px-2 py-8 text-center">
+                <span class="tm-muted" style="font-family: var(--font-line-seed)">{{ t("bettingReport.noData")
                 }}</span>
               </td>
             </tr>
             <template v-else>
               <tr
-                v-for="(row, index) in betHistories" :key="index" class="border-b last:border-b-0"
-                style="background-color: #505050; border-color: #7a7a7a">
+                v-for="(row, index) in betHistories" :key="index"
+                class="tm-row tm-row-hover tm-line border-b last:border-b-0 transition-colors">
                 <td
-                  class="px-1 py-1.5 text-center text-[#e2e2e2] text-xs lg:text-sm whitespace-nowrap"
+                  class="px-1 py-1.5 text-center text-white/85 text-xs lg:text-sm whitespace-nowrap"
                   style="font-family: var(--font-line-seed)">
                   <div>{{ row.created_at.split(" ")[0] }}</div>
-                  <div class="text-[10px] text-gray-400">
+                  <div class="tm-muted text-[10px]">
                     {{ row.created_at.split(" ")[1] }}
                   </div>
                 </td>
                 <td
                   v-if="showTypeColumn"
-                  class="px-2 py-1.5 text-center text-[#e2e2e2] text-xs lg:text-sm whitespace-nowrap"
+                  class="px-2 py-1.5 text-center text-white/85 text-xs lg:text-sm whitespace-nowrap"
                   style="font-family: var(--font-line-seed)">
                   {{ typeLabel(row.game_type) }}
                 </td>
                 <td
-                  class="px-2 py-1.5 text-center text-[#e2e2e2] text-xs lg:text-sm whitespace-nowrap"
+                  class="px-2 py-1.5 text-center text-white/85 text-xs lg:text-sm whitespace-nowrap"
                   style="font-family: var(--font-line-seed)">
                   {{ row.game_name }}
                 </td>
                 <td
-                  class="px-2 py-1.5 text-center text-[#e2e2e2] text-xs lg:text-sm whitespace-nowrap"
+                  class="px-2 py-1.5 text-center text-white/85 text-xs lg:text-sm whitespace-nowrap"
                   style="font-family: var(--font-line-seed)">
                   {{ row.game_room }}
                 </td>
                 <td
-                  class="px-2 py-1.5 text-center text-[#e2e2e2] text-xs lg:text-sm whitespace-nowrap"
+                  class="px-2 py-1.5 text-center text-white/85 text-xs lg:text-sm whitespace-nowrap"
                   style="font-family: var(--font-line-seed)">
                   {{ formatNumber(row.bet_amount) }}
                 </td>
                 <td
-                  class="px-2 py-1.5 text-center text-[#e2e2e2] text-xs lg:text-sm whitespace-nowrap"
+                  class="px-2 py-1.5 text-center text-white/85 text-xs lg:text-sm whitespace-nowrap"
                   style="font-family: var(--font-line-seed)">
                   {{ formatNumber(row.win_amount) }}
                 </td>
@@ -214,19 +202,19 @@
                 </td>
               </tr>
               <!-- Total Row -->
-              <tr style="background-color: #505050">
+              <tr class="tm-row tm-line border-t">
                 <td
-                  :colspan="showTypeColumn ? 4 : 3" class="px-1 py-1.5 text-center text-[#e2e2e2] font-semibold text-xs lg:text-sm"
+                  :colspan="showTypeColumn ? 4 : 3" class="px-1 py-1.5 text-center text-white/85 font-semibold text-xs lg:text-sm"
                   style="font-family: var(--font-line-seed)">
                   {{ t("bettingReport.total") }}
                 </td>
                 <td
-                  class="px-2 py-1.5 text-center text-[#e2e2e2] text-xs lg:text-sm whitespace-nowrap"
+                  class="px-2 py-1.5 text-center text-white/85 text-xs lg:text-sm whitespace-nowrap"
                   style="font-family: var(--font-line-seed)">
                   {{ totals.betAmount }}
                 </td>
                 <td
-                  class="px-2 py-1.5 text-center text-[#e2e2e2] text-xs lg:text-sm whitespace-nowrap"
+                  class="px-2 py-1.5 text-center text-white/85 text-xs lg:text-sm whitespace-nowrap"
                   style="font-family: var(--font-line-seed)">
                   {{ totals.winAmount }}
                 </td>
@@ -246,10 +234,10 @@
     <div v-if="!loading && totalPages > 1" class="flex justify-center gap-3 lg:gap-2">
       <button
         v-for="page in totalPages" :key="page" :disabled="loading" :class="[
-        'transition-colors text-sm lg:text-base lg:px-3 lg:py-1 lg:rounded',
+        'transition-colors text-sm lg:text-base cursor-pointer',
         currentPage === page
-          ? 'text-[#ffe100] font-bold lg:bg-[#ffe100] lg:text-gray-800 lg:font-semibold'
-          : 'text-gray-400 hover:text-white lg:bg-gray-600 lg:text-white lg:hover:bg-gray-500',
+          ? 'tm-btn font-semibold px-3 py-1 rounded'
+          : 'tm-card tm-muted hover:text-white px-3 py-1 rounded',
         loading ? 'opacity-50 cursor-not-allowed' : '',
       ]" style="font-family: var(--font-line-seed)" @click="handlePageChange(page)">
         {{ page }}
@@ -361,7 +349,7 @@ const supportedGameTypes = ["casino", "slot", "sport"] as const;
 function winLossClass(value: number): string {
   if (value > 0) return "text-green-400";
   if (value < 0) return "text-red-400";
-  return "text-[#e2e2e2]";
+  return "text-white/85";
 }
 
 // Computed totals
@@ -485,11 +473,13 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* Keep the header row visible while the body scrolls vertically. */
+/* Keep the header row visible while the body scrolls vertically. The band has
+   to be repeated on the cells (a sticky <th> paints its own background, not the
+   row's), so it mirrors `.tm-thead` rather than hardcoding a colour. */
 thead th {
   position: sticky;
   top: 0;
   z-index: 20;
-  background-color: #161616;
+  background: color-mix(in srgb, var(--tm-accent) 12%, var(--body-bg));
 }
 </style>

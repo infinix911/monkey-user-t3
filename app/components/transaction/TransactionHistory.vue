@@ -105,10 +105,12 @@ const accentColor = computed(() => siteConfig.theme.transactionmodal.accentColor
 
 const transactions = ref<ITransactionHistory[]>([]);
 
+// Inline styles outrank the shared `.tm-thead th` rule, so the white header
+// label has to be repeated here rather than inherited.
 const headerStyle = {
   fontFamily: "var(--font-line-seed)",
   backgroundColor: "#000000",
-  color: "#B0B0B0",
+  color: "#ffffff",
   textAlign: "center" as const,
   fontSize: "14px",
   fontStyle: "normal" as const,

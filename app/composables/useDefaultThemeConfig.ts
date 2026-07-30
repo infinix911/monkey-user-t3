@@ -48,13 +48,16 @@ export interface IdentityConfig {
 export interface ThemeAnnouncementConfig {
     /** Scrolling announcement message text. Plain text (empty = none / CMS-driven). */
     text: string;
-    /** Stroke (outline) color of the scrolling announcement text. Hex color. */
+    /**
+     * Stroke (outline) color of the scrolling announcement text. Hex color;
+     * empty means no outline — the text renders in `textFill` alone.
+     */
     textStroke: string;
     /** Fill color of the scrolling announcement text. Hex color. */
     textFill: string;
     /** Desktop announcement bar background. CSS linear-gradient string. */
     desktopGradient: string;
-    /** Mobile announcement bar background. Hex color. */
+    /** Mobile announcement bar background. CSS color or linear-gradient string. */
     mobileBg: string;
     /** Leading icon on the mobile announcement bar. Public asset path or absolute URL. */
     mobileIcon: string;
@@ -358,26 +361,18 @@ export interface ThemePanelConfig {
     actionColor: string;
 }
 
-/**
- * Partner-section (partner dashboard) theme tokens. Independent from the shared
- * `theme.panel.*` palette so the partner UI can be re-skinned on its own.
- * Consumed by `usePartnerTheme` — read `theme.partner.<leaf>` directly.
- */
-export interface ThemePartnerConfig {
-    /** Accent — icons, active states, table-header text, active-tab gradient base. Hex color. */
-    accentColor: string;
-    /** Container border — nav bar, body container, cards. CSS color. */
+/** Desktop left-rail shell (lg+ two-column layout). */
+export interface ThemeSidebarConfig {
+    /** Rail container border color. Hex color (the 1px width is fixed in AppSidebar). */
     borderColor: string;
-    /** Container background — nav bar, partner body, drawers. CSS gradient/color string. */
-    panelBgColor: string;
-    /** Card background — section cards, tables, submenus. CSS gradient/color string. */
-    cardBgColor: string;
-    /** Table header background. CSS color. */
-    headBgColor: string;
-    /** Text color on the active tab / primary button. Hex color. */
-    activeTextColor: string;
-    /** Large decorative background watermark emoji (empty = none). Single emoji. */
-    watermarkEmoji: string;
+    /** Rail container background. CSS color (rgba/hex). */
+    bg: string;
+    /** Rule between the game and account groups. Hex color. */
+    divider: string;
+    /** Label color for the active route. Hex color. */
+    activeItemColor: string;
+    /** Row hover background. CSS color (rgba). */
+    hoverBg: string;
 }
 
 /** All colors, gradients, and layout tokens (the "Theme" CMS tab). */
@@ -426,8 +421,8 @@ export interface ThemeConfig {
     bottomNav: ThemeBottomNavConfig;
     /** Shared account/activity panel theme tokens. */
     panel: ThemePanelConfig;
-    /** Partner-section (partner dashboard) theme tokens. */
-    partner: ThemePartnerConfig;
+    /** Desktop left-rail shell (lg+ two-column layout). */
+    sidebar: ThemeSidebarConfig;
 }
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -500,6 +495,16 @@ export interface AssetsNavIconsConfig {
      * Public asset path or absolute URL.
      */
     withdrawIcon: string;
+    /** Gold coin beside the wallet balance in the desktop account bar. Public asset path or absolute URL. */
+    walletIcon: string;
+    /** Blue "P" beside the point balance in the desktop account bar. Public asset path or absolute URL. */
+    pointIcon: string;
+    /** Point-conversion (swap) action in the desktop account bar. Public asset path or absolute URL. */
+    swapIcon: string;
+    /** Wallet-reload action in the desktop account bar. Public asset path or absolute URL. */
+    refreshIcon: string;
+    /** Notification bell in the desktop account bar. Public asset path or absolute URL. */
+    bellIcon: string;
 }
 
 /** Deposit/withdraw and banking assets. */
@@ -684,6 +689,56 @@ export interface AssetsIconsConfig {
 }
 
 /** All image/icon assets (the "Assets" CMS tab). */
+/**
+ * Left-rail iconography. Separate from `navIcons` because the rail uses the
+ * flat monochrome set in /designs/navigation, not the top nav's coloured webp
+ * icons — the two surfaces are themed independently.
+ */
+export interface AssetsSidebarIconsConfig {
+    /** "Hot"/featured game rail icon. Public asset path or absolute URL. */
+    hot: string;
+    /** Slot game rail icon. Public asset path or absolute URL. */
+    slot: string;
+    /** Live casino rail icon. Public asset path or absolute URL. */
+    casino: string;
+    /** Sports rail icon. Public asset path or absolute URL. */
+    sport: string;
+    /** Mini games rail icon. Public asset path or absolute URL. */
+    mini: string;
+    /** Fishing games rail icon. Public asset path or absolute URL. */
+    fishing: string;
+    /** Virtual games rail icon. Public asset path or absolute URL. */
+    virtual: string;
+    /** Notice rail icon. Public asset path or absolute URL. */
+    notice: string;
+    /** Promotion rail icon. Public asset path or absolute URL. */
+    promotion: string;
+    /** Customer inquiry rail icon. Public asset path or absolute URL. */
+    inquiry: string;
+    /** Transaction-history rail icon. Public asset path or absolute URL. */
+    transaction: string;
+    /** Betting-history rail icon. Public asset path or absolute URL. */
+    betting: string;
+    /** Change-password rail icon. Public asset path or absolute URL. */
+    password: string;
+    /** Referral rail icon. Public asset path or absolute URL. */
+    referral: string;
+    /** Login-history rail icon. Public asset path or absolute URL. */
+    loginHistory: string;
+    /** Activity rail icon. Public asset path or absolute URL. */
+    activity: string;
+    /** APK install rail icon. Public asset path or absolute URL. */
+    apk: string;
+    /** Telegram rail icon. Public asset path or absolute URL. */
+    telegram: string;
+    /** Contact rail icon. Public asset path or absolute URL. */
+    contact: string;
+    /** Live-chat rail icon. Public asset path or absolute URL. */
+    livechat: string;
+    /** Slot-RTP rail icon. Public asset path or absolute URL. */
+    rtp: string;
+}
+
 export interface AssetsConfig {
     /** Generic site imagery. */
     images: AssetsImagesConfig;
@@ -701,6 +756,8 @@ export interface AssetsConfig {
     profileMenu: ProfileMenuItem[];
     /** PWA manifest icon assets. */
     icons: AssetsIconsConfig;
+    /** Desktop left-rail iconography. */
+    sidebarIcons: AssetsSidebarIconsConfig;
 }
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -976,6 +1033,13 @@ export const getDefaultThemeConfig = (): SiteConfig => {
                 gradient:
                     "linear-gradient(90deg, #001F50 0%, #204D97 50.48%, #001F50 100%)",
             },
+            sidebar: {
+                borderColor: "#B04C00",
+                bg: "rgba(0, 0, 0, 0.6)",
+                divider: "#434343",
+                activeItemColor: "#FF8A21",
+                hoverBg: "rgba(255, 255, 255, 0.06)",
+            },
             authButton: {
                 loginBg:
                     "linear-gradient(to bottom, #0C316C, #175FD2) padding-box, linear-gradient(to bottom, #F7E652, #C9B10C 66.8%, #F7E652) border-box",
@@ -1105,20 +1169,6 @@ export const getDefaultThemeConfig = (): SiteConfig => {
                 panelBorder: "rgba(0,180,216,0.15)",
                 actionColor: "#00B4D8",
             },
-            // Partner-section palette. Defaults mirror the ocean `panel.*`
-            // tokens so the partner UI stays consistent when a theme document
-            // does not override `theme.partner.*`.
-            partner: {
-                accentColor: "#0077B6",
-                borderColor: "rgba(0,180,216,0.15)",
-                panelBgColor:
-                    "linear-gradient(135deg, rgba(20,20,20,0.6), rgba(10,22,25,0.6), rgba(15,15,15,0.6))",
-                cardBgColor:
-                    "linear-gradient(180deg, #002A3A 0%, #0F0F0F 14.42%, #0F0F0F 82.69%, #001A2E 100%)",
-                headBgColor: "#002A3A",
-                activeTextColor: "#000000",
-                watermarkEmoji: "👑",
-            },
         },
 
         // ───────────────────────────────────────────────────────────────────
@@ -1155,6 +1205,11 @@ export const getDefaultThemeConfig = (): SiteConfig => {
                 arrowRight: "/designs/navigation/arrow-right.webp",
                 depositIcon: "/designs/template-3/nav-icons/deposit.png",
                 withdrawIcon: "/designs/template-3/nav-icons/withdraw.png",
+                walletIcon: "/designs/navigation/Group 605.png",
+                pointIcon: "/designs/navigation/Group 604.png",
+                swapIcon: "/designs/navigation/swap_horiz_24dp_FFFFFF 1.png",
+                refreshIcon: "/designs/navigation/refresh_24dp_434343 1.png",
+                bellIcon: "/designs/navigation/notifications_none_24dp_EFEFEF 1.png",
             },
             transaction: {
                 bankAccountListPath:
@@ -1234,6 +1289,29 @@ export const getDefaultThemeConfig = (): SiteConfig => {
             ],
             icons: {
                 pwa: { ...PWA_ICONS },
+            },
+            sidebarIcons: {
+                hot: "/designs/navigation/hot.png",
+                slot: "/designs/navigation/slots.png",
+                casino: "/designs/navigation/casino.png",
+                sport: "/designs/navigation/sports.png",
+                mini: "/designs/navigation/mini.png",
+                fishing: "/designs/navigation/fishing.png",
+                virtual: "/designs/navigation/virtual.png",
+                notice: "/designs/navigation/Group 306.png",
+                promotion: "/designs/navigation/Group 301.png",
+                inquiry: "/designs/navigation/Group 302.png",
+                transaction: "/designs/navigation/Group 303.png",
+                betting: "/designs/navigation/Group 304.png",
+                password: "/designs/navigation/Group 305.png",
+                referral: "/designs/navigation/referral.png",
+                loginHistory: "/designs/navigation/login-history.png",
+                activity: "/designs/navigation/activity.png",
+                apk: "/designs/navigation/apk.png",
+                telegram: "/designs/navigation/telegram.png",
+                contact: "/designs/navigation/contact.png",
+                livechat: "/designs/navigation/livechat.png",
+                rtp: "/designs/navigation/rtp.png",
             },
         },
 

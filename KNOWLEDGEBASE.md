@@ -15,6 +15,14 @@
 > `useFeatures()` returns only `{ payments }`. See ADR-017. Ignore togel/qris
 > facts here until this doc is fully re-verified.
 
+> ⚠️ **PARTNER SECTION REMOVED (ADR-020).** The whole partner/affiliate section
+> is gone: the nine `/partner*` pages, `app/components/partner/**`,
+> `transaction/Partner{Deposit,Withdraw}Content.vue`, `usePartnerTheme.ts`,
+> `partner.interface.ts`, `utils/partnerMenu.ts`, `theme.partner.*` tokens, the
+> `pm-*`/`quick-*`/`partner-*` CSS block in `main.css`, `formatPartnerAmount()`,
+> and the `partner*` i18n trees. `default.vue` no longer has an `isPartnerPage`
+> branch and `AppHeader` no longer links to the partner dashboard.
+
 ---
 
 ## 1. Repository Overview
@@ -49,7 +57,7 @@ monkey-user-t3/
 │   │                         #   URL param handlers (telegram login/register, referral), SEO head, AppDialog mount
 │   ├── pages/                # 26 pages: index, hot, casino, slots, sports, fishing, virtual, mini, slot-rtp,
 │   │   │                     #   lobbies/[lobby]/games, [game_type]/[game_id] (CSR game launch), promotions,
-│   │   │                     #   partner*, activity, togel/{index,[id],history,invoice,aturan,hadiah,normor,meanang}
+│   │   │                     #   activity, togel/{index,[id],history,invoice,aturan,hadiah,normor,meanang}
 │   │   └── togel/winners/    # ⚠ winner-card.vue/winner-modal.vue are COMPONENTS misplaced as routes
 │   ├── layouts/              # default.vue (698L shell), game.vue; Togel{Desktop,Mobile}Layout.vue = DEAD
 │   ├── components/           # 201 files — see §7. ui/ (3 primitives), layout/, navigation/, auth/, transaction/,
@@ -134,7 +142,7 @@ Browser ──HTTP──▶ Nitro (:3000)
 - **Auth store** (`app/stores/auth.ts`): user/wallet/level/bank state; `verifyUser()`, `logout()` (clears storage keys + site store). Wallet updated live by WS `wallet` events.
 - **Session lifecycle plugin** (`app/plugins/session-verify.client.ts`): onNuxtReady verify → WS connect + fetchNotice; WS disconnect on tab-hide/`pagehide` (bfcache), reconnect on `pageshow persisted`.
 - Telegram entry: `useLoginTokenHandler` (`?chatId&token`) and `useOfflineTelegramRegisterHandler` (`?offline=true…`) in app.vue.
-- Pages with per-user data but NOT guarded (degrade to anon + `noindex`): `/activity`, `/togel/invoice`, `/togel/history`, `/partner-*`.
+- Pages with per-user data but NOT guarded (degrade to anon + `noindex`): `/activity`, `/togel/invoice`, `/togel/history`.
 
 ---
 
@@ -158,12 +166,12 @@ Resolution chain (verified, replaces the stale CLAUDE.md story):
 ## 7. Component library (201 files)
 
 - **ui/ primitives — only 3:** `AppDialog.vue` (singleton dialog renderer mounted once in app.vue; the SweetAlert2 replacement — fire via `fireDialog()`/`showSwalAlert()` wrappers, never mount a second one), `UiFormField.vue` (vee `<Field rules>` style, light theme, 1 consumer), `UiTimePicker.vue`. There is NO Button/Input/Card layer — components hand-style with Tailwind + inline `:style` from siteConfig tokens.
-- **Shell:** `layout/AppHeader.vue` (510L, dual desktop/mobile DOM), `navigation/Navbar.vue` (317L, hosts Deposit/Withdrawal modals), `layout/BottomNav.vue` (mobile, container-query sized), `layout/AppFooter.vue`, `layout/GamePageLayout.vue` (wraps every game-grid page). Header height via pre-paint CSS vars (`--mh-header-height`) set by an inline head script.
+- **Shell:** `layout/AppHeader.vue` (dual desktop/mobile DOM; the desktop authenticated account bar is a single flat `#262626` bar — username / wallet / points / swap / refresh / bell — with its art from `assets.navIcons.{walletIcon,pointIcon,swapIcon,refreshIcon,bellIcon}` and the Korean suffixes from `header.honorific` + `header.walletUnit`), `layout/AppSidebar.vue` (lg+ left rail: deposit/withdraw, game categories, account entries; `theme.sidebar` — `borderColor`/`bg`/`divider`/`activeItemColor`/`hoverBg`, all five editable in the admin Theme Editor's "Sidebar" tab — plus `assets.sidebarIcons`; ADR-021), `navigation/Navbar.vue` (hosts Deposit/Withdrawal modals; `desktop` prop off in the two-column layout), `layout/BottomNav.vue` (mobile, container-query sized), `layout/AppFooter.vue`, `layout/GamePageLayout.vue` (wraps every game-grid page). Header height via pre-paint CSS vars (`--mh-header-height`) set by an inline head script.
 - **Auth:** `auth/LoginModal.vue` (canonical form pattern), `SignupModal.vue` + `useSignupForm.ts`, `auth/FormField.vue` = the de-facto dark input primitive.
 - **Transactions:** `DepositModal.vue` shell + `useDepositModal.ts` + `BankPaymentContent`/`useBankPayment.ts` (money-in logic); `WithdrawalContent.vue` (money-out). Shared chrome: `.tm-modal`/`.modal-gradient-border` classes + `theme.transactionmodal` CSS vars.
+- **Themed surfaces (one palette):** `useModalTheme()` turns `theme.transactionmodal` into the `--tm-*` var bundle; hosts (rail panel, profile modal, each standalone modal) spread it and descendants style themselves with the `.tm-*` classes in `main.css` (`tm-card/field/thead/row/btn/btn-ghost/muted/accent-text/accent-bar/bubble-self/line/scroll`). Retheming deposit/withdraw in the CMS rethemes every account panel and modal. Do not hardcode surface greys.
 - **Game catalog:** `HotGameCard.vue` (standard tile), `LobbyCard.vue` (provider tile + launch quirks), `SubGames.vue` (grid; ⚠ contains an inline copy of PaginationBar).
-- **Partner section:** `partner/PartnerNav.vue` (desktop tab bar + mobile sidebar drawer), `PartnerPageHeader`, `PartnerTable`, `PartnerPlaceholder`, list components; themed via `usePartnerTheme()` (single token mapping).
-- **Shared top-level:** `PaginationBar` (windowed), `TrimmedImage` (canvas alpha-crop w/ bbox cache), `UserBalancePill` (class-prop styling API), `NoticeSection` (post-login mandatory notice, Tiptap-rendered).
+- **Shared top-level:** `PaginationBar` (windowed), `TrimmedImage` (canvas alpha-crop w/ bbox cache), `UserBalancePill` (class-prop styling API; ⚠ no consumers since the header account bar was flattened), `NoticeSection` (post-login mandatory notice, Tiptap-rendered).
 - **Conventions:** `<script setup lang="ts">`, typed `defineProps`/tuple `defineEmits`, `withDefaults`; co-located `useXxx.ts` composable when logic >~150 lines (useDepositModal, useProfileMenu precedent); heavy modals = `defineAsyncComponent` + uiStore flag + mounted-latch for close animations; dual mobile/desktop DOM trees (`hidden lg:block`/`lg:hidden`); flat component namespace (`pathPrefix:false`).
 - **Toasts** = `useToast()` (vue-sonner). **Dialogs** = `showSwalAlert/showErrorAlert/...` from `utils/swal-alert.ts` → in-house queue. Do not import sweetalert2 (not installed).
 

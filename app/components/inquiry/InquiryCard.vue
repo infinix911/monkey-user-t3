@@ -8,7 +8,7 @@
     <!-- Header -->
     <div
       :class="[
-        isExpanded ? 'bg-[#285EFF]' : 'bg-[#46506D]',
+        isExpanded ? 'tm-accent-bar' : 'tm-card',
         'p-3 md:p-3 md:px-4 cursor-pointer hover:opacity-95 transition-colors font-medium rounded-[15px] relative z-10',
       ]"
       @click="$emit('toggle', inquiry.id)"
@@ -40,7 +40,7 @@
             <!-- Unread Badge -->
             <span
               v-if="inquiry.member_unread > 0"
-              class="bg-[#FFE100] text-black text-[11px] font-semibold px-2 py-0.5 rounded-full"
+              class="tm-btn text-[11px] font-semibold px-2 py-0.5 rounded-full"
             >
               {{ t("inquiry.unreadMessage") }}
             </span>
@@ -98,137 +98,173 @@
       v-if="isExpanded"
       class="overflow-hidden rounded-b-[18px] inquiry-expand-animation -mt-2.5"
     >
-      <div class="bg-[#D6D6D6] p-4 space-y-4 font-normal">
-        <!-- Initial Inquiry Message -->
+      <div
+        class="tm-card border-t-0 rounded-b-[18px] rounded-t-none pt-[22px] px-4 pb-4 space-y-4 font-normal"
+      >
+        <!-- Initial Inquiry Message — the member's own question, kept visually
+             distinct from the thread below it (accent rule + label) so the
+             ticket always opens with its subject matter in view. -->
         <div
           v-if="inquiry.message"
-          class="mt-[14px] mb-2 pb-2 border-b border-[#B0B0B0]/50"
+          class="tm-card rounded-[10px] border-l-[3px] px-3.5 py-3"
+          :style="{ borderLeftColor: 'var(--tm-accent)' }"
         >
-          <div class="flex-1">
-            <div class="text-[#545454] rounded-lg">
-              <p class="text-base leading-relaxed break-words text-black">
-                {{ translateToken(extractTextFromMessage(inquiry.message)) }}
-              </p>
-            </div>
-          </div>
+          <span
+            class="block text-[11px] font-semibold uppercase tracking-[0.08em] text-white/40 mb-1.5"
+          >
+            {{ t("inquiry.body") }}
+          </span>
+          <p class="text-[15px] leading-relaxed break-words text-white/90">
+            {{ translateToken(extractTextFromMessage(inquiry.message)) }}
+          </p>
         </div>
 
         <!-- Loading State -->
-        <div v-if="isLoadingReplies" class="flex justify-center py-6">
+        <div v-if="isLoadingReplies" class="py-2">
           <div class="animate-pulse space-y-3 w-full">
-            <div class="h-12 bg-[#B0B0B0] rounded-lg" />
-            <div class="h-12 bg-[#B0B0B0] rounded-lg" />
+            <div class="tm-card h-12 w-3/4 rounded-[12px]" />
+            <div class="tm-card h-12 w-2/3 rounded-[12px] ml-auto" />
           </div>
         </div>
 
-        <!-- Replies Section -->
-        <div
-          v-else
-          ref="repliesContainerRef"
-          class="space-y-1 max-h-[300px] overflow-y-auto pr-2"
-        >
-          <!-- All Replies - Reversed so latest appears at bottom -->
-          <div v-if="replies && replies.data && replies.data.length > 0">
-            <div
-              v-for="reply in [...replies.data].reverse()"
-              :key="reply.id"
-              class="flex items-start gap-2 mb-2 border-b border-[#B0B0B0]/50 pb-4 mt-1"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="30"
-                height="30"
-                viewBox="0 0 44 44"
-                fill="none"
-                class="flex-shrink-0"
+        <!-- Replies Section — a conversation, so it reads like one: the
+             member's own replies sit right/blue, the operator's left/grey, and
+             the container scrolls to the newest message (see the watcher). -->
+        <div v-else>
+          <div
+            v-if="hasReplies"
+            class="flex items-center gap-2 mb-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-white/40"
+          >
+            <span>{{ t("inquiry.replies") }}</span>
+            <span class="h-px flex-1 bg-white/10" />
+          </div>
+
+          <div
+            ref="repliesContainerRef"
+            class="tm-scroll flex flex-col gap-3 max-h-[300px] overflow-y-auto pr-1"
+          >
+            <!-- All Replies - Reversed so latest appears at bottom -->
+            <template v-if="hasReplies">
+              <div
+                v-for="reply in orderedReplies"
+                :key="reply.id"
+                class="flex items-end gap-2"
+                :class="isUserReply(reply) ? 'flex-row-reverse' : 'flex-row'"
               >
-                <g :clip-path="`url(#clip_reply_${reply.id})`">
-                  <path
-                    d="M21.9998 3.66669C11.8798 3.66669 3.6665 11.88 3.6665 22C3.6665 32.12 11.8798 40.3334 21.9998 40.3334C32.1198 40.3334 40.3332 32.12 40.3332 22C40.3332 11.88 32.1198 3.66669 21.9998 3.66669ZM21.9998 11C25.5382 11 28.4165 13.8784 28.4165 17.4167C28.4165 20.955 25.5382 23.8334 21.9998 23.8334C18.4615 23.8334 15.5832 20.955 15.5832 17.4167C15.5832 13.8784 18.4615 11 21.9998 11ZM21.9998 36.6667C18.2782 36.6667 13.8782 35.1634 10.7432 31.3867C13.8415 28.9667 17.7465 27.5 21.9998 27.5C26.2532 27.5 30.1582 28.9667 33.2565 31.3867C30.1215 35.1634 25.7215 36.6667 21.9998 36.6667Z"
-                    fill="black"
-                  />
-                </g>
-                <defs>
-                  <clipPath :id="`clip_reply_${reply.id}`">
-                    <rect width="44" height="44" fill="white" />
-                  </clipPath>
-                </defs>
-              </svg>
-              <div class="flex-1 min-w-0 mt-0.5">
-                <div class="flex items-center gap-2">
-                  <span
-                    class="text-black text-md md:text-base py-1 rounded-full"
-                  >
-                    {{ isUserReply(reply) ? t("common.you") : "Admin" }}
-                  </span>
-                  <span class="text-[#666666] text-xs mt-1">
-                    {{ formatTimeAgo(reply.created_at) }}
-                  </span>
-                </div>
-                <div
-                  v-if="extractTextFromMessage(reply.message)"
-                  class="text-[#545454] rounded-lg"
+                <!-- Author chip: the member gets their accent, the operator the
+                     neutral one, so a glance at the colour identifies the side
+                     even before reading the name. -->
+                <span
+                  class="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center"
+                  :class="
+                    isUserReply(reply)
+                      ? 'tm-bubble-self'
+                      : 'tm-card tm-accent-text'
+                  "
                 >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="w-4 h-4"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <path
+                      d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-4.418 0-8 2.239-8 5v1h16v-1c0-2.761-3.582-5-8-5Z"
+                    />
+                  </svg>
+                </span>
+
+                <div
+                  class="min-w-0 max-w-[80%] flex flex-col gap-1"
+                  :class="isUserReply(reply) ? 'items-end' : 'items-start'"
+                >
+                  <div
+                    class="flex items-center gap-2 px-0.5 text-[11px] leading-none"
+                    :class="isUserReply(reply) ? 'flex-row-reverse' : ''"
+                  >
+                    <span class="font-semibold text-white/70">
+                      {{ isUserReply(reply) ? t("common.you") : "Admin" }}
+                    </span>
+                    <span class="text-white/35">
+                      {{ formatTimeAgo(reply.created_at) }}
+                    </span>
+                  </div>
                   <p
-                    class="text-base leading-relaxed break-words text-black font-normal"
+                    v-if="extractTextFromMessage(reply.message)"
+                    class="px-3.5 py-2.5 text-[15px] leading-relaxed break-words whitespace-pre-line"
+                    :class="
+                      isUserReply(reply)
+                        ? 'tm-bubble-self rounded-[14px] rounded-br-[4px]'
+                        : 'tm-card rounded-[14px] rounded-bl-[4px]'
+                    "
                   >
                     {{ extractTextFromMessage(reply.message) }}
                   </p>
                 </div>
               </div>
-            </div>
-          </div>
+            </template>
 
-          <!-- No Replies Message -->
-          <div
-            v-if="!replies || !replies.data || replies.data.length === 0"
-            class="text-center py-1"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-4 h-4 md:w-5 md:h-5 text-[#999999] mx-auto mb-2"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-              />
-            </svg>
-            <p class="text-[#666666] text-sm md:text-base">
-              {{ t("inquiry.noReplies") }}
-            </p>
+            <!-- No Replies Message -->
+            <div v-else class="text-center py-5">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-7 h-7 text-white/25 mx-auto mb-2"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="1.5"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                />
+              </svg>
+              <p class="text-white/45 text-sm">
+                {{ t("inquiry.noReplies") }}
+              </p>
+            </div>
           </div>
         </div>
 
         <!-- Reply Text Area — hidden on app-raised inquiries, which the member
              has nothing to reply to. -->
         <div v-if="!isAppRaised">
+          <!-- Ctrl/⌘+Enter sends, matching every other chat box the member has
+               used; the button stays the discoverable path. -->
           <textarea
             v-model="replyText"
             :placeholder="t('inquiry.writeReplyPlaceholder')"
-            rows="4"
-            class="w-full rounded-[10px] bg-[#B0B0B0] border-0 p-3 md:p-2 text-[#000] text-sm font-normal resize-none outline-none focus:ring-2 ring-[#2563EB]/20 min-h-[120px]"
+            rows="3"
+            class="tm-field w-full px-3.5 py-3 text-sm font-normal resize-none outline-none transition-colors min-h-[92px]"
+            @keydown.ctrl.enter.prevent="handleSendReply"
+            @keydown.meta.enter.prevent="handleSendReply"
           />
         </div>
 
         <!-- Action Buttons -->
-        <div class="flex gap-2 md:gap-3 justify-end pt-2">
+        <div class="flex gap-2 md:gap-3 justify-end pt-1">
           <button
             :disabled="isClosing"
-            class="bg-[#757575] hover:bg-[#616161] active:bg-[#525252] text-white px-4 py-2 md:px-5 md:py-2.5 rounded-lg transition-colors font-medium text-sm md:text-base disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center gap-2 shadow-sm font-normal"
+            class="tm-btn-ghost px-4 py-2 md:px-5 md:py-2.5 rounded-lg transition-colors font-normal text-sm md:text-base cursor-pointer flex items-center gap-2"
             @click="$emit('close', inquiry.id)"
           >
             {{ isClosing ? t("inquiry.closing") : t("inquiry.closeInquiry") }}
           </button>
           <button
             v-if="!isAppRaised"
-            class="bg-[#285EFF] hover:bg-[#1D4ED8] active:bg-[#1E40AF] text-white px-4 py-2 md:px-5 md:py-2.5 rounded-lg transition-colors font-medium text-sm md:text-base shadow-sm cursor-pointer flex items-center gap-2 font-normal"
+            :disabled="!replyText.trim()"
+            class="tm-btn px-4 py-2 md:px-5 md:py-2.5 rounded-lg transition-colors font-normal text-sm md:text-base shadow-sm cursor-pointer flex items-center gap-2"
             @click="handleSendReply"
           >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-4 h-4"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+            >
+              <path d="M2.01 21 23 12 2.01 3 2 10l15 2-15 2z" />
+            </svg>
             {{ t("inquiry.sendReply") }}
           </button>
         </div>
@@ -280,6 +316,13 @@ watch(
   },
 );
 
+/** Whether the ticket has any reply to render as a thread. */
+const hasReplies = computed(() => (props.replies?.data?.length ?? 0) > 0);
+
+/** Oldest → newest, so the conversation reads downwards and the newest message
+ *  is the one the auto-scroll lands on. The API returns newest first. */
+const orderedReplies = computed(() => [...(props.replies?.data ?? [])].reverse());
+
 const statusBadgeClass = computed(() => {
   if (props.isExpanded) {
     return "text-white border border-white";
@@ -288,7 +331,7 @@ const statusBadgeClass = computed(() => {
     case 1:
       return "bg-transparent text-white border border-white";
     case 2:
-      return "bg-transparent text-[#FFE100] border border-[#FFE100]";
+      return "bg-transparent tm-accent-text border border-current";
     case 0:
     case 9:
       return "bg-transparent text-[#FF7575] border border-[#FF7575]";

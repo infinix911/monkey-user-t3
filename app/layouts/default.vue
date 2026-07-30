@@ -17,15 +17,13 @@
       right: '0',
     }" />
 
-    <!-- Partner focus dim — darkens the site background so the partner section
-         becomes the visual focus. -->
-    <div v-if="isPartnerPage" class="fixed inset-0 -z-[5] pointer-events-none"
-      style="background: radial-gradient(120% 90% at 50% 0%, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.86) 70%, rgba(0,0,0,0.94) 100%);" />
-
-    <!-- `site-zoom` renders this page at 110% on wide desktops (main.css).
-         Opt-in per page — see isZoomPage. Modals that Teleport to body sit
-         outside this wrapper and stay 1:1. -->
-    <div class="flex flex-col w-full min-w-0" :class="{ 'site-zoom': isZoomPage }">
+    <!-- Pages render 1:1. The `site-zoom` 102% big-screen zoom used to be
+         applied here for the game pages, but it scaled the content column past
+         its stated 1202px (1202 x 1.02 = 1226 on screen) along with every card
+         and label inside it. The CSS mechanism is still in main.css — re-add
+         `:class="{ 'site-zoom': isZoomPage }"` here to bring it back, and
+         restore the ZOOM_PAGES allow-list with it. -->
+    <div class="flex flex-col w-full min-w-0">
       <!-- Header — spacer height comes from the --mh-header-height CSS var
            (set pre-paint by app.vue's inline script) so it matches the fixed
            header on the very first paint with no hydration flash. -->
@@ -41,10 +39,32 @@
       <!-- Normal page content — always mounted; hidden with v-show while
            the notice is pending. -->
       <div v-show="!uiStore.showNoticeModal">
-        <!-- Announcement Bar (desktop lg+: above the banner). Hidden on the RTP + partner pages. -->
-        <div v-if="!isRtpPage && !isPartnerPage" class="hidden lg:block w-full xl:w-[1152px] mx-auto">
+        <!-- Two columns from lg: the left rail, then the existing content stack.
+             Below lg this wrapper is inert (no flex), so the single-column
+             mobile/tablet layout — and all the sticky/scroll machinery tuned to
+             it — is untouched. The rail replaces the desktop category bar, so
+             Navbar below is rendered with `:desktop="false"`. -->
+        <!-- 1456px shell = the 1202px content column + 210px rail + 28px gap +
+             16px `lg:px-2` gutters. Sized from the content column, so adjust it
+             here if the rail, the gap or the gutters change. -->
+        <div class="lg:flex lg:w-full lg:max-w-[1456px] lg:mx-auto lg:items-start lg:gap-7 lg:px-2">
+          <div class="hidden lg:block lg:w-[210px] lg:flex-shrink-0 pt-0">
+            <AppSidebar />
+          </div>
+
+          <!-- Content column. `lg:flex-1` takes the space the rail leaves;
+               `lg:max-w-[1202px]` states the intended width outright so it is
+               declared here rather than only implied by the shell arithmetic
+               above, and cannot drift if the shell, rail or gap changes. -->
+          <div class="min-w-0 lg:flex-1 lg:max-w-[1202px]">
+        <!-- Announcement Bar (desktop lg+: above the banner). Hidden on the RTP page. -->
+        <!-- Fills the content column rather than pinning to a fixed 1152px: the
+             column is capped at 1202px by its wrapper, so a fixed width here
+             would leave dead space either side and break alignment with the
+             banner directly below. -->
+        <div v-if="!isRtpPage" class="hidden lg:block w-full mx-auto">
           <div
-            class="w-full shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] max-h-[30px] md:max-h-[40px] md:min-h-[40px] min-h-[32px] md:h-[40px] flex justify-center"
+            class="w-full rounded-t-[10px] shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] max-h-[30px] md:max-h-[40px] md:min-h-[40px] min-h-[32px] md:h-[40px] flex justify-center"
             :style="{ background: brandSiteConfig.theme.announcement.desktopGradient }">
             <div
               class="w-full flex items-center justify-center gap-1.5 md:gap-4 pr-2 md:pr-6 pl-2 md:pl-3 overflow-visible">
@@ -57,9 +77,9 @@
           </div>
         </div>
 
-        <!-- Banner (collapsed on sticky-navbar pages until scrolled past, so navbar sits under header). Hidden on partner pages. -->
-        <div v-if="!isPartnerPage" id="banner-container" ref="bannerContainer"
-          class="w-full xl:w-[1152px] mx-auto transition-[height,visibility] duration-200" :style="!initialScrollDone && isNavbarStickyPage
+        <!-- Banner (collapsed on sticky-navbar pages until scrolled past, so navbar sits under header). -->
+        <div id="banner-container" ref="bannerContainer"
+          class="w-full mx-auto transition-[height,visibility] duration-200" :style="!initialScrollDone && isNavbarStickyPage
             ? { height: 0, overflow: 'hidden', visibility: 'hidden' }
             : {}
             ">
@@ -76,9 +96,9 @@
              (NOT CSS sticky): html/body have `overflow-x: auto`, which disables
              position:sticky for descendants. The navbar's fixed top + stick
              trigger are offset by this bar's height (announcementHeight). -->
-        <div v-if="!isRtpPage && !isPartnerPage" class="block lg:hidden w-full xl:w-[1152px] mx-auto">
+        <div v-if="!isRtpPage" class="block lg:hidden w-full xl:w-[1152px] mx-auto">
           <div ref="announcementBar"
-            class="w-full shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] max-h-[30px] md:max-h-[41px] md:min-h-[41px] min-h-[30px] md:h-[41px] flex justify-center"
+            class="w-full shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] h-[36px] min-h-[36px] max-h-[36px] flex justify-center"
             :class="effectiveNavFixed ? 'fixed left-0 right-0 z-40' : ''"
             :style="[{ background: brandSiteConfig.theme.announcement.mobileBg }, effectiveNavFixed ? { top: headerHeight + 'px' } : {}]">
             <div
@@ -107,7 +127,7 @@
              reads separately from the image); when the nav is a solid colour it
              already blends into this black strip, so the padding is dropped to
              avoid a big undifferentiated gap. -->
-        <div v-if="!authStore.isAuthenticated && !isRtpPage && !isPartnerPage"
+        <div v-if="!authStore.isAuthenticated && !isRtpPage"
           class="block min-[690px]:hidden w-full xl:w-[1152px] mx-auto flex items-center justify-center gap-2 pt-3"
           :class="brandSiteConfig.assets.navIcons.background ? 'pb-3' : 'pb-0'"
           :style="{ background: '#000000' }">
@@ -161,7 +181,7 @@
               isGameBgFixed
                 ? 'fixed left-1/2 -translate-x-1/2 top-0'
                 : 'absolute left-1/2 -translate-x-1/2',
-            ]" :style="{ width: '100%', maxWidth: '1152px' }">
+            ]" :style="{ width: '100%' }">
               <div :style="{
                 ...siteConfig.assets.homepage.gameSectionBg.desktopStyle,
                 backgroundImage: `url('${siteConfig.assets.homepage.gameSectionBg.image}')`,
@@ -169,43 +189,23 @@
             </div>
           </template>
 
-          <!-- Navbar — hidden on the RTP page (own provider tabs) and partner
-               pages (replaced by the partner nav below). -->
-          <div v-if="!isRtpPage && !isPartnerPage" ref="navbarAnchor" class="relative z-20">
+          <!-- Navbar — hidden on the RTP page (own provider tabs). -->
+          <div v-if="!isRtpPage" ref="navbarAnchor" class="relative z-20">
             <div :class="effectiveNavFixed ? 'fixed left-0 right-0 z-40' : ''"
               :style="effectiveNavFixed ? { top: (headerHeight + announcementHeight) + 'px' } : {}">
-              <Navbar />
+              <Navbar :desktop="false" />
             </div>
             <div v-if="effectiveNavFixed" :style="{ height: navbarHeight + 'px' }" />
-          </div>
-
-          <!-- Partner nav — partner-section navigation in place of the game nav. -->
-          <div v-if="isPartnerPage" class="relative z-20">
-            <PartnerNav />
           </div>
 
           <!-- Main Content -->
           <main ref="mainContent" class="relative overflow-y-hidden overflow-x-auto mt-0 z-10">
             <div class="relative z-10 w-full">
-              <!-- Partner body — its own themed container, visually separate
-                   from the partner nav container above it. Desktop (lg+) only:
-                   on mobile the panel chrome is dropped (no bg/border/padding)
-                   so the page doesn't feel crowded on small screens. -->
-              <div v-if="isPartnerPage" class="w-full px-0 lg:px-4 pt-3 pb-10">
-                <div class="partner-body relative lg:rounded-2xl lg:border overflow-hidden"
-                  :style="{ '--pb-bg': siteConfig.theme.partner.panelBgColor, '--pb-border': siteConfig.theme.partner.borderColor, '--pb-accent': siteConfig.theme.partner.accentColor }">
-                  <!-- Cosmo artwork — top-right of the panel, clipped by the
-                       panel's rounded corners + overflow-hidden, masked so it
-                       melts into the dark toward the bottom-left. -->
-                  <div class="partner-cosmos" aria-hidden="true" />
-                  <div class="relative z-[1]">
-                    <slot />
-                  </div>
-                </div>
-              </div>
-              <slot v-else />
+              <slot />
             </div>
           </main>
+        </div>
+          </div>
         </div>
 
         <!-- Mobile Bottom Navigation — shown for guests too (the bar renders a
@@ -222,7 +222,7 @@
                sanitizeHtml preserves its own layout/alignment, so alignment is
                the author's call (add text-align in the CMS to centre). -->
           <footer
-            class="custom-seo-footer w-full xl:w-[1152px] mx-auto px-4 py-6 text-sm text-white"
+            class="custom-seo-footer w-full mx-auto px-4 py-6 text-sm text-white"
             v-html="customSeoFooter" />
         </div>
 
@@ -232,7 +232,7 @@
     </div>
 
     <!-- Decorative side media — fixed behind content, desktop (lg+) only. An
-         mp4 (or image fallback) on each flank of the centred 1152px column,
+         mp4 (or image fallback) on each flank of the centred content column,
          masked to fade out toward the bottom. Gated by deferredReady so the
          autoplay <video> codec setup never competes with LCP. -->
     <div v-if="siteConfig.assets.decorativeImages?.enabled && deferredReady"
@@ -379,31 +379,9 @@ const localePath = useLocalePath();
 const isRtpPage = computed(() => route.path === localePath("/slot-rtp"));
 const rtpBannerSrc = cdn("/designs/rtp-banner.png");
 
-// Partner section (/partner, /partner-deposit, /partner-withdraw): no banner or
-// announcement, and the game Navbar is replaced by the partner nav.
-const isPartnerPage = computed(() =>
-  route.path.startsWith(localePath("/partner")),
-);
-
-// Pages that render at 110% on wide desktops (the `site-zoom` class, main.css).
-// Deliberately an allow-list rather than a global rule — every other page stays
-// 1:1. Matched EXACTLY, so nested routes (e.g. /lobbies/{id}, GAME_* launches)
-// are not zoomed even where they share this layout.
-const ZOOM_PAGES = [
-  "/",
-  "/hot",
-  "/slots",
-  "/casino",
-  "/sports",
-  "/mini",
-  "/fishing",
-  "/virtual",
-  "/slot-rtp",
-];
-
-const isZoomPage = computed(() =>
-  ZOOM_PAGES.some((p) => route.path === localePath(p)),
-);
+// The 102% big-screen zoom is off: it rendered the 1202px content column at
+// 1226px. The allow-list that drove it lived here — see the template comment on
+// the layout wrapper for how to restore it.
 
 const customSeoMatch = useCustomSeoMatch();
 
@@ -745,53 +723,6 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* ---------------------------------------------------------------------------
-   Partner cosmic backdrop — orange planet-glow + starfield, top-right, pure
-   CSS. Sits behind the partner nav (z-20) and content (z-10) at z-0, masked so
-   it dissolves into the dark page below.
-   --------------------------------------------------------------------------- */
-.partner-cosmos {
-  position: absolute;
-  top: 0;
-  right: 0;
-  z-index: 0;
-  width: min(1000px, 68%);
-  height: 230px;
-  pointer-events: none;
-  background: url("/designs/partner/cosmo.webp") right top / cover no-repeat;
-  /* Radial mask keeps the planet (top-right) crisp and dissolves the artwork
-     toward the bottom-left so it melts into the panel — no hard edges. */
-  -webkit-mask-image: radial-gradient(145% 130% at 100% 0%, #000 42%, rgba(0, 0, 0, 0.5) 64%, transparent 84%);
-  mask-image: radial-gradient(145% 130% at 100% 0%, #000 42%, rgba(0, 0, 0, 0.5) 64%, transparent 84%);
-}
-
-/* Smaller on phones/tablets so the header doesn't feel busy. */
-@media (max-width: 1023px) {
-  .partner-cosmos {
-    width: 82%;
-    height: 160px;
-    opacity: 0.9;
-  }
-}
-
-/* Partner body container — themed premium panel (theme.partner.*), a separate
-   container from the partner nav bar above it. Panel chrome only at lg+; on
-   mobile the content sits directly on the page. The cosmo artwork (.partner-cosmos)
-   lives inside it, clipped to its rounded top-right. */
-@media (min-width: 1024px) {
-  .partner-body {
-    background: var(--pb-bg);
-    border-color: var(--pb-border);
-    backdrop-filter: blur(16px) saturate(1.1);
-    -webkit-backdrop-filter: blur(16px) saturate(1.1);
-    /* Layered premium shadow: a tight contact shadow + a soft ambient drop. */
-    box-shadow:
-      0 1px 2px 0 rgba(0, 0, 0, 0.4),
-      0 24px 60px -28px rgba(0, 0, 0, 0.9),
-      inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
-  }
-}
-
 .seo-link {
   display: inline-block;
   padding: 4px 10px;

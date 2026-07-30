@@ -6,7 +6,7 @@
         class="hidden lg:block absolute inset-y-0 left-1/2 -translate-x-1/2 z-10 pointer-events-none max-w-[1200px]"
         style="background: linear-gradient(270deg, rgba(0,0,0,0) 0%, #000000 50%, rgba(0,0,0,0) 100%);" />
 
-      <div class="game-page-bg relative z-20 flex w-full max-w-[1152px] flex-col items-center px-1.5 lg:px-0"
+      <div class="game-page-bg relative z-20 flex w-full flex-col items-center px-1.5 lg:px-0"
         :class="{ 'game-page-bg--solid': hasMainBackground }"
         :style="{ '--game-page-bg': siteConfig.theme.bodyBgColor }">
         <!-- Background blur layer (hidden on providers page) -->

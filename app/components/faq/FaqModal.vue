@@ -3,8 +3,8 @@
     <Transition name="modal">
       <div
         v-if="isOpen"
-        class="fixed inset-0 z-50 flex items-start justify-center"
-        style="background: rgba(19, 19, 19, 0.9)"
+        class="tm-modal fixed inset-0 z-50 flex items-start justify-center"
+        :style="[modalTheme, { background: 'color-mix(in srgb, var(--body-bg) 90%, transparent)' }]"
       >
         <div
           class="!gap-0 bg-transparent border-0 p-0 w-full max-w-[calc(100%-2rem)] lg:max-w-4xl shadow-2xl flex flex-col max-h-[90dvh] rounded-xl overflow-hidden lg:mt-8"
@@ -15,7 +15,7 @@
               {{ t("faq.title") }}
             </h2>
             <button
-              class="text-white hover:text-gray-300 transition-colors cursor-pointer"
+              class="tm-muted hover:text-white transition-colors cursor-pointer"
               aria-label="Close"
               @click="$emit('close')"
             >
@@ -38,9 +38,9 @@
 
           <!-- Content -->
           <div
-            class="flex flex-col flex-1 bg-[#2a2a2a] relative min-h-0 px-6 md:px-8 py-6 rounded-xl mx-2"
+            class="tm-card flex flex-col flex-1 relative min-h-0 px-6 md:px-8 py-6 rounded-xl mx-2"
           >
-            <div class="overflow-y-auto promotion-scroll flex-1 min-h-0">
+            <div class="tm-scroll overflow-y-auto flex-1 min-h-0">
               <FaqContent />
             </div>
           </div>
@@ -63,6 +63,9 @@ defineProps<Props>();
 defineEmits<Emits>();
 
 const { t } = useI18n();
+
+/** Deposit/withdraw palette, inherited by FaqContent. */
+const modalTheme = useModalTheme();
 </script>
 
 <style scoped>

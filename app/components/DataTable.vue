@@ -4,17 +4,16 @@
     <template v-if="useCardLayout">
       <!-- Scrollable Data Rows Container -->
       <div :style="`background: ${tableBackground}; padding-right: 8px; padding-top: 8px; padding-bottom: 8px;`">
-        <div :style="scrollableStyle" class="scrollbar">
+        <div :style="scrollableStyle" class="tm-scroll">
           <div
 v-for="(item, index) in paginatedData" :key="index"
-            class="mb-3 border-b border-b-[#7A7A7A] pl-2 transition-all duration-200 shadow-sm" :style="{
+            class="tm-line mb-3 border-b pl-2 transition-all duration-200 shadow-sm" :style="{
               backgroundColor:
                 index % 2 === 0
                   ? tableBackground
                   : darkenColor(tableBackground),
             }" :class="{
-              'cursor-pointer hover:bg-[#5a5a5a] hover:border-[#8a8a8a] hover:shadow-md':
-                onRowClick,
+              'cursor-pointer hover:brightness-125 hover:shadow-md': onRowClick,
             }" @click="handleRowClick(item)">
             <div
 v-for="(chunk, chunkIndex) in chunkColumns(columns)" :key="chunkIndex"
@@ -23,9 +22,9 @@ v-for="(chunk, chunkIndex) in chunkColumns(columns)" :key="chunkIndex"
               }">
               <div
 v-for="(column, colIndex) in chunk" :key="colIndex"
-                class="px-1.5 py-1.5 text-center font-line-seed font-normal flex flex-col items-center justify-center rounded bg-[#373737] border border-[#5a5a5a]"
+                class="tm-card px-1.5 py-1.5 text-center font-line-seed font-normal flex flex-col items-center justify-center rounded"
                 :style="getCellStyle(column, item)" :class="{
-                  'cursor-pointer hover:bg-[#424242]':
+                  'cursor-pointer hover:brightness-125':
                     column === actionColumn && onActionClick,
                 }" @click="handleActionClick($event, column, item)">
                 <!-- Value on top -->
@@ -69,7 +68,7 @@ v-if="column === 'tanggal'" class="whitespace-pre-line text-center block w-full"
                   </template>
                 </div>
                 <!-- Column name below -->
-                <div class="text-gray-400 mt-0.5 leading-tight" style="font-size: 0.65em">
+                <div class="tm-muted mt-0.5 leading-tight" style="font-size: 0.65em">
                   {{ column.charAt(0).toUpperCase() + column.slice(1) }}
                 </div>
               </div>
@@ -80,7 +79,7 @@ v-if="column === 'tanggal'" class="whitespace-pre-line text-center block w-full"
     </template>
     <!-- Table Layout (Default) — uses CSS grid so header & body columns align -->
     <template v-else>
-      <div class="overflow-auto scrollbar" :style="tableScrollStyle">
+      <div class="tm-scroll overflow-auto" :style="tableScrollStyle">
         <div
 class="grid" :style="{
           gridTemplateColumns: gridTemplateColumns,
@@ -166,8 +165,8 @@ v-if="enablePagination && totalPages > 1"
 :disabled="currentPageValue === 1"
         class="font-line-seed px-4 md:px-6 py-3 md:py-2 rounded-lg text-white text-[32px] md:text-base transition-all duration-200 flex items-center gap-2 flex-shrink-0 h-12 md:h-auto"
         :class="currentPageValue === 1
-          ? 'bg-gray-700 cursor-not-allowed opacity-40'
-          : 'bg-gradient-to-r from-[#373737] to-[#4a4a4a] hover:from-[#4a4a4a] hover:to-[#5a5a5a] shadow-md hover:shadow-lg'
+          ? 'tm-card cursor-not-allowed opacity-40'
+          : 'tm-btn-ghost cursor-pointer shadow-md hover:shadow-lg'
           " @click="goToPage(currentPageValue - 1)">
         <svg class="w-6 h-6 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
@@ -184,8 +183,8 @@ v-for="(page, index) in pageNumbers" :key="`page-${index}`" :disabled="typeof pa
             typeof page === 'number' && currentPageValue === page
               ? ''
               : typeof page === 'number'
-                ? 'text-gray-400 hover:text-gray-200 font-line-seed'
-                : 'text-gray-600 cursor-default  font-line-seed',
+                ? 'tm-muted hover:text-white cursor-pointer font-line-seed'
+                : 'tm-muted opacity-50 cursor-default font-line-seed',
           ]"
           :style="typeof page === 'number' && currentPageValue === page ? { color: effectiveActionColor } : {}"
           @click="typeof page === 'number' ? goToPage(page) : null">
@@ -198,8 +197,8 @@ v-for="(page, index) in pageNumbers" :key="`page-${index}`" :disabled="typeof pa
 :disabled="currentPageValue === totalPages"
         class="px-4 md:px-6 py-3 md:py-2 rounded-lg text-white font-line-seed text-[32px] md:text-base transition-all duration-200 flex items-center gap-2 flex-shrink-0 h-12 md:h-auto"
         :class="currentPageValue === totalPages
-          ? 'bg-gray-700 cursor-not-allowed opacity-40'
-          : 'bg-gradient-to-r from-[#373737] to-[#4a4a4a] hover:from-[#4a4a4a] hover:to-[#5a5a5a] shadow-md hover:shadow-lg'
+          ? 'tm-card cursor-not-allowed opacity-40'
+          : 'tm-btn-ghost cursor-pointer shadow-md hover:shadow-lg'
           " @click="goToPage(currentPageValue + 1)">
         <span class="hidden sm:inline">{{ $t('common.next') }}</span>
         <svg class="w-6 h-6 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -254,7 +253,7 @@ interface DataTableProps {
 }
 
 const props = withDefaults(defineProps<DataTableProps>(), {
-  headerBackground: "#373737",
+  headerBackground: "color-mix(in srgb, var(--tm-accent) 12%, var(--body-bg))",
   headerBorderRadius: "10px 10px 0 0",
   bottomBorderRadius: "10px",
   maxHeight: "433px",
@@ -262,7 +261,7 @@ const props = withDefaults(defineProps<DataTableProps>(), {
   actionText: "[Detail]",
   actionColor: undefined,
   tableHeight: "auto",
-  tableBackground: "#505050",
+  tableBackground: "var(--tm-chip)",
   cellFontSize: "15px",
   cellPaddingY: "8px",
   rowHeight: "auto",
@@ -450,7 +449,7 @@ const getGridCellStyle = (
       ? props.tableBackground
       : darkenColor(props.tableBackground);
   const cellStyle = getCellStyle(column, item);
-  return `${cellStyle} background: ${bg}; border-bottom: 1px solid #7A7A7A; padding-top: ${props.cellPaddingY}; padding-bottom: ${props.cellPaddingY};`;
+  return `${cellStyle} background: ${bg}; border-bottom: 1px solid color-mix(in srgb, var(--tm-input-border) 45%, transparent); padding-top: ${props.cellPaddingY}; padding-bottom: ${props.cellPaddingY};`;
 };
 
 const handleCellClick = (
@@ -474,7 +473,7 @@ const _getRowStyle = (index: number) => {
     index % 2 === 0
       ? props.tableBackground
       : darkenColor(props.tableBackground);
-  const baseStyle = `height: ${props.rowHeight}; background: ${bg}; border-bottom: 1px solid #7A7A7A;`;
+  const baseStyle = `height: ${props.rowHeight}; background: ${bg}; border-bottom: 1px solid color-mix(in srgb, var(--tm-input-border) 45%, transparent);`;
   const isLastRow = index === paginatedData.value.length - 1;
   if (isLastRow && props.bottomBorderRadius !== "0") {
     return `${baseStyle} border-radius: 0 0 ${props.bottomBorderRadius} ${props.bottomBorderRadius};`;
@@ -483,6 +482,12 @@ const _getRowStyle = (index: number) => {
 };
 
 const darkenColor = (color: string): string => {
+  // Themed backgrounds arrive as `var(...)`/`color-mix(...)` expressions, whose
+  // channels are unknown here — mix them toward black in CSS instead so the
+  // zebra striping survives the switch off hex literals.
+  if (color !== "transparent" && !color.startsWith("#")) {
+    return `color-mix(in srgb, ${color} 88%, #000)`;
+  }
   // Handle hex colors
   if (color.startsWith("#")) {
     const num = parseInt(color.slice(1), 16);
@@ -546,7 +551,7 @@ const getStatusBadgeClass = (status: string) => {
     case "failed":
       return "bg-red-900/40 text-red-400 border border-red-500/30";
     default:
-      return "bg-gray-200 text-gray-900 border border-gray-400";
+      return "tm-card tm-muted";
   }
 };
 
@@ -609,7 +614,7 @@ const handleRowClick = (item: Record<string, unknown>) => {
 <style scoped>
 /* Enhanced hover effect for clickable rows */
 .cursor-pointer:hover {
-  border-left: 3px solid #3b82f6;
+  border-left: 3px solid var(--tm-accent);
   padding-left: 5px;
 }
 </style>

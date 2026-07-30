@@ -1,8 +1,8 @@
 ﻿<template>
   <Teleport to="body">
     <Transition name="modal-fade">
-      <div v-if="isOpen" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/70"
-        @click.self="onClose">
+      <div v-if="isOpen" class="tm-modal fixed inset-0 z-[100] flex items-center justify-center bg-black/70"
+        :style="modalTheme" @click.self="onClose">
         <div class="w-full md:min-w-[459px] md:max-w-[459px] relative px-4 md:px-0">
           <!-- Close Button - Floating at top -->
           <div
@@ -20,27 +20,26 @@
           </div>
 
           <!-- Modal Content Box -->
-          <div class="bg-white rounded-2xl max-h-[80dvh] overflow-hidden w-full" style="
-              border: 2px solid #e0e0e0;
-              font-family: var(--font-line-seed);
-            ">
+          <div
+            class="modal-body-fill modal-gradient-border rounded-2xl max-h-[80dvh] overflow-hidden w-full"
+            style="font-family: var(--font-line-seed)">
             <!-- Header -->
             <div
               class="flex-shrink-0 px-4 md:pl-[32px] md:pr-6 py-3 md:pt-4 md:pb-1 flex items-center justify-start relative">
-              <h2 class="text-[#212121] text-[16px] font-bold lg:text-[17px]"
+              <h2 class="text-white text-[16px] font-bold lg:text-[17px]"
                 style="font-family: var(--font-line-seed)">
                 {{ headerTitle }}
               </h2>
             </div>
 
             <!-- Bank Accounts List -->
-            <div class="pl-[32px] pr-6 pb-6 overflow-y-auto max-h-[calc(80dvh-120px)]">
+            <div class="tm-scroll pl-[32px] pr-6 pb-6 overflow-y-auto max-h-[calc(80dvh-120px)]">
               <div v-if="bankAccounts.length === 0" class="flex flex-col items-center justify-center py-12 px-4">
-                <svg class="w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="tm-muted w-16 h-16 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                 </svg>
-                <p class="text-[#8E8E8E] text-sm lg:text-base font-normal" style="font-family: var(--font-line-seed)">
+                <p class="tm-muted text-sm lg:text-base font-normal" style="font-family: var(--font-line-seed)">
                   No data found
                 </p>
               </div>
@@ -126,6 +125,9 @@ const emit = defineEmits<{
 const siteConfig = useSiteConfig();
 const { t } = useI18n();
 const failedImages = ref<Set<string>>(new Set());
+
+/** Deposit/withdraw palette — this picker opens from those modals. */
+const modalTheme = useModalTheme();
 
 const headerTitle = computed(() => {
   if (props.paymentType === "BANK") return t("deposit.accountList.bank");

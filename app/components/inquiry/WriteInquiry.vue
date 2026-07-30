@@ -1,22 +1,22 @@
 <template>
   <div
-    class="font-medium rounded-lg overflow-hidden mb-4 md:mb-6 shadow-sm border border-[#e5e5e5]"
+    class="tm-card font-medium rounded-lg overflow-hidden mb-4 md:mb-6 shadow-sm"
   >
     <!-- Form Header -->
-    <div class="bg-[#2563EB] px-4 md:px-6 py-3 md:py-4">
+    <div class="tm-thead px-4 md:px-6 py-3 md:py-4">
       <h2 class="text-white text-base md:text-lg font-semibold">
         {{ t("inquiry.writeInquiry") }}
       </h2>
     </div>
 
     <!-- Form Content -->
-    <div class="bg-[#D6D6D6] p-4 md:p-6 space-y-5">
+    <div class="p-4 md:p-6 space-y-5">
       <form class="space-y-5" @submit.prevent="onSubmit">
         <!-- Title Field -->
         <div class="space-y-2">
           <label
             for="inquiry-title"
-            class="block text-[#1A1A1A] text-sm font-semibold"
+            class="block text-white text-sm font-semibold"
           >
             {{ t("inquiry.title") }} <span class="text-[#DC2626]">*</span>
           </label>
@@ -27,10 +27,10 @@
             maxlength="100"
             :placeholder="t('inquiry.enterInquiryTitle')"
             :class="[
-              'w-full bg-[#B0B0B0] text-[#1A1A1A] px-4 py-2.5 md:py-3 rounded-lg placeholder-[#666666] text-sm border transition-all duration-200 outline-none',
+              'tm-field w-full px-4 py-2.5 md:py-3 text-sm transition-all duration-200 outline-none',
               errors.title
-                ? 'border-2 border-[#DC2626] ring-2 ring-[#DC2626]/20'
-                : 'border-0 focus:ring-2 ring-[#2563EB]/20',
+                ? '!border-[#DC2626] ring-2 ring-[#DC2626]/20'
+                : '',
             ]"
           >
           <p
@@ -46,7 +46,7 @@
         <div class="space-y-2">
           <label
             for="inquiry-body"
-            class="block text-[#1A1A1A] text-sm font-semibold"
+            class="block text-white text-sm font-semibold"
           >
             {{ t("inquiry.body") }} <span class="text-[#DC2626]">*</span>
           </label>
@@ -57,10 +57,10 @@
             maxlength="2000"
             rows="8"
             :class="[
-              'w-full bg-[#B0B0B0] text-[#1A1A1A] px-4 py-3 rounded-lg placeholder-[#666666] text-sm border transition-all duration-200 outline-none resize-none',
+              'tm-field w-full px-4 py-3 text-sm transition-all duration-200 outline-none resize-none',
               errors.content
-                ? 'border-2 border-[#DC2626] ring-2 ring-[#DC2626]/20'
-                : 'border-0 focus:ring-2 ring-[#2563EB]/20',
+                ? '!border-[#DC2626] ring-2 ring-[#DC2626]/20'
+                : '',
             ]"
           />
           <p
@@ -73,11 +73,11 @@
         </div>
 
         <!-- Action Buttons -->
-        <div class="flex gap-3 justify-end pt-4 border-t border-[#B0B0B0]/30">
+        <div class="tm-line flex gap-3 justify-end pt-4 border-t">
           <button
             type="button"
             :disabled="isSubmitting"
-            class="inline-flex items-center gap-2 bg-[#9E9E9E] text-white px-4 py-2.5 md:px-5 md:py-3 rounded-lg hover:opacity-90 active:opacity-80 transition-all duration-200 font-medium text-sm md:text-base disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            class="tm-btn-ghost inline-flex items-center gap-2 px-4 py-2.5 md:px-5 md:py-3 rounded-lg transition-all duration-200 font-medium text-sm md:text-base cursor-pointer"
             @click="$emit('cancel')"
           >
             <svg
@@ -99,7 +99,7 @@
           <button
             type="submit"
             :disabled="isSubmitting"
-            class="inline-flex items-center gap-2 bg-[#2563EB] text-white px-4 py-2.5 md:px-5 md:py-3 rounded-lg hover:opacity-90 active:opacity-80 transition-all duration-200 font-medium text-sm md:text-base disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:opacity-50 cursor-pointer shadow-sm"
+            class="tm-btn inline-flex items-center gap-2 px-4 py-2.5 md:px-5 md:py-3 rounded-lg transition-all duration-200 font-medium text-sm md:text-base cursor-pointer shadow-sm"
           >
             <template v-if="isSubmitting">
               <svg

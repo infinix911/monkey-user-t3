@@ -29,7 +29,7 @@ class="text-[11px] font-line-seed leading-tight opacity-80"
                 </div>
             </div>
             <div class="flex items-center gap-2 text-right">
-                <span class="text-[11px] text-gray-400 uppercase tracking-wider">{{ t("bettingReport.total") }}</span>
+                <span class="tm-muted text-[11px] uppercase tracking-wider">{{ t("bettingReport.total") }}</span>
                 <span
 class="text-sm font-line-seed font-bold px-2.5 py-1 rounded-lg text-black" :style="{
                     background: siteConfig.theme.brandColor,
@@ -46,7 +46,7 @@ v-for="tab in tabs" :key="tab.id" type="button"
                 class="px-3 py-2 rounded-lg text-sm font-line-seed transition-all duration-200 cursor-pointer border"
                 :class="activeTab === tab.id
                     ? 'text-white font-semibold'
-                    : 'bg-[#373737] text-white border-[#454545] hover:bg-[#4a4a4a] hover:border-[#5a5a5a]'"
+                    : 'tm-card text-white hover:brightness-125'"
                 :style="activeTab === tab.id
                     ? {
                         background: siteConfig.theme.panel.gameTypeBtnActiveGradient,
@@ -80,13 +80,13 @@ v-else-if="!loading && tableData.length === 0"
             <div
 class="w-20 h-20 rounded-full flex items-center justify-center mb-4"
                 style="background: linear-gradient(135deg, rgba(80,80,80,0.4) 0%, rgba(40,40,40,0.6) 100%);">
-                <svg class="w-10 h-10 text-[#707070]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="tm-muted w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
 stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
             </div>
-            <div class="text-[#a8a8a8] text-base font-medium text-center">
+            <div class="tm-muted text-base font-medium text-center">
                 {{ t("activity.empty") }}
             </div>
         </div>
@@ -112,8 +112,8 @@ class="overflow-hidden rounded-xl border" :style="{
 :disabled="currentPage === 1"
                     class="px-4 py-2 rounded-lg text-white font-line-seed text-xs transition-all duration-200 flex items-center gap-2 h-auto"
                     :class="currentPage === 1
-                        ? 'bg-gray-700 cursor-not-allowed opacity-40'
-                        : 'bg-gradient-to-r from-[#373737] to-[#4a4a4a] hover:from-[#4a4a4a] hover:to-[#5a5a5a] shadow-md hover:shadow-lg cursor-pointer'"
+                        ? 'tm-card cursor-not-allowed opacity-40'
+                        : 'tm-btn-ghost shadow-md hover:shadow-lg cursor-pointer'"
                     @click="goToPage(currentPage - 1)">
                     <svg
 xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
@@ -124,16 +124,13 @@ xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 2
                 </button>
 
                 <template v-for="page in visiblePages" :key="page">
-                    <span v-if="page === '...'" class="px-2 text-gray-400 text-base">...</span>
+                    <span v-if="page === '...'" class="tm-muted px-2 text-base">...</span>
                     <button
 v-else
                         class="px-4 py-2 rounded-lg font-line-seed text-xs transition-all duration-200 h-auto cursor-pointer"
                         :class="currentPage === page
-                            ? 'text-black font-bold shadow-lg'
-                            : 'text-white bg-gradient-to-r from-[#373737] to-[#4a4a4a] hover:from-[#4a4a4a] hover:to-[#5a5a5a] shadow-md hover:shadow-lg'"
-                        :style="currentPage === page
-                            ? { background: siteConfig.theme.brandColor }
-                            : {}" @click="goToPage(page as number)">
+                            ? 'tm-btn font-bold shadow-lg'
+                            : 'tm-btn-ghost shadow-md hover:shadow-lg'" @click="goToPage(page as number)">
                         {{ page }}
                     </button>
                 </template>
@@ -142,8 +139,8 @@ v-else
 :disabled="currentPage === totalPages"
                     class="px-4 py-2 rounded-lg text-white font-line-seed text-xs transition-all duration-200 flex items-center gap-2 h-auto"
                     :class="currentPage === totalPages
-                        ? 'bg-gray-700 cursor-not-allowed opacity-40'
-                        : 'bg-gradient-to-r from-[#373737] to-[#4a4a4a] hover:from-[#4a4a4a] hover:to-[#5a5a5a] shadow-md hover:shadow-lg cursor-pointer'"
+                        ? 'tm-card cursor-not-allowed opacity-40'
+                        : 'tm-btn-ghost shadow-md hover:shadow-lg cursor-pointer'"
                     @click="goToPage(currentPage + 1)">
                     {{ t('common.next') }}
                     <svg

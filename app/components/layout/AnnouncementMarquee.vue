@@ -8,7 +8,7 @@
     <div
       v-if="hasText"
       ref="track"
-      class="announce-scroll whitespace-nowrap font-black leading-normal"
+      class="announce-scroll whitespace-nowrap font-bold leading-normal"
       :class="sizeClass"
       :style="[textStyle, { animationDuration: duration }]">
       {{ text }}
@@ -37,12 +37,35 @@ const duration = ref('20s');
 
 const hasText = computed(() => !!props.text && props.text.trim().length > 0);
 
-const textStyle = computed(() => ({
-  letterSpacing: '0.5px',
-  WebkitTextStroke: `0.6px ${props.textStroke}`,
-  WebkitTextFillColor: props.textFill,
-  fontWeight: 700,
-}));
+/** An empty/blank stroke colour means "no outline" — not a 0.6px blank stroke. */
+const hasStroke = computed(
+  () => !!props.textStroke && props.textStroke.trim().length > 0,
+);
+
+const textStyle = computed(() => {
+  const base = {
+    // Noto Sans for the ticker; LINE Seed backs it for Korean/Thai glyphs the
+    // latin-subset Noto file doesn't carry.
+    fontFamily: '"Noto Sans", "LINE Seed", system-ui, sans-serif',
+    letterSpacing: '0.5px',
+    // Bold: at ticker sizes a 0.6px outline eats most of a 400-weight glyph,
+    // which reads as a dark smudge rather than as the fill colour.
+    fontWeight: 700,
+  };
+
+  // Without an outline the text is painted as a plain colour — using the
+  // stroke/text-fill pair here would leave `-webkit-text-fill-color` overriding
+  // `color` for no reason and can render an invisible hairline in some engines.
+  if (!hasStroke.value) {
+    return { ...base, color: props.textFill };
+  }
+
+  return {
+    ...base,
+    WebkitTextStroke: `0.6px ${props.textStroke}`,
+    WebkitTextFillColor: props.textFill,
+  };
+});
 
 function measure() {
   const t = track.value;

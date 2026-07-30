@@ -3,8 +3,8 @@
     <Transition name="modal">
       <div
         v-if="isOpen"
-        class="fixed inset-0 z-50 flex items-center justify-center"
-        style="background: rgba(19, 19, 19, 0.9)"
+        class="tm-modal fixed inset-0 z-50 flex items-center justify-center"
+        :style="[modalTheme, { background: 'color-mix(in srgb, var(--body-bg) 90%, transparent)' }]"
         @click.self="$emit('close')"
       >
         <div
@@ -13,12 +13,12 @@
           <!-- Modal Header - Transparent Background -->
           <div class="flex items-center justify-between px-1 pt-4 mb-2 lg:pt-6">
             <h2
-              class="text-[#FFE100] text-[22px] lg:text-[32px] lg:leading-[73.951px]"
+              class="tm-accent-text text-[22px] lg:text-[32px] lg:leading-[73.951px]"
             >
               {{ t("contact.title") }}
             </h2>
             <button
-              class="transition-colors hover:text-gray-300 cursor-pointer text-white"
+              class="tm-muted transition-colors hover:text-white cursor-pointer"
               aria-label="Close"
               @click="$emit('close')"
             >
@@ -41,7 +41,7 @@
 
           <!-- Modal Content - With Background -->
           <div
-            class="px-4 relative flex-1 min-h-0 bg-[#000] border-2 border-[#454545] flex flex-col overflow-y-auto promotion-scroll"
+            class="modal-body-fill modal-gradient-border tm-scroll px-4 relative flex-1 min-h-0 flex flex-col overflow-y-auto"
             style="border-radius: 25px"
           >
             <ContactContent />
@@ -65,6 +65,9 @@ defineProps<Props>();
 defineEmits<Emits>();
 
 const { t } = useI18n();
+
+/** Deposit/withdraw palette, inherited by ContactContent. */
+const modalTheme = useModalTheme();
 </script>
 
 <style scoped>

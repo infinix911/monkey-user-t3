@@ -77,10 +77,11 @@ class="w-full h-[6px]" :style="{
           }" class="w-full" /> -->
         </div>
 
-        <!-- Desktop Navigation (lg+) -->
-        <!-- Lucky-only: dim to black on scroll. Other brands keep their
-             existing behavior. -->
-        <div class="hidden lg:block relative w-full xl:w-[1152px] mx-auto h-[65px] overflow-hidden"
+        <!-- Desktop Navigation (lg+) — suppressed with `:desktop="false"` by the
+             two-column layout, whose left rail carries these categories and the
+             deposit panel. The component still renders (mobile bar + the
+             Deposit/Withdrawal modal hosts below), so desktop keeps working. -->
+        <div v-if="desktop" class="hidden lg:block relative w-full xl:w-[1152px] mx-auto h-[65px] overflow-hidden"
           :class="navSkin.layout.desktop.outer"
           :style="{ backgroundColor: uiStore.isNavSticky ? siteConfig.theme.nav.stickyBg : siteConfig.theme.nav.defaultBg }">
           <NuxtImg v-if="siteConfig.assets.navIcons.background" :src="siteConfig.assets.navIcons.background"
@@ -153,6 +154,11 @@ class="w-full h-[6px]" :style="{
 
 <script setup lang="ts">
 import { computed, defineAsyncComponent } from "vue";
+
+withDefaults(defineProps<{
+  /** Render the lg+ desktop bar. False when a left rail replaces it. */
+  desktop?: boolean;
+}>(), { desktop: true });
 
 const authStore = useAuthStore();
 const uiStore = useUiStore();

@@ -26,7 +26,7 @@
         <div class="overflow-x-auto">
           <table class="w-full">
             <thead>
-              <tr style="background-color: #161616">
+              <tr class="tm-thead">
                 <th
                   class="px-3 py-2 text-center text-white font-semibold text-sm"
                   style="font-family: var(--font-line-seed)"
@@ -51,11 +51,10 @@
               <tr v-if="loginHistories.length === 0">
                 <td
                   colspan="3"
-                  class="px-2 py-8 text-center"
-                  style="background-color: #505050"
+                  class="tm-row px-2 py-8 text-center"
                 >
                   <span
-                    class="text-gray-400"
+                    class="tm-muted"
                     style="font-family: var(--font-line-seed)"
                     >—</span
                   >
@@ -64,23 +63,22 @@
               <tr
                 v-for="(log, index) in loginHistories"
                 :key="log.id || index"
-                class="border-b last:border-b-0"
-                style="background-color: #505050; border-color: #7a7a7a"
+                class="tm-row tm-line border-b last:border-b-0"
               >
                 <td
-                  class="px-3 py-1.5 text-center text-[#e2e2e2] text-sm"
+                  class="px-3 py-1.5 text-center text-white/85 text-sm"
                   style="font-family: var(--font-line-seed)"
                 >
                   {{ log.created_at }}
                 </td>
                 <td
-                  class="px-3 py-1.5 text-center text-[#e2e2e2] text-sm"
+                  class="px-3 py-1.5 text-center text-white/85 text-sm"
                   style="font-family: var(--font-line-seed)"
                 >
                   {{ log.ip_address }}
                 </td>
                 <td
-                  class="px-3 py-1.5 text-center text-[#e2e2e2] text-sm"
+                  class="px-3 py-1.5 text-center text-white/85 text-sm"
                   style="font-family: var(--font-line-seed)"
                 >
                   {{ formatDeviceInfo(log.user_agent) }}

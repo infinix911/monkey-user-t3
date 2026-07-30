@@ -4,14 +4,14 @@
       <div
         v-for="item in faqItems"
         :key="item.id"
-        class="rounded-lg overflow-hidden bg-[#D6D6D6]"
+        class="tm-card rounded-lg overflow-hidden"
       >
         <button
           :class="[
             'w-full flex items-center justify-between p-4 transition-colors duration-300',
             expandedFaq === item.id
-              ? 'bg-[#285eff] rounded-b-[14px]'
-              : 'bg-[#46506d]',
+              ? 'tm-thead rounded-b-[14px]'
+              : 'tm-row tm-row-hover cursor-pointer',
           ]"
           @click="toggleFaq(item.id)"
         >
@@ -59,9 +59,9 @@
               : 'max-h-0 opacity-0',
           ]"
         >
-          <div class="bg-gray-300 p-4 tiptap-content">
+          <div class="p-4 tiptap-content">
             <!-- eslint-disable-next-line vue/no-v-html -->
-            <div class="text-black text-sm lg:text-base font-normal" v-html="renderTiptap(item.description)" />
+            <div class="text-white/85 text-sm lg:text-base font-normal" v-html="renderTiptap(item.description)" />
           </div>
         </div>
       </div>
@@ -136,19 +136,19 @@ onMounted(async () => {
 }
 
 .tiptap-content a {
-  color: #2563eb;
+  color: var(--tm-accent);
   text-decoration: underline;
 }
 
 .tiptap-content blockquote {
-  border-left: 3px solid #9ca3af;
+  border-left: 3px solid color-mix(in srgb, var(--tm-accent) 60%, transparent);
   padding-left: 1rem;
   margin: 0.5rem 0;
-  color: #4b5563;
+  color: color-mix(in srgb, var(--tm-input-text) 55%, transparent);
 }
 
 .tiptap-content hr {
-  border-color: #9ca3af;
+  border-color: color-mix(in srgb, var(--tm-input-border) 45%, transparent);
   margin: 0.75rem 0;
 }
 </style>

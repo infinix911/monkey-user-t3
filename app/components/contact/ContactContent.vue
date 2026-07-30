@@ -25,13 +25,13 @@
         <!-- Right side - Label and Contact Button -->
         <div class="flex flex-col gap-2 flex-1">
           <!-- Platform Name -->
-          <span class="text-[#8F8F8F] text-lg font-normal">
+          <span class="tm-muted text-lg font-normal">
             {{ method.name }}
           </span>
 
           <!-- Contact Button -->
           <button
-            class="font-normal w-full bg-[#1b1b1b] border border-[#929292] text-white px-10 py-3 rounded-full text-[16px] text-left cursor-default"
+            class="tm-field font-normal w-full px-10 py-3 !rounded-full text-[16px] text-left cursor-default"
           >
             {{ method.contact }}
           </button>

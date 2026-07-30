@@ -168,11 +168,18 @@
       "mobileBg": "#000000",
       "textFill": "#ffffff",
       "mobileIcon": "/designs/template-3/announcement-icon.png",
-      "textStroke": "#000000",
+      "textStroke": "",
       "desktopGradient": "#000000"
     },
     "sectionHeader": {
       "gradient": "linear-gradient(90deg, #000000 0%, #DA4101 30%, #fa8c02 50%, #fa8c02 70%, #000000 100%)"
+    },
+    "sidebar": {
+      "bg": "rgba(0, 0, 0, 0.6)",
+      "divider": "#434343",
+      "hoverBg": "rgba(255, 255, 255, 0.06)",
+      "borderColor": "#B04C00",
+      "activeItemColor": "#FF8A21"
     },
     "transactionmodal": {
       "accentColor": "#FF7A00",
@@ -205,15 +212,6 @@
       "gameTypeBtnActiveBorder": "#FF7A00",
       "gameTypeBtnActiveShadow": "0 0 8px rgba(255,122,0,0.25)",
       "gameTypeBtnActiveGradient": "linear-gradient(to right, #B95A00, #FF7A00, #B95A00)"
-    },
-    "partner": {
-      "accentColor": "#FF7A00",
-      "borderColor": "rgba(255,255,255,0.07)",
-      "panelBgColor": "linear-gradient(180deg, #0a0a0c 0%, #050506 100%)",
-      "cardBgColor": "rgba(255,255,255,0.02)",
-      "headBgColor": "rgba(255,255,255,0.025)",
-      "activeTextColor": "#000000",
-      "watermarkEmoji": "👑"
     }
   },
   "assets": {

@@ -15,9 +15,16 @@
 }
 
 /* ---------------------------------------------------------------------------
-   Big-screen 110% zoom  (opt-in, per page)
+   Big-screen 102% zoom  (opt-in, per page — CURRENTLY UNUSED)
    ---------------------------------------------------------------------------
-   Renders a page at 110% on wide desktops — the same mechanism as Chrome's own
+   NOTE: no page applies `.site-zoom` today. It was dropped from
+   `layouts/default.vue` because it rendered the 1202px content column at
+   1226px. The rules below are kept so the effect can be switched back on from
+   the layout; `--site-zoom` stays 1 meanwhile, which keeps every
+   `var(--site-zoom)` correction (AppSidebar's panel geometry, `.site-unzoom`)
+   a no-op rather than wrong.
+
+   Renders a page at 102% on wide desktops — the same mechanism as Chrome's own
    zoom control, so it looks like browser zoom without the user setting it.
    `zoom` (not transform: scale) because it is a real layout scale: the centred
    column, the header, the navbar and the page content grow together and
@@ -34,24 +41,28 @@
    Deliberately UNLAYERED (not inside `@layer base`) so no Tailwind layer can
    outrank it.
 
-   Breakpoint 1300px: the 1152px column at 110% renders 1267px wide, so 1300
-   is the narrowest viewport where it cannot overflow. Media queries and `vw`
-   are NOT affected by `zoom` — hence the plain viewport width here, and the
-   `100vw / var(--site-zoom)` correction anywhere a zoomed element positions
-   itself off the viewport.
+   Breakpoint 1200px: the desktop shell is a 1456px MAX-width whose content
+   column is `flex-1`, so it shrinks with the viewport and the zoom cannot make
+   it overflow. The only rigid element is the 210px sidebar rail, which clears
+   1200/1.02 = 1176px of layout space with room to spare. The breakpoint is
+   therefore a taste call — where the zoom starts to read as deliberate — not a
+   derived limit; re-check it against the rail only if the rail becomes wider or
+   the zoom rises sharply. Media queries and `vw` are NOT affected by `zoom` —
+   hence the plain viewport width here, and the `100vw / var(--site-zoom)`
+   correction anywhere a zoomed element positions itself off the viewport.
 
    Verify in DevTools on the homepage:
-     getComputedStyle($0).zoom === "1.1"   // $0 = the wrapper div
+     getComputedStyle($0).zoom === "1.02"   // $0 = the wrapper div
 --------------------------------------------------------------------------- */
-@media (min-width: 1300px) {
+@media (min-width: 1200px) {
   .site-zoom {
-    --site-zoom: 1.1;
+    --site-zoom: 1.02;
     zoom: var(--site-zoom);
   }
 }
 
 /* Opt out a subtree while the rest of the page stays zoomed, by cancelling the
-   inherited zoom (nested zooms multiply, so 1.1 x 1/1.1 = 1). A no-op below the
+   inherited zoom (nested zooms multiply, so 1.02 x 1/1.02 = 1). A no-op below the
    breakpoint, where --site-zoom is already 1. Used by the profile menu, which
    renders in place rather than teleporting.
 
@@ -89,6 +100,25 @@
   font-family: "IBM Plex Sans Condensed";
   src: url("/fonts/IBMPlexSansCondensed-SemiBold.ttf") format("truetype");
   font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Noto Sans — announcement ticker text. Regular (400) only; the file is the
+   Google latin subset, so non-latin glyphs (Korean) fall through to the next
+   family in the stack (LINE Seed). */
+@font-face {
+  font-family: "Noto Sans";
+  src: url("/fonts/NotoSans-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Noto Sans";
+  src: url("/fonts/NotoSans-Bold.woff2") format("woff2");
+  font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
@@ -675,6 +705,149 @@
 }
 
 /* ---------------------------------------------------------------------------
+   Shared account-surface vocabulary
+   ---------------------------------------------------------------------------
+   The classes below dress every OTHER themed surface — the "My account" panels
+   (betting report, transaction logs, login history, referral, activity, change
+   password), the inquiry/FAQ/contact/promotion modals — out of the same
+   `theme.transactionmodal` palette the deposit/withdraw modals use, so the CMS
+   retheming those two modals retheres all of them.
+
+   Vars come from `useModalTheme()`, set once on a host that wraps the surfaces
+   (the rail panel, the profile modal, each standalone modal) and inherited from
+   there. Everything derives from a var — do not reintroduce literal greys here.
+--------------------------------------------------------------------------- */
+
+/* Hairline rule/divider — the input border, softened. */
+.tm-line {
+  border-color: color-mix(in srgb, var(--tm-input-border) 45%, transparent);
+}
+
+/* Raised surface: cards, table shells, list rows. */
+.tm-card {
+  background: var(--tm-chip);
+  border: 1px solid color-mix(in srgb, var(--tm-input-border) 35%, transparent);
+}
+
+/* Form control. Focus styling comes from the `.tm-modal` rules above. */
+.tm-field {
+  background: var(--tm-input-bg);
+  border: 1px solid var(--tm-input-border);
+  color: var(--tm-input-text);
+  border-radius: 8px;
+}
+
+.tm-field:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Data tables: header band, body rows, and the rule between them. */
+.tm-thead {
+  background: color-mix(in srgb, var(--tm-accent) 12%, var(--body-bg));
+}
+
+/* Header labels are always white, never the theme accent — the accent band
+   behind them (`.tm-thead`) is what marks the row as a header, and accent-on-
+   accent reads as low contrast. This selector is (0,1,1), so it outranks a
+   `text-white` utility on the <th>; keep the colour here rather than pushing it
+   back into the markup, or the two disagree again. */
+.tm-thead th {
+  color: #ffffff;
+}
+
+.tm-row {
+  background: var(--tm-chip);
+}
+
+.tm-row-strip:nth-child(even) {
+  background: color-mix(in srgb, var(--tm-chip) 60%, var(--body-bg));
+}
+
+.tm-row-hover:hover {
+  background: var(--tm-chip-hover);
+}
+
+/* Primary action — the same gradient the deposit/withdraw submit buttons use. */
+.tm-btn {
+  background: var(--tm-btn-grad, var(--tm-btn-bg));
+  color: var(--tm-btn-text);
+}
+
+.tm-btn:hover:not(:disabled) {
+  background: var(--tm-btn-grad-hover, var(--tm-btn-bg));
+}
+
+.tm-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Secondary/neutral action — outline, so one primary stays dominant. */
+.tm-btn-ghost {
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--tm-input-border) 70%, transparent);
+  color: color-mix(in srgb, var(--tm-input-text) 80%, transparent);
+}
+
+.tm-btn-ghost:hover:not(:disabled) {
+  color: var(--tm-input-text);
+  border-color: var(--tm-accent);
+  background: color-mix(in srgb, var(--tm-accent) 10%, transparent);
+}
+
+.tm-btn-ghost:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Accent text (section labels, active states, totals). */
+.tm-accent-text {
+  color: var(--tm-accent);
+}
+
+/* Strong accent band — an opened accordion/ticket header. Heavier than
+   `.tm-thead` so the open row reads as selected, not just as a header. */
+.tm-accent-bar {
+  background: color-mix(in srgb, var(--tm-accent) 30%, var(--body-bg));
+}
+
+/* Chat bubble for the member's own message (the other side uses `.tm-card`). */
+.tm-bubble-self {
+  background: color-mix(in srgb, var(--tm-accent) 75%, var(--body-bg));
+  color: var(--tm-input-text);
+}
+
+/* Muted body text — one grey for every secondary label. */
+.tm-muted {
+  color: color-mix(in srgb, var(--tm-input-text) 55%, transparent);
+}
+
+/* Themed thin scrollbar, replacing the default light one on dark panels. */
+.tm-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--tm-input-border) 70%, transparent) transparent;
+}
+
+.tm-scroll::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.tm-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tm-scroll::-webkit-scrollbar-thumb {
+  background-color: color-mix(in srgb, var(--tm-input-border) 70%, transparent);
+  border-radius: 3px;
+}
+
+.tm-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: var(--tm-accent);
+}
+
+/* ---------------------------------------------------------------------------
    Shared transition vocabulary (unscoped, app-wide)
    ---------------------------------------------------------------------------
    One central set of Vue <Transition> classes so every consumer that uses a
@@ -787,164 +960,4 @@
   .mobile-modal-leave-to {
     transform: none;
   }
-}
-/* ===========================================================================
-   Partner modal form utilities (shared by app/components/partner/modals/*).
-   Prefixed `pm-`/`quick-` to avoid collisions; the partner theme accent is
-   applied inline by each modal.
-   =========================================================================== */
-.pm-input {
-  width: 100%;
-  height: 40px;
-  padding: 0 12px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: #fff;
-  font-size: 13px;
-  font-weight: 600;
-  transition: border-color 0.15s ease;
-}
-
-.pm-input::placeholder {
-  color: rgba(255, 255, 255, 0.35);
-}
-
-.pm-input:focus {
-  outline: none;
-  border-color: rgba(255, 255, 255, 0.3);
-}
-
-.pm-input option {
-  background: #111;
-  color: #fff;
-}
-
-.pm-label {
-  display: block;
-  color: rgba(255, 255, 255, 0.55);
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 6px;
-}
-
-.quick-btn {
-  flex: 1 1 auto;
-  min-width: 52px;
-  height: 30px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.85);
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background-color 0.15s ease;
-}
-
-.quick-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.quick-clear {
-  flex: 0 0 auto;
-  min-width: 40px;
-  color: #fb7185;
-}
-
-.pm-submit {
-  width: 100%;
-  height: 44px;
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 800;
-  cursor: pointer;
-  transition: filter 0.15s ease;
-}
-
-.pm-submit:hover {
-  filter: brightness(1.05);
-}
-
-/* ===========================================================================
-   Partner section — premium UI polish (spacing / shadow / hover / focus only;
-   no color, brand, or layout changes). Interactive surfaces get smooth 200ms
-   transitions, soft elevation on hover, tactile press, and accessible
-   focus-visible rings in the brand accent (`--pb-accent`, set on the partner
-   body + modal panels).
-   =========================================================================== */
-
-/* Keyboard focus rings in the partner brand accent. */
-.partner-body :focus-visible,
-.pm-panel :focus-visible {
-  outline: 2px solid var(--pb-accent, #FF7A00);
-  outline-offset: 2px;
-  border-radius: 10px;
-}
-
-/* Inputs — softer accent focus ring + higher-contrast placeholder. */
-.pm-input:focus {
-  border-color: var(--pb-accent, #FF7A00);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--pb-accent, #FF7A00) 20%, transparent);
-}
-
-.pm-input::placeholder {
-  color: rgba(255, 255, 255, 0.45);
-}
-
-/* Primary submit — premium soft shadow + tactile press. */
-.pm-submit {
-  box-shadow:
-    0 10px 24px -12px color-mix(in srgb, var(--pb-accent, #FF7A00) 70%, transparent),
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.26);
-}
-
-.pm-submit:active {
-  transform: translateY(1px);
-}
-
-/* Chips, action buttons, quick-amount buttons — consistent motion + press. */
-.quick-btn,
-.action-btn,
-.chip-btn {
-  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
-}
-
-.quick-btn:active,
-.action-btn:active,
-.chip-btn:active {
-  transform: translateY(1px);
-}
-
-/* Tabs — smooth motion + subtle press (augments the scoped styles). */
-.partner-tab,
-.detail-tab {
-  transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
-}
-
-.partner-tab:active,
-.detail-tab:active {
-  transform: translateY(1px);
-}
-
-/* RESET button beside the amount input in the partner money modals — matches
-   the input height with a muted-red label. */
-.amount-reset {
-  height: 40px;
-  padding: 0 16px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #fb7185;
-  font-size: 13px;
-  font-weight: 700;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.amount-reset:hover {
-  background: rgba(255, 255, 255, 0.08);
 }

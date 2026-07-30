@@ -1,18 +1,13 @@
 ﻿<template>
   <Transition name="modal-fade">
     <div v-if="isOpen">
-      <!-- Backdrop for bottom position -->
-      <div v-if="isBottom" class="fixed inset-0 bg-black/50 z-[60] w-[100vw]" @click="onClose" />
+      <!-- Backdrop -->
+      <div class="fixed inset-0 bg-black/50 z-[60] w-[100vw]" @click="onClose" />
 
       <!-- Menu Panel -->
-      <div ref="menuRef" :class="[
-        'px-4 py-1 z-[60] rounded-lg shadow-2xl border border-[2px] border-[#404040] overflow-hidden',
-        positionClasses,
-      ]" :style="{
-        backgroundColor: isBottom ? '#282828' : 'black',
-        height: 'auto',
-        paddingBottom: isBottom ? '85px' : undefined,
-      }">
+      <div ref="menuRef"
+        class="px-4 py-1 z-[60] rounded-lg shadow-2xl border border-[2px] border-[#404040] overflow-hidden fixed bottom-0 left-0 right-0 mx-auto w-full max-w-[520px]"
+        style="background-color: #282828; height: auto; padding-bottom: 85px">
         <!-- User Info Header -->
         <div class="pt-1.5 pb-1 border-b border-[#5C5C5C]">
           <div class="flex justify-between">
@@ -20,7 +15,7 @@
               class="object-contain origin-left" :style="siteConfig.theme.logoStyles.profileModal" />
             <div class="flex items-center gap-2">
               <!-- Language selector — mobile only. -->
-              <div v-if="isBottom" data-lang-selector class="relative">
+              <div data-lang-selector class="relative">
                 <button
                   class="inline-flex justify-center items-center gap-1 px-1 h-[30px] rounded-[7px] text-white/90 cursor-pointer hover:opacity-90 transition-opacity"
                   :style="{ backgroundColor: siteConfig.theme.ui.langSelectorBg }" @click="toggleLangDropdown">
@@ -135,50 +130,16 @@
         </div>
       </div>
 
-      <!-- Sliding Panel (desktop only) -->
-      <div v-if="!isBottom" ref="slidingPanelRef" :class="[
-        'site-unzoom fixed top-[calc(73px*var(--site-zoom))] mt-2 z-[60] rounded-lg shadow-2xl border border-[2px] border-[#404040] overflow-hidden transition-all duration-300 ease-in-out',
-        selectedAccountSection
-          ? 'opacity-100 translate-x-0'
-          : 'opacity-0 translate-x-4 pointer-events-none',
-        'w-[500px] h-[600px] lg:w-[600px]',
-      ]" :style="{ right: 'calc(max(0px, (100vw - 1152px * var(--site-zoom)) / 2) + 401px)' }"
-        style="background-color: black">
-        <!-- Panel Header -->
-        <div class="flex items-center justify-between px-4 py-3 border-b border-[#5C5C5C]">
-          <h2 class="text-[#ffe100] text-lg font-medium" style="font-family: var(--font-line-seed)">
-            {{ selectedAccountSectionLabel }}
-          </h2>
-          <button class="text-[#939393] hover:text-white transition-colors cursor-pointer" aria-label="Close panel"
-            @click="selectedAccountSection = null">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 27 27" fill="none">
-              <line x1="1.41421" y1="1" x2="25.627" y2="25.2127" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" />
-              <line x1="1" y1="-1" x2="35.242" y2="-1"
-                transform="matrix(-0.707107 0.707107 0.707107 0.707107 26.6732 1)" stroke="currentColor"
-                stroke-width="2" stroke-linecap="round" />
-            </svg>
-          </button>
-        </div>
-
-        <!-- Panel Content -->
-        <div class="p-4 h-[calc(100%-70px)] overflow-y-auto lg:overflow-hidden">
-          <InquiryContent v-if="selectedAccountSection === 'inquiry'" :inquiry-data="mobileInquiryData"
-            :on-refresh="handleMobileInquiryRefresh" :on-page-change="handleMobileInquiryPageChange"
-            :current-page="mobileInquiryPage" />
-          <component :is="accountSectionComponent" v-else-if="selectedAccountSection && accountSectionComponent" />
-        </div>
-      </div>
-
-      <!-- Promotion + Activity feature modals (both desktop and mobile) -->
+      <!-- Promotion + Activity feature modals -->
       <ProfileFeatureModals v-model:show-promotion="showPromotionModal" v-model:show-activity="showActivityModal"
         :site-config="siteConfig" />
 
       <!-- Mobile Full-Screen Modal -->
       <Teleport to="body">
         <Transition name="mobile-modal">
-          <div v-if="isBottom && selectedAccountSection"
-            class="fixed inset-0 z-[70] bg-[#1a1a1a] flex flex-col overflow-hidden" @click.self="closeMobileModal">
+          <div v-if="selectedAccountSection"
+            class="tm-modal modal-body-fill fixed inset-0 z-[70] flex flex-col overflow-hidden" :style="modalTheme"
+            @click.self="closeMobileModal">
             <!-- Modal Header -->
             <div class="relative z-10 shrink-0 flex items-center justify-between px-4 py-2">
               <div class="flex items-center gap-0">
@@ -205,11 +166,8 @@
 
             <!-- Modal Content -->
             <div
-              class="flex-initial shrink min-h-0 min-w-0 max-h-full overflow-y-auto bg-[#2F2F2F] border border-[#454545] rounded-[18px] mx-2 p-4 mb-[20px]">
-              <InquiryContent v-if="selectedAccountSection === 'inquiry'" :inquiry-data="mobileInquiryData"
-                :on-refresh="handleMobileInquiryRefresh" :on-page-change="handleMobileInquiryPageChange"
-                :current-page="mobileInquiryPage" />
-              <component :is="accountSectionComponent" v-else />
+              class="tm-card tm-scroll flex-initial shrink min-h-0 min-w-0 max-h-full overflow-y-auto rounded-[18px] mx-2 p-4 mb-[20px]">
+              <AccountSectionPanel :section="selectedAccountSection" />
             </div>
           </div>
         </Transition>
@@ -219,37 +177,12 @@
 </template>
 
 <script setup lang="ts">
-import type { Component } from "vue";
 import LanguageFlag from "~/components/layout/LanguageFlag.vue";
-import Referral from "~/components/my-account/Referral.vue";
-import BettingReport from "~/components/my-account/BettingReport.vue";
-import LoginHistory from "~/components/my-account/LoginHistory.vue";
-import ChangePassword from "~/components/my-account/ChangePassword.vue";
-import TransactionLogs from "~/components/my-account/TransactionLogs.vue";
-import PromotionContent from "~/components/promotion/PromotionContent.vue";
-import FaqContent from "~/components/faq/FaqContent.vue";
-import InquiryContent from "~/components/inquiry/InquiryContent.vue";
-import ContactContent from "~/components/contact/ContactContent.vue";
+import AccountSectionPanel from "~/components/profile/AccountSectionPanel.vue";
 import { useProfileMenu } from "@/components/profile/useProfileMenu";
-
-// Map menu id → component. Keys match API item names (camelCase) and menu ids.
-const ACCOUNT_COMPONENTS = {
-  referral: Referral,
-  bettingReport: BettingReport,
-  loginHistory: LoginHistory,
-  changePassword: ChangePassword,
-  // Transaction ledger. Both API ids map to the same panel.
-  transaksi: TransactionLogs,
-  transaction: TransactionLogs,
-  promotion: PromotionContent,
-  faq: FaqContent,
-  inquiry: InquiryContent,
-  contact: ContactContent,
-} satisfies Record<string, Component>;
 
 const props = defineProps<{
   isOpen: boolean;
-  position?: "top" | "bottom";
 }>();
 
 const emit = defineEmits<{
@@ -262,24 +195,17 @@ const {
   siteConfig,
   telegramHref,
   menuRef,
-  slidingPanelRef,
   selectedAccountSection,
   showPromotionModal,
   showActivityModal,
   carouselPage,
-  isBottom,
   visibleMenuItems,
   visiblePage2Items,
-  positionClasses,
   selectedAccountSectionLabel,
   getAccountSection,
   onClose,
   handleItemClick,
   handleLogout,
-  mobileInquiryData,
-  mobileInquiryPage,
-  handleMobileInquiryRefresh,
-  handleMobileInquiryPageChange,
   closeMobileModal,
   referralCount,
   onPointerDown,
@@ -296,16 +222,11 @@ const {
   selectLanguage,
 } = useProfileMenu({
   isOpen: () => props.isOpen,
-  position: () => props.position,
   onClose: () => emit("close"),
-  isAccountSection: (id: string) => id in ACCOUNT_COMPONENTS,
 });
 
-const accountSectionComponent = computed(() => {
-  const section = selectedAccountSection.value;
-  if (!section || !(section in ACCOUNT_COMPONENTS)) return null;
-  return ACCOUNT_COMPONENTS[section as keyof typeof ACCOUNT_COMPONENTS];
-});
+/** Deposit/withdraw palette for the account sections this modal hosts. */
+const modalTheme = useModalTheme();
 </script>
 
 <style scoped>

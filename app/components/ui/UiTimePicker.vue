@@ -5,17 +5,14 @@
       :disabled="disabled"
       :aria-expanded="open"
       :class="[
-        'group w-full px-3 py-1.5 flex items-center justify-center gap-1.5',
-        'text-white text-xs md:text-sm tabular-nums',
-        'transition-colors duration-150',
-        'hover:bg-[#5a5a5a] focus:outline-none focus:ring-1 focus:ring-[#FFE100]/50',
-        'disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[#505050]',
+        'tm-field group w-full px-3 py-1.5 flex items-center justify-center gap-1.5',
+        'text-xs md:text-sm tabular-nums cursor-pointer',
+        'transition-colors duration-150 focus:outline-none',
       ]"
-      style="background: #505050; border-radius: 2.349px"
       @click="toggle"
     >
       <svg
-        class="w-3.5 h-3.5 text-gray-300 group-hover:text-white transition-colors"
+        class="tm-muted w-3.5 h-3.5 group-hover:text-white transition-colors"
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
@@ -39,23 +36,21 @@
     >
       <div
         v-if="open"
-        class="absolute left-0 right-0 top-full mt-1.5 z-20 overflow-hidden rounded-md shadow-2xl border border-[#3a3a3a] origin-top"
-        style="background: #1f1f1f"
+        class="tm-card absolute left-0 right-0 top-full mt-1.5 z-20 overflow-hidden rounded-md shadow-2xl origin-top"
       >
         <div
-          class="flex items-center justify-between px-3 py-1.5 border-b border-[#3a3a3a]"
-          style="background: #161616"
+          class="tm-thead tm-line flex items-center justify-between px-3 py-1.5 border-b"
         >
           <span
-            class="text-[10px] uppercase tracking-wider text-gray-500 font-semibold"
+            class="tm-muted text-[10px] uppercase tracking-wider font-semibold"
           >
             Hour
           </span>
-          <span class="text-[#FFE100] text-xs font-bold tabular-nums">
+          <span class="tm-accent-text text-xs font-bold tabular-nums">
             {{ displayValue }}
           </span>
           <span
-            class="text-[10px] uppercase tracking-wider text-gray-500 font-semibold"
+            class="tm-muted text-[10px] uppercase tracking-wider font-semibold"
           >
             Min
           </span>
@@ -64,7 +59,7 @@
         <div class="flex">
           <div
             ref="hourListRef"
-            class="flex-1 overflow-y-auto max-h-48 py-1.5 time-picker-scroll"
+            class="tm-scroll flex-1 overflow-y-auto max-h-48 py-1.5"
           >
             <button
               v-for="h in hourOptions"
@@ -76,20 +71,20 @@
                 'block w-full mx-auto px-3 py-1.5 text-center text-sm tabular-nums',
                 'transition-colors duration-100',
                 isHourDisabled(h)
-                  ? 'text-gray-600 cursor-not-allowed'
+                  ? 'tm-muted opacity-50 cursor-not-allowed'
                   : selectedHour === h
-                    ? 'text-[#FFE100] font-bold'
-                    : 'text-gray-300 hover:text-white hover:bg-[#2a2a2a]',
+                    ? 'tm-accent-text font-bold'
+                    : 'tm-muted hover:text-white cursor-pointer',
               ]"
               @click="selectHour(h)"
             >
               {{ h }}
             </button>
           </div>
-          <div class="w-px" style="background: #3a3a3a" />
+          <div class="w-px tm-line border-l" />
           <div
             ref="minuteListRef"
-            class="flex-1 overflow-y-auto max-h-48 py-1.5 time-picker-scroll"
+            class="tm-scroll flex-1 overflow-y-auto max-h-48 py-1.5"
           >
             <button
               v-for="m in minuteOptions"
@@ -101,10 +96,10 @@
                 'block w-full mx-auto px-3 py-1.5 text-center text-sm tabular-nums',
                 'transition-colors duration-100',
                 isMinuteDisabled(m)
-                  ? 'text-gray-600 cursor-not-allowed'
+                  ? 'tm-muted opacity-50 cursor-not-allowed'
                   : selectedMinute === m
-                    ? 'text-[#FFE100] font-bold'
-                    : 'text-gray-300 hover:text-white hover:bg-[#2a2a2a]',
+                    ? 'tm-accent-text font-bold'
+                    : 'tm-muted hover:text-white cursor-pointer',
               ]"
               @click="selectMinute(m)"
             >
@@ -276,23 +271,3 @@ onBeforeUnmount(() => {
   }
 });
 </script>
-
-<style scoped>
-.time-picker-scroll {
-  scrollbar-width: thin;
-  scrollbar-color: #3a3a3a transparent;
-}
-.time-picker-scroll::-webkit-scrollbar {
-  width: 4px;
-}
-.time-picker-scroll::-webkit-scrollbar-track {
-  background: transparent;
-}
-.time-picker-scroll::-webkit-scrollbar-thumb {
-  background: #3a3a3a;
-  border-radius: 2px;
-}
-.time-picker-scroll::-webkit-scrollbar-thumb:hover {
-  background: #4a4a4a;
-}
-</style>

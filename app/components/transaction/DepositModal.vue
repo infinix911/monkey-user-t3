@@ -46,17 +46,11 @@ const BankPaymentContent = defineAsyncComponent(
 const siteConfig = useSiteConfig();
 const dep = computed(() => siteConfig.theme.transactionmodal);
 
-// Panel border + input theming — fed to the shared `.modal-gradient-border` /
-// `.tm-modal` classes (main.css) so deposit, withdrawal and signup share one
-// border + input style. The gradient glows in the center and fades at corners.
-const borderStyle = computed(() => ({
-  "--body-bg": dep.value.modalBgColor,
-  "--b-mid": dep.value.borderColor,
-  "--b-accent": dep.value.accentColor,
-  // Shared input theming (placeholder + focus) for fields inside `.tm-modal`.
-  "--tm-input-ph": dep.value.inputPlaceholderColor,
-  "--tm-accent": dep.value.accentColor,
-}));
+// Panel border + input theming — the shared bundle every themed surface uses
+// (`.modal-gradient-border` / `.tm-modal` in main.css), so deposit, withdrawal
+// and the account panels cannot drift apart. The gradient glows in the center
+// and fades at the corners.
+const borderStyle = useModalTheme();
 
 // `isOpen` is read directly by the template; nothing in the script needs the
 // props object now that useDepositModal() no longer watches it.

@@ -2,7 +2,8 @@
   <Teleport to="body">
     <Transition name="mobile-modal">
       <div v-if="isOpen"
-        class="fixed inset-0 z-[80] bg-black/90 flex items-center justify-center px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))]"
+        class="tm-modal fixed inset-0 z-[80] flex items-center justify-center px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))]"
+        :style="[modalTheme, { background: 'color-mix(in srgb, var(--body-bg) 90%, transparent)' }]"
         @click.self="$emit('close')">
         <!-- max-h-[98dvh] (dynamic viewport height) shrinks the whole modal —
              title INCLUDED — to whatever the live iPhone viewport is, so it
@@ -32,7 +33,7 @@
                overflow-y-auto). Scrolling directly on the flex item avoids the
                unreliable `height:100%` on a nested child, which could fail to
                bound and leave the list unscrollable. -->
-          <div class="bg-[#2F2F2F] rounded-[18px] border border-[#454545] flex-1 min-h-0 p-4 overflow-y-auto">
+          <div class="tm-card tm-scroll rounded-[18px] flex-1 min-h-0 p-4 overflow-y-auto">
             <PromotionContent />
           </div>
         </div>
@@ -54,6 +55,9 @@ defineProps<Props>();
 defineEmits<Emits>();
 
 const { t } = useI18n();
+
+/** Deposit/withdraw palette, inherited by PromotionContent. */
+const modalTheme = useModalTheme();
 </script>
 
 <style scoped>

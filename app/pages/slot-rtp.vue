@@ -18,7 +18,7 @@
                lg (1024–1279): inner container lg:px-3            = 12px → px-3
                xl (≥1280):     inner container xl:px-0            = 0    → xl:px-0
              Non-stuck keeps px-1.5 lg:px-0 because the ancestors supply the rest. -->
-        <div ref="providerBar" class="w-full max-w-[1152px] mx-auto"
+        <div ref="providerBar" class="w-full mx-auto"
           :class="providerStuck ? 'px-3 xl:px-0' : 'px-1.5 lg:px-0'"
           :style="providerStuck ? { backgroundColor: bodyBg, boxShadow: '0 6px 12px rgba(0,0,0,0.45)' } : {}">
           <div class="relative mb-1">
@@ -82,7 +82,7 @@
       </div>
     </div>
 
-    <div class="w-full max-w-[1152px] mx-auto px-1.5 lg:px-0">
+    <div class="w-full mx-auto px-1.5 lg:px-0">
       <!-- Loading -->
       <div v-if="isLoading" class="w-full py-12 text-center text-gray-400 text-sm">
         {{ $t("common.loading") }}

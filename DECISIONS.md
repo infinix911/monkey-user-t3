@@ -164,3 +164,66 @@
 **Decision:** Remove `NUXT_PUBLIC_SITE`, `__BUILD_SITE__`, `window.__NUXT_SITE`, the associated public runtime-config field, Docker build arguments, and the disabled multi-brand PWA branch. The package and deployment examples are named `monkey-user-t3`.
 **Scope:** This does not change `NUXT_PUBLIC_SITE_URL`, host allow-listing, or CMS-driven theme configuration. Those remain the source of public URL, request-host validation, and visual configuration.
 **Tradeoffs:** Deployments cannot select a site identity at build time. Changes to theme identity continue to be made through the CMS rather than a rebuild.
+
+---
+
+## ADR-020 — Partner/affiliate section removed from the user site
+**Status:** Accepted
+**Context:** The partner (affiliate) dashboard lived inside the player-facing app as a second, separately-themed application: nine `/partner*` routes, a 21-file `app/components/partner/**` tree, its own nav bar, its own page shell inside `layouts/default.vue`, its own theme token group, and its own CSS utility block in `main.css`. Partner-facing work belongs in the dedicated `monkey-partner` app, so keeping a parallel copy here meant every layout, theme, and i18n change had to be reasoned about twice.
+**Decision:** Remove the section outright rather than hide it behind a flag:
+- **Routes/components:** all nine `app/pages/partner*.vue`, `app/components/partner/**` (incl. `modals/**`), and `app/components/transaction/Partner{Deposit,Withdraw}Content.vue`.
+- **Partner-only modules:** `app/composables/usePartnerTheme.ts`, `app/interfaces/partner.interface.ts`, `app/utils/partnerMenu.ts`, `public/designs/partner/cosmo.webp`, and `formatPartnerAmount()` in `app/utils/currency.ts` (its only four callers were partner list components).
+- **Layout:** the `isPartnerPage` computed and every branch it gated in `layouts/default.vue` (focus dim, banner/announcement/auth-button/navbar suppression, `PartnerNav` slot, the `.partner-body` + `.partner-cosmos` page shell). Non-partner pages keep their existing behavior; the `main` slot is now unconditional.
+- **Theme contract:** `ThemePartnerConfig` + `theme.partner.*` deleted from `useDefaultThemeConfig.ts` and `public/theme.json`. Safe because `useSiteConfig()` deep-merges CMS-over-bundled and **silently ignores paths absent from the bundled base** — a live theme document still shipping `theme.partner` is inert, not an error.
+- **CSS:** the `pm-*` / `quick-*` / `.partner-tab` / `.amount-reset` / `.partner-body` block at the tail of `main.css` (verified zero remaining consumers).
+- **i18n:** the `partner`, `partnerMenu`, `partnerPages` trees plus `header.partner`, `footer.links.partner`, `home.seo.links.partner` in BOTH locales.
+- **SEO:** the `/partner` entry in `server/routes/sitemap.xml.ts`.
+- **Menu guard:** partner ids added to `REMOVED_ITEM_IDS` in `app/components/profile/useProfileMenu.ts` — per ADR-018 this is the guarantee, since the CMS (not the bundled defaults) is the source of profile-menu truth and could otherwise render a tile pointing at a dead route.
+**Deliberately NOT removed:** the `partner.apiMessages.*` precedent from ADR-018 does not apply — those keys existed only for the partner deposit/withdraw request flows, which are gone, so they went too. `utils/game-navigation.ts`'s `isOpenedViaTelegramOffline()` is kept (already unused by any caller); only its stale partner-flow comment was corrected.
+**Residual CMS work (not code):** a live theme/nav payload that still contains a `/partner*` menu entry will now navigate to a 404. The profile-menu path is filtered in code; top-nav (`assets.navIcons.menuItems`) is not, so any partner entry there must be removed in the admin CMS per hostname.
+**Tradeoffs:** Re-introducing a partner surface here means rebuilding it, not flipping a flag. Partner functionality is expected to live in `monkey-partner`.
+**Related:** ADR-017 and ADR-018 (same "delete the surface, add the CMS-id guard" removal pattern).
+
+## ADR-021 — Desktop two-column shell: left rail replaces the desktop category bar
+
+**Context.** The desktop design moved the game categories and the
+deposit/withdraw panel off the horizontal bar under the banner and into a fixed
+left rail, giving a two-column shell (rail + content).
+
+**Decision.** `layouts/default.vue` wraps its content stack in a wrapper that is
+`flex` only from `lg`, with `layout/AppSidebar.vue` as the first column. Below
+`lg` the wrapper is inert, so the mobile single-column layout — and the
+JS-driven sticky/scroll machinery tuned to it (fixed navbar, announcement bar,
+game-section background; `position: sticky` is unavailable because html/body
+carry `overflow-x`) — is untouched.
+
+`navigation/Navbar.vue` gained a `desktop` prop (default `true`); the layout
+passes `:desktop="false"`. The component still renders, because it hosts the
+Deposit/Withdrawal modal instances the rail depends on, and it still serves the
+mobile category bar.
+
+**Consequences.** Three widths must stay in step: the wrapper's
+`lg:max-w-[1456px]`, `AppHeader`'s desktop row (so the logo sits above the rail),
+and the shell-centring term in `AppSidebar`'s `panelStyle.left` (so the account
+panel stays pinned to the content column). The rail is not sticky, for the
+`overflow-x` reason above. Rail colours live in `theme.sidebar`
+and its icons in `assets.sidebarIcons`, so both are CMS-overridable; the
+deposit/withdraw block reuses `theme.nav.depositSectionGradient` rather than
+introducing a second gradient token.
+
+**Amendment (2026-07-30).** The five `theme.sidebar` tokens now have real fields
+in the CMS schema (a "Sidebar" tab in the admin Theme Editor) instead of only
+existing in the bundled config, and both theme seeds ship the block. As part of
+that, `theme.sidebar.border` — a full CSS shorthand (`"1px solid #B04C00"`) —
+became `theme.sidebar.borderColor` (`"#B04C00"`), with the 1px width fixed in
+`AppSidebar.vue`: a shorthand cannot be driven by a colour picker, and free-text
+CSS in the CMS is an invalid-value vector. Adding a token here means adding the
+matching field to `theme-schema/theme.schema.ts` **and** the default to
+`theme-schema/site-config.ts` in both admin apps, or the editor renders a field
+with an `undefined` default.
+
+**Alternatives rejected.** Duplicating the rail's markup per breakpoint (two
+sources of truth for the same menu); deleting Navbar's desktop branch outright
+(loses the modal hosts); hardcoding the design's hexes in the component (breaks
+the CMS theming contract).
+

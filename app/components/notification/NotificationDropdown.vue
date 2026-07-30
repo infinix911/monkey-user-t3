@@ -14,23 +14,23 @@
         <div
           v-if="isOpen"
           data-notification-dropdown
-          class="fixed bg-gradient-to-b from-[#1a1a1a] to-[#0f0f0f] border border-[#D4AF37]/40 rounded-xl shadow-2xl p-0 overflow-hidden w-[calc(100vw-2rem)] md:w-[450px] md:min-w-[450px] z-[9999]"
-          :style="{
+          class="tm-modal modal-body-fill fixed border border-[var(--tm-accent)]/40 rounded-xl shadow-2xl p-0 overflow-hidden w-[calc(100vw-2rem)] md:w-[450px] md:min-w-[450px] z-[9999]"
+          :style="[modalTheme, {
             top: panelPos.top + 'px',
             right: panelPos.right + 'px',
             boxShadow:
-              '0 0 30px rgba(212, 175, 55, 0.3), 0 4px 20px rgba(0, 0, 0, 0.5)',
-          }"
+              '0 0 30px color-mix(in srgb, var(--tm-accent) 30%, transparent), 0 4px 20px rgba(0, 0, 0, 0.5)',
+          }]"
         >
         <!-- Header -->
-        <div class="relative p-3 border-b border-[#D4AF37]/30 bg-[#262626]/50">
+        <div class="tm-thead relative p-3 border-b border-[var(--tm-accent)]/30">
           <div class="flex items-center justify-between">
             <h3 class="text-white text-lg font-bold flex items-center gap-2">
-              <span class="w-2 h-2 rounded-full bg-[#D4AF37] animate-pulse" />
+              <span class="w-2 h-2 rounded-full bg-[var(--tm-accent)] animate-pulse" />
               {{ t("notifications.title") }}
             </h3>
             <div
-              class="text-xs text-[#bcb8d6] bg-[#1a1a1a] border border-[#D4AF37]/20 px-2 py-1 rounded-full"
+              class="tm-card tm-muted text-xs px-2 py-1 rounded-full"
             >
               {{ notifications.length }}
               {{
@@ -43,12 +43,12 @@
         </div>
 
         <!-- Content -->
-        <div class="max-h-96 overflow-y-auto notification-scrollbar">
+        <div class="tm-scroll max-h-96 overflow-y-auto">
           <div
             v-if="filteredNotifications.length === 0"
             class="text-center py-16"
           >
-            <p class="text-[#bcb8d6] text-sm font-medium mb-2">
+            <p class="tm-muted text-sm font-medium mb-2">
               {{ t("notifications.empty") }}
             </p>
           </div>
@@ -62,7 +62,7 @@
               <div class="flex items-center gap-3 px-2">
                 <h3 class="text-white text-sm font-semibold">{{ dateKey }}</h3>
                 <div
-                  class="flex-1 h-px bg-gradient-to-r from-[#D4AF37]/50 to-transparent"
+                  class="flex-1 h-px bg-gradient-to-r from-[var(--tm-accent)]/50 to-transparent"
                 />
               </div>
 
@@ -84,13 +84,13 @@
                     <div class="flex-1 min-w-0">
                       <div class="flex items-center gap-2">
                         <h4
-                          class="text-white font-semibold text-sm group-hover:text-[#D4AF37] transition-colors duration-200"
+                          class="text-white font-semibold text-sm group-hover:text-[var(--tm-accent)] transition-colors duration-200"
                         >
                           {{ truncate(notification.title, 50) }}
                         </h4>
                         <span
                           v-if="!notification.is_read"
-                          class="bg-gradient-to-r from-[#D4AF37] to-[#C9A500] text-black text-xs px-2 py-0.5 rounded-full font-medium shadow-md shadow-[#D4AF37]/20"
+                          class="tm-btn text-xs px-2 py-0.5 rounded-full font-medium shadow-md"
                         >
                           {{ t("notifications.new") }}
                         </span>
@@ -133,6 +133,11 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
+
+/** Deposit/withdraw palette. The panel used its own gold (#D4AF37), which was
+ *  a second, slightly different accent from the themed one. */
+const modalTheme = useModalTheme();
+
 const isOpen = ref(false);
 const dropdownRef = ref<HTMLElement | null>(null);
 const triggerRef = ref<HTMLElement | null>(null);
@@ -251,14 +256,14 @@ onUnmounted(() => {
   width: 6px;
 }
 .notification-scrollbar::-webkit-scrollbar-track {
-  background: #1a1a1a;
+  background: transparent;
   border-radius: 10px;
 }
 .notification-scrollbar::-webkit-scrollbar-thumb {
-  background: linear-gradient(to bottom, #d4af37, #c9a500);
+  background: color-mix(in srgb, var(--tm-accent) 70%, transparent);
   border-radius: 10px;
 }
 .notification-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(to bottom, #c9a500, #8b7500);
+  background: var(--tm-accent);
 }
 </style>

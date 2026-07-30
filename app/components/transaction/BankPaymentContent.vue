@@ -141,6 +141,7 @@ import {
   type IBankAccount,
 } from "@/components/transaction/useBankPayment";
 import { useAuthStore } from "~/stores/auth";
+import { showConfirmationAlert } from "~~/utils/swal-alert";
 
 const props = defineProps<{
   bankAccounts?: IBankAccount[];
@@ -180,6 +181,19 @@ const isRequestingAccount = ref(false);
 
 async function handleAccountRequest() {
   if (isRequestingAccount.value) return; // guard double-submits
+
+  // Raising the inquiry opens a support ticket, so confirm first — "No" just
+  // closes the dialog and leaves the deposit modal as it was.
+  const confirmed = await showConfirmationAlert(
+    t("inquiry.depositAccountRequest"),
+    t("inquiry.accountRequestConfirmation"),
+    t("common.yes"),
+    t("common.no"),
+    "#04c000",
+    "#6b7280",
+  );
+  if (!confirmed) return;
+
   isRequestingAccount.value = true;
   try {
     await requestBankAccount();

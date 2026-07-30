@@ -9,8 +9,8 @@ import { useDragScroll } from "./useDragScroll";
  *
  * Pass the same `Ref<HTMLElement | null>` bound to the scroll container's `ref`.
  *
- *   - `step`    width of one card + gap, in px (HOT 208, others 194)
- *   - `perPage` cards advanced per arrow click (HOT/others 5)
+ *   - `step`    width of one card + gap, in px (195 + 6 = 201)
+ *   - `perPage` cards advanced per arrow click (6, one full row)
  */
 export function useCarouselScroll(
   elRef: Ref<HTMLElement | null>,

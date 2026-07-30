@@ -2,28 +2,55 @@
   <header class="fixed top-0 left-0 right-0 z-50 w-full min-[690px]:h-[83px]">
     <!-- Desktop Layout (>=690px) — the full-width bar is transparent over the
          hero (fades to the sticky background colour once scrolled); the themed
-         gradient is applied to the centred 1152px content row only. -->
+         gradient is applied to the centred content row only (1152px below lg,
+         the 1456px shell width from lg up). -->
     <div class="hidden min-[690px]:block relative h-full transition-colors duration-300"
       :style="{ backgroundColor: isScrolled ? siteConfig.theme.nav.stickyBg : 'transparent' }">
-      <div class="pr-1.5 relative flex items-end justify-between max-w-[1152px] mx-auto h-full pb-2.5"
-        :style="{ background: isScrolled ? 'transparent' : siteConfig.theme.nav.headerBgGradient }">
-        <!-- Left: Logo (hidden while the notice modal is open) -->
-        <div v-show="!uiStore.showNoticeModal" class="flex items-end gap-2">
-          <NuxtLink to="/" class="flex items-center justify-center flex-shrink-0">
+      <!-- max-w matches the two-column wrapper in layouts/default.vue, so the
+           logo lands above the left rail and the user controls over the content
+           column. Keep the two in step if either width changes. -->
+      <!-- No background of its own: at the top the header floats over the hero,
+           and once scrolled the wrapper above supplies `nav.stickyBg`. The row
+           used to paint `nav.headerBgGradient` in the unscrolled state, which is
+           exactly the state that must now be transparent. -->
+      <!-- `lg:gap-7` mirrors the two-column wrapper in layouts/default.vue: the
+           rail column there is `lg:px-2` + `lg:w-[210px]` + `lg:gap-7`, so
+           without the same 28px gap here the account bar starts left of the
+           content column it is supposed to sit above. Keep all four values —
+           max-width, gutter, logo/rail width and gap — in step with that
+           wrapper. -->
+      <div
+        class="pr-1.5 relative flex items-end justify-between max-w-[1152px] lg:max-w-[1456px] lg:px-2 lg:gap-7 mx-auto h-full pb-2.5">
+        <!-- Left: Logo (hidden while the notice modal is open). Its lg width is
+             the rail's, so the logo sits over the rail and everything after it
+             starts at the content column's left edge. -->
+        <div v-show="!uiStore.showNoticeModal" class="flex items-end gap-2 lg:w-[210px] lg:flex-shrink-0 lg:ps-2">
+          <NuxtLink to="/" class="flex items-center justify-center flex-shrink-0 lg:w-full">
+            <!-- From `lg` the rail's width is the logo's limit: the config style
+                 caps it at 282px, wider than the 215px column, and `flex-shrink-0`
+                 means it would otherwise overflow across the account bar. `w-full`
+                 binds it to the column (max-height still clamps tall marks), so
+                 there is no second width to keep in sync with the layout. -->
             <NuxtImg :src="siteConfig.identity.logo" :alt="siteConfig.identity.siteName"
-              class="h-auto w-auto cursor-pointer object-contain flex-shrink-0 ml-2"
+              class="h-auto w-auto cursor-pointer object-contain flex-shrink-0 ml-2 lg:ml-0 lg:w-full"
               :style="siteConfig.theme.logoStyles.desktopHeader" />
           </NuxtLink>
         </div>
 
-        <!-- Right: Language + Auth buttons / User profile -->
-        <div v-show="!uiStore.showNoticeModal" class="font-medium flex items-center gap-1 relative">
+        <!-- Content column: the account bar sits at its leading edge and the
+             auth/language/menu controls at its trailing edge, so the header
+             lines up with the two columns beneath it. -->
+        <div v-show="!uiStore.showNoticeModal"
+          class="font-medium flex flex-1 min-w-0 items-center justify-between gap-3 relative">
           <template v-if="!isAuthenticated">
+            <!-- Guests have no account bar; the spacer holds the leading edge so
+                 the buttons stay pinned to the trailing one. -->
+            <span aria-hidden="true" />
             <!-- Login + Sign up buttons grouped -->
             <div class="flex items-center gap-1">
               <!-- Login: gold gradient border + gold gradient text -->
               <button
-                class="cursor-pointer h-[37px] w-[125px] px-3 rounded-[4px] flex items-center justify-center font-extrabold italic uppercase text-[15px] tracking-tight transition-transform hover:scale-[1.03]"
+                class="cursor-pointer h-[35px] w-[113px] px-3 rounded-[4px] flex items-center justify-center font-extrabold italic uppercase text-[15px] tracking-tight transition-transform hover:scale-[1.03]"
                 :style="{ background: siteConfig.theme.authButton.loginBg, border: siteConfig.theme.authButton.loginBorder, boxShadow: '0 5px 5px rgba(0,0,0,0.25)' }"
                 @click="showLoginModal">
                 <span class="block w-full text-center truncate"
@@ -32,32 +59,32 @@
               </button>
               <!-- Sign up: blue gradient border + white text -->
               <button
-                class="cursor-pointer h-[37px] w-[125px] px-3 rounded-[4px] flex items-center justify-center font-extrabold italic uppercase text-[15px] tracking-tight text-white transition-transform hover:scale-[1.03]"
+                class="cursor-pointer h-[35px] w-[113px] px-3 rounded-[4px] flex items-center justify-center font-extrabold italic uppercase text-[15px] tracking-tight text-white transition-transform hover:scale-[1.03]"
                 :style="{ background: siteConfig.theme.authButton.signupBg, border: '1.5px solid transparent', boxShadow: '0 5px 5px rgba(0,0,0,0.25)' }"
                 @click="showSignupModal">
                 <span class="block w-full text-center truncate">{{ $t('header.signUp') }}</span>
               </button>
-            </div>
-            <!-- Language selector -->
-            <div data-lang-selector class="mx-2">
-              <div class="relative">
-                <button
-                  class="inline-flex justify-center items-center gap-1 px-1 h-[30px] xl:h-[30px] rounded-[7px] text-white/90 cursor-pointer hover:opacity-90 transition-opacity"
-                  :style="{ backgroundColor: siteConfig.theme.ui.langSelectorBg }" @click="toggleLangDropdown">
-                  <LanguageFlag :code="locale as LangCode" class="w-6 h-5 rounded-[5px] overflow-hidden" />
-                  <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-                <div v-if="showLangDropdown"
-                  class="absolute right-0 top-full mt-1 z-50 rounded-[7px] overflow-hidden shadow-lg w-max min-w-max"
-                  :style="{ backgroundColor: siteConfig.theme.ui.langSelectorBg }">
-                  <button v-for="lang in languages" :key="lang.code"
-                    class="flex items-center gap-2 px-3 py-2 w-full text-left text-white/90 hover:bg-[#333] transition-colors cursor-pointer text-sm"
-                    @click="selectLanguage(lang.code)">
-                    <LanguageFlag :code="lang.code" class="w-6 h-[18px] rounded-[3px] overflow-hidden" />
-                    <span class="whitespace-nowrap">{{ lang.name }}</span>
+              <!-- Language selector -->
+              <div data-lang-selector class="ms-2">
+                <div class="relative">
+                  <button
+                    class="inline-flex justify-center items-center gap-1 px-1 h-[30px] xl:h-[30px] rounded-[7px] text-white/90 cursor-pointer hover:opacity-90 transition-opacity"
+                    :style="{ backgroundColor: siteConfig.theme.ui.langSelectorBg }" @click="toggleLangDropdown">
+                    <LanguageFlag :code="locale as LangCode" class="w-6 h-5 rounded-[5px] overflow-hidden" />
+                    <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
                   </button>
+                  <div v-if="showLangDropdown"
+                    class="absolute right-0 top-full mt-1 z-50 rounded-[7px] overflow-hidden shadow-lg w-max min-w-max"
+                    :style="{ backgroundColor: siteConfig.theme.ui.langSelectorBg }">
+                    <button v-for="lang in languages" :key="lang.code"
+                      class="flex items-center gap-2 px-3 py-2 w-full text-left text-white/90 hover:bg-[#333] transition-colors cursor-pointer text-sm"
+                      @click="selectLanguage(lang.code)">
+                      <LanguageFlag :code="lang.code" class="w-6 h-[18px] rounded-[3px] overflow-hidden" />
+                      <span class="whitespace-nowrap">{{ lang.name }}</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -65,55 +92,70 @@
           </template>
           <!-- Authenticated: Wallet box + Notification + Language -->
           <template v-else>
-            <!-- User info — homepage pill:
-                 white username, blue balance, no background. -->
-            <UserBalancePill layout="inline" coin-class="w-5.5 h-5.5 xl:w-6.5 xl:h-6.5" username-class="text-[17px]"
-              symbol-class="text-[17px]" amount-class="text-[17px]"
-              pill-class="flex items-center h-[37px] px-4 rounded-full bg-black/45 backdrop-blur-sm shadow-[0_2px_6px_rgba(0,0,0,0.35)]" />
-            <div class="flex items-center gap-3 ml-3 mr-1">
-              <!-- Point conversion — opens the point-to-balance modal. -->
-              <button type="button" :aria-label="$t('point.title')"
-                class="flex items-center gap-1.5 h-[37px] pl-1.5 pr-3 rounded-full bg-black/45 backdrop-blur-sm shadow-[0_2px_6px_rgba(0,0,0,0.35)] cursor-pointer transition-transform hover:scale-[1.03]"
-                @click="uiStore.setShowPointModal(true)">
-                <span class="w-6 h-6 xl:w-6.5 xl:h-6.5 rounded-full flex items-center justify-center shrink-0"
-                  :style="{ background: siteConfig.theme.brandColor }">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-black" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor" stroke-width="2.2">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                      d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-9L21 7.5m0 0L16.5 3m4.5 4.5H7.5" />
-                  </svg>
-                </span>
-                <span class="text-white font-bold text-[17px] tabular-nums leading-none">{{
-                  currency.formatNumber(authStore.user.point_wallet) }}</span>
-                <span class="text-white/55 text-[13px] font-semibold leading-none">P</span>
-              </button>
-              <!-- Partner — links straight to the partner dashboard (no dropdown). -->
-              <NuxtLink to="/partner-dashboard" :aria-label="$t('header.partner')"
-                class="flex items-center gap-1.5 h-[37px] pl-1.5 pr-3 rounded-full bg-black/45 backdrop-blur-sm shadow-[0_2px_6px_rgba(0,0,0,0.35)] cursor-pointer transition-transform hover:scale-[1.03]">
-                <span class="w-6 h-6 xl:w-6.5 xl:h-6.5 rounded-full flex items-center justify-center shrink-0"
-                  :style="{ background: siteConfig.theme.brandColor }">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-black" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                      d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" />
-                  </svg>
-                </span>
-                <span class="text-white font-bold text-[15px] uppercase tracking-tight leading-none">{{
-                  $t('header.partner') }}</span>
-              </NuxtLink>
-              <div class="relative flex items-center">
+            <!-- Account bar — identity, balances and the three actions in ONE
+                 flat surface, per the reference: no dividers, no per-part
+                 backgrounds, a single #262626 rounded bar. Order is
+                 username · wallet · points · swap · refresh · bell. -->
+            <!-- 10px on all four corners — the same radius the announcement
+                 bar in layouts/default.vue uses on its top corners. -->
+            <!-- Sized down as one system so the bar reads at the same weight as
+                 the announcement bar directly beneath it: 37→32px tall, 17→15px
+                 figures, 14→13px suffixes, 20→18px icons, and the ms-7 (28px)
+                 group spacing to ms-5 (20px). Change these together — shrinking
+                 the type alone just leaves the bar looking padded. -->
+            <div class="flex items-center h-[32px] px-3 rounded-[10px] bg-[#262626] whitespace-nowrap">
+              <!-- Identity. `honorific` is the Korean "님" suffix; it is an empty
+                   string in locales that have no equivalent, hence the guard. -->
+              <span class="flex items-baseline gap-1">
+                <span class="font-bold text-[15px] uppercase leading-none"
+                  :style="{ color: ACCOUNT_BAR_COLORS.username }">{{ authStore.user.username }}</span>
+                <span v-if="honorific" class="text-white text-[13px] leading-none">{{ honorific }}</span>
+              </span>
+
+              <!-- Wallet balance -->
+              <span class="flex items-center gap-1.5 ms-5">
+                <NuxtImg :src="siteConfig.assets.navIcons.walletIcon" alt="" aria-hidden="true" width="18" height="18"
+                  class="w-[18px] h-[18px] object-contain shrink-0" />
+                <span class="font-bold text-[15px] tabular-nums leading-none"
+                  :style="{ color: ACCOUNT_BAR_COLORS.wallet }">{{
+                    currency.formatNumber(authStore.user.wallet) }}</span>
+                <span class="text-white/90 text-[13px] leading-none">{{ walletUnit }}</span>
+              </span>
+
+              <!-- Point balance -->
+              <span class="flex items-center gap-1.5 ms-5">
+                <NuxtImg :src="siteConfig.assets.navIcons.pointIcon" alt="" aria-hidden="true" width="18" height="18"
+                  class="w-[18px] h-[18px] object-contain shrink-0" />
+                <span class="font-bold text-[15px] tabular-nums leading-none"
+                  :style="{ color: ACCOUNT_BAR_COLORS.point }">{{
+                    currency.formatNumber(authStore.user.point_wallet) }}</span>
+              </span>
+
+              <!-- Actions -->
+              <div class="flex items-center gap-2.5 ms-5">
+                <!-- Point conversion — opens the point-to-balance modal. -->
+                <button type="button" :aria-label="$t('point.title')"
+                  class="shrink-0 cursor-pointer opacity-90 hover:opacity-100 transition-opacity"
+                  @click="uiStore.setShowPointModal(true)">
+                  <NuxtImg :src="siteConfig.assets.navIcons.swapIcon" alt="" aria-hidden="true" width="18" height="18"
+                    class="w-[18px] h-[18px] object-contain" />
+                </button>
+                <!-- Wallet reload. The art ships in #434343, so it is tinted to
+                     white here rather than shipping a second copy of the file. -->
+                <button type="button" :aria-label="$t('common.refreshBalance')" :disabled="isRefreshingWallet"
+                  class="shrink-0 cursor-pointer opacity-90 hover:opacity-100 transition-opacity disabled:opacity-60"
+                  :class="{ 'spin-once': isRefreshingWallet }" @click="refreshWallet">
+                  <NuxtImg :src="siteConfig.assets.navIcons.refreshIcon" alt="" aria-hidden="true" width="18"
+                    height="18" class="account-bar-icon-light w-[18px] h-[18px] object-contain" />
+                </button>
                 <NotificationDropdown :notifications="notifications" @marked-all-read="markNotificationsRead">
-                  <div class="relative cursor-pointer" aria-haspopup="dialog">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                      stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"
-                      class="w-6 h-6 text-white">
-                      <path d="M10.268 21a2 2 0 0 0 3.464 0" />
-                      <path
-                        d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326" />
-                    </svg>
+                  <div class="relative cursor-pointer opacity-90 hover:opacity-100 transition-opacity"
+                    aria-haspopup="dialog">
+                    <NuxtImg :src="siteConfig.assets.navIcons.bellIcon" alt="" aria-hidden="true" width="18" height="18"
+                      class="w-[18px] h-[18px] object-contain" />
                     <div v-if="unreadNotificationCount > 0"
-                      class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
-                      <span class="text-white text-xs font-bold">{{
+                      class="absolute -top-1.5 -right-1.5 min-w-4 h-4 px-1 bg-red-500 rounded-full flex items-center justify-center">
+                      <span class="text-white text-[10px] font-bold leading-none">{{
                         unreadNotificationCount > 99
                           ? "99+"
                           : unreadNotificationCount
@@ -122,6 +164,10 @@
                   </div>
                 </NotificationDropdown>
               </div>
+            </div>
+
+            <!-- Trailing controls -->
+            <div class="flex items-center gap-1 flex-shrink-0">
               <div class="relative" data-lang-selector>
                 <button
                   class="inline-flex justify-center items-center gap-1 px-1 h-[30px] xl:h-[30px] rounded-[7px] text-white/90 cursor-pointer hover:opacity-90 transition-opacity"
@@ -142,19 +188,27 @@
                   </button>
                 </div>
               </div>
+              <!-- Logout — sized to the guest login/sign-up buttons (35x113),
+                   so the header's primary action is the same target in both
+                   signed-in and signed-out states. It keeps the language
+                   selector's radius and background, so it still reads as part
+                   of the trailing control group rather than as a third auth
+                   button. `authStore.logout()` already posts /auth/logout,
+                   clears state and returns home. -->
+              <button type="button" :aria-label="$t('auth.logout')"
+                class="inline-flex justify-center items-center gap-1.5 px-3 h-[35px] w-[113px] rounded-[7px] text-white/90 cursor-pointer hover:opacity-90 transition-opacity"
+                :style="{ backgroundColor: siteConfig.theme.ui.langSelectorBg }" @click="handleLogout">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                  <path d="m16 17 5-5-5-5" />
+                  <path d="M21 12H9" />
+                </svg>
+                <span class="text-[13px] font-semibold whitespace-nowrap">{{ $t('auth.logout') }}</span>
+              </button>
+              <!-- No desktop menu trigger: from `lg` the left rail carries the
+                 profile menu, so NewProfileModal is a mobile-only surface. -->
             </div>
-            <!-- Hamburger menu (far right) — hidden on the iPad-mini range
-                 (690-1023px) once authenticated; reachable via the bottom nav. -->
-            <button v-show="!uiStore.showNoticeModal"
-              class="hidden lg:flex items-center justify-center transition-opacity hover:opacity-90 cursor-pointer ml-1"
-              :aria-label="$t('header.menu')" data-hamburger-menu="true" @click="openProfileModal">
-              <svg viewBox="0 0 49 34" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"
-                focusable="false" class="w-[47px] h-[33px]">
-                <path
-                  d="M0 33.5V27.9167H48.7721V33.5H0ZM0 19.5417V13.9583H48.7721V19.5417H0ZM0 5.58333V0H48.7721V5.58333H0Z"
-                  fill="white" />
-              </svg>
-            </button>
           </template>
         </div>
       </div>
@@ -217,8 +271,7 @@
               </span>
             </div>
           </div>
-          <!-- Point conversion + partner links are desktop-only — on mobile the
-               header stays compact (partner nav lives in the in-page sidebar). -->
+          <!-- Point conversion is desktop-only — on mobile the header stays compact. -->
           <div class="contents">
             <!-- Notification bell — hidden on the mobile header. -->
             <div class="absolute top-[-25px] right-2 z-10 hidden">
@@ -284,7 +337,7 @@
   <SignupModal v-if="signupModalMounted" :is-open="uiStore.showSignupModal" @close="handleCloseSignupModal" />
 
   <NewProfileModal v-if="uiStore.showProfileModal" :is-open="uiStore.showProfileModal"
-    :position="profileModalMobile ? 'bottom' : 'top'" @close="uiStore.setShowProfileModal(false)" />
+    @close="uiStore.setShowProfileModal(false)" />
 
   <PointConversionModal v-if="uiStore.showPointModal" :is-open="uiStore.showPointModal"
     @close="uiStore.setShowPointModal(false)" />
@@ -304,7 +357,8 @@ import {
 const authStore = useAuthStore();
 const uiStore = useUiStore();
 
-// The user-info pill (UserBalancePill) now owns currency/symbol formatting.
+// The desktop account bar formats its own balances (see ACCOUNT_BAR_COLORS and
+// `walletUnit` below); UserBalancePill is no longer part of the header.
 const LoginModal = defineAsyncComponent(
   () => import("@/components/auth/LoginModal.vue"),
 );
@@ -341,7 +395,39 @@ watch(
 );
 
 const siteConfig = useSiteConfig();
-const { locale, setLocale } = useI18n();
+const { locale, setLocale, t } = useI18n();
+
+// Desktop account bar. Sampled from the reference render: the username reads
+// gold, the wallet balance green and the point balance blue. They identify the
+// three values at a glance, so they are value semantics rather than chrome and
+// deliberately do NOT follow the modal palette.
+const ACCOUNT_BAR_COLORS = {
+  username: "#DFC404",
+  wallet: "#37F327",
+  point: "#269CF0",
+} as const;
+
+// "님" in Korean; locales without an equivalent ship an empty string, and the
+// template drops the element entirely rather than rendering a stray space.
+const honorific = computed(() => t("header.honorific"));
+
+// Wallet reload — the account bar's own refresh action (was `show-refresh` on
+// UserBalancePill before the bar was flattened).
+const isRefreshingWallet = ref(false);
+const refreshWallet = async () => {
+  if (isRefreshingWallet.value) return;
+  isRefreshingWallet.value = true;
+  try {
+    await authStore.verifyUser();
+  } catch {
+    // A failed reload leaves the last known balance on screen; the websocket
+    // wallet events keep it fresh regardless.
+  } finally {
+    setTimeout(() => {
+      isRefreshingWallet.value = false;
+    }, 800);
+  }
+};
 
 // Mobile authenticated pill (lucky-style): currency formatting + the user's
 // level-matching stone badge. Mirrors UserBalancePill.vue.
@@ -350,6 +436,12 @@ const walletSymbol = computed(() => {
   const s = currency.symbolFor(authStore.user.currency);
   return s === "Rp" ? "IDR" : s;
 });
+
+// The unit printed after the desktop balance. Korean spells the won out as
+// "원", so the locale wins where it supplies one; every other deployment falls
+// back to the currency's own symbol.
+const walletUnit = computed(() => t("header.walletUnit") || walletSymbol.value);
+
 const levelStoneSrc = useLevelStone();
 // Mobile pill text: username + currency symbol render in Mark Medium, the
 // balance amount in Mark Bold. They share the same size so the IDR symbol and
@@ -379,11 +471,6 @@ const openLiveChat = () => {
 // (set pre-paint by app.vue's inline script). `isMobile` is still needed by
 // the template (modal positioning).
 const isMobile = ref(false);
-// The profile modal uses its mobile (full-screen "bottom") layout for the
-// whole tablet range too — anything below lg (1024px), which includes iPad
-// mini — and only switches to the desktop sliding panel at lg+.
-const profileModalMobile = ref(false);
-
 // Desktop header is transparent over the hero, then fades to the sticky
 // background colour once the user scrolls past the top of the page.
 const isScrolled = ref(false);
@@ -401,10 +488,9 @@ const openProfileModal = () => {
 
 const updateMobileScale = () => {
   // The header switches to its desktop design at >=690px; below that it's a
-  // fixed-height mobile bar (no viewport scaling). `isMobile` still drives
-  // modal positioning; --mh-scale stays 1 (the mobile header no longer scales).
+  // fixed-height mobile bar (no viewport scaling). --mh-scale stays 1 (the
+  // mobile header no longer scales).
   isMobile.value = window.innerWidth < 690;
-  profileModalMobile.value = window.innerWidth < 1024;
   document.documentElement.style.setProperty("--mh-scale", "1");
 };
 
@@ -521,6 +607,20 @@ const handleClickOutside = (event: MouseEvent) => {
   }
 };
 
+// Header logout. The store owns the whole sequence (POST /auth/logout, clear
+// auth + site state, wipe auth localStorage, navigate home), so this is just a
+// guard against a double click while that is in flight.
+const isLoggingOut = ref(false);
+const handleLogout = async () => {
+  if (isLoggingOut.value) return;
+  isLoggingOut.value = true;
+  try {
+    await authStore.logout();
+  } finally {
+    isLoggingOut.value = false;
+  }
+};
+
 const showLoginModal = () => {
   uiStore.setShowLoginModal(true);
 };
@@ -543,3 +643,31 @@ const handleSignupClick = () => {
 
 const _formatCurrency = formatWallet;
 </script>
+
+<style scoped>
+/* The refresh glyph ships in #434343 (a light-theme grey). Inverting to white
+   keeps one shared asset instead of a second recoloured copy of the same file. */
+.account-bar-icon-light {
+  filter: brightness(0) invert(1);
+}
+
+@keyframes spin-once {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spin-once {
+  animation: spin-once 0.8s linear;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spin-once {
+    animation: none;
+  }
+}
+</style>

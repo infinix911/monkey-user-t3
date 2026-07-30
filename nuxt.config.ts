@@ -321,6 +321,17 @@ export default defineNuxtConfig({
           type: "font/woff2",
           crossorigin: "",
         },
+        // Noto Sans (Bold 700) renders the announcement ticker, which is above
+        // the fold on every page — preload so it doesn't flash the fallback
+        // family first. Regular 400 is registered too but isn't used above the
+        // fold, so it loads on demand.
+        {
+          rel: "preload",
+          href: "/fonts/NotoSans-Bold.woff2",
+          as: "font",
+          type: "font/woff2",
+          crossorigin: "",
+        },
       ],
       script: [
         {

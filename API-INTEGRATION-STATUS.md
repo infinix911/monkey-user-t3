@@ -46,7 +46,7 @@ mapper. Backend (camelCase) is the source of truth.
 | —     | Points — exchange                                                   | ✅ (`PointConversionModal`)                |
 | —     | Points — exchange history                                           | ⏳ schema ready, no UI consumer            |
 | 5     | M11 Promotions                                                      | 🚫 no backend                              |
-| 5     | M12 Partner section                                                 | 🚫 no backend                              |
+| 5     | M12 Partner section                                                 | ✅ removed (ADR-020) — no backend needed   |
 
 ---
 
@@ -129,7 +129,6 @@ mapper. Backend (camelCase) is the source of truth.
 | ------------------------------- | --------------------------------------------- |
 | Deposit voucher / member levels | `/promotions/*` (fetch removed, UI hidden)    |
 | Signup bank list                | `/banks/register` (replaced with static list) |
-| Partner section (all pages)     | `/partner/*` (stays mock)                     |
 
 ---
 
@@ -143,8 +142,10 @@ mapper. Backend (camelCase) is the source of truth.
 
 ## Still blocked (no backend)
 
-- **🚫 Promotions (M11) & Partner (M12)** — no backend exists. UI stays
-  mock/hidden pending new endpoints (product decision).
+- **🚫 Promotions (M11)** — no backend exists. UI stays mock/hidden pending new
+  endpoints (product decision).
+- **✅ Partner (M12) — closed, not blocked.** The whole partner section was
+  removed from this app (ADR-020); it no longer needs a `/partner/*` backend.
 
 ## New files added by the integration
 
