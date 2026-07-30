@@ -363,8 +363,8 @@ export interface ThemePanelConfig {
 
 /** Desktop left-rail shell (lg+ two-column layout). */
 export interface ThemeSidebarConfig {
-    /** Rail container border. CSS border shorthand. */
-    border: string;
+    /** Rail container border color. Hex color (the 1px width is fixed in AppSidebar). */
+    borderColor: string;
     /** Rail container background. CSS color (rgba/hex). */
     bg: string;
     /** Rule between the game and account groups. Hex color. */
@@ -1034,7 +1034,7 @@ export const getDefaultThemeConfig = (): SiteConfig => {
                     "linear-gradient(90deg, #001F50 0%, #204D97 50.48%, #001F50 100%)",
             },
             sidebar: {
-                border: "1px solid #B04C00",
+                borderColor: "#B04C00",
                 bg: "rgba(0, 0, 0, 0.6)",
                 divider: "#434343",
                 activeItemColor: "#FF8A21",

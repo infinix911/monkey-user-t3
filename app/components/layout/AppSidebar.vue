@@ -1,9 +1,11 @@
 <template>
   <!-- Rail shell. Colours come from theme.sidebar (border #B04C00 / 60% black /
-       #434343 rule) so the CMS can retheme it like every other surface. -->
+       #434343 rule) so the CMS can retheme it like every other surface. Only the
+       border COLOUR is a token — the 1px width is fixed here, so the CMS field
+       can be a plain colour picker instead of free-text CSS. -->
   <aside
     class="font-inter w-full rounded-[8px] overflow-hidden"
-    :style="{ border: sidebar.border, background: sidebar.bg }"
+    :style="{ border: `1px solid ${sidebar.borderColor}`, background: sidebar.bg }"
     :aria-label="$t('sidebar.label')">
     <!-- Deposit / withdraw. Deliberately the SAME background token the top
          nav's transaction panel uses (theme.nav.depositSectionGradient) rather

@@ -211,6 +211,17 @@ and its icons in `assets.sidebarIcons`, so both are CMS-overridable; the
 deposit/withdraw block reuses `theme.nav.depositSectionGradient` rather than
 introducing a second gradient token.
 
+**Amendment (2026-07-30).** The five `theme.sidebar` tokens now have real fields
+in the CMS schema (a "Sidebar" tab in the admin Theme Editor) instead of only
+existing in the bundled config, and both theme seeds ship the block. As part of
+that, `theme.sidebar.border` — a full CSS shorthand (`"1px solid #B04C00"`) —
+became `theme.sidebar.borderColor` (`"#B04C00"`), with the 1px width fixed in
+`AppSidebar.vue`: a shorthand cannot be driven by a colour picker, and free-text
+CSS in the CMS is an invalid-value vector. Adding a token here means adding the
+matching field to `theme-schema/theme.schema.ts` **and** the default to
+`theme-schema/site-config.ts` in both admin apps, or the editor renders a field
+with an `undefined` default.
+
 **Alternatives rejected.** Duplicating the rail's markup per breakpoint (two
 sources of truth for the same menu); deleting Navbar's desktop branch outright
 (loses the modal hosts); hardcoding the design's hexes in the component (breaks
