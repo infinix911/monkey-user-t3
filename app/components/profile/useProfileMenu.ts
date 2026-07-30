@@ -28,6 +28,14 @@ import { useInquiryFeed } from "@/composables/useInquiryFeed";
 export type { MenuItem };
 export type { AccountSection };
 
+/**
+ * Pages in the menu carousel. One: the sheet renders the CMS menu's page 2 (the
+ * account/support items) only — page 1 is the game categories, which the desktop
+ * rail shows above its divider and which mobile reaches through the navbar and
+ * bottom nav. Drives both the swipe bounds and the dot count.
+ */
+export const MENU_PAGE_COUNT = 1;
+
 export interface UseProfileMenuOptions {
   isOpen: () => boolean;
   onClose: () => void;
@@ -150,8 +158,11 @@ export function useProfileMenu(options: UseProfileMenuOptions) {
     }
   });
 
-  // Swipe for the 2-page menu carousel (mouse + touch) via the shared
-  // composable. `carouselPage` is the index; the dots follow it.
+  // Swipe for the menu carousel (mouse + touch) via the shared composable.
+  // `carouselPage` is the index; the dots follow it. One page since the modal
+  // shows the CMS menu's page 2 only — page 1 is the game categories, which
+  // mobile reaches through the navbar and bottom nav. The carousel is kept
+  // rather than removed so restoring a second page is a count change.
   const {
     isDragging: menuSwipeDragging,
     trackTransform: menuTrackTransform,
@@ -160,7 +171,7 @@ export function useProfileMenu(options: UseProfileMenuOptions) {
     onPointerUp,
     onPointerCancel,
     onClickCapture,
-  } = useCarouselSwipe({ count: () => 2, index: carouselPage });
+  } = useCarouselSwipe({ count: () => MENU_PAGE_COUNT, index: carouselPage });
 
   // Click outside handler
   function handleClickOutside(event: MouseEvent) {

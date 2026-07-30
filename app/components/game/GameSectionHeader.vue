@@ -9,20 +9,67 @@
     :style="{ background: siteConfig.theme.sectionHeader.gradient }">
     <!-- Icon and label are sized off the bar height (~58% and ~40% of it), so
          the pair keeps the reference proportions at both breakpoints instead of
-         the icon crowding the bar. Label is regular weight, not bold. -->
-    <div class="flex items-center gap-2 md:gap-3 text-white">
+         the icon crowding the bar. Label is regular weight, not bold, and the
+         group is set in Inter. -->
+    <div class="font-inter flex items-center gap-2 md:gap-3 text-white">
       <NavIcon :name="name" tight class="h-[19px] md:h-[26px] w-auto" />
-      <span class="font-normal uppercase leading-none text-sm md:text-lg tracking-tight">{{ label }}</span>
+      <!-- The two labels are baseline-aligned, not box-centred: in the
+           reference the Latin subtitle sits on the same baseline as the
+           localised title despite being the smaller of the two. -->
+      <span class="flex items-baseline gap-2 md:gap-3">
+        <span class="font-normal uppercase leading-none text-sm md:text-lg tracking-tight">{{ label }}</span>
+        <!-- Latin subtitle — see `latinLabel`. Set in a flat neutral grey, not
+             white-at-opacity, which over the orange band would read warm rather
+             than grey. Size is a deliberate step ABOVE the reference render:
+             that render puts the subtitle at ~0.69 of the title (cap height 11px
+             against 16px of hangul ink, in a capture whose bar is 60px), which
+             works out the same as the 12px this started at — but it read too
+             small on the real page. 16px against the 18px title is as close as
+             the two can sit before the subtitle stops reading as subordinate. -->
+        <span
+          v-if="latinLabel"
+          class="font-normal uppercase leading-none text-[13px] md:text-[16px] tracking-wide text-[#B5B5B5]">{{
+            latinLabel }}</span>
+      </span>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue";
 import NavIcon from "~/components/navigation/NavIcon.vue";
 
-defineProps<{ name: string; label: string }>();
+const props = defineProps<{ name: string; label: string }>();
 
 const siteConfig = useSiteConfig();
+
+/**
+ * The Latin word each section is set beside its localised title, keyed by the
+ * same `name` the icon uses. Design content rather than copy: it is always this
+ * word, in every locale, so it is NOT read from the i18n bundles — that would
+ * both couple the subtitle to translatable nav copy and depend on the `en`
+ * messages being loaded while the UI runs in another language (locales are
+ * lazy). A section with no entry here simply renders no subtitle.
+ */
+const LATIN_SUBTITLES: Record<string, string> = {
+  hot: "HOT",
+  slots: "SLOT",
+  casino: "CASINO",
+  sports: "SPORTS",
+  mini: "MINI",
+};
+
+/**
+ * The subtitle to render, or "" for none. It is dropped whenever the localised
+ * title already reads as that same word — which is what makes the English UI
+ * show a single title while Korean shows the pair, without the component
+ * needing to know which locale is active.
+ */
+const latinLabel = computed<string>(() => {
+  const latin = LATIN_SUBTITLES[props.name];
+  if (!latin) return "";
+  return props.label.trim().toUpperCase() === latin ? "" : latin;
+});
 </script>
 
 <style scoped>

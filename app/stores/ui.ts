@@ -117,6 +117,10 @@ export const useUiStore = defineStore("ui", () => {
    */
   const fetchNotice = async () => {
     try {
+      // Master CMS switch (theme.noticeModal.enabled): when the admin turns the
+      // notice modal off, never fetch or show it, whatever content is published.
+      if (useSiteConfig().theme.noticeModal.enabled === false) return;
+
       // Skip if user already agreed to the notice in this session
       if (
         typeof window !== "undefined" &&

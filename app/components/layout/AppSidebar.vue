@@ -86,10 +86,13 @@
     <!-- Group rule -->
     <div class="mx-4 mt-[18px] h-px" :style="{ backgroundColor: sidebar.divider }" />
 
-    <!-- Account / support — every item the profile modal shows, in CMS order.
+    <!-- Account / support — the CMS menu's PAGE 2, in CMS order. Page 1 is the
+         game categories rendered above the divider, so this list must not use
+         `allMenuItems` (both pages concatenated) or every category would appear
+         a second time down here, labelled with a prettified id.
          Telegram is an external link, so it stays an <a> as it is in the modal. -->
     <ul class="px-2 pt-[14px] pb-[14px] flex flex-col">
-      <li v-for="item in menu.allMenuItems.value" :key="item.id">
+      <li v-for="item in menu.visiblePage2Items.value" :key="item.id">
         <a v-if="item.id === 'telegram'" :href="menu.telegramHref.value" target="_blank" rel="noopener noreferrer"
           :class="ROW_CLASS" :style="rowStyle(false)">
           <img
@@ -321,6 +324,30 @@ const ALL_GAME_ITEMS = computed(() => [
 
 const { hasLobbies } = useGameCategoryAvailability();
 
+/** The CMS menu (theme.sidebar.menus), normalised and sorted. */
+const menuSettings = useMenuSettings();
+
+/**
+ * The categories in CMS order, honouring page-1 visibility.
+ *
+ * Only ORDER and VISIBILITY come from the CMS. The label and icon deliberately
+ * stay with {@link ALL_GAME_ITEMS}: the rail names categories from its
+ * `sidebar.*` i18n keys and draws them with `assets.sidebarIcons`, whereas the
+ * menu entries carry ids that would prettify to English ("Hot", "Slot") and the
+ * account-tile artwork. Menu keys and rail ids already agree exactly.
+ *
+ * A theme document with no page-1 entries falls through to the bundled order.
+ */
+const orderedGameItems = computed(() => {
+  const page1 = (menuSettings.value ?? []).filter((s) => s.page === 1);
+  if (page1.length === 0) return ALL_GAME_ITEMS.value;
+
+  const rank = new Map(page1.map((s) => [s.item, s]));
+  return ALL_GAME_ITEMS.value
+    .filter((item) => rank.get(item.id)?.enabled ?? false)
+    .sort((a, b) => (rank.get(a.id)?.sort ?? 0) - (rank.get(b.id)?.sort ?? 0));
+});
+
 /**
  * Categories with no lobby behind them are dropped: the row would otherwise
  * lead to a page holding a section header and nothing else. HOT is exempt — it
@@ -328,7 +355,7 @@ const { hasLobbies } = useGameCategoryAvailability();
  * never vouch for it.
  */
 const gameItems = computed(() =>
-  ALL_GAME_ITEMS.value.filter(
+  orderedGameItems.value.filter(
     (item) => item.id === "hot" || hasLobbies(item.id),
   ),
 );

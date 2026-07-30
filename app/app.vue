@@ -67,7 +67,7 @@ await Promise.all([
     },
   }),
   // NOTE: the separate "menuSettings" fetch was removed — the profile-menu
-  // config now lives in `assets.profileMenu` inside the theme doc that
+  // config now lives in `theme.sidebar.menus` inside the theme doc that
   // fetchSiteConfig already loads. useMenuSettings() derives it from the
   // resolved site config, so NewProfileModal opens with no extra request.
   // Public site settings (key/value, e.g. `site:livechat`). Pre-fetched here so

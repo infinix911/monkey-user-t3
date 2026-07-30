@@ -1,11 +1,12 @@
 /**
- * Menu settings — derived from the theme doc's `assets.profileMenu`.
+ * Menu settings — derived from the theme doc's `theme.sidebar.menus`.
  *
- * The profile-menu config (visibility / page / order / icon) now lives inside
- * the theme document already loaded by fetchSiteConfig() (`/site/config/theme`)
- * and merged into useState('userPageConfig'). There is no separate HTTP call:
- * `useMenuSettings()` is a computed view over `useSiteConfig().assets.profileMenu`,
- * normalized to the legacy `MenuSetting` shape and sorted by page then sort.
+ * The menu config (visibility / page / order / icon) lives inside the theme
+ * document already loaded by fetchSiteConfig() (`/site/config/theme`) and merged
+ * into useState('userPageConfig'), alongside the rest of the sidebar's config.
+ * There is no separate HTTP call: `useMenuSettings()` is a computed view over
+ * `useSiteConfig().theme.sidebar.menus`, normalized to the legacy `MenuSetting`
+ * shape and sorted by page then sort.
  */
 
 import type { ProfileMenuItem } from "@/composables/useDefaultThemeConfig";
@@ -19,7 +20,7 @@ export interface MenuSetting {
 }
 
 /**
- * Normalize one raw `assets.profileMenu` entry into a MenuSetting.
+ * Normalize one raw `theme.sidebar.menus` entry into a MenuSetting.
  *
  * The visibility flag is read under BOTH spellings: the live `/site/config/theme`
  * payload sends `isActive`, while the bundled default and the typed
@@ -45,13 +46,13 @@ function toMenuSetting(raw: unknown): MenuSetting | null {
 
 /**
  * Reactive accessor — derives the ordered menu settings from the resolved site
- * config. Returns `null` when no profile-menu array is present so consumers can
- * fall back to their bundled defaults.
+ * config. Returns `null` when no menu array is present so consumers can fall
+ * back to their bundled defaults.
  */
 export const useMenuSettings = () => {
   const siteConfig = useSiteConfig();
   return computed<MenuSetting[] | null>(() => {
-    const raw = siteConfig.assets?.profileMenu;
+    const raw = siteConfig.theme?.sidebar?.menus;
     if (!Array.isArray(raw)) return null;
     const parsed = raw
       .map(toMenuSetting)
