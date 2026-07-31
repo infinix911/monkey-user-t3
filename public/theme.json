@@ -185,56 +185,56 @@
           "key": "hot",
           "page": 1,
           "sort": 1,
-          "image": "https://krw-demo1.jaeisol.com/designs/banana/theme/hot-icon-optimized-1782395532169.webp",
+          "image": "https://krw-demo1.jaeisol.com/designs/navigation/hot.png",
           "is_active": true
         },
         {
           "key": "slot",
           "page": 1,
           "sort": 2,
-          "image": "https://krw-demo1.jaeisol.com/designs/banana/theme/slot-icon-optimized-1782395661345.webp",
+          "image": "https://krw-demo1.jaeisol.com/designs/navigation/slots.png",
           "is_active": true
         },
         {
           "key": "casino",
           "page": 1,
           "sort": 3,
-          "image": "https://krw-demo1.jaeisol.com/designs/banana/theme/casino-icon-optimized-1782395725967.webp",
+          "image": "https://krw-demo1.jaeisol.com/designs/navigation/casino.png",
           "is_active": true
         },
         {
           "key": "sport",
           "page": 1,
           "sort": 4,
-          "image": "https://krw-demo1.jaeisol.com/designs/banana/theme/sport-icon-optimized-1782395825566.webp",
+          "image": "https://krw-demo1.jaeisol.com/designs/navigation/sports.png",
           "is_active": true
         },
         {
           "key": "mini",
           "page": 1,
           "sort": 5,
-          "image": "https://krw-demo1.jaeisol.com/designs/banana/theme/mini-icon-optimized-1782396091443.webp",
+          "image": "https://krw-demo1.jaeisol.com/designs/navigation/mini.png",
           "is_active": true
         },
         {
           "key": "fishing",
           "page": 1,
           "sort": 6,
-          "image": "https://krw-demo1.jaeisol.com/designs/banana/theme/fishing-icon-optimized-1782396049473.webp",
+          "image": "https://krw-demo1.jaeisol.com/designs/navigation/fishing.png",
           "is_active": true
         },
         {
           "key": "virtual",
           "page": 1,
           "sort": 7,
-          "image": "https://krw-demo1.jaeisol.com/designs/banana/theme/virtual-icon-optimized-1782395959578.webp",
+          "image": "https://krw-demo1.jaeisol.com/designs/navigation/virtual.png",
           "is_active": true
         },
         {
           "key": "rtp",
           "page": 2,
           "sort": 1,
-          "image": "https://krw-demo1.jaeisol.com/designs/banana/menu-icons/group-595-1782999084030.webp",
+          "image": "https://krw-demo1.jaeisol.com/designs/navigation/rtp.png",
           "is_active": true
         },
         {

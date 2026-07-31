@@ -1060,14 +1060,18 @@ export const getDefaultThemeConfig = (): SiteConfig => {
                 // single source of truth. The CMS theme doc replaces this whole
                 // array — deep-merge does not merge arrays element-wise.
                 menus: [
-                    { key: 'hot', is_active: true, page: 1, sort: 1, image: 'https://krw-demo1.jaeisol.com/designs/banana/theme/hot-icon-optimized-1782395532169.webp' },
-                    { key: 'slot', is_active: true, page: 1, sort: 2, image: 'https://krw-demo1.jaeisol.com/designs/banana/theme/slot-icon-optimized-1782395661345.webp' },
-                    { key: 'casino', is_active: true, page: 1, sort: 3, image: 'https://krw-demo1.jaeisol.com/designs/banana/theme/casino-icon-optimized-1782395725967.webp' },
-                    { key: 'sport', is_active: true, page: 1, sort: 4, image: 'https://krw-demo1.jaeisol.com/designs/banana/theme/sport-icon-optimized-1782395825566.webp' },
-                    { key: 'mini', is_active: true, page: 1, sort: 5, image: 'https://krw-demo1.jaeisol.com/designs/banana/theme/mini-icon-optimized-1782396091443.webp' },
-                    { key: 'fishing', is_active: true, page: 1, sort: 6, image: 'https://krw-demo1.jaeisol.com/designs/banana/theme/fishing-icon-optimized-1782396049473.webp' },
-                    { key: 'virtual', is_active: true, page: 1, sort: 7, image: 'https://krw-demo1.jaeisol.com/designs/banana/theme/virtual-icon-optimized-1782395959578.webp' },
-                    { key: 'rtp', is_active: true, page: 2, sort: 1, image: 'https://krw-demo1.jaeisol.com/designs/banana/menu-icons/group-595-1782999084030.webp' },
+                    // Rail artwork lives under /designs/navigation. The file
+                    // names are pluralised for two of them — slots.png and
+                    // sports.png — while the menu keys are not, so these cannot
+                    // be derived from `key`.
+                    { key: 'hot', is_active: true, page: 1, sort: 1, image: 'https://krw-demo1.jaeisol.com/designs/navigation/hot.png' },
+                    { key: 'slot', is_active: true, page: 1, sort: 2, image: 'https://krw-demo1.jaeisol.com/designs/navigation/slots.png' },
+                    { key: 'casino', is_active: true, page: 1, sort: 3, image: 'https://krw-demo1.jaeisol.com/designs/navigation/casino.png' },
+                    { key: 'sport', is_active: true, page: 1, sort: 4, image: 'https://krw-demo1.jaeisol.com/designs/navigation/sports.png' },
+                    { key: 'mini', is_active: true, page: 1, sort: 5, image: 'https://krw-demo1.jaeisol.com/designs/navigation/mini.png' },
+                    { key: 'fishing', is_active: true, page: 1, sort: 6, image: 'https://krw-demo1.jaeisol.com/designs/navigation/fishing.png' },
+                    { key: 'virtual', is_active: true, page: 1, sort: 7, image: 'https://krw-demo1.jaeisol.com/designs/navigation/virtual.png' },
+                    { key: 'rtp', is_active: true, page: 2, sort: 1, image: 'https://krw-demo1.jaeisol.com/designs/navigation/rtp.png' },
                     { key: 'livechat', is_active: true, page: 2, sort: 2, image: 'https://krw-demo1.jaeisol.com/designs/menu/livechat.webp' },
                     { key: 'transaksi', is_active: true, page: 2, sort: 3, image: 'https://krw-demo1.jaeisol.com/designs/menu/transaction.webp' },
                     { key: 'activity', is_active: true, page: 2, sort: 4, image: 'https://krw-demo1.jaeisol.com/designs/menu/activity.webp' },
