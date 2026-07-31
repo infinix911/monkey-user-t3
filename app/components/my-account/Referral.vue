@@ -43,70 +43,13 @@
       </div>
 
       <!-- Data Table -->
-      <div class="overflow-x-auto">
-        <table class="w-full">
-          <thead>
-            <tr class="tm-thead">
-              <th
-                class="px-3 py-2 text-center text-white font-semibold text-sm"
-                style="font-family: var(--font-line-seed)"
-              >
-                {{ t("myAccount.referral.no") }}
-              </th>
-              <th
-                class="px-3 py-2 text-center text-white font-semibold text-sm"
-                style="font-family: var(--font-line-seed)"
-              >
-                {{ t("myAccount.referral.user") }}
-              </th>
-              <th
-                class="px-3 py-2 text-center text-white font-semibold text-sm"
-                style="font-family: var(--font-line-seed)"
-              >
-                {{ t("myAccount.referral.date") }}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-if="referrals.length === 0">
-              <td
-                colspan="3"
-                class="tm-row px-2 py-8 text-center"
-              >
-                <span
-                  class="tm-muted"
-                  style="font-family: var(--font-line-seed)"
-                  >—</span
-                >
-              </td>
-            </tr>
-            <tr
-              v-for="(referral, index) in referrals"
-              :key="index"
-              class="tm-row tm-line border-b last:border-b-0"
-            >
-              <td
-                class="px-3 py-1.5 text-center text-white/85 text-sm"
-                style="font-family: var(--font-line-seed)"
-              >
-                {{ index + 1 }}
-              </td>
-              <td
-                class="px-3 py-1.5 text-center text-white/85 text-sm"
-                style="font-family: var(--font-line-seed)"
-              >
-                {{ referral.username }}
-              </td>
-              <td
-                class="px-3 py-1.5 text-center text-white/85 text-sm"
-                style="font-family: var(--font-line-seed)"
-              >
-                {{ referral.created_at }}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <AppTable :columns="columns" :rows="referrals" :empty-text="'—'">
+        <template #row="{ row, index }">
+          <td>{{ index + 1 }}</td>
+          <td>{{ row.username }}</td>
+          <td><TableDateCell :value="String(row.created_at ?? '')" /></td>
+        </template>
+      </AppTable>
     </template>
   </div>
 </template>
@@ -128,6 +71,13 @@ const authStore = useAuthStore();
 
 const referrals = ref<IReferral[]>([]);
 const loading = ref(true);
+
+/** Header labels, in column order — the `row` slot emits cells to match. */
+const columns = computed(() => [
+  t("myAccount.referral.no"),
+  t("myAccount.referral.user"),
+  t("myAccount.referral.date"),
+]);
 
 const referralLink = computed(() => {
   if (typeof window !== "undefined" && authStore.user.username) {

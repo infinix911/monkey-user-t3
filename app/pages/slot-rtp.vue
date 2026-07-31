@@ -2,24 +2,42 @@
   <GamePageLayout>
     <h1 class="sr-only">{{ $t("navbar.rtp") }} - {{ siteConfig.identity.siteName }}</h1>
 
-    <!-- Provider tabs — sticky under the header on scroll. The anchor stays in
-         flow and reserves the bar's height (spacer) while the bar is fixed, so
-         the grid below doesn't jump. CSS position:sticky is unavailable here
-         (html/body have overflow-x:auto — see default.vue), so this uses the
-         same JS fixed+spacer approach as the category navbar. Same framed look
-         as the slot cards (selected = orange highlight). -->
-    <div v-if="providers.length" ref="providerAnchor" :style="providerStuck ? { height: providerBarH + 'px' } : {}">
-      <div :class="['w-full', providerStuck ? 'fixed left-0 right-0 z-40' : '']"
-        :style="providerStuck ? { top: 'var(--mh-header-height, 60px)' } : {}">
-        <!-- When stuck the bar is position:fixed and escapes GamePageLayout's
-             padding, so it must reproduce the ancestors' effective padding at
-             every breakpoint to stay identical to the non-stuck state:
-               mobile (<lg): game-page-bg px-1.5 + providerBar px-1.5 = 12px → px-3
-               lg (1024–1279): inner container lg:px-3            = 12px → px-3
-               xl (≥1280):     inner container xl:px-0            = 0    → xl:px-0
-             Non-stuck keeps px-1.5 lg:px-0 because the ancestors supply the rest. -->
+    <!-- Provider tabs — pinned under the header on scroll.
+         From lg up this is real `position: sticky`, which needs NO scroll
+         container between here and the document: main.css drops body's
+         `overflow-x` at that width, and default.vue's <main> adds
+         `lg:overflow-visible` (it is `overflow-x-auto overflow-y-hidden`
+         otherwise, which silently disables sticky for every page inside it).
+         The bar then stays inside the content column at the column's width,
+         identical pinned or not. It used to go `fixed left-0 right-0`, which
+         tore it out of the column and stretched it across the viewport.
+         Below lg body is still a scroll container, so sticky cannot engage and
+         the JS fixed+spacer path remains: the anchor reserves the bar's height
+         so the grid underneath does not jump.
+         `providerStuck` drives the pinned BACKGROUND at both breakpoints — CSS
+         alone cannot tell whether a sticky element is currently pinned. Same
+         framed look as the slot cards (selected = orange highlight).
+
+         The sticky sits on THIS element, not the bar inside it. A sticky element
+         only travels within its parent's box, and the inner bar's parent is this
+         wrapper — which is exactly the bar's own height, so it would have no
+         distance to travel and would appear not to stick at all. Here the parent
+         is GamePageLayout's games container, which spans the whole grid. -->
+    <div v-if="providers.length" ref="providerAnchor" class="lg:sticky lg:z-40"
+      :style="[
+        { top: 'var(--mh-header-height, 60px)' },
+        providerStuck && !isLgUp ? { height: providerBarH + 'px' } : {},
+      ]">
+      <div class="w-full"
+        :class="providerStuck && !isLgUp ? 'fixed left-0 right-0 z-40' : ''"
+        :style="providerStuck && !isLgUp ? { top: 'var(--mh-header-height, 60px)' } : {}">
+        <!-- Padding only needs rewriting on the FIXED path (below lg), where the
+             bar escapes GamePageLayout and must reproduce its ancestors'
+             effective padding: game-page-bg px-1.5 + providerBar px-1.5 = 12px.
+             The lg+ sticky path never leaves the column, so it keeps the normal
+             padding and stays identical pinned or not. -->
         <div ref="providerBar" class="w-full mx-auto"
-          :class="providerStuck ? 'px-3 xl:px-0' : 'px-1.5 lg:px-0'"
+          :class="providerStuck && !isLgUp ? 'px-3' : 'px-1.5 lg:px-0'"
           :style="providerStuck ? { backgroundColor: bodyBg, boxShadow: '0 6px 12px rgba(0,0,0,0.45)' } : {}">
           <div class="relative mb-1">
             <!-- Scrollable strip -->
@@ -189,14 +207,20 @@ const { isAtLeft, isAtRight, scrollLeft, scrollRight, updateState } =
 // cards scrolling underneath it are covered.
 const bodyBg = computed(() => siteConfig.theme.bodyBgColor);
 
-// Sticky provider bar. CSS position:sticky is unavailable (html/body have
-// overflow-x:auto — see default.vue), so mirror the category navbar's JS
-// fixed+spacer approach: the anchor stays in flow and reserves the bar height
-// while the bar is pinned under the header.
+// Provider bar pinning.
+//
+// lg and up: CSS `position: sticky` does the positioning (main.css drops body's
+// `overflow-x` at that width so sticky can engage), and `providerStuck` is used
+// ONLY to paint the pinned background — CSS cannot report whether a sticky
+// element is currently pinned.
+//
+// Below lg: body is still a scroll container, so sticky cannot engage and the
+// JS fixed+spacer path runs, with the anchor reserving the bar's flow height.
 const providerAnchor = ref<HTMLElement | null>(null);
 const providerBar = ref<HTMLElement | null>(null);
 const providerStuck = ref(false);
 const providerBarH = ref(0);
+const isLgUp = ref(false);
 
 // Header height in px, from the CSS var app.vue/default.vue keep in sync.
 const headerPx = () => {
@@ -215,10 +239,13 @@ const onStickyScroll = () => {
     stickyRaf = null;
     const anchor = providerAnchor.value;
     if (!anchor) return;
+    isLgUp.value = window.innerWidth >= 1024;
     const top = anchor.getBoundingClientRect().top;
     if (!providerStuck.value) {
       if (top <= headerPx()) {
         // Measure before pinning so the spacer keeps the exact flow height.
+        // Only the fixed path uses it, but measuring here keeps it correct if
+        // the viewport crosses lg while pinned.
         providerBarH.value = providerBar.value?.offsetHeight ?? anchor.offsetHeight;
         providerStuck.value = true;
       }

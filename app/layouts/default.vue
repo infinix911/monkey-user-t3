@@ -145,8 +145,8 @@
           :style="{ background: '#000000' }">
           <!-- Login: gold gradient border + gold gradient text -->
           <button type="button"
-            class="cursor-pointer h-[37px] w-[125px] px-3 rounded-[4px] flex items-center justify-center font-extrabold italic uppercase text-[15px] tracking-tight transition-transform hover:scale-[1.03]"
-            :style="{ background: brandSiteConfig.theme.authButton.loginBg, border: brandSiteConfig.theme.authButton.loginBorder, boxShadow: '0 5px 5px rgba(0,0,0,0.25)' }"
+            class="cursor-pointer h-[37px] w-[125px] px-3 rounded-[8px] flex items-center justify-center font-extrabold italic uppercase text-[15px] tracking-tight transition-transform hover:scale-[1.03]"
+            :style="authButtonStyle.login"
             @click="uiStore.setShowLoginModal(true)">
             <span class="block w-full text-center truncate"
               :style="{ background: brandSiteConfig.theme.authButton.loginTextGradient, WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }">{{
@@ -154,8 +154,8 @@
           </button>
           <!-- Sign up: blue gradient border + white text -->
           <button type="button"
-            class="cursor-pointer h-[37px] w-[125px] px-3 rounded-[4px] flex items-center justify-center font-extrabold italic uppercase text-[15px] tracking-tight text-white transition-transform hover:scale-[1.03]"
-            :style="{ background: brandSiteConfig.theme.authButton.signupBg, border: '1.5px solid transparent', boxShadow: '0 5px 5px rgba(0,0,0,0.25)' }"
+            class="cursor-pointer h-[37px] w-[125px] px-3 rounded-[8px] flex items-center justify-center font-extrabold italic uppercase text-[15px] tracking-tight text-white transition-transform hover:scale-[1.03]"
+            :style="authButtonStyle.signup"
             @click="uiStore.setShowSignupModal(true)">
             <span class="block w-full text-center truncate">{{ $t('header.signUp') }}</span>
           </button>
@@ -211,7 +211,17 @@
           </div>
 
           <!-- Main Content -->
-          <main ref="mainContent" class="relative overflow-y-hidden overflow-x-auto mt-0 z-10">
+          <!-- `lg:overflow-visible` is what lets page content use
+               `position: sticky`. The overflow pair below makes this element a
+               scroll container, and since it never scrolls vertically, a sticky
+               descendant resolves against it and can never engage — the RTP
+               provider bar sat inside here, which is why it needed a JS `fixed`
+               workaround. The rail escapes this only by living outside <main>.
+               Below lg the pair stays: narrow viewports still need the
+               horizontal scroll, and body is a scroll container there anyway, so
+               sticky is unavailable regardless. -->
+          <main ref="mainContent"
+            class="relative overflow-y-hidden overflow-x-auto lg:overflow-visible mt-0 z-10">
             <div class="relative z-10 w-full">
               <slot />
             </div>
@@ -382,6 +392,8 @@ const { data: popupBanners } = await useAsyncData<IPopupBanner[]>(
 
 const brandSiteConfig = useSiteConfig();
 const siteConfig = brandSiteConfig;
+// Same styles the desktop header renders — see useAuthButtonStyle.
+const authButtonStyle = useAuthButtonStyle();
 const route = useRoute();
 const localePath = useLocalePath();
 

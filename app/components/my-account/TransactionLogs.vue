@@ -5,69 +5,22 @@
        `h-full flex flex-col min-h-0` so the table is the only scroll region. -->
   <div class="pt-2 h-full flex flex-col min-h-0">
     <!-- Table Section: flex-1 + min-h-0 makes this the single scroll region. -->
-    <div class="tm-card rounded-lg overflow-hidden mb-4 min-w-0 flex-1 min-h-0">
-      <div class="overflow-auto h-full">
-        <table class="w-full lg:min-w-max">
-          <thead>
-            <tr class="tm-thead">
-              <th v-for="col in columns" :key="col"
-                class="px-1 py-1.5 text-center text-white font-semibold text-[11px] lg:text-sm leading-tight whitespace-normal lg:whitespace-nowrap"
-                style="font-family: var(--font-line-seed)">
-                {{ col }}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-if="loading">
-              <td :colspan="columns.length" class="tm-row px-2 py-8 text-center">
-                <span class="text-white" style="font-family: var(--font-line-seed)">
-                  {{ $t('common.loadingTransactions') }}
-                </span>
-              </td>
-            </tr>
-            <tr v-else-if="ledgerData.length === 0">
-              <td :colspan="columns.length" class="tm-row px-2 py-8 text-center">
-                <span class="tm-muted" style="font-family: var(--font-line-seed)">
-                  {{ $t('common.noTransactionsFound') }}
-                </span>
-              </td>
-            </tr>
-            <tr v-for="(item, index) in ledgerData" v-else :key="index"
-              class="tm-row tm-line border-b last:border-b-0">
-              <!-- Date -->
-              <td class="px-1 py-1.5 text-center text-white/85 text-xs lg:text-sm whitespace-nowrap"
-                style="font-family: var(--font-line-seed)">
-                <div>{{ formatDate(item.created_at) }}</div>
-                <div class="tm-muted text-[10px]">{{ formatTime(item.created_at) }}</div>
-              </td>
-              <!-- Description -->
-              <td class="px-2 py-1.5 text-center text-white/85 text-xs lg:text-sm"
-                style="font-family: var(--font-line-seed)">
-                {{ item.transaction }}
-              </td>
-              <!-- Status -->
-              <td class="px-1 py-1.5 text-center" style="font-family: var(--font-line-seed)">
-                <span
-                  class="inline-flex items-center px-2 py-0.5 rounded-full font-medium capitalize text-[10px] lg:text-xs"
-                  :class="statusBadgeClass(item.status)">
-                  {{ statusLabel(item.status) }}
-                </span>
-              </td>
-              <!-- Amount -->
-              <td class="px-2 py-1.5 text-center text-white/85 text-xs lg:text-sm whitespace-nowrap"
-                style="font-family: var(--font-line-seed)">
-                {{ formatAmount(item.amount) }}
-              </td>
-              <!-- Last Balance -->
-              <td class="px-2 py-1.5 text-center text-white/85 text-xs lg:text-sm whitespace-nowrap"
-                style="font-family: var(--font-line-seed)">
-                {{ formatAmount(item.wallet_after) }}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <AppTable
+      :columns="columns" :rows="ledgerData" :loading="loading"
+      :loading-text="$t('common.loadingTransactions')" :empty-text="$t('common.noTransactionsFound')"
+      class="mb-4">
+      <template #row="{ row }">
+        <td class="whitespace-nowrap"><TableDateCell :value="String(row.created_at ?? '')" /></td>
+        <td>{{ row.transaction }}</td>
+        <td>
+          <!-- The ledger only records settled movements, so the status cell is a
+               fixed "completed" badge rather than a per-row lookup. -->
+          <StatusBadge tone="success" :label="$t('myAccount.transactionLogs.statuses.completed')" />
+        </td>
+        <td class="whitespace-nowrap">{{ formatAmount(row.amount as string) }}</td>
+        <td class="whitespace-nowrap">{{ formatAmount(row.wallet_after as string) }}</td>
+      </template>
+    </AppTable>
 
     <!-- Pagination — compact prev / current / next (the ledger can have many
          pages, so we avoid rendering every page button). -->
@@ -93,10 +46,9 @@ import {
   logsResponseWireSchema,
   mapLogsResponse,
   type ILedgerItem,
-  type LedgerStatus,
 } from "@/interfaces/ledger";
 
-const { t, te } = useI18n();
+const { t } = useI18n();
 // Ledger amounts follow the deployment currency, not a pinned locale.
 const { formatNumber } = useCurrency();
 
@@ -109,42 +61,11 @@ const columns = computed(() => [
   t("myAccount.transactionLogs.lastBalance"),
 ]);
 
-/**
- * `status` is a closed enum from the backend, so it can be translated. The
- * `transaction` column is free-form backend text and is passed through as-is.
- */
-function statusLabel(status: LedgerStatus): string {
-  const key = `myAccount.transactionLogs.statuses.${status}`;
-  return te(key) ? t(key) : status;
-}
-
 const PAGE_SIZE = 50;
 const loading = ref(false);
 const currentPage = ref(1);
 const totalPages = ref(0);
 const ledgerData = ref<ILedgerItem[]>([]);
-
-function statusBadgeClass(status: LedgerStatus): string {
-  if (status === "completed") return "bg-green-500/20 text-green-400";
-  if (status === "failed") return "bg-red-500/20 text-red-400";
-  return "bg-yellow-500/20 text-yellow-300"; // "new"
-}
-
-function formatDate(value: string | null | undefined): string {
-  if (!value) return "";
-  const d = new Date(value);
-  if (isNaN(d.getTime())) return String(value);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
-}
-
-function formatTime(value: string | null | undefined): string {
-  if (!value) return "";
-  const d = new Date(value);
-  if (isNaN(d.getTime())) return "";
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-}
 
 function formatAmount(value: string | null | undefined): string {
   if (value == null) return "0";

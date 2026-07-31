@@ -43,9 +43,9 @@
       <form v-show="activeTab === 'withdrawal'" class="space-y-4" @submit.prevent="onSubmitWithdrawal">
         <p class="tm-muted text-xs mb-4">{{ t("password.withdrawalHint") }}</p>
 
-        <PasswordField
-          v-model="wdOldField" :label="t('password.currentWithdrawalPassword')" :error="wdErrors.oldPassword"
-          :disabled="wdSubmitting" autocomplete="current-password" />
+        <!-- No current-password field: POST /auth/change-withdrawal-password
+             takes only the new one — the session is the proof of identity, as
+             it is for the bank-detail and profile updates. -->
         <PasswordField
           v-model="wdNewField" :label="t('password.newWithdrawalPassword')" :error="wdErrors.newPassword"
           :disabled="wdSubmitting" autocomplete="new-password" />
@@ -70,7 +70,7 @@ import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useForm } from "vee-validate";
 import { useApi } from "@/composables/useApi";
-import { changePasswordSchema } from "@/schemas";
+import { changePasswordSchema, withdrawalPasswordSchema } from "@/schemas";
 import PasswordField from "@/components/my-account/PasswordField.vue";
 import { showSuccessAlert, showErrorAlert } from "~~/utils/swal-alert";
 
@@ -140,13 +140,12 @@ const onSubmit = handleSubmit(async (values) => {
 
 // ── Withdrawal password ─────────────────────────────────────────────────────
 // Its own form and submit: a failure here must not leave the login-password
-// change half-applied, or the reverse. Validation reuses changePasswordSchema —
-// the shape is identical (current / new / confirm), only the labels differ.
+// change half-applied, or the reverse.
 //
-// NOTE: the endpoint below does not exist in monkey-user-api yet. The UI is
-// built and wired; point WITHDRAWAL_PASSWORD_ENDPOINT at the real route once the
-// API side is confirmed, and this form works as-is.
-const WITHDRAWAL_PASSWORD_ENDPOINT = "/auth/withdrawal-password";
+// The endpoint takes only `newPassword`, so this form is new + confirm. Confirm
+// is checked here and never sent — it exists so a typo cannot silently become
+// the credential that guards withdrawals.
+const WITHDRAWAL_PASSWORD_ENDPOINT = "/auth/change-withdrawal-password";
 
 const {
   handleSubmit: wdHandleSubmit,
@@ -156,11 +155,10 @@ const {
 } = useForm({
   validationSchema: computed(() => {
     void locale.value;
-    return changePasswordSchema(t);
+    return withdrawalPasswordSchema(t);
   }),
 });
 
-const [wdOldField] = wdDefineField("oldPassword");
 const [wdNewField] = wdDefineField("newPassword");
 const [wdConfirmField] = wdDefineField("confirmPassword");
 
@@ -172,10 +170,7 @@ const onSubmitWithdrawal = wdHandleSubmit(async (values) => {
     const api = useApi();
     await api(WITHDRAWAL_PASSWORD_ENDPOINT, {
       method: "POST",
-      body: {
-        currentPassword: values.oldPassword,
-        newPassword: values.newPassword,
-      },
+      body: { newPassword: values.newPassword },
     });
 
     wdResetForm();

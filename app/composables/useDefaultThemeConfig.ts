@@ -162,10 +162,22 @@ export interface ThemeAuthButtonConfig {
     loginBg: string;
     /** Login button border declaration. CSS border shorthand string. */
     loginBorder: string;
+    /**
+     * Login button border gradient, composed onto `loginBg`'s border-box layer
+     * when that value carries only a fill. CSS linear-gradient string.
+     */
+    loginBorderGradient: string;
     /** Login button label gradient (clipped to text). CSS linear-gradient string. */
     loginTextGradient: string;
     /** Signup button background (padding-box + border-box gradient). CSS background shorthand string. */
     signupBg: string;
+    /** Signup button border declaration. CSS border shorthand string. */
+    signupBorder: string;
+    /**
+     * Signup button border gradient, composed onto `signupBg`'s border-box
+     * layer when that value carries only a fill. CSS linear-gradient string.
+     */
+    signupBorderGradient: string;
     /** Background of the mobile auth section housing the buttons. CSS linear-gradient string. */
     mobileAuthSectionBg: string;
 }
@@ -1060,14 +1072,18 @@ export const getDefaultThemeConfig = (): SiteConfig => {
                 // single source of truth. The CMS theme doc replaces this whole
                 // array — deep-merge does not merge arrays element-wise.
                 menus: [
-                    { key: 'hot', is_active: true, page: 1, sort: 1, image: 'https://krw-demo1.jaeisol.com/designs/banana/theme/hot-icon-optimized-1782395532169.webp' },
-                    { key: 'slot', is_active: true, page: 1, sort: 2, image: 'https://krw-demo1.jaeisol.com/designs/banana/theme/slot-icon-optimized-1782395661345.webp' },
-                    { key: 'casino', is_active: true, page: 1, sort: 3, image: 'https://krw-demo1.jaeisol.com/designs/banana/theme/casino-icon-optimized-1782395725967.webp' },
-                    { key: 'sport', is_active: true, page: 1, sort: 4, image: 'https://krw-demo1.jaeisol.com/designs/banana/theme/sport-icon-optimized-1782395825566.webp' },
-                    { key: 'mini', is_active: true, page: 1, sort: 5, image: 'https://krw-demo1.jaeisol.com/designs/banana/theme/mini-icon-optimized-1782396091443.webp' },
-                    { key: 'fishing', is_active: true, page: 1, sort: 6, image: 'https://krw-demo1.jaeisol.com/designs/banana/theme/fishing-icon-optimized-1782396049473.webp' },
-                    { key: 'virtual', is_active: true, page: 1, sort: 7, image: 'https://krw-demo1.jaeisol.com/designs/banana/theme/virtual-icon-optimized-1782395959578.webp' },
-                    { key: 'rtp', is_active: true, page: 2, sort: 1, image: 'https://krw-demo1.jaeisol.com/designs/banana/menu-icons/group-595-1782999084030.webp' },
+                    // Rail artwork lives under /designs/navigation. The file
+                    // names are pluralised for two of them — slots.png and
+                    // sports.png — while the menu keys are not, so these cannot
+                    // be derived from `key`.
+                    { key: 'hot', is_active: true, page: 1, sort: 1, image: 'https://krw-demo1.jaeisol.com/designs/navigation/hot.png' },
+                    { key: 'slot', is_active: true, page: 1, sort: 2, image: 'https://krw-demo1.jaeisol.com/designs/navigation/slots.png' },
+                    { key: 'casino', is_active: true, page: 1, sort: 3, image: 'https://krw-demo1.jaeisol.com/designs/navigation/casino.png' },
+                    { key: 'sport', is_active: true, page: 1, sort: 4, image: 'https://krw-demo1.jaeisol.com/designs/navigation/sports.png' },
+                    { key: 'mini', is_active: true, page: 1, sort: 5, image: 'https://krw-demo1.jaeisol.com/designs/navigation/mini.png' },
+                    { key: 'fishing', is_active: true, page: 1, sort: 6, image: 'https://krw-demo1.jaeisol.com/designs/navigation/fishing.png' },
+                    { key: 'virtual', is_active: true, page: 1, sort: 7, image: 'https://krw-demo1.jaeisol.com/designs/navigation/virtual.png' },
+                    { key: 'rtp', is_active: true, page: 2, sort: 1, image: 'https://krw-demo1.jaeisol.com/designs/navigation/rtp.png' },
                     { key: 'livechat', is_active: true, page: 2, sort: 2, image: 'https://krw-demo1.jaeisol.com/designs/menu/livechat.webp' },
                     { key: 'transaksi', is_active: true, page: 2, sort: 3, image: 'https://krw-demo1.jaeisol.com/designs/menu/transaction.webp' },
                     { key: 'activity', is_active: true, page: 2, sort: 4, image: 'https://krw-demo1.jaeisol.com/designs/menu/activity.webp' },
@@ -1087,10 +1103,19 @@ export const getDefaultThemeConfig = (): SiteConfig => {
                 loginBg:
                     "linear-gradient(to bottom, #0C316C, #175FD2) padding-box, linear-gradient(to bottom, #F7E652, #C9B10C 66.8%, #F7E652) border-box",
                 loginBorder: "1.5px solid transparent",
+                loginBorderGradient:
+                    "linear-gradient(to bottom, #F7E652, #C9B10C 66.8%, #F7E652)",
                 loginTextGradient:
                     "linear-gradient(to right, #F7E652, #C9B10C 66.8%, #F7E652)",
                 signupBg:
                     "linear-gradient(to bottom, #0C316C, #175FD2) padding-box, linear-gradient(to bottom, #3890F9, #194488 66.8%, #3890F9) border-box",
+                // Transparent so `signupBg`'s border-box gradient is what shows
+                // through — the same two-layer trick `loginBorder` uses. A CMS
+                // that supplies a flat `signupBg` must set a real colour here,
+                // otherwise the button renders with no border at all.
+                signupBorder: "1.5px solid transparent",
+                signupBorderGradient:
+                    "linear-gradient(to bottom, #3890F9, #194488 66.8%, #3890F9)",
                 mobileAuthSectionBg:
                     "linear-gradient(to right, #001F50 0%, #204D97 50.48%, #001F50 100%)",
             },

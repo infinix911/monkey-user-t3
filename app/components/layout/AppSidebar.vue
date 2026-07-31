@@ -167,8 +167,7 @@
 
   <!-- Promotion + Activity open as feature modals, exactly as they do in the
        profile modal; the shared navigation decides which items do that. -->
-  <ProfileFeatureModals v-model:show-promotion="showPromotion" v-model:show-activity="showActivity"
-    :site-config="siteConfig" />
+  <ProfileFeatureModals v-model:show-promotion="showPromotion" v-model:show-activity="showActivity" />
 </template>
 
 <script setup lang="ts">
