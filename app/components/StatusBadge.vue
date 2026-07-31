@@ -1,8 +1,7 @@
 <template>
   <span
-    class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.85em] font-medium whitespace-nowrap border"
+    class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.85em] font-medium whitespace-nowrap border"
     :class="toneClass">
-    <span class="w-1.5 h-1.5 rounded-full bg-current shrink-0" aria-hidden="true" />
     <slot>{{ label }}</slot>
   </span>
 </template>
@@ -12,9 +11,9 @@
  * A pill for a status cell.
  *
  * Colour is carried by a `tone` rather than a raw colour so every table reaches
- * the same four looks; the dot inherits `currentColor`, so a new tone only needs
- * its text/border/background trio. Tints are alpha-based to sit on any table
- * background without a second variant per surface.
+ * the same four looks; a new tone only needs its text/border/background trio.
+ * Tints are alpha-based to sit on any table background without a second variant
+ * per surface.
  */
 import { computed } from "vue";
 

@@ -13,9 +13,9 @@
         <td class="whitespace-nowrap"><TableDateCell :value="String(row.created_at ?? '')" /></td>
         <td>{{ row.transaction }}</td>
         <td>
-          <StatusBadge
-            :tone="statusTone(row.status as LedgerStatus)"
-            :label="statusLabel(row.status as LedgerStatus)" />
+          <!-- The ledger only records settled movements, so the status cell is a
+               fixed "completed" badge rather than a per-row lookup. -->
+          <StatusBadge tone="success" :label="$t('myAccount.transactionLogs.statuses.completed')" />
         </td>
         <td class="whitespace-nowrap">{{ formatAmount(row.amount as string) }}</td>
         <td class="whitespace-nowrap">{{ formatAmount(row.wallet_after as string) }}</td>
@@ -41,16 +41,14 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import { useApi } from "@/composables/useApi";
-import type { StatusTone } from "~/components/StatusBadge.vue";
 import { validateResponse } from "@/lib/validateResponse";
 import {
   logsResponseWireSchema,
   mapLogsResponse,
   type ILedgerItem,
-  type LedgerStatus,
 } from "@/interfaces/ledger";
 
-const { t, te } = useI18n();
+const { t } = useI18n();
 // Ledger amounts follow the deployment currency, not a pinned locale.
 const { formatNumber } = useCurrency();
 
@@ -63,30 +61,11 @@ const columns = computed(() => [
   t("myAccount.transactionLogs.lastBalance"),
 ]);
 
-/**
- * `status` is a closed enum from the backend, so it can be translated. The
- * `transaction` column is free-form backend text and is passed through as-is.
- */
-function statusLabel(status: LedgerStatus): string {
-  const key = `myAccount.transactionLogs.statuses.${status}`;
-  return te(key) ? t(key) : status;
-}
-
 const PAGE_SIZE = 50;
 const loading = ref(false);
 const currentPage = ref(1);
 const totalPages = ref(0);
 const ledgerData = ref<ILedgerItem[]>([]);
-
-/**
- * Ledger status → badge tone, so this reads like the status column in the
- * transaction and activity panels rather than carrying its own palette.
- */
-function statusTone(status: LedgerStatus): StatusTone {
-  if (status === "completed") return "success";
-  if (status === "failed") return "rejected";
-  return "pending"; // "new"
-}
 
 function formatAmount(value: string | null | undefined): string {
   if (value == null) return "0";
