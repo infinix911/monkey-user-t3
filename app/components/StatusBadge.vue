@@ -23,7 +23,8 @@ export type StatusTone =
   | "processing"
   | "success"
   | "rejected"
-  | "danger";
+  | "danger"
+  | "cancelled";
 
 const props = withDefaults(
   defineProps<{
@@ -45,6 +46,9 @@ const TONES: Record<StatusTone, string> = {
   // calling a debit "rejected" at the call site would read as a bug.
   rejected: RED,
   danger: RED,
+  // Cancelled is not a failure — it is a request that stopped. Grey keeps it
+  // distinct from the red of something the operator refused.
+  cancelled: "text-white/60 border-white/25 bg-white/10",
 };
 
 const toneClass = computed(() => TONES[props.tone]);

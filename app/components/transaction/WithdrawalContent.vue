@@ -117,9 +117,10 @@
           </button>
         </div>
 
-        <!-- Account password, re-typed to confirm the withdrawal. The API
-             verifies it against the member's login credential before touching
-             the wallet, so a session alone cannot move money. -->
+        <!-- Withdrawal password (출금 비밀번호). The API verifies it against
+             `members.withdrawal_password` before touching the wallet — a
+             credential separate from the login password, so a session alone
+             cannot move money. -->
         <div class="mt-4">
           <label class="text-white text-sm mb-2 flex items-center gap-1.5">
             <span :style="{ color: dep.accentColor }">
@@ -367,7 +368,7 @@ const veeSubmit = veeHandleSubmit(async (values) => {
       headers: idempotencyHeaders(),
       body: {
         amount: amountWithdrawal,
-        password: values.password,
+        withdrawalPassword: values.password,
       },
     });
 

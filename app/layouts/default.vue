@@ -146,7 +146,7 @@
           <!-- Login: gold gradient border + gold gradient text -->
           <button type="button"
             class="cursor-pointer h-[37px] w-[125px] px-3 rounded-[4px] flex items-center justify-center font-extrabold italic uppercase text-[15px] tracking-tight transition-transform hover:scale-[1.03]"
-            :style="{ background: brandSiteConfig.theme.authButton.loginBg, border: brandSiteConfig.theme.authButton.loginBorder, boxShadow: '0 5px 5px rgba(0,0,0,0.25)' }"
+            :style="{ background: brandSiteConfig.theme.authButton.loginBg, border: brandSiteConfig.theme.authButton.loginBorder, boxShadow: '0px 5.14286px 5.14286px rgba(0, 0, 0, 0.25)' }"
             @click="uiStore.setShowLoginModal(true)">
             <span class="block w-full text-center truncate"
               :style="{ background: brandSiteConfig.theme.authButton.loginTextGradient, WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }">{{
@@ -155,7 +155,7 @@
           <!-- Sign up: blue gradient border + white text -->
           <button type="button"
             class="cursor-pointer h-[37px] w-[125px] px-3 rounded-[4px] flex items-center justify-center font-extrabold italic uppercase text-[15px] tracking-tight text-white transition-transform hover:scale-[1.03]"
-            :style="{ background: brandSiteConfig.theme.authButton.signupBg, border: '1.5px solid transparent', boxShadow: '0 5px 5px rgba(0,0,0,0.25)' }"
+            :style="{ background: brandSiteConfig.theme.authButton.signupBg, border: '1.5px solid transparent', boxShadow: '0px 5.14286px 5.14286px rgba(0, 0, 0, 0.25)' }"
             @click="uiStore.setShowSignupModal(true)">
             <span class="block w-full text-center truncate">{{ $t('header.signUp') }}</span>
           </button>

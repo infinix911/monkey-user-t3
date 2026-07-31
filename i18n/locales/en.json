@@ -87,7 +87,9 @@
       "newPasswordMinLength": "Password must be at least 6 characters",
       "newPasswordMaxLength": "Password must be at most 20 characters",
       "confirmPasswordRequired": "Please confirm your password",
-      "passwordsMismatch": "Passwords don't match"
+      "passwordsMismatch": "Passwords don't match",
+      "withdrawalMinLength": "Withdrawal password must be at least 4 characters",
+      "withdrawalMaxLength": "Withdrawal password must be at most 20 characters"
     },
     "success": {
       "title": "Success!",
@@ -111,8 +113,7 @@
       "login": "Login Password",
       "withdrawal": "Withdrawal Password"
     },
-    "withdrawalHint": "The password required to confirm a withdrawal. Separate from your login password.",
-    "currentWithdrawalPassword": "Current withdrawal password",
+    "withdrawalHint": "Set the password required to confirm a withdrawal. It is separate from your login password.",
     "newWithdrawalPassword": "New withdrawal password",
     "confirmWithdrawalPassword": "Confirm new withdrawal password",
     "withdrawalSuccess": "Your withdrawal password has been changed successfully."
@@ -159,7 +160,9 @@
       "statusProcessing": "Processing",
       "statusCompleted": "Completed",
       "statusRejected": "Rejected",
-      "noData": "No data available"
+      "noData": "No data available",
+      "statusNew": "New",
+      "statusCancelled": "Cancelled"
     },
     "apiMessages": {
       "WITHDRAWAL_REQUEST_SUCCESS": "Withdrawal request submitted successfully! Your request is being processed.",
@@ -175,7 +178,8 @@
       "PENDING_WITHDRAWAL_REQUEST_FOUND": "Pending Withdrawal Request Found",
       "INSUFFICIENT_BALANCE": "Insufficient Balance",
       "PROMOTION_DEPOSIT_TO_NOT_MET": "Promotion deposit turnover requirement not met. Please complete the required turnover before withdrawing.",
-      "INVALID_PASSWORD": "The password is incorrect."
+      "INVALID_WITHDRAWAL_PASSWORD": "The withdrawal password is incorrect.",
+      "WITHDRAWAL_PASSWORD_NOT_SET": "No withdrawal password is set on your account. Please contact support to have one set."
     },
     "selectMethod": "Select Withdrawal Method",
     "confirmLine1": "Make sure the data you entered is correct.",
@@ -564,7 +568,9 @@
       "statusProcessing": "Processing",
       "statusCompleted": "Completed",
       "statusRejected": "Rejected",
-      "noData": "No data available"
+      "noData": "No data available",
+      "statusNew": "New",
+      "statusCancelled": "Cancelled"
     },
     "quickAmounts": {
       "5K": "5K",

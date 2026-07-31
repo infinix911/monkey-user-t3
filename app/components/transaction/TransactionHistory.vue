@@ -44,6 +44,7 @@
 
 <script setup lang="ts">
 import { useApi } from "@/composables/useApi";
+import type { StatusTone } from "~/components/StatusBadge.vue";
 import { formatNumberID as formatNumber } from "~/lib/formatter";
 import { validateResponse } from "@/lib/validateResponse";
 import {
@@ -78,34 +79,41 @@ const columns = computed(() => [
  * Replaces a bare coloured-text mapping; the codes are unchanged (0 pending,
  * 1 processing, 2 completed, 9 rejected).
  */
-function getStatusTone(
-  status: number,
-): "pending" | "processing" | "success" | "rejected" {
-  switch (status) {
-    case 1:
-      return "processing";
-    case 2:
-      return "success";
-    case 9:
-      return "rejected";
-    default:
-      return "pending";
-  }
+/**
+ * Backend transaction status codes.
+ *
+ * The set is sparse — 1 is not issued, and the gaps are deliberate — so this is
+ * a lookup rather than a range. Anything outside it falls back to `completed`:
+ * a member's own history should not show an alarming state for a code the
+ * frontend simply has not been told about yet.
+ */
+const STATUSES: Record<number, { tone: StatusTone; key: string }> = {
+  0: { tone: "pending", key: "statusNew" },
+  2: { tone: "success", key: "statusCompleted" },
+  3: { tone: "cancelled", key: "statusCancelled" },
+  9: { tone: "rejected", key: "statusRejected" },
+};
+
+const FALLBACK_STATUS = { tone: "success" as StatusTone, key: "statusCompleted" };
+
+/**
+ * Badge tone for a status code.
+ *
+ * @param status - Backend status code.
+ * @returns {StatusTone} Tone for StatusBadge.
+ */
+function getStatusTone(status: number): StatusTone {
+  return (STATUSES[status] ?? FALLBACK_STATUS).tone;
 }
 
+/**
+ * i18n key suffix for a status code, resolved under `<type>.history.*`.
+ *
+ * @param status - Backend status code.
+ * @returns {string} Key suffix.
+ */
 function getStatusKey(status: number): string {
-  switch (status) {
-    case 0:
-      return "statusPending";
-    case 1:
-      return "statusProcessing";
-    case 2:
-      return "statusCompleted";
-    case 9:
-      return "statusRejected";
-    default:
-      return "status";
-  }
+  return (STATUSES[status] ?? FALLBACK_STATUS).key;
 }
 
 function calculateDateRange(): { start_date: string; end_date: string } {
