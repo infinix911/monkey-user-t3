@@ -162,10 +162,22 @@ export interface ThemeAuthButtonConfig {
     loginBg: string;
     /** Login button border declaration. CSS border shorthand string. */
     loginBorder: string;
+    /**
+     * Login button border gradient, composed onto `loginBg`'s border-box layer
+     * when that value carries only a fill. CSS linear-gradient string.
+     */
+    loginBorderGradient: string;
     /** Login button label gradient (clipped to text). CSS linear-gradient string. */
     loginTextGradient: string;
     /** Signup button background (padding-box + border-box gradient). CSS background shorthand string. */
     signupBg: string;
+    /** Signup button border declaration. CSS border shorthand string. */
+    signupBorder: string;
+    /**
+     * Signup button border gradient, composed onto `signupBg`'s border-box
+     * layer when that value carries only a fill. CSS linear-gradient string.
+     */
+    signupBorderGradient: string;
     /** Background of the mobile auth section housing the buttons. CSS linear-gradient string. */
     mobileAuthSectionBg: string;
 }
@@ -1091,10 +1103,19 @@ export const getDefaultThemeConfig = (): SiteConfig => {
                 loginBg:
                     "linear-gradient(to bottom, #0C316C, #175FD2) padding-box, linear-gradient(to bottom, #F7E652, #C9B10C 66.8%, #F7E652) border-box",
                 loginBorder: "1.5px solid transparent",
+                loginBorderGradient:
+                    "linear-gradient(to bottom, #F7E652, #C9B10C 66.8%, #F7E652)",
                 loginTextGradient:
                     "linear-gradient(to right, #F7E652, #C9B10C 66.8%, #F7E652)",
                 signupBg:
                     "linear-gradient(to bottom, #0C316C, #175FD2) padding-box, linear-gradient(to bottom, #3890F9, #194488 66.8%, #3890F9) border-box",
+                // Transparent so `signupBg`'s border-box gradient is what shows
+                // through — the same two-layer trick `loginBorder` uses. A CMS
+                // that supplies a flat `signupBg` must set a real colour here,
+                // otherwise the button renders with no border at all.
+                signupBorder: "1.5px solid transparent",
+                signupBorderGradient:
+                    "linear-gradient(to bottom, #3890F9, #194488 66.8%, #3890F9)",
                 mobileAuthSectionBg:
                     "linear-gradient(to right, #001F50 0%, #204D97 50.48%, #001F50 100%)",
             },

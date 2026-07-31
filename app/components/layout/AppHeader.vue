@@ -50,8 +50,8 @@
             <div class="flex items-center gap-1">
               <!-- Login: gold gradient border + gold gradient text -->
               <button
-                class="cursor-pointer h-[35px] w-[113px] px-3 rounded-[4px] flex items-center justify-center font-extrabold italic uppercase text-[15px] tracking-tight transition-transform hover:scale-[1.03]"
-                :style="{ background: siteConfig.theme.authButton.loginBg, border: siteConfig.theme.authButton.loginBorder, boxShadow: '0px 5.14286px 5.14286px rgba(0, 0, 0, 0.25)' }"
+                class="cursor-pointer h-[35px] w-[113px] px-3 rounded-[8px] flex items-center justify-center font-extrabold italic uppercase text-[15px] tracking-tight transition-transform hover:scale-[1.03]"
+                :style="authButtonStyle.login"
                 @click="showLoginModal">
                 <span class="block w-full text-center truncate"
                   :style="{ background: siteConfig.theme.authButton.loginTextGradient, WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }">{{
@@ -59,8 +59,8 @@
               </button>
               <!-- Sign up: blue gradient border + white text -->
               <button
-                class="cursor-pointer h-[35px] w-[113px] px-3 rounded-[4px] flex items-center justify-center font-extrabold italic uppercase text-[15px] tracking-tight text-white transition-transform hover:scale-[1.03]"
-                :style="{ background: siteConfig.theme.authButton.signupBg, border: '1.5px solid transparent', boxShadow: '0px 5.14286px 5.14286px rgba(0, 0, 0, 0.25)' }"
+                class="cursor-pointer h-[35px] w-[113px] px-3 rounded-[8px] flex items-center justify-center font-extrabold italic uppercase text-[15px] tracking-tight text-white transition-transform hover:scale-[1.03]"
+                :style="authButtonStyle.signup"
                 @click="showSignupModal">
                 <span class="block w-full text-center truncate">{{ $t('header.signUp') }}</span>
               </button>
@@ -272,8 +272,8 @@
              Styled like the MASUK (login) button; opens the configured chat. -->
         <div v-if="!isAuthenticated" v-show="!uiStore.showNoticeModal" class="flex items-center self-center pr-1">
           <button type="button" :aria-label="$t('common.liveChat')"
-            class="cursor-pointer h-[34px] px-3 rounded-[4px] flex items-center justify-center font-extrabold italic uppercase text-[13px] tracking-tight transition-transform hover:scale-[1.03]"
-            :style="{ background: siteConfig.theme.authButton.loginBg, border: siteConfig.theme.authButton.loginBorder, boxShadow: '0px 5.14286px 5.14286px rgba(0, 0, 0, 0.25)' }"
+            class="cursor-pointer h-[34px] px-3 rounded-[8px] flex items-center justify-center font-extrabold italic uppercase text-[13px] tracking-tight transition-transform hover:scale-[1.03]"
+            :style="authButtonStyle.login"
             @click="openLiveChat">
             <span class="block w-full text-center whitespace-nowrap"
               :style="{ background: siteConfig.theme.authButton.loginTextGradient, WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }">{{
@@ -426,6 +426,9 @@ watch(
 );
 
 const siteConfig = useSiteConfig();
+// Shared with the mobile auth strip in layouts/default.vue — see the composable
+// for why the background is composed rather than read straight off the config.
+const authButtonStyle = useAuthButtonStyle();
 const { locale, setLocale, t } = useI18n();
 
 // Desktop account bar. Sampled from the reference render: the username reads
