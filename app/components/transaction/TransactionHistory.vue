@@ -27,59 +27,18 @@
     </div>
 
     <!-- Table -->
-    <div class="overflow-x-auto">
-      <table class="w-full" style="border-collapse: collapse">
-        <!-- Table Header -->
-        <thead>
-          <tr style="background-color: #000000">
-            <th class="px-3 py-2" :style="headerStyle">
-              {{ t(`${type}.history.type`) }}
-            </th>
-            <th class="px-3 py-2" :style="headerStyle">
-              {{ t(`${type}.history.date`) }}
-            </th>
-            <th class="px-3 py-2" :style="headerStyle">
-              {{ t(`${type}.history.amount`) }}
-            </th>
-            <th class="px-3 py-2" :style="headerStyle">
-              {{ t(`${type}.history.status`) }}
-            </th>
-          </tr>
-        </thead>
-        <!-- Table Body -->
-        <tbody>
-          <tr v-if="transactions.length === 0">
-            <td
-              colspan="4"
-              class="px-3 py-8 text-center text-[16px] md:text-[18px]"
-              :style="{ ...cellStyle, color: '#999999' }"
-            >
-              {{ t(`${type}.history.noData`) }}
-            </td>
-          </tr>
-          <tr v-for="transaction in transactions" v-else :key="transaction.id">
-            <td class="px-3 py-2 text-[16px] md:text-[18px]" :style="cellStyle">
-              {{ transaction.method }}
-            </td>
-            <td class="px-3 py-2 text-[16px] md:text-[18px]" :style="cellStyle">
-              {{ formatDate(transaction.updated_at) }}
-            </td>
-            <td class="px-3 py-2 text-[16px] md:text-[18px]" :style="cellStyle">
-              {{ formatNumber(parseFloat(transaction.amount)) }}
-            </td>
-            <td
-              class="px-3 py-2 text-[16px] md:text-[18px]"
-              :style="{
-                ...cellStyle,
-                color: getStatusColor(transaction.status),
-              }"
-            >
-              {{ t(`${type}.history.${getStatusKey(transaction.status)}`) }}
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    <AppTable :columns="columns" :rows="transactions" :empty-text="t(`${type}.history.noData`)">
+      <template #row="{ row }">
+        <td>{{ row.method }}</td>
+        <td><TableDateCell :value="String(row.updated_at ?? '')" /></td>
+        <td>{{ formatNumber(parseFloat(String(row.amount ?? '0'))) }}</td>
+        <td>
+          <StatusBadge
+            :tone="getStatusTone(row.status as number)"
+            :label="t(`${type}.history.${getStatusKey(row.status as number)}`)" />
+        </td>
+      </template>
+    </AppTable>
   </div>
 </template>
 
@@ -105,43 +64,32 @@ const accentColor = computed(() => siteConfig.theme.transactionmodal.accentColor
 
 const transactions = ref<ITransactionHistory[]>([]);
 
-// Inline styles outrank the shared `.tm-thead th` rule, so the white header
-// label has to be repeated here rather than inherited.
-const headerStyle = {
-  fontFamily: "var(--font-line-seed)",
-  backgroundColor: "#000000",
-  color: "#ffffff",
-  textAlign: "center" as const,
-  fontSize: "14px",
-  fontStyle: "normal" as const,
-  fontWeight: 700,
-  lineHeight: "28px",
-  border: "1px solid #3A3A3A",
-};
+/** Header labels, in column order — the `row` slot emits cells to match. */
+const columns = computed(() => [
+  t(`${props.type}.history.type`),
+  t(`${props.type}.history.date`),
+  t(`${props.type}.history.amount`),
+  t(`${props.type}.history.status`),
+]);
 
-const cellStyle = {
-  fontFamily: "var(--font-line-seed)",
-  color: "#BEBEBE",
-  textAlign: "center" as const,
-  fontStyle: "normal" as const,
-  fontWeight: 400,
-  lineHeight: "39.951px",
-  background: "#000000",
-  border: "1px solid #3A3A3A",
-};
-
-function getStatusColor(status: number): string {
+/**
+ * Backend status code → badge tone.
+ *
+ * Replaces a bare coloured-text mapping; the codes are unchanged (0 pending,
+ * 1 processing, 2 completed, 9 rejected).
+ */
+function getStatusTone(
+  status: number,
+): "pending" | "processing" | "success" | "rejected" {
   switch (status) {
-    case 0:
-      return "#fbbf24";
     case 1:
-      return "#3b82f6";
+      return "processing";
     case 2:
-      return "#7298FF";
+      return "success";
     case 9:
-      return "#BEBEBE";
+      return "rejected";
     default:
-      return "#999999";
+      return "pending";
   }
 }
 
@@ -175,18 +123,6 @@ function calculateDateRange(): { start_date: string; end_date: string } {
     start_date: formatDateStr(sevenDaysAgo),
     end_date: formatDateStr(today),
   };
-}
-
-function formatDate(dateString: string): string {
-  const date = new Date(dateString);
-  const options: Intl.DateTimeFormatOptions = {
-    month: "short",
-    day: "numeric",
-    year: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  };
-  return date.toLocaleDateString("en-US", options).replace(",", "");
 }
 
 async function fetchTransactions() {

@@ -1,61 +1,43 @@
 <template>
     <div class="flex flex-col gap-4 min-h-[600px]">
-        <!-- Header strip: themed gradient + activity icon + total rows -->
-        <div
-class="flex items-center justify-between gap-3 px-4 py-3 rounded-xl border" :style="{
-            background: siteConfig.theme.panel.headerGradient,
-            borderColor: siteConfig.theme.panel.panelBorder,
-        }">
-            <div class="flex items-center gap-3">
-                <div
-class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" :style="{
-                    background: siteConfig.theme.panel.gameTypeBtnActiveGradient,
-                    border: `1px solid ${siteConfig.theme.panel.gameTypeBtnActiveBorder}`,
-                }">
-                    <svg
-xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
-                        :stroke="siteConfig.theme.brandColor" stroke-width="2.2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                </div>
-                <div class="flex flex-col">
-                    <span class="text-white text-sm font-line-seed font-semibold leading-tight">{{ t("profile.activity")
-                        }}</span>
-                    <span
-class="text-[11px] font-line-seed leading-tight opacity-80"
-                        :style="{ color: siteConfig.theme.brandColor }">
-                        {{ activeTabLabel }}
-                    </span>
-                </div>
+        <!-- Filters and row count on one line: the count describes the list the
+             tabs filter, so it belongs beside them rather than in a banner of
+             its own. On narrow widths the count wraps under the tabs.
+
+             The tabs are a segmented control — one bordered track holding pill
+             buttons — instead of seven separate bordered boxes. The track makes
+             them read as a single choice, and only the selected pill carries a
+             background, so the active state is the one thing that stands out. -->
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <div
+class="tm-card tm-line border inline-flex flex-wrap items-center gap-1 p-1 rounded-full"
+                role="tablist" :aria-label="t('profile.activity')">
+                <button
+v-for="tab in tabs" :key="tab.id" type="button" role="tab"
+                    :aria-selected="activeTab === tab.id"
+                    class="px-3.5 py-1.5 rounded-full text-[13px] font-line-seed leading-none whitespace-nowrap transition-all duration-200 cursor-pointer"
+                    :class="activeTab === tab.id
+                        ? 'text-white font-semibold'
+                        : 'tm-muted hover:text-white'"
+                    :style="activeTab === tab.id
+                        ? {
+                            background: siteConfig.theme.panel.gameTypeBtnActiveGradient,
+                            boxShadow: siteConfig.theme.panel.gameTypeBtnActiveShadow,
+                        }
+                        : {}" @click="setTab(tab.id)">
+                    {{ t(tab.labelKey) }}
+                </button>
             </div>
-            <div class="flex items-center gap-2 text-right">
+
+            <!-- No chip around the figure: it sat next to the tab track and read
+                 as a third control. Weight and colour separate the count from
+                 its label well enough on their own. -->
+            <div class="flex items-baseline gap-2 shrink-0">
                 <span class="tm-muted text-[11px] uppercase tracking-wider">{{ t("bettingReport.total") }}</span>
-                <span
-class="text-sm font-line-seed font-bold px-2.5 py-1 rounded-lg text-black" :style="{
-                    background: siteConfig.theme.brandColor,
-                }">
+                <span class="text-sm font-line-seed font-bold text-white tabular-nums">
                     {{ totalRows.toLocaleString() }}
                 </span>
             </div>
-        </div>
-
-        <!-- Category Tabs -->
-        <div class="flex flex-wrap gap-2">
-            <button
-v-for="tab in tabs" :key="tab.id" type="button"
-                class="px-3 py-2 rounded-lg text-sm font-line-seed transition-all duration-200 cursor-pointer border"
-                :class="activeTab === tab.id
-                    ? 'text-white font-semibold'
-                    : 'tm-card text-white hover:brightness-125'"
-                :style="activeTab === tab.id
-                    ? {
-                        background: siteConfig.theme.panel.gameTypeBtnActiveGradient,
-                        borderColor: siteConfig.theme.panel.gameTypeBtnActiveBorder,
-                        boxShadow: siteConfig.theme.panel.gameTypeBtnActiveShadow,
-                    }
-                    : {}" @click="setTab(tab.id)">
-                {{ t(tab.labelKey) }}
-            </button>
         </div>
 
         <!-- Loading -->
@@ -91,20 +73,26 @@ stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
             </div>
         </div>
 
-        <!-- Table -->
+        <!-- Table. Uses the shared AppTable shell, the same one the other
+             account panels render, so this reads identically to the transaction
+             ledger and betting report instead of the card-grid DataTable it
+             used before. -->
         <div v-else class="flex flex-col gap-4 flex-1 min-h-[400px]">
-            <div
-class="overflow-hidden rounded-xl border" :style="{
-                background: siteConfig.theme.panel.panelGradient,
-                borderColor: siteConfig.theme.panel.panelBorder,
-            }">
-                <DataTable
-:columns="activeColumns" :data="tableData"
-                    :header-background="siteConfig.theme.panel.tableHeaderBackground" table-background="transparent"
-                    :enable-pagination="false" max-height="500px" cell-font-size="13px" cell-padding-y="14px"
-                    header-font-size="13px" :status-variants="statusVariants" :wrap-columns="['ID']"
-                    wrap-column-max-width="180px" />
-            </div>
+            <!-- No loading/empty props: this branch only renders once rows
+                 exist, and the panel shows its own spinner and empty
+                 illustration above, which are richer than a single table row. -->
+            <AppTable :columns="activeColumns" :rows="tableData">
+                <template #row="{ row }">
+                    <td v-for="col in activeColumns" :key="col"
+                        :class="col === 'ID' ? 'break-all max-w-[180px]' : 'whitespace-nowrap'">
+                        <TableDateCell v-if="DATE_COLUMNS.includes(col)" :value="String(row[col] ?? '')" />
+                        <StatusBadge
+v-else-if="col === 'Status'" :tone="statusTone(String(row[col] ?? ''))"
+                            :label="String(row[col] ?? '')" />
+                        <template v-else>{{ row[col] }}</template>
+                    </td>
+                </template>
+            </AppTable>
 
             <!-- Server-side Pagination -->
             <div v-if="totalPages > 1" class="flex justify-center items-center gap-1 md:gap-3">
@@ -158,7 +146,7 @@ xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 2
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import { useApi } from "@/composables/useApi";
-import DataTable from "~/components/DataTable.vue";
+import type { StatusTone } from "~/components/StatusBadge.vue";
 import { validateResponse } from "@/lib/validateResponse";
 import {
   activityResponseWireSchema,
@@ -201,7 +189,6 @@ const tabs: Tab[] = [
 const TRANSACTION_COLUMNS = [
   "ID",
   "Service",
-  "Type",
   "Amount",
   "Status",
   "Updated At",
@@ -225,17 +212,22 @@ const activeColumns = computed(() =>
     : GAME_COLUMNS,
 );
 
-const statusVariants = computed<Record<string, "success" | "danger" | "warning" | "info" | "default">>(() => ({
-  [t("activity.credit")]: "success",
-  [t("activity.debit")]: "danger",
-  IN: "success",
-  OUT: "danger",
-}));
+/** Columns holding a timestamp, rendered through TableDateCell. */
+const DATE_COLUMNS = ["Updated At", "Date"];
 
-const activeTabLabel = computed(() => {
-  const tab = tabs.find((tb) => tb.id === activeTab.value);
-  return tab ? t(tab.labelKey) : "";
-});
+/**
+ * Status text → badge tone. Money in reads green, money out red; the labels are
+ * translated, so the comparison is against the same keys the rows are built
+ * from rather than raw English.
+ *
+ * @param value - The cell's status text.
+ * @returns {StatusTone} Tone for StatusBadge.
+ */
+function statusTone(value: string): StatusTone {
+  if (value === t("activity.credit") || value === "IN") return "success";
+  if (value === t("activity.debit") || value === "OUT") return "danger";
+  return "pending";
+}
 
 const formatAmount = (value: unknown): string => {
   const num = parseFloat(String(value ?? ""));
@@ -261,7 +253,6 @@ const tableData = computed(() => {
       return {
         ID: formatId(row.id),
         Service: row.transaction || "",
-        Type: row.type || "",
         Amount: formatAmount(amount),
         Status: credit > 0 ? t("activity.credit") : t("activity.debit"),
         "Updated At": String(row.created_at || ""),

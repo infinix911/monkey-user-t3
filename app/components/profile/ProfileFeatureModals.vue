@@ -47,37 +47,39 @@
       <div
         v-if="showActivity" class="fixed inset-0 z-[80] bg-black/90 flex items-center justify-center p-4"
         @click.self="emit('update:showActivity', false)">
-        <div class="w-[95%] md:w-[80%] max-w-[1600px] flex flex-col relative" style="min-height: min(720px, 90dvh); max-height: 90dvh;">
-          <!-- Close button (floats above the panel top-right so it never clips) -->
-          <button
-            type="button"
-            class="absolute -top-5 -right-2 md:-top-5 md:-right-5 z-20 w-10 h-10 md:w-11 md:h-11 rounded-full bg-black/80 border border-white/20 shadow-lg hover:bg-black hover:border-white/40 flex items-center justify-center transition-colors cursor-pointer"
-            aria-label="Close" @click="emit('update:showActivity', false)">
-            <svg
-              xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 26 26" fill="none"
-              class="md:w-[22px] md:h-[22px]">
-              <line
-                x1="1.44191" y1="1.01958" x2="24.9799" y2="24.5575" stroke="#ffffff" stroke-width="2.5"
-                stroke-linecap="round" />
-              <line
-                x1="1.01959" y1="-1.01959" x2="34.3073" y2="-1.01959"
-                transform="matrix(-0.707107 0.707107 0.707107 0.707107 26 1.01959)" stroke="#ffffff"
-                stroke-width="2.5" stroke-linecap="round" />
-            </svg>
-          </button>
+        <!-- Same shell as the account-section panels in AppSidebar: bordered
+             card, titled header bar with the close button in it, scrollable
+             body. It previously had no header at all — just an X floating
+             outside the card — which made it the odd one out among the dozen
+             panels reached from the same menu. Width stays wide: this one holds
+             a table, unlike the 620px account panels. -->
+        <div
+          class="tm-modal modal-body-fill modal-gradient-border w-[95%] md:w-[80%] max-w-[1600px] flex flex-col relative rounded-lg shadow-2xl overflow-hidden"
+          role="dialog" :style="[modalTheme, { minHeight: 'min(720px, 90dvh)', maxHeight: '90dvh' }]">
+          <div class="flex-shrink-0 flex items-center justify-between px-4 py-3 border-b tm-line">
+            <h2 class="tm-accent-text text-lg font-medium" style="font-family: var(--font-line-seed)">
+              {{ t("profile.activity") }}
+            </h2>
+            <button
+              class="tm-muted hover:text-white transition-colors cursor-pointer" :aria-label="t('common.close')"
+              @click="emit('update:showActivity', false)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 27 27" fill="none">
+                <line
+                  x1="1.41421" y1="1" x2="25.627" y2="25.2127" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" />
+                <line
+                  x1="1" y1="-1" x2="35.242" y2="-1"
+                  transform="matrix(-0.707107 0.707107 0.707107 0.707107 26.6732 1)" stroke="currentColor"
+                  stroke-width="2" stroke-linecap="round" />
+              </svg>
+            </button>
+          </div>
 
-          <!-- Content — the gradient card IS the scroll container (flex-1 +
-               min-h-0 + overflow-y-auto), bounded by the panel's max-height:90dvh
-               via flexbox. No magic-number max-height, so it fits the live
-               iPhone viewport (address bar shown or not) and scrolls its
-               overflow instead of getting cut off. -->
-          <div
-            class="rounded-[18px] flex-1 min-h-0 p-4 shadow-2xl border overflow-y-auto"
-            :style="{
-              background: siteConfig.theme.panel.contentPanelGradient,
-              borderColor: siteConfig.theme.panel.panelBorder,
-            }"
-          >
+          <!-- Body is the scroll container (flex-1 + min-h-0), bounded by the
+               panel's max-height:90dvh through flexbox rather than a magic
+               number, so it fits the live iPhone viewport whether or not the
+               address bar is showing. -->
+          <div class="tm-scroll p-4 flex-1 min-h-0 overflow-y-auto">
             <ActivityContent />
           </div>
         </div>
@@ -87,14 +89,12 @@
 </template>
 
 <script setup lang="ts">
-import type { SiteConfig } from "@/composables/useDefaultThemeConfig";
 import PromotionContent from "~/components/promotion/PromotionContent.vue";
 import ActivityContent from "~/components/activity/ActivityContent.vue";
 
 defineProps<{
   showPromotion: boolean;
   showActivity: boolean;
-  siteConfig: SiteConfig;
 }>();
 
 const emit = defineEmits<{
@@ -103,6 +103,13 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
+
+/**
+ * The `tm-*` palette the account-section panels use. The activity modal now
+ * shares their shell, and those classes read CSS variables that this supplies —
+ * without it the header's accent title and rule would fall back to unset.
+ */
+const modalTheme = useModalTheme();
 </script>
 
 <style scoped>

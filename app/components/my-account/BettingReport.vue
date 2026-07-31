@@ -91,145 +91,31 @@
     </div>
 
     <!-- Table Section -->
-    <!-- flex-1 + min-h-0 makes this the ONLY scroll region: it fills the
-         space left by the filters/pagination so the modal panel itself never
-         needs a second scrollbar. min-w-0 lets it shrink horizontally too. -->
-    <div class="tm-card rounded-lg overflow-hidden mb-6 min-w-0 flex-1 min-h-0">
-      <!-- Single scroll viewport for BOTH axes: scrollbars stay on the table. -->
-      <div class="tm-scroll overflow-auto h-full">
-        <table class="w-full lg:min-w-max">
-          <thead>
-            <tr class="tm-thead">
-              <th
-                class="px-1 py-1.5 text-center font-semibold text-[11px] lg:text-sm leading-tight whitespace-normal lg:whitespace-nowrap"
-                style="font-family: var(--font-line-seed)">
-                {{ t("bettingReport.date") }}
-              </th>
-              <th
-                v-if="showTypeColumn"
-                class="px-1 py-1.5 text-center font-semibold text-[11px] lg:text-sm leading-tight whitespace-normal lg:whitespace-nowrap"
-                style="font-family: var(--font-line-seed)">
-                {{ t("bettingReport.gameType") }}
-              </th>
-              <th
-                class="px-1 py-1.5 text-center font-semibold text-[11px] lg:text-sm leading-tight whitespace-normal lg:whitespace-nowrap"
-                style="font-family: var(--font-line-seed)">
-                {{ t("bettingReport.game") }}
-              </th>
-              <th
-                class="px-1 py-1.5 text-center font-semibold text-[11px] lg:text-sm leading-tight whitespace-normal lg:whitespace-nowrap"
-                style="font-family: var(--font-line-seed)">
-                {{ t("bettingReport.room") }}
-              </th>
-              <th
-                class="px-1 py-1.5 text-center font-semibold text-[11px] lg:text-sm leading-tight whitespace-normal lg:whitespace-nowrap"
-                style="font-family: var(--font-line-seed)">
-                {{ t("bettingReport.betAmount") }}
-              </th>
-              <th
-                class="px-1 py-1.5 text-center font-semibold text-[11px] lg:text-sm leading-tight whitespace-normal lg:whitespace-nowrap"
-                style="font-family: var(--font-line-seed)">
-                {{ t("bettingReport.winAmount") }}
-              </th>
-              <th
-                class="px-1 py-1.5 text-center font-semibold text-[11px] lg:text-sm leading-tight whitespace-normal lg:whitespace-nowrap"
-                style="font-family: var(--font-line-seed)">
-                {{ t("bettingReport.winLoss") }}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-if="loading">
-              <td :colspan="showTypeColumn ? 7 : 6" class="tm-row px-2 py-8 text-center">
-                <span class="text-white" style="font-family: var(--font-line-seed)">{{ t("bettingReport.loading")
-                }}</span>
-              </td>
-            </tr>
-            <tr v-else-if="error">
-              <td :colspan="showTypeColumn ? 7 : 6" class="tm-row px-2 py-8 text-center">
-                <span class="text-red-400" style="font-family: var(--font-line-seed)">{{ error }}</span>
-              </td>
-            </tr>
-            <tr v-else-if="betHistories.length === 0">
-              <td :colspan="showTypeColumn ? 7 : 6" class="tm-row px-2 py-8 text-center">
-                <span class="tm-muted" style="font-family: var(--font-line-seed)">{{ t("bettingReport.noData")
-                }}</span>
-              </td>
-            </tr>
-            <template v-else>
-              <tr
-                v-for="(row, index) in betHistories" :key="index"
-                class="tm-row tm-row-hover tm-line border-b last:border-b-0 transition-colors">
-                <td
-                  class="px-1 py-1.5 text-center text-white/85 text-xs lg:text-sm whitespace-nowrap"
-                  style="font-family: var(--font-line-seed)">
-                  <div>{{ row.created_at.split(" ")[0] }}</div>
-                  <div class="tm-muted text-[10px]">
-                    {{ row.created_at.split(" ")[1] }}
-                  </div>
-                </td>
-                <td
-                  v-if="showTypeColumn"
-                  class="px-2 py-1.5 text-center text-white/85 text-xs lg:text-sm whitespace-nowrap"
-                  style="font-family: var(--font-line-seed)">
-                  {{ typeLabel(row.game_type) }}
-                </td>
-                <td
-                  class="px-2 py-1.5 text-center text-white/85 text-xs lg:text-sm whitespace-nowrap"
-                  style="font-family: var(--font-line-seed)">
-                  {{ row.game_name }}
-                </td>
-                <td
-                  class="px-2 py-1.5 text-center text-white/85 text-xs lg:text-sm whitespace-nowrap"
-                  style="font-family: var(--font-line-seed)">
-                  {{ row.game_room }}
-                </td>
-                <td
-                  class="px-2 py-1.5 text-center text-white/85 text-xs lg:text-sm whitespace-nowrap"
-                  style="font-family: var(--font-line-seed)">
-                  {{ formatNumber(row.bet_amount) }}
-                </td>
-                <td
-                  class="px-2 py-1.5 text-center text-white/85 text-xs lg:text-sm whitespace-nowrap"
-                  style="font-family: var(--font-line-seed)">
-                  {{ formatNumber(row.win_amount) }}
-                </td>
-                <td
-                  class="px-1 py-1.5 text-center text-xs lg:text-sm"
-                  :class="winLossClass(Number(row.win_amount) - Number(row.bet_amount))"
-                  style="font-family: var(--font-line-seed)">
-                  {{ formatNumber(Number(row.win_amount) - Number(row.bet_amount)) }}
-                </td>
-              </tr>
-              <!-- Total Row -->
-              <tr class="tm-row tm-line border-t">
-                <td
-                  :colspan="showTypeColumn ? 4 : 3" class="px-1 py-1.5 text-center text-white/85 font-semibold text-xs lg:text-sm"
-                  style="font-family: var(--font-line-seed)">
-                  {{ t("bettingReport.total") }}
-                </td>
-                <td
-                  class="px-2 py-1.5 text-center text-white/85 text-xs lg:text-sm whitespace-nowrap"
-                  style="font-family: var(--font-line-seed)">
-                  {{ totals.betAmount }}
-                </td>
-                <td
-                  class="px-2 py-1.5 text-center text-white/85 text-xs lg:text-sm whitespace-nowrap"
-                  style="font-family: var(--font-line-seed)">
-                  {{ totals.winAmount }}
-                </td>
-                <td
-                  class="px-1 py-1.5 text-center text-xs lg:text-sm"
-                  :class="winLossClass(Number(summary?.net_amount ?? 0))" style="font-family: var(--font-line-seed)">
-                  {{ totals.winLoss }}
-                </td>
-              </tr>
-            </template>
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <!-- The shared table shell. flex-1 + min-h-0 keeps it the ONLY scroll
+         region, so the modal panel never needs a second scrollbar. -->
+    <AppTable
+      :columns="columns" :rows="betHistories" :loading="loading" :error="error"
+      :loading-text="t('bettingReport.loading')" :empty-text="t('bettingReport.noData')"
+      class="mb-6">
+      <template #row="{ row }">
+        <td class="whitespace-nowrap"><TableDateCell :value="String(row.created_at ?? '')" /></td>
+        <td v-if="showTypeColumn" class="whitespace-nowrap">{{ typeLabel(row.game_type as string) }}</td>
+        <td class="whitespace-nowrap">{{ row.game_name }}</td>
+        <td class="whitespace-nowrap">{{ row.game_room }}</td>
+        <td class="whitespace-nowrap">{{ formatNumber(row.bet_amount as number) }}</td>
+        <td class="whitespace-nowrap">{{ formatNumber(row.win_amount as number) }}</td>
+        <td :class="winLossClass(Number(row.win_amount) - Number(row.bet_amount))">
+          {{ formatNumber(Number(row.win_amount) - Number(row.bet_amount)) }}
+        </td>
+      </template>
 
+      <template #footer>
+        <td :colspan="showTypeColumn ? 4 : 3" class="font-semibold">{{ t("bettingReport.total") }}</td>
+        <td class="whitespace-nowrap">{{ totals.betAmount }}</td>
+        <td class="whitespace-nowrap">{{ totals.winAmount }}</td>
+        <td :class="winLossClass(Number(summary?.net_amount ?? 0))">{{ totals.winLoss }}</td>
+      </template>
+    </AppTable>
     <!-- Pagination -->
     <div v-if="!loading && totalPages > 1" class="flex justify-center gap-3 lg:gap-2">
       <button
@@ -333,6 +219,21 @@ const gameType = ref("casino");
 const loadedGameType = ref(gameType.value);
 const showTypeColumn = computed(() => loadedGameType.value === "all");
 const provider = ref("");
+
+/**
+ * Header labels in column order. Game Type only appears in the aggregated `all`
+ * view, so it is spliced in conditionally — the `row` slot applies the same
+ * condition, and the footer's colspan shifts with it.
+ */
+const columns = computed(() => [
+  t("bettingReport.date"),
+  ...(showTypeColumn.value ? [t("bettingReport.gameType")] : []),
+  t("bettingReport.game"),
+  t("bettingReport.room"),
+  t("bettingReport.betAmount"),
+  t("bettingReport.winAmount"),
+  t("bettingReport.winLoss"),
+]);
 
 // Localised label for a row's game type in the aggregated `all` view.
 function typeLabel(type?: string): string {

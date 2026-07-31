@@ -317,29 +317,33 @@ function handleAmountChange(value: string) {
   amount.value = cleanValue;
 }
 
-function handleAmountClick(qa: { value: number; label: string }) {
+/**
+ * The largest withdrawable amount not exceeding `value`.
+ *
+ * Caps at the wallet balance and the configured maximum, then rounds DOWN to the
+ * configured step — rounding down matters because an amount over the step would
+ * be rejected by the divisibility rule at submit.
+ */
+function clampWithdrawal(value: number): number {
   const walletValue = Number(user.value.wallet || 0);
+  const capped = Math.min(value, walletValue, limits.value.maximum);
+  const step = limits.value.divisible;
+  return step > 0 ? capped - (capped % step) : Math.max(capped, 0);
+}
+
+function handleAmountClick(qa: { value: number; label: string }) {
   const currentAmount = Number(amount.value.replace(/,/g, "")) || 0;
-  const newAmount = currentAmount + qa.value;
 
-  if (newAmount > walletValue) return;
-
+  // Clamped rather than ignored: the previous guard returned early once the
+  // total would exceed the balance, so repeated clicks near the top simply did
+  // nothing. Topping out at the maximum is what the button implies.
   lastSelectedButton.value = qa.label;
-  amount.value = newAmount.toString();
+  amount.value = clampWithdrawal(currentAmount + qa.value).toString();
 }
 
 function handleMax() {
-  const walletValue = Number(user.value.wallet || 0);
   lastSelectedButton.value = "MAX";
-
-  // Cap at the configured maximum, then round DOWN to the configured step.
-  // The step was hardcoded to 10000; using the CMS value keeps MAX from
-  // producing an amount that the divisibility rule then rejects.
-  const capped = Math.min(walletValue, limits.value.maximum);
-  const step = limits.value.divisible;
-  amount.value = (
-    step > 0 ? capped - (capped % step) : capped
-  ).toString();
+  amount.value = clampWithdrawal(Number.MAX_SAFE_INTEGER).toString();
 }
 
 function handleReset() {

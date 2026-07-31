@@ -211,7 +211,17 @@
           </div>
 
           <!-- Main Content -->
-          <main ref="mainContent" class="relative overflow-y-hidden overflow-x-auto mt-0 z-10">
+          <!-- `lg:overflow-visible` is what lets page content use
+               `position: sticky`. The overflow pair below makes this element a
+               scroll container, and since it never scrolls vertically, a sticky
+               descendant resolves against it and can never engage — the RTP
+               provider bar sat inside here, which is why it needed a JS `fixed`
+               workaround. The rail escapes this only by living outside <main>.
+               Below lg the pair stays: narrow viewports still need the
+               horizontal scroll, and body is a scroll container there anyway, so
+               sticky is unavailable regardless. -->
+          <main ref="mainContent"
+            class="relative overflow-y-hidden overflow-x-auto lg:overflow-visible mt-0 z-10">
             <div class="relative z-10 w-full">
               <slot />
             </div>

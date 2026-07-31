@@ -132,7 +132,7 @@
       "amountMinimum": "최소 출금 금액은 {min}입니다",
       "amountMaximum": "최대 출금 금액은 {max}입니다",
       "amountDivisible": "출금 금액은 {step} 단위여야 합니다",
-      "passwordRequired": "비밀번호를 입력하세요"
+      "passwordRequired": "출금 비밀번호를 입력하세요"
     },
     "withdrawCheck": "출금 금액은 10,000 이상이어야 합니다.",
     "success": "출금 요청이 완료되었습니다.",
@@ -179,9 +179,9 @@
     },
     "selectMethod": "출금 방법 선택",
     "confirmLine1": "입력하신 정보가 정확한지 확인하세요.",
-    "confirmLine2": "자금은 위의 전자지갑 번호로 전송됩니다.",
-    "password": "비밀번호",
-    "passwordPlaceholder": "확인을 위해 비밀번호를 입력하세요"
+    "confirmLine2": "자금은 위의 은행 계좌로 전송됩니다.",
+    "password": "출금 비밀번호",
+    "passwordPlaceholder": "출금 비밀번호를 입력하세요"
   },
   "inquiry": {
     "depositAccountRequest": "은행 계좌 요청",

@@ -97,8 +97,7 @@
       </div>
 
       <!-- Promotion + Activity feature modals -->
-      <ProfileFeatureModals v-model:show-promotion="showPromotionModal" v-model:show-activity="showActivityModal"
-        :site-config="siteConfig" />
+      <ProfileFeatureModals v-model:show-promotion="showPromotionModal" v-model:show-activity="showActivityModal" />
 
       <!-- Mobile Full-Screen Modal -->
       <Teleport to="body">

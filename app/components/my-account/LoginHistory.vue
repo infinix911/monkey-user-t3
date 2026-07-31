@@ -22,72 +22,24 @@
           {{ t("myAccount.loginHistory.title") }}
         </h3>
       </div>
-      <div class="h-full overflow-y-auto">
-        <div class="overflow-x-auto">
-          <table class="w-full">
-            <thead>
-              <tr class="tm-thead">
-                <th
-                  class="px-3 py-2 text-center text-white font-semibold text-sm"
-                  style="font-family: var(--font-line-seed)"
-                >
-                  {{ t("myAccount.loginHistory.date") }}
-                </th>
-                <th
-                  class="px-3 py-2 text-center text-white font-semibold text-sm"
-                  style="font-family: var(--font-line-seed)"
-                >
-                  {{ t("myAccount.loginHistory.ip") }}
-                </th>
-                <th
-                  class="px-3 py-2 text-center text-white font-semibold text-sm"
-                  style="font-family: var(--font-line-seed)"
-                >
-                  {{ t("myAccount.loginHistory.device") }}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-if="loginHistories.length === 0">
-                <td
-                  colspan="3"
-                  class="tm-row px-2 py-8 text-center"
-                >
-                  <span
-                    class="tm-muted"
-                    style="font-family: var(--font-line-seed)"
-                    >—</span
-                  >
-                </td>
-              </tr>
-              <tr
-                v-for="(log, index) in loginHistories"
-                :key="log.id || index"
-                class="tm-row tm-line border-b last:border-b-0"
-              >
-                <td
-                  class="px-3 py-1.5 text-center text-white/85 text-sm"
-                  style="font-family: var(--font-line-seed)"
-                >
-                  {{ log.created_at }}
-                </td>
-                <td
-                  class="px-3 py-1.5 text-center text-white/85 text-sm"
-                  style="font-family: var(--font-line-seed)"
-                >
-                  {{ log.ip_address }}
-                </td>
-                <td
-                  class="px-3 py-1.5 text-center text-white/85 text-sm"
-                  style="font-family: var(--font-line-seed)"
-                >
-                  {{ formatDeviceInfo(log.user_agent) }}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <AppTable :columns="columns" :rows="loginHistories" :empty-text="'—'">
+        <template #row="{ row }">
+          <td><TableDateCell :value="String(row.created_at ?? '')" /></td>
+          <td>
+            <a
+              v-if="cleanIp(row.ip_address as string)"
+              :href="`https://whatismyipaddress.com/ip/${cleanIp(row.ip_address as string)}`"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="tm-accent-text underline underline-offset-2 hover:brightness-125 transition"
+            >
+              {{ cleanIp(row.ip_address as string) }}
+            </a>
+            <span v-else>{{ row.ip_address || "—" }}</span>
+          </td>
+          <td>{{ formatDeviceInfo(row.user_agent as string) }}</td>
+        </template>
+      </AppTable>
     </template>
   </div>
 </template>
@@ -108,6 +60,36 @@ const { t } = useI18n();
 
 const loginHistories = ref<ILoginLog[]>([]);
 const loading = ref(true);
+
+/** Header labels, in column order — the `row` slot emits cells to match. */
+const columns = computed(() => [
+  t("myAccount.loginHistory.date"),
+  t("myAccount.loginHistory.ip"),
+  t("myAccount.loginHistory.device"),
+]);
+
+/**
+ * The bare address from a stored `ip_address`.
+ *
+ * The column is a PostgreSQL `inet`, so a single host comes back carrying its
+ * prefix — `1.2.3.4/32` for IPv4, `/128` for IPv6. That suffix is noise to a
+ * reader and breaks the lookup URL, so it is stripped. Only a full-host prefix
+ * is dropped: a genuine network range keeps its mask and is shown as plain text
+ * rather than linked, since the lookup takes a single address.
+ *
+ * @param raw - Value as stored, possibly null.
+ * @returns {string} A bare address, or "" when there is nothing linkable.
+ */
+function cleanIp(raw: string | null | undefined): string {
+  const value = (raw ?? "").trim();
+  if (!value) return "";
+  const [address, prefix] = value.split("/");
+  if (!prefix) return address ?? "";
+  const isFullHost =
+    (address?.includes(":") && prefix === "128") ||
+    (!address?.includes(":") && prefix === "32");
+  return isFullHost ? (address ?? "") : "";
+}
 
 function calculateDateRange() {
   const today = new Date();

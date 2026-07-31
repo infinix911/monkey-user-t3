@@ -205,8 +205,16 @@ function setMax() {
   amount.value = String(Math.trunc(pointCurrent.value));
 }
 
+/**
+ * Adds a quick amount, clamped to the member's point balance.
+ *
+ * Without the clamp, repeated clicks walk the field past the balance — the
+ * submit is blocked by `canSubmit`, but the input still shows an amount that
+ * cannot be converted. Topping out at the balance is what MAX already does.
+ */
 function addAmount(v: number) {
-  amount.value = String((Number(amount.value) || 0) + v);
+  const next = (Number(amount.value) || 0) + v;
+  amount.value = String(Math.min(next, Math.trunc(pointCurrent.value)));
 }
 
 function clearAmount() {
