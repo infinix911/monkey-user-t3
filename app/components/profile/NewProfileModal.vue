@@ -51,40 +51,10 @@
           @click.capture="onClickCapture">
           <div class="flex ease-in-out" :class="{ 'transition-transform duration-300': !menuSwipeDragging }"
             :style="{ transform: menuTrackTransform }">
-            <!-- Page 1: Menu Items -->
-            <div class="w-full flex-shrink-0">
-              <div class="grid grid-cols-4 gap-x-1 gap-y-2 place-items-center">
-                <!-- Telegram uses <a> for external link -->
-                <template v-for="item in visibleMenuItems" :key="item.id">
-                  <a v-if="item.id === 'telegram'" :href="telegramHref" target="_blank" rel="noopener noreferrer"
-                    class="w-full text-center flex flex-col items-center gap-1.5 px-2 py-1.5 rounded-md hover:scale-105 transition-all"
-                    @click="onClose">
-                    <NuxtImg :src="item.image" :alt="tLabel(item.labelKey)" width="50" height="50" fit="inside"
-                      class="w-9 h-9 object-contain" />
-                    <div class="w-full h-[22px] flex items-center justify-center">
-                      <span class="text-white text-[11px]" style="font-family: var(--font-line-seed)">
-                        {{ tLabel(item.labelKey) }}
-                      </span>
-                    </div>
-                  </a>
-                  <button v-else
-                    class="group w-full flex flex-col items-center gap-1.5 px-2 py-1.5 rounded-md hover:scale-105 transition-all cursor-pointer outline-none focus:outline-none focus-visible:outline-none"
-                    @click="handleItemClick(item)">
-                    <NuxtImg :src="item.image" :alt="tLabel(item.labelKey)" width="50" height="50" fit="inside"
-                      class="w-9 h-9 object-contain transition-all"
-                      :class="{ 'menu-icon-active': selectedAccountSection && selectedAccountSection === getAccountSection(item.id) }" />
-                    <div class="w-full h-[22px] flex items-center justify-center">
-                      <span class="text-white group-hover:text-[#FFC421] text-[11px] transition-colors"
-                        style="font-family: var(--font-line-seed)">
-                        {{ tLabel(item.labelKey) }}
-                      </span>
-                    </div>
-                  </button>
-                </template>
-              </div>
-            </div>
-
-            <!-- Page 2 items -->
+            <!-- Account items — the CMS menu's PAGE 2. Page 1 is the game
+                 categories, which belong to the navbar and bottom nav on mobile:
+                 rendering them here would produce tiles that open nothing, since
+                 the shared navigation has no handler for those ids. -->
             <div class="w-full flex-shrink-0">
               <div class="grid grid-cols-4 gap-x-1 gap-y-2 place-items-center">
                 <template v-for="item in visiblePage2Items" :key="item.id">
@@ -118,16 +88,12 @@
           </div>
         </div>
 
-        <!-- Carousel Dots -->
-        <div class="flex justify-center gap-2 pt-3 pb-4 border-b border-b-[1px] border-b-[#5C5C5C]">
-          <button v-for="page in 2" :key="page" class="w-2 h-2 rounded-full transition-all duration-300 cursor-pointer"
-            :class="carouselPage === page - 1 ? 'bg-white w-4' : 'bg-[#5C5C5C]'" @click="carouselPage = page - 1" />
-        </div>
-
-        <!-- Banner Carousel -->
-        <div class="w-full pt-2 pb-[4px] lg:pb-[6px]">
-          <ProfileBannerCarousel />
-        </div>
+        <!-- Rule closing the menu. The carousel dots used to sit here; the menu
+             is a single page now (MENU_PAGE_COUNT), so a lone dot would be inert
+             chrome. Restore the dot row if a second page ever comes back.
+             The promo banner carousel that followed is gone too — it had no
+             banners to show and rendered as an empty "배너가 없습니다" box. -->
+        <div class="pt-3 border-b border-b-[1px] border-b-[#5C5C5C]" />
       </div>
 
       <!-- Promotion + Activity feature modals -->
@@ -198,8 +164,6 @@ const {
   selectedAccountSection,
   showPromotionModal,
   showActivityModal,
-  carouselPage,
-  visibleMenuItems,
   visiblePage2Items,
   selectedAccountSectionLabel,
   getAccountSection,

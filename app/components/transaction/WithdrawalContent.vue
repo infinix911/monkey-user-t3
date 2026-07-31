@@ -117,6 +117,33 @@
           </button>
         </div>
 
+        <!-- Account password, re-typed to confirm the withdrawal. The API
+             verifies it against the member's login credential before touching
+             the wallet, so a session alone cannot move money. -->
+        <div class="mt-4">
+          <label class="text-white text-sm mb-2 flex items-center gap-1.5">
+            <span :style="{ color: dep.accentColor }">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+            </span>
+            {{ t("withdrawal.password") }}
+          </label>
+          <input v-model="passwordField" type="password" autocomplete="current-password" maxlength="100"
+            :placeholder="t('withdrawal.passwordPlaceholder')"
+            class="px-4 py-3 rounded w-full text-base lg:text-[20px] h-[53px]" :style="{
+              backgroundColor: dep.inputBgColor,
+              color: dep.inputTextColor,
+              border: `1px solid ${dep.inputBorderColor}`,
+              borderRadius: '4px',
+            }">
+          <p v-if="errors.password" class="text-xs text-red-500 mt-1">
+            {{ errors.password }}
+          </p>
+        </div>
+
         <!-- Withdrawal Button -->
         <div class="relative mt-6 mb-4">
           <button type="submit" :disabled="isSubmitting"
@@ -220,6 +247,7 @@ const {
   errors: rawErrors,
   setFieldValue,
   resetForm: veeResetForm,
+  defineField,
 } = useForm({
   // Reactive schema so the (baked) validation messages follow the active locale
   // instead of freezing to the first language.
@@ -229,8 +257,11 @@ const {
   }),
   initialValues: {
     amount: "0",
+    password: "",
   },
 });
+
+const [passwordField] = defineField("password");
 
 // Only show errors after first submit attempt
 const submitted = ref(false);
@@ -330,7 +361,10 @@ const veeSubmit = veeHandleSubmit(async (values) => {
     await api("/transactions/withdrawal", {
       method: "POST",
       headers: idempotencyHeaders(),
-      body: { amount: amountWithdrawal },
+      body: {
+        amount: amountWithdrawal,
+        password: values.password,
+      },
     });
 
     await showSuccessAlert(

@@ -289,6 +289,11 @@ export interface ThemePopupBannerConfig {
  * near-black through the middle. Independent of the orange auth/popup modals.
  */
 export interface ThemeNoticeModalConfig {
+    /**
+     * Master on/off switch for the post-login notice modal. When false the
+     * notice never opens, regardless of the notice content published in the CMS.
+     */
+    enabled: boolean;
     /** Card base/mid background (darkest stop). Hex color. */
     modalBgColor: string;
     /** Card border — subtle light grey. CSS color (rgba allowed). */
@@ -373,6 +378,12 @@ export interface ThemeSidebarConfig {
     activeItemColor: string;
     /** Row hover background. CSS color (rgba). */
     hoverBg: string;
+    /**
+     * Ordered account-menu items the rail renders below its divider — and the
+     * same list the mobile profile modal shows, since both read one config.
+     * See {@link ProfileMenuItem}; consumed via `useMenuSettings()`.
+     */
+    menus: ProfileMenuItem[];
 }
 
 /** All colors, gradients, and layout tokens (the "Theme" CMS tab). */
@@ -383,6 +394,12 @@ export interface ThemeConfig {
     themeColor: string;
     /** Page body background. Hex color. */
     bodyBgColor: string;
+    /**
+     * Aspect ratio of the desktop banner slot. CSS aspect-ratio string, expressed
+     * against the 1202px content column so it resolves to a round height at full
+     * width (e.g. "1202 / 300" = 300px tall).
+     */
+    desktopBannerAspectRatio: string;
     /** Aspect ratio of the mobile banner slot. CSS aspect-ratio string (e.g. "375 / 190"). */
     mobileBannerAspectRatio: string;
     /**
@@ -635,7 +652,7 @@ export interface AssetsHomepageConfig {
 }
 
 /**
- * One profile / "My Account" menu item.
+ * One profile / "My Account" menu item. Lives in `theme.sidebar.menus`.
  *
  * Carries visibility, page placement, order and an optional icon override. The
  * admin theme editor manages this array (drag-reorder + toggle + page + icon).
@@ -655,17 +672,14 @@ export interface ProfileMenuItem {
     image: string;
 }
 
-/** Ordered profile / "My Account" menu config. */
-export type AssetsProfileMenuConfig = ProfileMenuItem[];
-
 /**
  * Bundled default icons for profile-menu items, keyed by item `key`.
  *
- * Single source of truth for both the bundled {@link AssetsProfileMenuConfig}
- * default and the runtime icon fallback in `useProfileMenu`. The fallback is
- * required because the CMS theme doc replaces the whole `assets.profileMenu`
- * array wholesale (deep-merge does not merge arrays element-wise), and admin
- * items typically carry an empty `image`.
+ * Single source of truth for both the bundled `theme.sidebar.menus` default and
+ * the runtime icon fallback in `useProfileMenu`. The fallback is required
+ * because the CMS theme doc replaces the whole `theme.sidebar.menus` array
+ * wholesale (deep-merge does not merge arrays element-wise), and admin items
+ * typically carry an empty `image`.
  */
 export const PROFILE_MENU_ICON_DEFAULTS = {
     referral: "/designs/my-account/refferal.webp",
@@ -752,8 +766,6 @@ export interface AssetsConfig {
     lobbyCard: AssetsLobbyCardConfig;
     /** Homepage game-section artwork. */
     homepage: AssetsHomepageConfig;
-    /** Profile / "My Account" menu items (array; see ProfileMenuItem). */
-    profileMenu: ProfileMenuItem[];
     /** PWA manifest icon assets. */
     icons: AssetsIconsConfig;
     /** Desktop left-rail iconography. */
@@ -969,6 +981,7 @@ export const getDefaultThemeConfig = (): SiteConfig => {
             brandColor: "#0077B6",
             themeColor: "#000000",
             bodyBgColor: "#000000",
+            desktopBannerAspectRatio: "1202 / 300",
             mobileBannerAspectRatio: "375 / 190",
             // Mobile/tablet header design height (scaled by min(1, vw/786)).
             // Read in sync by app.vue (pre-paint), AppHeader, and default.vue.
@@ -1039,6 +1052,36 @@ export const getDefaultThemeConfig = (): SiteConfig => {
                 divider: "#434343",
                 activeItemColor: "#FF8A21",
                 hoverBg: "rgba(255, 255, 255, 0.06)",
+                // Ordered menu config, shared by the rail and the mobile profile
+                // modal. Page 1 is the game-category group, page 2 the
+                // account/support group — the two groups the rail renders either
+                // side of its divider. An empty `image` resolves at runtime from
+                // PROFILE_MENU_ICON_DEFAULTS by `key`, so icon paths have a
+                // single source of truth. The CMS theme doc replaces this whole
+                // array — deep-merge does not merge arrays element-wise.
+                menus: [
+                    { key: 'hot', is_active: true, page: 1, sort: 1, image: 'https://krw-demo1.jaeisol.com/designs/banana/theme/hot-icon-optimized-1782395532169.webp' },
+                    { key: 'slot', is_active: true, page: 1, sort: 2, image: 'https://krw-demo1.jaeisol.com/designs/banana/theme/slot-icon-optimized-1782395661345.webp' },
+                    { key: 'casino', is_active: true, page: 1, sort: 3, image: 'https://krw-demo1.jaeisol.com/designs/banana/theme/casino-icon-optimized-1782395725967.webp' },
+                    { key: 'sport', is_active: true, page: 1, sort: 4, image: 'https://krw-demo1.jaeisol.com/designs/banana/theme/sport-icon-optimized-1782395825566.webp' },
+                    { key: 'mini', is_active: true, page: 1, sort: 5, image: 'https://krw-demo1.jaeisol.com/designs/banana/theme/mini-icon-optimized-1782396091443.webp' },
+                    { key: 'fishing', is_active: true, page: 1, sort: 6, image: 'https://krw-demo1.jaeisol.com/designs/banana/theme/fishing-icon-optimized-1782396049473.webp' },
+                    { key: 'virtual', is_active: true, page: 1, sort: 7, image: 'https://krw-demo1.jaeisol.com/designs/banana/theme/virtual-icon-optimized-1782395959578.webp' },
+                    { key: 'rtp', is_active: true, page: 2, sort: 1, image: 'https://krw-demo1.jaeisol.com/designs/banana/menu-icons/group-595-1782999084030.webp' },
+                    { key: 'livechat', is_active: true, page: 2, sort: 2, image: 'https://krw-demo1.jaeisol.com/designs/menu/livechat.webp' },
+                    { key: 'transaksi', is_active: true, page: 2, sort: 3, image: 'https://krw-demo1.jaeisol.com/designs/menu/transaction.webp' },
+                    { key: 'activity', is_active: true, page: 2, sort: 4, image: 'https://krw-demo1.jaeisol.com/designs/menu/activity.webp' },
+                    { key: 'referral', is_active: true, page: 2, sort: 5, image: 'https://krw-demo1.jaeisol.com/designs/menu/referral.webp' },
+                    { key: 'bettingReport', is_active: true, page: 2, sort: 6, image: 'https://krw-demo1.jaeisol.com/designs/menu/betting-report.webp' },
+                    { key: 'history', is_active: true, page: 2, sort: 7, image: 'https://krw-demo1.jaeisol.com/designs/menu/history.webp' },
+                    { key: 'contact', is_active: true, page: 2, sort: 8, image: 'https://krw-demo1.jaeisol.com/designs/menu/contact.webp' },
+                    { key: 'changePassword', is_active: true, page: 2, sort: 9, image: 'https://krw-demo1.jaeisol.com/designs/menu/change-pass.webp' },
+                    { key: 'apk', is_active: true, page: 2, sort: 10, image: 'https://krw-demo1.jaeisol.com/designs/menu/apk.webp' },
+                    { key: 'telegram', is_active: false, page: 2, sort: 11, image: 'https://krw-demo1.jaeisol.com/designs/menu/telegram.webp' },
+                    { key: 'faq', is_active: true, page: 2, sort: 12, image: 'https://krw-demo1.jaeisol.com/designs/menu/faq.webp' },
+                    { key: 'loginHistory', is_active: true, page: 2, sort: 13, image: 'https://krw-demo1.jaeisol.com/designs/menu/login.webp' },
+                    { key: 'inquiry', is_active: true, page: 2, sort: 14, image: 'https://krw-demo1.jaeisol.com/designs/menu/inquiry.webp' },
+                ],
             },
             authButton: {
                 loginBg:
@@ -1124,6 +1167,7 @@ export const getDefaultThemeConfig = (): SiteConfig => {
             // bottom, fading to near-black through the middle. Green/red outline
             // agree/disagree buttons. Independent of the orange auth modals.
             noticeModal: {
+                enabled: true,
                 modalBgColor: "#0A0A0C",
                 borderColor: "rgba(255, 255, 255, 0.14)",
                 // Small light-grey band at the very top and bottom edges only;
@@ -1268,25 +1312,6 @@ export const getDefaultThemeConfig = (): SiteConfig => {
                     mobileStyle: {},
                 },
             },
-            // Ordered profile-menu config. `image: ''` everywhere — the bundled
-            // icons resolve at runtime from PROFILE_MENU_ICON_DEFAULTS (page 1)
-            // (page 2), so there is a single source of
-            // truth for icon paths. The CMS theme doc replaces this whole array.
-            profileMenu: [
-                { key: 'referral', is_active: true, page: 1, sort: 1, image: 'https://banana.sg-sin-1.linodeobjects.com/designs/menu/referral.webp' },
-                { key: 'bettingReport', is_active: true, page: 1, sort: 2, image: 'https://banana.sg-sin-1.linodeobjects.com/designs/menu/betting-report.webp' },
-                { key: 'loginHistory', is_active: true, page: 1, sort: 3, image: 'https://banana.sg-sin-1.linodeobjects.com/designs/menu/login.webp' },
-                { key: 'changePassword', is_active: true, page: 1, sort: 4, image: 'https://banana.sg-sin-1.linodeobjects.com/designs/menu/change-pass.webp' },
-                { key: 'promotion', is_active: true, page: 1, sort: 5, image: 'https://banana.sg-sin-1.linodeobjects.com/designs/menu/promotion.webp' },
-                { key: 'faq', is_active: true, page: 1, sort: 6, image: 'https://banana.sg-sin-1.linodeobjects.com/designs/menu/faq.webp' },
-                { key: 'apk', is_active: true, page: 1, sort: 7, image: 'https://banana.sg-sin-1.linodeobjects.com/designs/menu/apk.webp' },
-                { key: 'telegram', is_active: true, page: 1, sort: 8, image: 'https://banana.sg-sin-1.linodeobjects.com/designs/menu/telegram.webp' },
-                { key: 'inquiry', is_active: true, page: 1, sort: 9, image: 'https://banana.sg-sin-1.linodeobjects.com/designs/menu/inquiry.webp' },
-                { key: 'contact', is_active: true, page: 1, sort: 10, image: 'https://banana.sg-sin-1.linodeobjects.com/designs/menu/contact.webp' },
-                { key: 'transaksi', is_active: true, page: 2, sort: 3, image: 'https://banana.sg-sin-1.linodeobjects.com/designs/menu/transaction.webp' },
-                { key: 'activity', is_active: true, page: 2, sort: 7, image: 'https://banana.sg-sin-1.linodeobjects.com/designs/menu/activity.webp' },
-                { key: 'livechat', is_active: true, page: 2, sort: 8, image: 'https://banana.sg-sin-1.linodeobjects.com/designs/menu/livechat.webp' },
-            ],
             icons: {
                 pwa: { ...PWA_ICONS },
             },

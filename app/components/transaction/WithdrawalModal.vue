@@ -1,7 +1,7 @@
 ﻿<template>
   <Teleport to="body">
     <Transition name="modal">
-      <div v-if="isOpen" class="fixed inset-0 z-[100] flex items-center justify-center bg-black px-2 md:p-4"
+      <div v-if="isOpen" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 px-2 md:p-4"
         @click.self="onClose">
         <div class="relative w-full h-dvh md:h-auto flex flex-col md:min-w-[480px] md:max-w-[480px]"
           role="dialog" aria-label="Withdraw Modal">

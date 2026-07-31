@@ -179,7 +179,156 @@
       "divider": "#434343",
       "hoverBg": "rgba(255, 255, 255, 0.06)",
       "borderColor": "#B04C00",
-      "activeItemColor": "#FF8A21"
+      "activeItemColor": "#FF8A21",
+      "menus": [
+        {
+          "key": "hot",
+          "page": 1,
+          "sort": 1,
+          "image": "https://krw-demo1.jaeisol.com/designs/banana/theme/hot-icon-optimized-1782395532169.webp",
+          "is_active": true
+        },
+        {
+          "key": "slot",
+          "page": 1,
+          "sort": 2,
+          "image": "https://krw-demo1.jaeisol.com/designs/banana/theme/slot-icon-optimized-1782395661345.webp",
+          "is_active": true
+        },
+        {
+          "key": "casino",
+          "page": 1,
+          "sort": 3,
+          "image": "https://krw-demo1.jaeisol.com/designs/banana/theme/casino-icon-optimized-1782395725967.webp",
+          "is_active": true
+        },
+        {
+          "key": "sport",
+          "page": 1,
+          "sort": 4,
+          "image": "https://krw-demo1.jaeisol.com/designs/banana/theme/sport-icon-optimized-1782395825566.webp",
+          "is_active": true
+        },
+        {
+          "key": "mini",
+          "page": 1,
+          "sort": 5,
+          "image": "https://krw-demo1.jaeisol.com/designs/banana/theme/mini-icon-optimized-1782396091443.webp",
+          "is_active": true
+        },
+        {
+          "key": "fishing",
+          "page": 1,
+          "sort": 6,
+          "image": "https://krw-demo1.jaeisol.com/designs/banana/theme/fishing-icon-optimized-1782396049473.webp",
+          "is_active": true
+        },
+        {
+          "key": "virtual",
+          "page": 1,
+          "sort": 7,
+          "image": "https://krw-demo1.jaeisol.com/designs/banana/theme/virtual-icon-optimized-1782395959578.webp",
+          "is_active": true
+        },
+        {
+          "key": "rtp",
+          "page": 2,
+          "sort": 1,
+          "image": "https://krw-demo1.jaeisol.com/designs/banana/menu-icons/group-595-1782999084030.webp",
+          "is_active": true
+        },
+        {
+          "key": "livechat",
+          "page": 2,
+          "sort": 2,
+          "image": "https://krw-demo1.jaeisol.com/designs/menu/livechat.webp",
+          "is_active": true
+        },
+        {
+          "key": "transaksi",
+          "page": 2,
+          "sort": 3,
+          "image": "https://krw-demo1.jaeisol.com/designs/menu/transaction.webp",
+          "is_active": true
+        },
+        {
+          "key": "activity",
+          "page": 2,
+          "sort": 4,
+          "image": "https://krw-demo1.jaeisol.com/designs/menu/activity.webp",
+          "is_active": true
+        },
+        {
+          "key": "referral",
+          "page": 2,
+          "sort": 5,
+          "image": "https://krw-demo1.jaeisol.com/designs/menu/referral.webp",
+          "is_active": true
+        },
+        {
+          "key": "bettingReport",
+          "page": 2,
+          "sort": 6,
+          "image": "https://krw-demo1.jaeisol.com/designs/menu/betting-report.webp",
+          "is_active": true
+        },
+        {
+          "key": "history",
+          "page": 2,
+          "sort": 7,
+          "image": "https://krw-demo1.jaeisol.com/designs/menu/history.webp",
+          "is_active": true
+        },
+        {
+          "key": "contact",
+          "page": 2,
+          "sort": 8,
+          "image": "https://krw-demo1.jaeisol.com/designs/menu/contact.webp",
+          "is_active": true
+        },
+        {
+          "key": "changePassword",
+          "page": 2,
+          "sort": 9,
+          "image": "https://krw-demo1.jaeisol.com/designs/menu/change-pass.webp",
+          "is_active": true
+        },
+        {
+          "key": "apk",
+          "page": 2,
+          "sort": 10,
+          "image": "https://krw-demo1.jaeisol.com/designs/menu/apk.webp",
+          "is_active": true
+        },
+        {
+          "key": "telegram",
+          "page": 2,
+          "sort": 11,
+          "image": "https://krw-demo1.jaeisol.com/designs/menu/telegram.webp",
+          "is_active": false
+        },
+        {
+          "key": "faq",
+          "page": 2,
+          "sort": 12,
+          "image": "https://krw-demo1.jaeisol.com/designs/menu/faq.webp",
+          "is_active": true
+        },
+        {
+          "key": "loginHistory",
+          "page": 2,
+          "sort": 13,
+          "image": "https://krw-demo1.jaeisol.com/designs/menu/login.webp",
+          "is_active": true
+        },
+        {
+          "key": "inquiry",
+          "page": 2,
+          "sort": 14,
+          "image": "https://krw-demo1.jaeisol.com/designs/menu/inquiry.webp",
+          "is_active": true
+        }
+      ]
     },
     "transactionmodal": {
       "accentColor": "#FF7A00",
@@ -285,106 +434,6 @@
       "thumbnailBgPathWeb": "/designs/banana/ocean/gif/thumbnail-bg/web",
       "thumbnailBgPathMobile": "/designs/banana/ocean/gif/thumbnail-bg/mobile"
     },
-    "profileMenu": [
-      {
-        "key": "rtp",
-        "page": 1,
-        "sort": 1,
-        "image": "/designs/banana/menu-icons/group-595-1782999084030.webp",
-        "is_active": true
-      },
-      {
-        "key": "livechat",
-        "page": 1,
-        "sort": 2,
-        "image": "/designs/menu/livechat.webp",
-        "is_active": true
-      },
-      {
-        "key": "transaksi",
-        "page": 1,
-        "sort": 3,
-        "image": "/designs/menu/transaction.webp",
-        "is_active": true
-      },
-      {
-        "key": "activity",
-        "page": 1,
-        "sort": 4,
-        "image": "/designs/menu/activity.webp",
-        "is_active": true
-      },
-      {
-        "key": "referral",
-        "page": 1,
-        "sort": 5,
-        "image": "/designs/menu/referral.webp",
-        "is_active": true
-      },
-      {
-        "key": "bettingReport",
-        "page": 1,
-        "sort": 6,
-        "image": "/designs/menu/betting-report.webp",
-        "is_active": true
-      },
-      {
-        "key": "history",
-        "page": 1,
-        "sort": 7,
-        "image": "/designs/menu/history.webp",
-        "is_active": true
-      },
-      {
-        "key": "contact",
-        "page": 1,
-        "sort": 8,
-        "image": "/designs/menu/contact.webp",
-        "is_active": true
-      },
-      {
-        "key": "changePassword",
-        "page": 1,
-        "sort": 9,
-        "image": "/designs/menu/change-pass.webp",
-        "is_active": true
-      },
-      {
-        "key": "apk",
-        "page": 1,
-        "sort": 11,
-        "image": "/designs/menu/apk.webp",
-        "is_active": true
-      },
-      {
-        "key": "telegram",
-        "page": 1,
-        "sort": 12,
-        "image": "/designs/menu/telegram.webp",
-        "is_active": false
-      },
-      {
-        "key": "faq",
-        "page": 2,
-        "sort": 5,
-        "image": "/designs/menu/faq.webp",
-        "is_active": true
-      },
-      {
-        "key": "loginHistory",
-        "page": 2,
-        "sort": 6,
-        "image": "/designs/menu/login.webp",
-        "is_active": true
-      },
-      {
-        "key": "inquiry",
-        "page": 2,
-        "sort": 8,
-        "image": "/designs/menu/inquiry.webp",
-        "is_active": true
-      }
-    ],
     "transaction": {
       "bankNoImage": "/designs/banks/NOIMAGE.webp",
       "depositIcon": "",

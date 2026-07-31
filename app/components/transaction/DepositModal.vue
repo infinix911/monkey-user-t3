@@ -2,7 +2,7 @@
   <Teleport to="body">
     <Transition name="modal">
       <div v-if="isOpen"
-        class="fixed inset-0 z-[100] flex items-center justify-center bg-black px-2 md:p-4"
+        class="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 px-2 md:p-4"
         @click.self="onClose">
         <div
           class="relative w-full h-dvh md:h-auto md:max-h-[calc(100dvh-2rem)] xl:max-h-[calc(100vh-2rem)] flex flex-col md:min-w-[480px] md:max-w-[480px]"

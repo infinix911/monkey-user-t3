@@ -41,7 +41,7 @@ export function useProfileMenuItems() {
    */
   const tLabel = (key: string): string => (te(key) ? t(key) : key);
 
-  // `assets.profileMenu` is the ordered items array (see useMenuSettings);
+  // `theme.sidebar.menus` is the ordered items array (see useMenuSettings);
   // default item ICONS live in this bundled key→path map. Aliased as
   // `profileMenu` so the per-item defaults below read naturally.
   const profileMenu = PROFILE_MENU_ICON_DEFAULTS;

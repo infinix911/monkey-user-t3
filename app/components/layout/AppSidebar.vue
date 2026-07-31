@@ -86,10 +86,13 @@
     <!-- Group rule -->
     <div class="mx-4 mt-[18px] h-px" :style="{ backgroundColor: sidebar.divider }" />
 
-    <!-- Account / support — every item the profile modal shows, in CMS order.
+    <!-- Account / support — the CMS menu's PAGE 2, in CMS order. Page 1 is the
+         game categories rendered above the divider, so this list must not use
+         `allMenuItems` (both pages concatenated) or every category would appear
+         a second time down here, labelled with a prettified id.
          Telegram is an external link, so it stays an <a> as it is in the modal. -->
     <ul class="px-2 pt-[14px] pb-[14px] flex flex-col">
-      <li v-for="item in menu.allMenuItems.value" :key="item.id">
+      <li v-for="item in menu.visiblePage2Items.value" :key="item.id">
         <a v-if="item.id === 'telegram'" :href="menu.telegramHref.value" target="_blank" rel="noopener noreferrer"
           :class="ROW_CLASS" :style="rowStyle(false)">
           <img
@@ -121,32 +124,46 @@
     </ul>
   </aside>
 
-  <!-- Open account section, shown beside the rail. Same panel the mobile modal
-       renders, so the content and its data come from one place. -->
-  <Transition name="rail-panel">
-    <div v-if="accountSection.section.value"
-      class="tm-modal modal-body-fill modal-gradient-border fixed top-[92px] z-50 w-[620px] h-[620px] rounded-lg shadow-2xl overflow-hidden"
-      :style="[panelStyle, modalTheme]">
-      <div class="flex items-center justify-between px-4 py-3 border-b tm-line">
-        <h2 class="tm-accent-text text-lg font-medium" style="font-family: var(--font-line-seed)">
-          {{ menu.labelForId(accountSection.section.value) }}
-        </h2>
-        <button class="tm-muted hover:text-white transition-colors cursor-pointer"
-          :aria-label="$t('common.close')" @click="accountSection.close()">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 27 27" fill="none">
-            <line x1="1.41421" y1="1" x2="25.627" y2="25.2127" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" />
-            <line x1="1" y1="-1" x2="35.242" y2="-1"
-              transform="matrix(-0.707107 0.707107 0.707107 0.707107 26.6732 1)" stroke="currentColor"
-              stroke-width="2" stroke-linecap="round" />
-          </svg>
-        </button>
+  <!-- Open account section — a centred modal over a 90% black backdrop, matching
+       the deposit and withdrawal modals. Same panel the mobile sheet renders, so
+       the content and its data come from one place. Teleported to <body> so the
+       rail's own stacking context cannot trap it, and z-[100] to match the other
+       modals so it covers the fixed header. -->
+  <Teleport to="body">
+    <Transition name="rail-panel">
+      <div v-if="accountSection.section.value"
+        class="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 px-4"
+        @click.self="accountSection.close()">
+        <!-- Height follows the content rather than being pinned: the sections
+             behind this panel range from a three-field form to a paged table,
+             and a fixed 620px left the short ones with a stretch of empty panel
+             below the button. The cap in `panelStyle` keeps a long section
+             inside the viewport, and the body scrolls once it hits it. -->
+        <div
+          class="tm-modal modal-body-fill modal-gradient-border relative flex flex-col w-[620px] max-w-full rounded-lg shadow-2xl overflow-hidden"
+          role="dialog" :style="[panelStyle, modalTheme]">
+          <div class="flex-shrink-0 flex items-center justify-between px-4 py-3 border-b tm-line">
+            <h2 class="tm-accent-text text-lg font-medium" style="font-family: var(--font-line-seed)">
+              {{ menu.labelForId(accountSection.section.value) }}
+            </h2>
+            <button class="tm-muted hover:text-white transition-colors cursor-pointer"
+              :aria-label="$t('common.close')" @click="accountSection.close()">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 27 27" fill="none">
+                <line x1="1.41421" y1="1" x2="25.627" y2="25.2127" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" />
+                <line x1="1" y1="-1" x2="35.242" y2="-1"
+                  transform="matrix(-0.707107 0.707107 0.707107 0.707107 26.6732 1)" stroke="currentColor"
+                  stroke-width="2" stroke-linecap="round" />
+              </svg>
+            </button>
+          </div>
+          <div class="tm-scroll p-4 flex-1 min-h-0 overflow-y-auto">
+            <AccountSectionPanel :section="accountSection.section.value" />
+          </div>
+        </div>
       </div>
-      <div class="tm-scroll p-4 h-[calc(100%-58px)] overflow-y-auto">
-        <AccountSectionPanel :section="accountSection.section.value" />
-      </div>
-    </div>
-  </Transition>
+    </Transition>
+  </Teleport>
 
   <!-- Promotion + Activity open as feature modals, exactly as they do in the
        profile modal; the shared navigation decides which items do that. -->
@@ -254,22 +271,18 @@ const RAIL_ICON_IDS: Record<string, keyof AssetsSidebarIconsConfig> = {
 };
 
 /**
- * Panel geometry: pinned to the content column's left edge, i.e. flush beside
- * the rail with the layout's own gutter (rail column 210px + `lg:px-2` 8px
- * + `lg:gap-7` 28px = 246px past the centred 1456px shell's left edge). Derived
- * from the rail width and gap in layouts/default.vue — change either and this
- * moves by the same amount, or the panel detaches from the content column.
+ * Panel geometry. The panel is centred by its backdrop's flexbox now, so there
+ * is no left-edge term to derive from the rail's width and gutter — only the
+ * caps that keep it inside the viewport on short or narrow screens.
  *
- * Every viewport unit here is divided by `--site-zoom`. The panel is `fixed`
- * INSIDE the zoomed wrapper (layouts/default.vue `.site-zoom`), so its offsets
- * are resolved in zoomed pixels while `vw`/`vh` are not scaled by `zoom` — the
- * correction main.css documents. Without it the shell-centring term was ~10% of
- * the viewport too large and the panel sat detached from the rail, floating over
- * the content column.
+ * Both viewport units are divided by `--site-zoom`. The backdrop is `fixed`
+ * inside the zoomed wrapper (layouts/default.vue `.site-zoom`), so lengths
+ * resolve in zoomed pixels while `vw`/`vh` are not scaled by `zoom` — the
+ * correction main.css documents. Without it these caps come out ~10% too large
+ * and the panel can overflow the visible viewport.
  */
 const panelStyle = {
-  left: "calc(max(0px, (100vw / var(--site-zoom, 1) - 1456px) / 2) + 246px)",
-  maxWidth: "calc(100vw / var(--site-zoom, 1) - 271px)",
+  maxWidth: "calc(100vw / var(--site-zoom, 1) - 32px)",
   maxHeight: "calc(100vh / var(--site-zoom, 1) - 120px)",
 };
 
@@ -279,14 +292,15 @@ const icons = computed(() => siteConfig.assets.sidebarIcons);
 /** One shared row shape, so the two groups cannot drift apart. */
 // Measured off the reference render: a 31px row pitch, a 28px icon box inset
 // 14px from the panel edge (8px list padding + 6px row padding), and a 19px gap
-// to a 15px label. The icon art sits ~4px inside its box (the 83x82 source
-// canvas), which is why the gap reads wider than it is declared. The 15px was
-// originally pinned off LINE Seed KR's hangul advance (0.883em); the rail now
-// renders in Inter (`font-inter` on the <aside>), which ships no hangul, so
-// Korean labels fall through to the system hangul face and their widths no
-// longer follow that derivation — re-measure before trusting it again.
+// to the label. The icon art sits ~4px inside its box (the 83x82 source
+// canvas), which is why the gap reads wider than it is declared. The label is
+// 14px by design choice — it was 15px, pinned off LINE Seed KR's hangul advance
+// (0.883em), but the rail now renders in Inter (`font-inter` on the <aside>),
+// which ships no hangul, so Korean labels fall through to the system hangul face
+// and their widths never followed that derivation anyway. Deposit/withdraw are
+// NOT on this row shape and keep their own 12px labels.
 const ROW_CLASS =
-  "group w-full flex items-center gap-[19px] px-1.5 h-[31px] rounded-[6px] text-[15px] font-medium cursor-pointer transition-colors duration-150 hover:bg-[var(--sb-hover)]";
+  "group w-full flex items-center gap-[19px] px-1.5 h-[31px] rounded-[6px] text-[14px] font-medium cursor-pointer transition-colors duration-150 hover:bg-[var(--sb-hover)]";
 
 /**
  * Per-row colour: the active route takes the accent, everything else is white.
@@ -320,6 +334,30 @@ const ALL_GAME_ITEMS = computed(() => [
 
 const { hasLobbies } = useGameCategoryAvailability();
 
+/** The CMS menu (theme.sidebar.menus), normalised and sorted. */
+const menuSettings = useMenuSettings();
+
+/**
+ * The categories in CMS order, honouring page-1 visibility.
+ *
+ * Only ORDER and VISIBILITY come from the CMS. The label and icon deliberately
+ * stay with {@link ALL_GAME_ITEMS}: the rail names categories from its
+ * `sidebar.*` i18n keys and draws them with `assets.sidebarIcons`, whereas the
+ * menu entries carry ids that would prettify to English ("Hot", "Slot") and the
+ * account-tile artwork. Menu keys and rail ids already agree exactly.
+ *
+ * A theme document with no page-1 entries falls through to the bundled order.
+ */
+const orderedGameItems = computed(() => {
+  const page1 = (menuSettings.value ?? []).filter((s) => s.page === 1);
+  if (page1.length === 0) return ALL_GAME_ITEMS.value;
+
+  const rank = new Map(page1.map((s) => [s.item, s]));
+  return ALL_GAME_ITEMS.value
+    .filter((item) => rank.get(item.id)?.enabled ?? false)
+    .sort((a, b) => (rank.get(a.id)?.sort ?? 0) - (rank.get(b.id)?.sort ?? 0));
+});
+
 /**
  * Categories with no lobby behind them are dropped: the row would otherwise
  * lead to a page holding a section header and nothing else. HOT is exempt — it
@@ -327,7 +365,7 @@ const { hasLobbies } = useGameCategoryAvailability();
  * never vouch for it.
  */
 const gameItems = computed(() =>
-  ALL_GAME_ITEMS.value.filter(
+  orderedGameItems.value.filter(
     (item) => item.id === "hot" || hasLobbies(item.id),
   ),
 );
@@ -364,15 +402,27 @@ function goTo(path: string): void {
 </script>
 
 <style scoped>
+/* Fade the backdrop and settle the panel from slightly small — the sideways
+   slide this used to do belonged to a panel that flew out beside the rail, and
+   reads as a glitch on something centred. */
 .rail-panel-enter-active,
 .rail-panel-leave-active {
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition: opacity 0.2s ease;
+}
+
+.rail-panel-enter-active > div,
+.rail-panel-leave-active > div {
+  transition: transform 0.2s ease;
 }
 
 .rail-panel-enter-from,
 .rail-panel-leave-to {
   opacity: 0;
-  transform: translateX(8px);
+}
+
+.rail-panel-enter-from > div,
+.rail-panel-leave-to > div {
+  transform: scale(0.97);
 }
 
 /* The rail icons ship white; the active row tints its icon to match the active
