@@ -757,6 +757,13 @@
   border-radius: 8px;
 }
 
+/* Hover echoes the focus ring at lower strength so a control reads as
+   interactive before it is focused. Skipped while focused, or the weaker hover
+   border would fight the accent border the `.tm-modal` focus rule just set. */
+.tm-field:hover:not(:disabled):not(:focus) {
+  border-color: color-mix(in srgb, var(--tm-accent) 45%, var(--tm-input-border));
+}
+
 .tm-field:disabled {
   opacity: 0.5;
   cursor: not-allowed;
