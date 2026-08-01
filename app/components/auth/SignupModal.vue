@@ -3,7 +3,7 @@
     <Transition name="modal" appear>
       <div
         v-if="isOpen"
-        class="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 px-3 pb-3 sm:px-4 sm:pb-4 pt-[max(0.75rem,env(safe-area-inset-top))]"
+        class="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 px-3 pb-3 sm:px-4 sm:pb-4 pt-[max(0.75rem,env(safe-area-inset-top))]"
         @click.self="handleBackdropClick">
         <!-- Shared modal frame (same gradient border as deposit/withdraw).
              modalVars sits here so the accent vars also reach the close button. -->
