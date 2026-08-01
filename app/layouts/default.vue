@@ -294,6 +294,14 @@
     <!-- Shared modal hosts (single instance, layout-level) — Promotion, Inquiry
          and FAQ. Triggered from anywhere via the ui store (footer quick links,
          etc.) so the same modal component is reused, never duplicated. -->
+    <!-- Deposit/Withdrawal belong here rather than inside Navbar: the RTP page
+         renders no navbar (see `isRtpPage` above), but the desktop rail and the
+         bottom nav that open them render on every page — hosting them in the
+         navbar left both triggers dead on that page. -->
+    <DepositModal v-if="uiStore.showDepositModal" :is-open="uiStore.showDepositModal"
+      @close="uiStore.setShowDepositModal(false)" />
+    <WithdrawalModal v-if="uiStore.showWithdrawalModal" :is-open="uiStore.showWithdrawalModal"
+      @close="uiStore.setShowWithdrawalModal(false)" />
     <PromotionModal v-if="uiStore.showPromotionModal" :is-open="uiStore.showPromotionModal"
       @close="uiStore.setShowPromotionModal(false)" />
     <InquiryModal v-if="uiStore.showInquiryModal" :is-open="uiStore.showInquiryModal"
@@ -334,6 +342,10 @@ const BottomNav = defineAsyncComponent(() => import("@/components/layout/BottomN
 const BannerPopup = defineAsyncComponent(() => import("@/components/banner/BannerPopup.vue"));
 
 // Shared, layout-level modal hosts (one instance each), driven by the ui store.
+// The `v-if` guards keep each chunk (Deposit/Withdrawal pull in vee-validate,
+// zod and the bank UI) from being requested until the modal is actually opened.
+const DepositModal = defineAsyncComponent(() => import("@/components/transaction/DepositModal.vue"));
+const WithdrawalModal = defineAsyncComponent(() => import("@/components/transaction/WithdrawalModal.vue"));
 const PromotionModal = defineAsyncComponent(() => import("@/components/promotion/PromotionModal.vue"));
 const InquiryModal = defineAsyncComponent(() => import("@/components/inquiry/InquiryModal.vue"));
 const FaqModal = defineAsyncComponent(() => import("@/components/faq/FaqModal.vue"));
