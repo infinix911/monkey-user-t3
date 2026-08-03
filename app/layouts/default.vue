@@ -133,33 +133,9 @@
           <div v-if="effectiveNavFixed" :style="{ height: announcementHeight + 'px' }" aria-hidden="true" />
         </div>
 
-        <!-- Auth Buttons Section (mobile only, guests) — sits below the
-             announcement on a plain black background. Bottom padding is added
-             only when the nav below has a background IMAGE (so the black strip
-             reads separately from the image); when the nav is a solid colour it
-             already blends into this black strip, so the padding is dropped to
-             avoid a big undifferentiated gap. -->
-        <div v-if="!authStore.isAuthenticated && !isRtpPage"
-          class="block min-[690px]:hidden w-full xl:w-[1152px] mx-auto flex items-center justify-center gap-2 pt-3"
-          :class="brandSiteConfig.assets.navIcons.background ? 'pb-3' : 'pb-0'"
-          :style="{ background: '#000000' }">
-          <!-- Login: gold gradient border + gold gradient text -->
-          <button type="button"
-            class="cursor-pointer h-[37px] w-[125px] px-3 rounded-[8px] flex items-center justify-center font-extrabold italic uppercase text-[15px] tracking-tight transition-transform hover:scale-[1.03]"
-            :style="authButtonStyle.login"
-            @click="uiStore.setShowLoginModal(true)">
-            <span class="block w-full text-center truncate"
-              :style="{ background: brandSiteConfig.theme.authButton.loginTextGradient, WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }">{{
-                $t('header.login') }}</span>
-          </button>
-          <!-- Sign up: blue gradient border + white text -->
-          <button type="button"
-            class="cursor-pointer h-[37px] w-[125px] px-3 rounded-[8px] flex items-center justify-center font-extrabold italic uppercase text-[15px] tracking-tight text-white transition-transform hover:scale-[1.03]"
-            :style="authButtonStyle.signup"
-            @click="uiStore.setShowSignupModal(true)">
-            <span class="block w-full text-center truncate">{{ $t('header.signUp') }}</span>
-          </button>
-        </div>
+        <!-- The mobile guest auth buttons that used to sit here (a black strip
+             below the announcement bar) now live in the mobile header itself —
+             see components/layout/AppHeader.vue. -->
 
         <!-- Navbar + Main Content wrapper with optional game section bg -->
         <div ref="gameBgAnchor" class="relative">
@@ -404,14 +380,12 @@ const { data: popupBanners } = await useAsyncData<IPopupBanner[]>(
 
 const brandSiteConfig = useSiteConfig();
 const siteConfig = brandSiteConfig;
-// Same styles the desktop header renders — see useAuthButtonStyle.
-const authButtonStyle = useAuthButtonStyle();
 const route = useRoute();
 const localePath = useLocalePath();
 
-// The Slot RTP page is a stripped-down variant: no announcement bar, no guest
-// auth buttons, no bottom nav, and a single static promo banner (rtp-banner.png
-// on the asset CDN) instead of the rotating BannerPreview carousel.
+// The Slot RTP page is a stripped-down variant: no announcement bar, no bottom
+// nav, and a single static promo banner (rtp-banner.png on the asset CDN)
+// instead of the rotating BannerPreview carousel.
 const isRtpPage = computed(() => route.path === localePath("/slot-rtp"));
 const rtpBannerSrc = cdn("/designs/rtp-banner.png");
 

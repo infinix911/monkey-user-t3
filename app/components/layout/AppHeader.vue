@@ -268,16 +268,28 @@
               :style="siteConfig.theme.logoStyles.mobileHeader" />
           </NuxtLink>
         </div>
-        <!-- Mobile guest live-chat button — replaces the login/sign-up buttons.
-             Styled like the MASUK (login) button; opens the configured chat. -->
-        <div v-if="!isAuthenticated" v-show="!uiStore.showNoticeModal" class="flex items-center self-center pr-1">
-          <button type="button" :aria-label="$t('common.liveChat')"
-            class="cursor-pointer h-[34px] px-3 rounded-[8px] flex items-center justify-center font-extrabold italic uppercase text-[13px] tracking-tight transition-transform hover:scale-[1.03]"
+        <!-- Mobile guest auth buttons — these used to live in a black strip
+             below the announcement bar (layouts/default.vue); they now sit in
+             the header itself, so the strip there is gone. Same gold/blue
+             gradient treatment as the desktop pair, sized down (34px tall,
+             13px type) to fit the 60px mobile bar beside the logo. -->
+        <div v-if="!isAuthenticated" v-show="!uiStore.showNoticeModal"
+          class="flex items-center gap-1.5 self-center pr-1 flex-shrink-0">
+          <!-- Login: gold gradient border + gold gradient text -->
+          <button type="button"
+            class="cursor-pointer h-[34px] w-[86px] px-2 rounded-[8px] flex items-center justify-center font-extrabold italic uppercase text-[13px] tracking-tight transition-transform hover:scale-[1.03]"
             :style="authButtonStyle.login"
-            @click="openLiveChat">
-            <span class="block w-full text-center whitespace-nowrap"
+            @click="showLoginModal">
+            <span class="block w-full text-center truncate"
               :style="{ background: siteConfig.theme.authButton.loginTextGradient, WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }">{{
-                $t('common.liveChat') }}</span>
+                $t('header.login') }}</span>
+          </button>
+          <!-- Sign up: blue gradient border + white text -->
+          <button type="button"
+            class="cursor-pointer h-[34px] w-[86px] px-2 rounded-[8px] flex items-center justify-center font-extrabold italic uppercase text-[13px] tracking-tight text-white transition-transform hover:scale-[1.03]"
+            :style="authButtonStyle.signup"
+            @click="showSignupModal">
+            <span class="block w-full text-center truncate">{{ $t('header.signUp') }}</span>
           </button>
         </div>
         <div v-if="isAuthenticated" v-show="!uiStore.showNoticeModal"
@@ -486,20 +498,6 @@ const markBoldStyle =
   "font-family: var(--font-mark); font-size: clamp(13px,3.6vw,15px); font-weight: 700; letter-spacing: 0.04em;";
 // Solid dark gray pill background matching the reference.
 const pillBgStyle = "background: #2b2d33;";
-
-// Open the live chat in a new tab using the `site:livechat` link configured in
-// the admin CMS (read from the site store, pre-fetched in app.vue so it's
-// available synchronously here — window.open must run inside the click to
-// avoid pop-up blockers).
-const siteStore = useSiteStore();
-const openLiveChat = () => {
-  const url = siteStore.siteSettings?.["site:livechat"];
-  if (!url) {
-    console.log("[header] live chat link (site:livechat) not configured");
-    return;
-  }
-  window.open(url, "_blank", "noopener,noreferrer");
-};
 
 // Mobile scaling — the scale factor itself lives in the `--mh-scale` CSS var
 // (set pre-paint by app.vue's inline script). `isMobile` is still needed by
