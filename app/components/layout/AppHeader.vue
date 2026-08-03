@@ -297,12 +297,28 @@
             <span class="block w-full text-center truncate">{{ $t('header.signUp') }}</span>
           </button>
         </div>
-        <!-- The signed-in user info is NOT in the mobile header: it renders as
-             its own full-width bar directly beneath it (MobileUserBar, mounted
-             by layouts/default.vue), which is the only way the five values and
-             actions fit on a 360px phone. The header keeps just the logo. -->
+        <!-- The signed-in user's VALUES are not in the mobile header: they
+             render as their own full-width bar directly beneath it
+             (MobileUserBar, mounted by layouts/default.vue), which is the only
+             way the three figures and two actions fit on a 360px phone. What
+             stays here is logout — the counterpart to the guest LOGIN/SIGN UP
+             pair, in the same slot and at the same 34px height. -->
         <div v-if="isAuthenticated" v-show="!uiStore.showNoticeModal"
           class="flex items-center gap-2 relative self-center pr-1 shrink-0">
+          <!-- Same treatment as the desktop header's logout: the language
+               selector's background and radius, icon + label. `authStore.logout()`
+               already posts /auth/logout, clears state and returns home. -->
+          <button type="button" :aria-label="$t('auth.logout')"
+            class="inline-flex justify-center items-center gap-1.5 px-2.5 h-[34px] rounded-[8px] text-white/90 cursor-pointer hover:opacity-90 transition-opacity"
+            :style="{ backgroundColor: siteConfig.theme.ui.langSelectorBg }" @click="handleLogout">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <path d="m16 17 5-5-5-5" />
+              <path d="M21 12H9" />
+            </svg>
+            <span class="text-[13px] font-semibold whitespace-nowrap">{{ $t('auth.logout') }}</span>
+          </button>
           <div class="contents">
             <!-- Notification bell — hidden on the mobile header. -->
             <div class="absolute top-[-25px] right-2 z-10 hidden">

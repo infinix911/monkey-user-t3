@@ -41,8 +41,23 @@
       <div v-show="!uiStore.showNoticeModal">
         <!-- Signed-in user info, directly under the header (mobile only). It
              sits outside the two-column wrapper below so it spans the full
-             viewport width rather than the content column. -->
-        <MobileUserBar />
+             viewport width rather than the content column.
+
+             It is also the bar that PINS on scroll: balances are worth keeping
+             on screen, an announcement marquee is not, so the announcement bar
+             below stays in normal flow and this takes the slot under the header
+             that it used to hold. Same JS `fixed` + spacer mechanism (NOT CSS
+             sticky): html/body have `overflow-x: auto`, which disables
+             position:sticky for descendants. `userBarHeight` measures 0 for
+             guests and on desktop — the component renders nothing there — so
+             `isUserBarPinned` is false and this is inert without needing its own
+             viewport check. -->
+        <div ref="userBarAnchor" :class="isUserBarPinned ? 'fixed left-0 right-0 z-40' : ''"
+          :style="isUserBarPinned ? { top: headerHeight + 'px' } : {}">
+          <MobileUserBar />
+        </div>
+        <!-- Spacer keeps the bar's flow space while it's fixed on scroll. -->
+        <div v-if="isUserBarPinned" :style="{ height: userBarHeight + 'px' }" aria-hidden="true" />
         <!-- Two columns from lg: the left rail, then the existing content stack.
              Below lg this wrapper is inert (no flex), so the single-column
              mobile/tablet layout — and all the sticky/scroll machinery tuned to
@@ -109,17 +124,13 @@
           <BannerPreview v-else />
         </div>
 
-        <!-- Announcement Bar (mobile/tablet < lg: below the banner). When the
-             navbar sticks on scroll this pins below the header too, so the order
-             stays header → announcement → navbar. Uses JS `fixed` + a spacer
-             (NOT CSS sticky): html/body have `overflow-x: auto`, which disables
-             position:sticky for descendants. The navbar's fixed top + stick
-             trigger are offset by this bar's height (announcementHeight). -->
+        <!-- Announcement Bar (mobile/tablet < lg: below the banner). It scrolls
+             away with the page — the pinned slot under the header belongs to
+             MobileUserBar above. -->
         <div v-if="!isRtpPage" class="block lg:hidden w-full xl:w-[1152px] mx-auto">
-          <div ref="announcementBar"
+          <div
             class="w-full shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] h-[36px] min-h-[36px] max-h-[36px] flex justify-center"
-            :class="effectiveNavFixed ? 'fixed left-0 right-0 z-40' : ''"
-            :style="[{ background: brandSiteConfig.theme.announcement.mobileBg }, effectiveNavFixed ? { top: headerHeight + 'px' } : {}]">
+            :style="{ background: brandSiteConfig.theme.announcement.mobileBg }">
             <div
               class="w-full flex items-center justify-center gap-1.5 md:gap-4 pr-2 md:pr-6 pl-2 md:pl-3 overflow-visible">
               <NuxtImg :src="brandSiteConfig.theme.announcement.mobileIcon" alt="" aria-hidden="true"
@@ -136,8 +147,6 @@
                 class="flex-shrink-0 h-5 w-auto object-contain invisible" />
             </div>
           </div>
-          <!-- Spacer keeps the bar's flow space while it's fixed on scroll. -->
-          <div v-if="effectiveNavFixed" :style="{ height: announcementHeight + 'px' }" aria-hidden="true" />
         </div>
 
         <!-- The mobile guest auth buttons that used to sit here (a black strip
@@ -187,7 +196,7 @@
           <!-- Navbar — hidden on the RTP page (own provider tabs). -->
           <div v-if="!isRtpPage" ref="navbarAnchor" class="relative z-20">
             <div :class="effectiveNavFixed ? 'fixed left-0 right-0 z-40' : ''"
-              :style="effectiveNavFixed ? { top: (headerHeight + announcementHeight) + 'px' } : {}">
+              :style="effectiveNavFixed ? { top: (headerHeight + (isUserBarPinned ? userBarHeight : 0)) + 'px' } : {}">
               <Navbar :desktop="false" />
             </div>
             <div v-if="effectiveNavFixed" :style="{ height: navbarHeight + 'px' }" />
@@ -454,10 +463,11 @@ const gameBgAnchor = ref<HTMLElement | null>(null);
 const isGameBgFixed = ref(false);
 const navbarHeight = ref(0);
 const navbarAnchor = ref<HTMLElement | null>(null);
-// Mobile announcement bar — measured so the sticky bar and the fixed navbar
-// stack (navbar top + its trigger are offset by this). 0 on desktop (hidden).
-const announcementBar = ref<HTMLElement | null>(null);
-const announcementHeight = ref(0);
+// Mobile user bar — measured so the pinned bar and the fixed navbar stack
+// (navbar top + its trigger are offset by this). 0 for guests and on desktop,
+// where MobileUserBar renders nothing.
+const userBarAnchor = ref<HTMLElement | null>(null);
+const userBarHeight = ref(0);
 const bannerContainer = ref<HTMLElement | null>(null);
 const isBannerVisible = ref(false);
 const initialScrollDone = ref(false);
@@ -498,6 +508,13 @@ const effectiveNavFixed = computed(() =>
   isNavbarStickyPage.value ? !isBannerVisible.value : isNavFixed.value,
 );
 
+// The user bar pins on the same trigger as the navbar, but only when there is
+// one to pin: `userBarHeight` is 0 for guests and at lg+, where MobileUserBar
+// renders nothing, which keeps this false without a second viewport check.
+const isUserBarPinned = computed(
+  () => effectiveNavFixed.value && userBarHeight.value > 0,
+);
+
 // Side effect kept out of the computed so reactivity flushes don't fan out
 // into the Pinia store mutation path during hydration.
 watch(effectiveNavFixed, (fixed) => {
@@ -528,9 +545,10 @@ const measureNavbarHeight = () => {
     const navEl = navbarAnchor.value.querySelector("nav");
     if (navEl) navbarHeight.value = navEl.offsetHeight - 5;
   }
-  // Mobile announcement bar height (0 when hidden at lg+). Drives the navbar's
-  // sticky offset so the two pin without a gap/overlap.
-  announcementHeight.value = announcementBar.value?.offsetHeight ?? 0;
+  // Mobile user bar height (0 for guests and at lg+, where it renders nothing).
+  // Drives the navbar's sticky offset so the two pin without a gap/overlap, and
+  // gates `isUserBarPinned` — a 0 here means there is nothing to pin.
+  userBarHeight.value = userBarAnchor.value?.offsetHeight ?? 0;
 };
 
 /**
@@ -569,11 +587,11 @@ const scrollWork = () => {
 
   if (navbarAnchor.value) {
     const rect = navbarAnchor.value.getBoundingClientRect();
-    // Fix the navbar once it reaches the bottom of the header + the sticky
-    // announcement bar, so it pins directly below the bar (not under it).
+    // Fix the navbar once it reaches the bottom of the header + the pinned user
+    // bar, so it pins directly below it (not under it).
     isNavFixed.value =
       isNavbarStickyPage.value ||
-      rect.top <= headerHeight.value + announcementHeight.value;
+      rect.top <= headerHeight.value + userBarHeight.value;
   }
 
   // Desktop rail: pin it under the header once its column would scroll past.
@@ -686,16 +704,23 @@ const stopBannerResizeObserver = () => {
 watch(
   () => authStore.isAuthenticated,
   (isAuth, wasAuth) => {
-    if (!isAuth || wasAuth || typeof window === "undefined") return;
-    document.body.style.overflow = "";
-    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-    initialScrollDone.value = false;
-    isBannerVisible.value = false;
-    isNavFixed.value = false;
-    isAtTop.value = true;
-    isImagesFixed.value = false;
-    // Re-measure and recompute once the reflow (auth-only sections mount/unmount)
-    // settles, so the spacers/flags reflect the final layout at the top.
+    if (typeof window === "undefined") return;
+
+    // Only the guest → authenticated direction needs the scroll/flag reset.
+    if (isAuth && !wasAuth) {
+      document.body.style.overflow = "";
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+      initialScrollDone.value = false;
+      isBannerVisible.value = false;
+      isNavFixed.value = false;
+      isAtTop.value = true;
+      isImagesFixed.value = false;
+    }
+
+    // Both directions need the re-measure: MobileUserBar mounts and unmounts
+    // with the session, and its height gates the pin and offsets the navbar —
+    // left stale on logout it would strand a 34px spacer as a black gap.
+    // Runs once the reflow (auth-only sections mount/unmount) settles.
     nextTick(() => {
       measureNavbarHeight();
       handleScroll();
