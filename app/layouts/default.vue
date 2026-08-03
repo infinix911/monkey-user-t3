@@ -39,6 +39,10 @@
       <!-- Normal page content — always mounted; hidden with v-show while
            the notice is pending. -->
       <div v-show="!uiStore.showNoticeModal">
+        <!-- Signed-in user info, directly under the header (mobile only). It
+             sits outside the two-column wrapper below so it spans the full
+             viewport width rather than the content column. -->
+        <MobileUserBar />
         <!-- Two columns from lg: the left rail, then the existing content stack.
              Below lg this wrapper is inert (no flex), so the single-column
              mobile/tablet layout — and all the sticky/scroll machinery tuned to
@@ -95,9 +99,12 @@
             ? { height: 0, overflow: 'hidden', visibility: 'hidden' }
             : {}
             ">
-          <!-- RTP page shows a single static banner; every other page shows the
-               rotating BannerPreview carousel. -->
+          <!-- Only the homepage carries the rotating BannerPreview carousel.
+               The RTP page has its own static banner, and every other page
+               shows the shared inner-page one. -->
           <img v-if="isRtpPage" :src="rtpBannerSrc" :alt="$t('navbar.rtp')"
+            class="block w-full h-auto" >
+          <img v-else-if="!isHomePage" :src="innerPageBannerSrc" :alt="brandSiteConfig.identity.siteName"
             class="block w-full h-auto" >
           <BannerPreview v-else />
         </div>
@@ -388,6 +395,14 @@ const localePath = useLocalePath();
 // instead of the rotating BannerPreview carousel.
 const isRtpPage = computed(() => route.path === localePath("/slot-rtp"));
 const rtpBannerSrc = cdn("/designs/rtp-banner.png");
+
+// The BannerPreview carousel is the homepage's; every other page (bar RTP,
+// which has its own above) shows this one static banner instead. It is a
+// CMS-uploaded file on the deployment's own origin rather than a `/designs`
+// asset, so it is an absolute URL and does NOT go through cdn().
+const isHomePage = computed(() => route.path === localePath("/"));
+const innerPageBannerSrc =
+  "https://krw-demo1.jaeisol.com/designs/banana/banner/kimak-dk-scan-1782672134477.png";
 
 // The 102% big-screen zoom is off: it rendered the 1202px content column at
 // 1226px. The allow-list that drove it lived here — see the template comment on

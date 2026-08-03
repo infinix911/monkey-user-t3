@@ -817,7 +817,8 @@
     "userIconAlt": "User icon",
     "menu": "Menu",
     "honorific": "",
-    "walletUnit": ""
+    "walletUnit": "",
+    "convert": "CONVERT"
   },
   "sideMenu": {
     "myAccount": "My Account"
