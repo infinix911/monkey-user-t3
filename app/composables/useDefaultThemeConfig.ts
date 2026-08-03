@@ -388,6 +388,12 @@ export interface ThemeSidebarConfig {
     divider: string;
     /** Label color for the active route. Hex color. */
     activeItemColor: string;
+    /**
+     * Outline color of the active row (the 1px width is fixed in AppSidebar,
+     * as it is for the rail itself). Hex color; empty means no outline, so the
+     * active row is marked by its label colour alone.
+     */
+    activeItemBorderColor: string;
     /** Row hover background. CSS color (rgba). */
     hoverBg: string;
     /**
@@ -1068,6 +1074,7 @@ export const getDefaultThemeConfig = (): SiteConfig => {
                 bg: "rgba(0, 0, 0, 0.6)",
                 divider: "#434343",
                 activeItemColor: "#FF8A21",
+                activeItemBorderColor: "#FF8A21",
                 hoverBg: "rgba(255, 255, 255, 0.06)",
                 // Ordered menu config, shared by the rail and the mobile profile
                 // modal. Page 1 is the game-category group, page 2 the

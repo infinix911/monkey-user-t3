@@ -182,6 +182,7 @@
       "hoverBg": "rgba(255, 255, 255, 0.06)",
       "borderColor": "#B04C00",
       "activeItemColor": "#FF8A21",
+      "activeItemBorderColor": "#FF8A21",
       "menus": [
         {
           "key": "hot",

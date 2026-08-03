@@ -4,7 +4,19 @@
        stacked sections and the dedicated pages identical. More space above than
        below, so the bar reads as belonging to the row it introduces rather than
        floating between two. GameCarousel's own `py-1` adds 4px on each side. -->
-  <div class="game-section-bar relative z-10 w-full h-8 md:h-[45px] flex items-center px-4 mt-4 mb-2 md:mt-6 md:mb-3"
+  <!-- Top margin is rhythm BETWEEN rows, so the FIRST bar on a page drops it:
+       there is no row above it, only the banner (homepage) or the navbar, and
+       the full margin would read as a black gap rather than as separation.
+       Below `lg` — where the sidebar rail is hidden (`hidden lg:block` in
+       layouts/default.vue) — that first bar sits flush at 0; from `lg`, with
+       the rail in play, it takes the 9px measured off the reference design.
+       Two cases, hence the second variant: the homepage opens straight with a
+       bar, while the category pages (hot/slots/casino/…) open with an sr-only
+       <h1> that takes the :first-child slot without occupying any flow space.
+       Every breakpoint that sets a top margin has to restate both, since a
+       later breakpoint's plain utility would otherwise win. -->
+  <div
+    class="game-section-bar relative z-10 w-full h-8 md:h-[45px] flex items-center px-4 mb-2 md:mb-3 mt-[14px] first:mt-0 [.sr-only+&]:mt-0 md:mt-6 md:first:mt-0 md:[.sr-only+&]:mt-0 lg:mt-4 lg:first:mt-[9px] lg:[.sr-only+&]:mt-[9px]"
     :style="{ background: siteConfig.theme.sectionHeader.gradient }">
     <!-- Icon + title only, matching banana-jaeisol-t3-nuxt: one bold white
          label, no Latin subtitle beside it. The icon is sized to nearly fill
@@ -23,17 +35,3 @@ defineProps<{ name: string; label: string }>();
 
 const siteConfig = useSiteConfig();
 </script>
-
-<style scoped>
-/* The top margin above is rhythm BETWEEN rows. On the first bar of a page there
-   is no row above it — only the banner (homepage) or the navbar — so the full
-   margin reads as a black gap rather than separation. 9px is measured off the
-   reference design (banner bottom edge to the top of the bar); keep the two in
-   step if that design moves. Two cases: the homepage opens straight with a bar,
-   while the dedicated category pages (hot/slots/casino/…) open with an sr-only
-   <h1> that takes the :first-child slot without occupying any flow space. */
-.game-section-bar:first-child,
-.sr-only+.game-section-bar {
-  margin-top: 9px;
-}
-</style>

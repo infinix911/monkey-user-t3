@@ -213,10 +213,10 @@
           </div>
         </div>
 
-        <!-- Mobile Bottom Navigation — shown for guests too (the bar renders a
-             public BERANDA · RTP · MASUK · PROMOSI · MENU set when logged out).
-             Shown on every page, including the RTP page. -->
-        <BottomNav />
+        <!-- Mobile Bottom Navigation — signed-in only. Gated here rather than
+             inside the component so guests never fetch its async chunk. Shown
+             on every page, including the RTP page. -->
+        <BottomNav v-if="authStore.isAuthenticated" />
 
         <!-- Custom SEO footer — admin-managed HTML from /api/site/custom-seo.
              Only rendered when a row matches this hostname and supplies a
