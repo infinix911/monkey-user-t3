@@ -146,14 +146,18 @@
                 <span class="text-white/90 text-[13px] leading-none">{{ walletUnit }}</span>
               </span>
 
-              <!-- Point balance -->
-              <span class="flex items-center gap-1.5 ms-10">
+              <!-- Point balance — the figure IS the conversion control. There is
+                   no separate transfer affordance in the header: the swap arrow
+                   read as decoration and a labelled button beside it was a third
+                   competing button, so clicking the amount opens the modal. -->
+              <button type="button" class="flex items-center gap-1.5 ms-10 cursor-pointer hover:opacity-80 transition-opacity"
+                :aria-label="$t('point.title')" @click="uiStore.setShowPointModal(true)">
                 <NuxtImg :src="siteConfig.assets.navIcons.pointIcon" alt="" aria-hidden="true" width="18" height="18"
                   class="w-[18px] h-[18px] object-contain shrink-0" />
                 <span class="font-bold text-[15px] tabular-nums leading-none"
                   :style="{ color: ACCOUNT_BAR_COLORS.point }">{{
                     currency.formatNumber(authStore.user.point_wallet) }}</span>
-              </span>
+              </button>
 
               <!-- Spacer: the bar is a fixed 45% of the column, so it is usually
                    wider than its contents. This absorbs that slack, which pins
@@ -162,15 +166,10 @@
                    when the balances grow enough to consume the slack. -->
               <span class="flex-1" aria-hidden="true" />
 
-              <!-- Actions -->
+              <!-- Actions — refresh + bell only; the conversion control now
+                   sits beside the point figure above. The spacer before this
+                   group pins them to the bar's trailing edge. -->
               <div class="flex items-center gap-2.5 ms-10">
-                <!-- Point conversion — opens the point-to-balance modal. -->
-                <button type="button" :aria-label="$t('point.title')"
-                  class="shrink-0 cursor-pointer opacity-90 hover:opacity-100 transition-opacity"
-                  @click="uiStore.setShowPointModal(true)">
-                  <NuxtImg :src="siteConfig.assets.navIcons.swapIcon" alt="" aria-hidden="true" width="24" height="24"
-                    class="w-[24px] h-[24px] object-contain" />
-                </button>
                 <!-- Wallet reload. The art ships in #434343, so it is tinted to
                      white here rather than shipping a second copy of the file. -->
                 <button type="button" :aria-label="$t('common.refreshBalance')" :disabled="isRefreshingWallet"
@@ -250,7 +249,13 @@
          script, so the SSR header is sized correctly with no hydration flash. -->
     <div class="min-[690px]:hidden overflow-hidden md:pt-2 md:pb-0.5 pt-0 pb-0"
       :style="{ height: 'var(--mh-header-height, 60px)', backgroundColor: siteConfig.theme.nav.stickyBg }">
-      <div class="w-full h-full flex items-end justify-between relative px-1 transition-colors duration-300"
+      <!-- ONE scaled container for the logo AND the buttons: the row is laid
+           out at MOBILE_HEADER_DESIGN_WIDTH and scaled down to the viewport, so
+           the pair keeps its proportions and its gap at every width instead of
+           the logo running under the buttons on a 390px iPhone 12 or a 375px
+           SE. See `.mh-scale-row` below for how the width/height are
+           pre-divided so the scaled result still fills the bar exactly. -->
+      <div class="mh-scale-row flex items-end justify-between relative px-1 transition-colors duration-300"
         :style="{ backgroundColor: siteConfig.theme.nav.stickyBg }">
         <div class="flex items-center gap-2">
           <button v-show="!uiStore.showNoticeModal" data-hamburger-menu="true" :aria-label="$t('header.menu')"
@@ -292,29 +297,12 @@
             <span class="block w-full text-center truncate">{{ $t('header.signUp') }}</span>
           </button>
         </div>
+        <!-- The signed-in user info is NOT in the mobile header: it renders as
+             its own full-width bar directly beneath it (MobileUserBar, mounted
+             by layouts/default.vue), which is the only way the five values and
+             actions fit on a 360px phone. The header keeps just the logo. -->
         <div v-if="isAuthenticated" v-show="!uiStore.showNoticeModal"
-          class="flex items-center gap-2 relative self-center pr-1">
-          <!-- User info — lucky-style pill: level-matching stone badge, yellow
-               username above currency + green balance on a dark rounded card.
-               The header height is fixed (63px), so the pill scales smoothly with
-               viewport width via clamp(min, vw, max) — consistent proportions on
-               every phone width, bounded so it never gets too big/small. -->
-          <div class="rounded-[10px] pl-2 pr-3.5 flex flex-nowrap items-center gap-0.5 whitespace-nowrap min-w-[100px]"
-            :style="[pillBgStyle, { height: '41px' }]">
-            <NuxtImg :src="levelStoneSrc" :alt="authStore.user.level_name || 'level'" width="60" height="60"
-              class="w-[clamp(28px,6.9vw,30px)] h-[clamp(28px,6.5vw,30px)] object-contain shrink-0" />
-            <div class="flex flex-col justify-center items-start gap-px whitespace-nowrap min-w-[85px]">
-              <span class="uppercase whitespace-nowrap leading-none text-left"
-                :style="[markMediumStyle, { color: siteConfig.theme.brandColor }]">{{ authStore.user.username }}</span>
-              <span class="flex flex-nowrap items-baseline justify-start gap-1.5 whitespace-nowrap -mt-0.4">
-                <span class="text-white whitespace-nowrap leading-none" :style="markMediumStyle">{{
-                  walletSymbol }}</span>
-                <span class="text-[#22c55e] whitespace-nowrap leading-none" :style="markBoldStyle">{{
-                  currency.formatNumber(authStore.user.wallet) }}</span>
-              </span>
-            </div>
-          </div>
-          <!-- Point conversion is desktop-only — on mobile the header stays compact. -->
+          class="flex items-center gap-2 relative self-center pr-1 shrink-0">
           <div class="contents">
             <!-- Notification bell — hidden on the mobile header. -->
             <div class="absolute top-[-25px] right-2 z-10 hidden">
@@ -389,6 +377,7 @@
 <script setup lang="ts">
 import { computed, ref, watch, onMounted, onUnmounted } from "vue";
 import { formatWallet } from "@/utils/currency";
+import { mobileHeaderScale } from "@/utils/scale";
 import { useApi } from "@/composables/useApi";
 import { validateResponse } from "@/lib/validateResponse";
 import {
@@ -475,8 +464,6 @@ const refreshWallet = async () => {
   }
 };
 
-// Mobile authenticated pill (lucky-style): currency formatting + the user's
-// level-matching stone badge. Mirrors UserBalancePill.vue.
 const currency = useCurrency();
 const walletSymbol = computed(() => {
   const s = currency.symbolFor(authStore.user.currency);
@@ -487,17 +474,6 @@ const walletSymbol = computed(() => {
 // "원", so the locale wins where it supplies one; every other deployment falls
 // back to the currency's own symbol.
 const walletUnit = computed(() => t("header.walletUnit") || walletSymbol.value);
-
-const levelStoneSrc = useLevelStone();
-// Mobile pill text: username + currency symbol render in Mark Medium, the
-// balance amount in Mark Bold. They share the same size so the IDR symbol and
-// the amount stay the same height (only weight/colour differ).
-const markMediumStyle =
-  "font-family: var(--font-mark); font-size: clamp(12px,3.2vw,14px); font-weight: 500; letter-spacing: 0.04em;";
-const markBoldStyle =
-  "font-family: var(--font-mark); font-size: clamp(13px,3.6vw,15px); font-weight: 700; letter-spacing: 0.04em;";
-// Solid dark gray pill background matching the reference.
-const pillBgStyle = "background: #2b2d33;";
 
 // Mobile scaling — the scale factor itself lives in the `--mh-scale` CSS var
 // (set pre-paint by app.vue's inline script). `isMobile` is still needed by
@@ -519,11 +495,15 @@ const openProfileModal = () => {
 };
 
 const updateMobileScale = () => {
-  // The header switches to its desktop design at >=690px; below that it's a
-  // fixed-height mobile bar (no viewport scaling). --mh-scale stays 1 (the
-  // mobile header no longer scales).
+  // The header switches to its desktop design at >=690px; below that the row is
+  // laid out at MOBILE_HEADER_DESIGN_WIDTH and scaled down to the viewport, so
+  // the logo and the auth buttons keep their proportions and never collide.
+  // Mirrors app.vue's pre-paint inline script — keep the two in step.
   isMobile.value = window.innerWidth < 690;
-  document.documentElement.style.setProperty("--mh-scale", "1");
+  document.documentElement.style.setProperty(
+    "--mh-scale",
+    String(isMobile.value ? mobileHeaderScale(window.innerWidth) : 1),
+  );
 };
 
 onMounted(() => {
@@ -677,6 +657,20 @@ const _formatCurrency = formatWallet;
 </script>
 
 <style scoped>
+/* Mobile header row: laid out at the design width, then scaled to the viewport.
+   Dividing width/height by the scale first means the scaled result measures
+   exactly 100% x 100% of the bar, so the row still fills it edge to edge — a
+   bare `transform: scale()` would leave the right side and the bottom empty.
+   `--mh-scale` is written pre-paint by app.vue's inline script (and kept in
+   sync on resize by updateMobileScale below), so the SSR HTML is already
+   correct and there is no hydration resize. */
+.mh-scale-row {
+  width: calc(100% / var(--mh-scale, 1));
+  height: calc(100% / var(--mh-scale, 1));
+  transform: scale(var(--mh-scale, 1));
+  transform-origin: top left;
+}
+
 /* The refresh glyph ships in #434343 (a light-theme grey). Inverting to white
    keeps one shared asset instead of a second recoloured copy of the same file. */
 .account-bar-icon-light {

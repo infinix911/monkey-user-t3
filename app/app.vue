@@ -31,6 +31,7 @@ import { fetchSiteSettings } from "@/composables/useSiteSettings";
 import { LOCALE_META, type SupportedLocale } from "@/lib/locale-meta";
 import { useSiteCurrency } from "@/composables/useSiteCurrency";
 import { currencyToLocale, isAppLocale } from "@/utils/locale-from-currency";
+import { MOBILE_HEADER_DESIGN_WIDTH } from "@/utils/scale";
 import type { SiteConfig } from "@/composables/useDefaultThemeConfig";
 import { useOfflineTelegramRegisterHandler } from "./composables/useOfflineTelegramRegisterHandler";
 
@@ -178,8 +179,8 @@ useHead(() => ({
       tagPriority: "critical",
       innerHTML:
         `(function(){try{var d=document.documentElement,w=window.innerWidth,` +
-        `H=${mobileHeaderDesignHeight.value};` +
-        `d.style.setProperty('--mh-scale','1');` +
+        `H=${mobileHeaderDesignHeight.value},W=${MOBILE_HEADER_DESIGN_WIDTH};` +
+        `d.style.setProperty('--mh-scale',String(w<690?Math.min(1,w/W):1));` +
         `d.style.setProperty('--mh-header-height',(w<690?H:83)+'px');}catch(e){}})();`,
     },
   ],
