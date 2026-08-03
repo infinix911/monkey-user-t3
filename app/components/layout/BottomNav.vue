@@ -65,7 +65,8 @@
           class="relative block h-auto text-white drop-shadow-[0_1.5px_2px_rgba(0,0,0,0.4)]" />
       </button>
 
-      <!-- Item overlay: HOME · DEPOSIT · [PROMOSI] · WITHDRAW · MENU. The
+      <!-- Item overlay: 공지사항 · 입금 · [홈] · 출금 · 메뉴 when signed in
+           (guests get BERANDA · RTP · [MASUK] · PROMOSI · MENU). The
            overlay covers the bar only (top-0 → bar bottom; bottom-[1.85cqw]
            excludes the SVG's shadow space below), and each column centres its
            icon+label group vertically so there's equal padding above and below. -->
@@ -83,7 +84,7 @@
           </span>
         </button>
 
-        <!-- Center column: holds only the Promosi label (the circle is the
+        <!-- Center column: holds only the FAB's label (the circle is the
              absolutely-centred button above). A spacer matching the side icon
              box keeps this label centred to the same baseline as the others and
              sitting below the elevated disc. -->
@@ -92,7 +93,7 @@
           @click="handleCenterClick">
           <span class="block h-[6cqw]" aria-hidden="true" />
           <span class="text-white font-bold uppercase leading-none tracking-wide" :style="labelStyle">
-            {{ $t(centerItem.labelKey) }}
+            {{ centerItem.label }}
           </span>
         </button>
 
@@ -131,6 +132,9 @@ const uiStore = useUiStore();
 const features = useFeatures();
 const route = useRoute();
 const localePath = useLocalePath();
+// The centre FAB's label is the site name (not a translated string), so it is
+// resolved in script alongside the guest label rather than via `$t` in template.
+const { t } = useI18n();
 
 // Bar silhouette path in the 750x105 design space (provided Figma export): a
 // rounded rectangle (corner r=14) whose top edge is interrupted by a centred
@@ -170,14 +174,15 @@ interface NavItem {
 
 const isAuth = computed(() => authStore.isAuthenticated);
 
-// The bar has two faces. Authenticated: HOME · DEPOSIT · [PROMOSI] · WITHDRAW ·
-// MENU (deposit/withdraw payments-gated, Promosi the centre FAB). Guests get a
-// public set instead: BERANDA · RTP · [MASUK] · PROMOSI · MENU — the centre FAB
-// becomes the login button and the side slots expose RTP + Promosi (no auth).
+// The bar has two faces. Authenticated: 공지사항 · 입금 · [홈] · 출금 · 메뉴 —
+// the centre FAB is HOME (labelled with the site name) and deposit/withdraw are
+// payments-gated. Guests get a public set instead: BERANDA · RTP · [MASUK] ·
+// PROMOSI · MENU — the centre FAB becomes the login button and the side slots
+// expose RTP + Promosi (no auth).
 const leftItems = computed<NavItem[]>(() =>
   isAuth.value
     ? [
-        { id: "home", labelKey: "navbar.home", icon: "home", requiresAuth: false },
+        { id: "notice", labelKey: "navbar.notice", icon: "notice", requiresAuth: true },
         ...(features.payments
           ? [{ id: "deposit", labelKey: "navbar.deposit", icon: "deposit", requiresAuth: true }]
           : []),
@@ -202,42 +207,47 @@ const rightItems = computed<NavItem[]>(() =>
       ],
 );
 
-// Centre FAB: Promosi when signed in, the MASUK (login) button for guests.
+// Centre FAB: HOME when signed in, the MASUK (login) button for guests.
 const centerItem = computed(() =>
   isAuth.value
-    ? { icon: "promotion", labelKey: "navbar.promotion" }
-    : { icon: "login", labelKey: "navbar.login" },
+    ? { icon: "home", label: siteConfig.identity.siteName }
+    : { icon: "login", label: t("navbar.login") },
 );
 
 // Centre FAB icon size. The guest `login` glyph is a full person-in-a-disc, so
 // it should nearly fill the red circle (leaving only a thin ring); the
-// authenticated `promotion` gift glyph needs breathing room, so it stays small.
+// authenticated `home` glyph is a solid house that needs breathing room, so it
+// stays smaller.
 const centerIconClass = computed(() =>
-  isAuth.value ? "w-[46%]" : "w-[60%]",
+  isAuth.value ? "w-[48%]" : "w-[60%]",
 );
 
+// Home → the landing page. The Hot category now has its own /hot page and is no
+// longer auto-selected on home (the Navbar only highlights Hot when on /hot). If
+// already on home, scroll past the banner to the games grid.
+const goHome = () => {
+  const home = localePath("/");
+  if (route.path === home) {
+    const banner = document.getElementById("banner-container");
+    if (banner) {
+      window.scrollTo({
+        top: banner.offsetTop + banner.offsetHeight,
+        behavior: "smooth",
+      });
+    }
+  } else {
+    navigateTo(home);
+  }
+};
+
 const handleCenterClick = () => {
-  if (isAuth.value) uiStore.setShowPromotionModal(true);
+  if (isAuth.value) goHome();
   else uiStore.setShowLoginModal(true);
 };
 
 const handleNavClick = (item: NavItem) => {
   if (item.id === "home") {
-    // Home → the landing page. The Hot category now has its own /hot page and
-    // is no longer auto-selected on home (the Navbar only highlights Hot when
-    // on /hot). If already on home, scroll past the banner to the games grid.
-    const home = localePath("/");
-    if (route.path === home) {
-      const banner = document.getElementById("banner-container");
-      if (banner) {
-        window.scrollTo({
-          top: banner.offsetTop + banner.offsetHeight,
-          behavior: "smooth",
-        });
-      }
-    } else {
-      navigateTo(home);
-    }
+    goHome();
     return;
   }
 
@@ -258,7 +268,8 @@ const handleNavClick = (item: NavItem) => {
     return;
   }
 
-  if (item.id === "deposit") uiStore.setShowDepositModal(true);
+  if (item.id === "notice") uiStore.setShowNoticeModal(true);
+  else if (item.id === "deposit") uiStore.setShowDepositModal(true);
   else if (item.id === "withdraw") uiStore.setShowWithdrawalModal(true);
   else if (item.id === "menu") {
     // Toggle the profile modal — tapping the menu icon again closes it.
