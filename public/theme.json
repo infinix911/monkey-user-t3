@@ -352,7 +352,7 @@
     },
     "mobileHeaderHeight": 63,
     "navMenuItemMarginTop": "10px",
-    "mobileBannerAspectRatio": "1516 / 750",
+    "mobileBannerAspectRatio": "1200 / 450",
     "panel": {
       "actionColor": "#FF7A00",
       "panelBorder": "#C2691A",

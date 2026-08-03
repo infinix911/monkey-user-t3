@@ -36,9 +36,14 @@
                   :fetchpriority="index === 0 ? 'high' : undefined" draggable="false" decoding="async">
 
                 <!-- Desktop Overlay — first slide's overlay is the LCP element,
-                     so hint the browser to fetch it with high priority. -->
+                     so hint the browser to fetch it with high priority.
+                     `object-cover` matches the main media above: the pair is
+                     drawn as one composition, so they must be fitted the same
+                     way. Under `contain` the overlay shrank to fit whenever the
+                     slot's ratio differed from the artwork's while the main
+                     image cropped to fill, which pulled the two apart. -->
                 <img v-if="banner.overlay_url" :src="optimize(banner.overlay_url, BANNER_W.desktop)" alt="Overlay"
-                  class="absolute inset-0 w-full h-full object-contain z-10 pointer-events-none overlay-zoom"
+                  class="absolute inset-0 w-full h-full object-cover z-10 pointer-events-none overlay-zoom"
                   :loading="index === 0 ? 'eager' : 'lazy'" :fetchpriority="index === 0 ? 'high' : undefined"
                   draggable="false" decoding="async">
 
@@ -57,10 +62,11 @@
                   class="absolute inset-0 w-full h-full object-cover" :loading="index === 0 ? 'eager' : 'lazy'"
                   :fetchpriority="index === 0 ? 'high' : undefined" draggable="false" decoding="async">
 
-                <!-- Mobile Overlay — LCP candidate on mobile viewports. -->
+                <!-- Mobile Overlay — LCP candidate on mobile viewports.
+                     `object-cover` for the same reason as the desktop one. -->
                 <img v-if="banner.overlay_url_mobile" :src="optimize(banner.overlay_url_mobile, BANNER_W.mobile)"
                   alt="Overlay"
-                  class="absolute inset-0 w-full h-full object-contain z-10 pointer-events-none overlay-zoom"
+                  class="absolute inset-0 w-full h-full object-cover z-10 pointer-events-none overlay-zoom"
                   :loading="index === 0 ? 'eager' : 'lazy'" :fetchpriority="index === 0 ? 'high' : undefined"
                   draggable="false" decoding="async">
 
