@@ -24,16 +24,12 @@ export const verifyUserResponseSchema = z.object({
   userType: z.number(),
   wallet: z.string(),
   pointWallet: z.string(),
-  level: z.number(),
-  // Level-detail fields are optional — the backend omits them in some
-  // responses. The mapper defaults them (|| "" / || 0), so verifyUser must not
-  // fail validation when they're absent (would leave the app "logged out").
-  levelName: z.string().nullable().optional(),
-  levelExp: z.string().optional(),
-  levelMinExp: z.string().nullable().optional(),
-  nextLevel: z.number().optional(),
-  nextLevelName: z.string().optional(),
-  nextLevelMinExp: z.string().optional(),
+  // No level fields: `getSession`'s hook in monkey-user-api returns
+  // getAuthenticatedMemberByUserId(), which selects id/upperId/depth/username/
+  // bank*/phone/userType/wallet/pointWallet and nothing else — not one level
+  // field is on the wire. `level` used to be required here, so validation threw
+  // on every session and left the app logged-out after a successful login. The
+  // mapper supplies the UserState defaults instead.
 });
 
 export type VerifyUserResponse = z.infer<typeof verifyUserResponseSchema>;
@@ -50,13 +46,6 @@ export type GetSessionResponse = z.infer<typeof getSessionResponseSchema>;
 export interface UserState {
   id: string;
   username: string;
-  level: number;
-  level_name: string;
-  level_exp: string;
-  level_min_exp: string;
-  next_level: number;
-  next_level_name: string;
-  next_level_min_exp: string;
   wallet: string;
   point_wallet: string;
   bank_name: string;
@@ -72,13 +61,6 @@ export interface UserState {
 export const defaultUserState: UserState = {
   id: "",
   username: "",
-  level: 0,
-  level_name: "",
-  level_exp: "",
-  level_min_exp: "",
-  next_level: 0,
-  next_level_name: "",
-  next_level_min_exp: "",
   wallet: "",
   point_wallet: "",
   bank_name: "",
@@ -150,13 +132,6 @@ export function mapVerifyUserToState(
   return {
     id: res.id,
     username: res.username,
-    level: res.level,
-    level_name: res.levelName || "",
-    level_exp: res.levelExp || "",
-    level_min_exp: res.levelMinExp || "",
-    next_level: res.nextLevel || 0,
-    next_level_name: res.nextLevelName || "",
-    next_level_min_exp: res.nextLevelMinExp || "",
     wallet: res.wallet,
     point_wallet: res.pointWallet,
     bank_name: res.bankName,

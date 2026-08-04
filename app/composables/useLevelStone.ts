@@ -1,23 +1,19 @@
 /**
- * Resolves the level-matched "stone" badge image for the current user.
+ * Resolves the "stone" badge image shown beside a user's balance.
  *
- * Maps `authStore.user.level_name` (bronze, silver, gold, ruby, …) to the
- * matching `siteConfig.assets.images.<level>` asset, falling back to the gold
- * stone for unknown/empty levels. `diamond` maps to the `diamonds` asset key.
- *
- * Single source of truth for the balance-pill stone shown in the homepage and
- * page headers ([[UserBalancePill]], AppHeader).
+ * Member levels were removed from the database, so the session response carries
+ * no level and there is nothing left to map: this returns the gold stone for
+ * everyone. Kept as a composable (rather than inlining the asset) so the badge
+ * has one source of truth if levels ever come back — it would go back to
+ * keying `siteConfig.assets.images.<level>` off the level name here.
  */
 import { computed, type ComputedRef } from "vue";
 
 export const useLevelStone = (): ComputedRef<string> => {
-  const authStore = useAuthStore();
   const siteConfig = useSiteConfig();
 
   return computed(() => {
-    const name = (authStore.user.level_name || "").toLowerCase();
-    const key = name === "diamond" ? "diamonds" : name;
     const images = siteConfig.assets.images as unknown as Record<string, string>;
-    return images[key] || images.gold || "";
+    return images.gold || "";
   });
 };

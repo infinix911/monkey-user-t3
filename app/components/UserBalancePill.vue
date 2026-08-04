@@ -4,7 +4,7 @@
     <template v-if="layout === 'inline'">
       <div class="flex flex-nowrap items-center gap-4 whitespace-nowrap">
         <span class="flex flex-nowrap items-center gap-1.5 whitespace-nowrap">
-          <NuxtImg :src="levelStoneSrc" :alt="authStore.user.level_name || 'level'" class="object-contain shrink-0" :class="coinClass" />
+          <NuxtImg :src="levelStoneSrc" alt="" aria-hidden="true" class="object-contain shrink-0" :class="coinClass" />
           <span
 class="text-white uppercase whitespace-nowrap" :class="usernameClass"
             :style="markMediumStyle">{{ authStore.user.username }}</span>
@@ -33,7 +33,7 @@ v-if="showRefresh" type="button"
     <template v-else>
       <div class="flex flex-col whitespace-nowrap">
         <div class="flex items-center gap-2.5">
-          <NuxtImg :src="levelStoneSrc" :alt="authStore.user.level_name || 'level'" class="object-contain shrink-0" :class="coinClass" />
+          <NuxtImg :src="levelStoneSrc" alt="" aria-hidden="true" class="object-contain shrink-0" :class="coinClass" />
           <span
 class="text-white uppercase font-semibold whitespace-nowrap" :class="usernameClass"
             :style="textStyle">{{ authStore.user.username }}</span>
