@@ -129,22 +129,15 @@
                hardcoded creative and is deliberately not CMS-driven. -->
           <img v-if="isRtpPage" :src="rtpBannerSrc" :alt="$t('navbar.rtp')"
             class="block w-full h-auto" >
-          <template v-else>
-          <!-- `:key` is load-bearing. This layout persists across client-side
-               navigation, so Vue would reuse one BannerPreview instance and
-               only swap the prop — but its useAsyncData key is captured once at
-               setup, so the fetch would never re-run and every page would keep
-               showing the first page's banners. Keying on the page gives each
-               its own instance, its own request and its own cached payload.
-
-               That remount is also why this needs a transition: without one the
-               old creative is replaced in a single frame. `out-in` rather than
-               the default overlap, so two banners are never stacked in a slot
-               whose height is itself changing between pages. -->
-          <Transition name="banner-fade" mode="out-in">
-            <BannerPreview v-if="bannerPage" :key="bannerPage" :page="bannerPage" />
-          </Transition>
-          </template>
+          <!-- Deliberately NOT keyed, and no transition here. This layout
+               survives client-side navigation, so one BannerPreview instance
+               persists and refetches when `page` changes — see its
+               `watch` + `keepPreviousData`. Keying it instead remounted the
+               component, which emptied the slot between the two pages: the
+               height collapsed to zero and the page below jumped up and back.
+               Keeping the instance is what makes the swap smooth; the fade and
+               the height glide live inside the component. -->
+          <BannerPreview v-else-if="bannerPage" :page="bannerPage" />
         </div>
 
         <!-- Announcement Bar (mobile/tablet < lg: below the banner). It scrolls

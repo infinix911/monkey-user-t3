@@ -3,20 +3,26 @@
        to 1152px would re-cap the banner inside the wider content column. -->
   <div class="w-full mx-auto">
     <div id="banner-container" class="bg-black w-full relative overflow-hidden z-10">
-      <!-- Loading State -->
-      <div v-if="isLoading" class="w-full flex items-center justify-center bg-black" :style="bannerBoxStyle">
+      <!-- Loading State — FIRST load only. On a page change the previous
+           banner stays on screen (keepPreviousData) while the next request is
+           in flight; swapping to this placeholder would empty the slot and
+           produce the very jump the refetch-in-place avoids. -->
+      <div v-if="isLoading && banners.length === 0"
+        class="banner-box w-full flex items-center justify-center bg-black" :style="bannerBoxStyle">
         <span class="text-white/50 text-sm">{{ $t('common.loadingBanners') }}</span>
       </div>
 
       <!-- Empty State -->
-      <div v-else-if="banners.length === 0" class="w-full flex items-center justify-center bg-black"
+      <div v-else-if="banners.length === 0" class="banner-box w-full flex items-center justify-center bg-black"
         :style="bannerBoxStyle">
         <span class="text-white/50 text-sm">{{ $t('common.noBanners') }}</span>
       </div>
 
-      <!-- Carousel -->
+      <!-- Carousel. Dimmed slightly while the next page's banners load, so the
+           swap reads as a deliberate cross-fade rather than a hard cut. -->
       <template v-else>
-        <div class="overflow-hidden w-full relative touch-pan-y" @pointerdown="onPointerDown"
+        <div class="banner-swap overflow-hidden w-full relative touch-pan-y" :class="{ 'is-loading': isLoading }"
+          @pointerdown="onPointerDown"
           @pointermove="onPointerMove" @pointerup="onPointerUp" @pointercancel="onPointerCancel"
           @click.capture="onClickCapture">
           <div class="flex w-full ease-in-out" :class="{ 'transition-transform duration-500': !isDragging }"
@@ -25,7 +31,7 @@
               <!-- Desktop Banner — v-if (not CSS hidden) so the off-viewport
                    <video>/<img decoding="async"> is not in the DOM and the browser doesn't
                    fetch its src. UA-based detection: see useIsMobileSSR. -->
-              <div v-if="!isMobile" class="relative w-full" :style="{ aspectRatio: BANNER_AR_DESKTOP }">
+              <div v-if="!isMobile" class="banner-box relative w-full" :style="{ aspectRatio: BANNER_AR_DESKTOP }">
                 <!-- Main media — first slide is LCP, others should not stream
                      bytes upfront (preload="metadata" only fetches headers). -->
                 <video v-if="isVideo(banner.main_url)" :src="banner.main_url"
@@ -53,7 +59,7 @@
               </div>
 
               <!-- Mobile Banner -->
-              <div v-else class="relative w-full" :style="{ aspectRatio: BANNER_AR_MOBILE }">
+              <div v-else class="banner-box relative w-full" :style="{ aspectRatio: BANNER_AR_MOBILE }">
                 <!-- Main media -->
                 <video v-if="isVideo(banner.main_url_mobile)" :src="banner.main_url_mobile"
                   class="absolute inset-0 w-full h-full object-cover" loop muted playsinline autoplay
@@ -224,11 +230,22 @@ function stopAutoPlay() {
 
 const api = useApi();
 
-// The page is part of the key: each page's banners are a distinct read, so
-// they cache and hydrate separately instead of sharing the homepage's payload.
+/**
+ * One fetch, re-run whenever `page` changes.
+ *
+ * `watch` rather than a per-page key + remount: this component is in the layout
+ * and survives navigation, so refetching in place keeps the previous banner on
+ * screen until the new one is ready. Remounting collapsed the slot to zero
+ * height between the two, which shunted the whole page up and back down —
+ * exactly the jump a fade cannot hide.
+ *
+ * `data` deliberately keeps its previous value while a refetch is pending (the
+ * default), which is what holds the old creative and its ratio in place; the
+ * loading placeholder is therefore gated on there being no data at all.
+ */
 const { data: bannersData, pending: isLoading } = await useAsyncData<
   BannerPreviewItem[]
->(`banners-carousel-${props.page}`, async () => {
+>("banners-carousel", async () => {
   try {
     const raw = await api("/site/banners-new/carousel", {
       query: { page: props.page },
@@ -241,6 +258,8 @@ const { data: bannersData, pending: isLoading } = await useAsyncData<
     if (import.meta.dev) console.error("Failed to fetch banners:", err);
     return [];
   }
+}, {
+  watch: [() => props.page],
 });
 
 const banners = computed<BannerPreviewItem[]>(() => bannersData.value ?? []);
@@ -311,6 +330,34 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+/* Page-to-page banner swap.
+   The two pages' ratios differ (e.g. 4/1 vs 2.67/1), so the slot's height
+   changes on navigation. Animating `aspect-ratio` glides that instead of
+   snapping — browsers without interpolation for it simply land on the new
+   value, which is the old behaviour and no worse. */
+.banner-box {
+  transition: aspect-ratio 0.3s ease;
+}
+
+/* While the next page's banners are in flight the previous creative is still
+   on screen (keepPreviousData). Dimming it slightly marks the swap as
+   deliberate; it returns to full opacity as the new one paints. */
+.banner-swap {
+  transition: opacity 0.3s ease;
+}
+
+.banner-swap.is-loading {
+  opacity: 0.55;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .banner-box,
+  .banner-swap {
+    transition: none;
+  }
+}
+
 /* Block native image/media drag so a press-and-drag drives the carousel swipe
    instead of starting the browser's image drag (which would otherwise hijack
    the gesture and snap the slide back). */
