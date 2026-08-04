@@ -230,23 +230,23 @@
                   </button>
                 </div>
               </div>
-              <!-- Logout — sized to the guest login/sign-up buttons (35x113),
-                   so the header's primary action is the same target in both
-                   signed-in and signed-out states. It keeps the language
-                   selector's radius and background, so it still reads as part
-                   of the trailing control group rather than as a third auth
-                   button. `authStore.logout()` already posts /auth/logout,
-                   clears state and returns home. -->
+              <!-- Logout — the LOGIN button's twin: same gold gradient border
+                   and gold gradient text, same 35x113 box the guest
+                   login/sign-up pair uses, so the header's primary action looks
+                   and measures identical signed in and signed out. (It used the
+                   language selector's flat background before, which read as a
+                   muted tertiary control.) The icon is dropped rather than
+                   recoloured: the gradient is painted through
+                   `color: transparent` + background-clip, which would erase a
+                   `currentColor` glyph. Matches the mobile header's logout.
+                   `authStore.logout()` already posts /auth/logout, clears state
+                   and returns home. -->
               <button type="button" :aria-label="$t('auth.logout')"
-                class="inline-flex justify-center items-center gap-1.5 px-3 h-[35px] w-[113px] rounded-[7px] text-white/90 cursor-pointer hover:opacity-90 transition-opacity"
-                :style="{ backgroundColor: siteConfig.theme.ui.langSelectorBg }" @click="handleLogout">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                  <path d="m16 17 5-5-5-5" />
-                  <path d="M21 12H9" />
-                </svg>
-                <span class="text-[13px] font-semibold whitespace-nowrap">{{ $t('auth.logout') }}</span>
+                class="cursor-pointer h-[35px] w-[113px] px-3 rounded-[8px] flex items-center justify-center font-extrabold italic uppercase text-[15px] tracking-tight transition-transform hover:scale-[1.03]"
+                :style="authButtonStyle.login" @click="handleLogout">
+                <span class="block w-full text-center truncate"
+                  :style="{ background: siteConfig.theme.authButton.loginTextGradient, WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }">{{
+                    $t('auth.logout') }}</span>
               </button>
               <!-- No desktop menu trigger: from `lg` the left rail carries the
                  profile menu, so NewProfileModal is a mobile-only surface. -->
@@ -406,13 +406,6 @@
 import { computed, ref, watch, onMounted, onUnmounted } from "vue";
 import { formatWallet } from "@/utils/currency";
 import { mobileHeaderScale } from "@/utils/scale";
-import { useApi } from "@/composables/useApi";
-import { validateResponse } from "@/lib/validateResponse";
-import {
-  notificationsResponseSchema,
-  mapNotification,
-  type NotificationItem,
-} from "@/interfaces/notification.interface";
 
 const authStore = useAuthStore();
 const uiStore = useUiStore();
@@ -564,10 +557,14 @@ onUnmounted(() => {
 // Computed
 const isAuthenticated = computed(() => authStore.isAuthenticated);
 
-const notifications = ref<NotificationItem[]>([]);
-const unreadNotificationCount = computed(
-  () => notifications.value.filter((n) => !n.is_read).length,
-);
+// Shared with the bottom nav's 공지사항 button, which opens the same panel from
+// the same single fetch — see useNotifications.
+const {
+  notifications,
+  unreadCount: unreadNotificationCount,
+  fetchNotifications,
+  markNotificationsRead,
+} = useNotifications();
 
 const showLangDropdown = ref(false);
 
@@ -589,27 +586,7 @@ const toggleMobileLangDropdown = () => {
   showLangDropdown.value = !showLangDropdown.value;
 };
 
-const fetchNotifications = async () => {
-  if (!authStore.isAuthenticated) return;
-  try {
-    const api = useApi();
-    const raw = await api("/notifications", { query: { lang: locale.value } });
-    notifications.value = validateResponse(
-      notificationsResponseSchema,
-      raw,
-      "/notifications",
-    ).map(mapNotification);
-  } catch {
-    notifications.value = [];
-  }
-};
 
-const markNotificationsRead = () => {
-  notifications.value = notifications.value.map((notification) => ({
-    ...notification,
-    is_read: true,
-  }));
-};
 
 type LangCode = "en" | "ko";
 
