@@ -469,6 +469,7 @@
     "background": "Navigation",
     "home": "HOME",
     "menu": "MENU",
+    "notice": "NOTICE",
     "promotion": "Promosi",
     "rtp": "RTP",
     "login": "LOGIN"
@@ -759,6 +760,8 @@
     "idTaken": "ID is already taken",
     "password": "Password",
     "verifyPassword": "Verify Password",
+    "withdrawalPassword": "Withdrawal Password",
+    "withdrawalPasswordPlaceholder": "Enter withdrawal password",
     "mobileNumber": "Mobile Number",
     "email": "E-mail",
     "currency": "Currency",
@@ -795,6 +798,8 @@
       "usernameMinLength": "Username must be at least 4 characters",
       "usernameMaxLength": "Username must not exceed 12 characters",
       "passwordMaxLength": "Password must not exceed 20 characters",
+      "withdrawalPasswordMinLength": "Withdrawal password must be at least 4 characters",
+      "withdrawalPasswordMaxLength": "Withdrawal password must not exceed 20 characters",
       "mobileRequired": "Mobile number is required",
       "mobileInvalid": "Mobile number must contain only digits",
       "mobileMinLength": "Mobile number must be at least 8 digits",
@@ -816,7 +821,8 @@
     "userIconAlt": "User icon",
     "menu": "Menu",
     "honorific": "",
-    "walletUnit": ""
+    "walletUnit": "",
+    "convert": "CONVERT"
   },
   "sideMenu": {
     "myAccount": "My Account"

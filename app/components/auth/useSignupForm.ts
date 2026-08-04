@@ -106,6 +106,7 @@ export function useSignupForm(options: UseSignupFormOptions) {
         username: "",
         password: "",
         confirmPassword: "",
+        withdrawalPassword: "",
         email: "",
         mobile: "",
         currency: currency.code,
@@ -119,6 +120,7 @@ export function useSignupForm(options: UseSignupFormOptions) {
   const [usernameField] = defineField("username");
   const [passwordField] = defineField("password");
   const [confirmPasswordField] = defineField("confirmPassword");
+  const [withdrawalPasswordField] = defineField("withdrawalPassword");
   const [emailField] = defineField("email");
   const [mobileField] = defineField("mobile");
   const [currencyField] = defineField("currency");
@@ -132,6 +134,7 @@ export function useSignupForm(options: UseSignupFormOptions) {
   const isCheckingReferral = ref(false);
   const showPassword = ref(false);
   const showConfirmPassword = ref(false);
+  const showWithdrawalPassword = ref(false);
   const usernameStatus = ref<"available" | "taken" | null>(null);
   const referralStatus = ref<"valid" | "invalid" | null>(null);
 
@@ -203,14 +206,17 @@ export function useSignupForm(options: UseSignupFormOptions) {
 
     try {
       // Backend contract (camelCase, see registerSchema in monkey-user-api):
-      // { username, email?, password, confirmPassword, phone, bankName,
-      //   bankAccount, bankAccountName, referral? }. No `currency` field.
+      // { username, email?, password, confirmPassword, withdrawalPassword?,
+      //   phone, bankName, bankAccount, bankAccountName, referral? }. No
+      // `currency` field. `withdrawalPassword` is optional server-side (older
+      // clients omit it) but the form requires it, so it is always sent here.
       await api("/auth/register", {
         method: "POST",
         body: {
           username: values.username.trim().toLowerCase(),
           password: values.password,
           confirmPassword: values.confirmPassword,
+          withdrawalPassword: values.withdrawalPassword,
           email: values.email?.trim() || undefined,
           phone: values.mobile.trim(),
           bankName: values.bankName,
@@ -318,6 +324,7 @@ export function useSignupForm(options: UseSignupFormOptions) {
     usernameField,
     passwordField,
     confirmPasswordField,
+    withdrawalPasswordField,
     emailField,
     mobileField,
     currencyField,
@@ -330,6 +337,7 @@ export function useSignupForm(options: UseSignupFormOptions) {
     isCheckingReferral,
     showPassword,
     showConfirmPassword,
+    showWithdrawalPassword,
     usernameStatus,
     referralStatus,
     selectedCurrencyFlag,

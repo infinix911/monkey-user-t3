@@ -38,6 +38,12 @@ const signupRawSchema = (t: TFn) =>
       confirmPassword: z
         .string()
         .min(1, t("password.validation.confirmPasswordRequired")),
+      // Bounds mirror registerSchema's `withdrawalPassword` in monkey-user-api
+      // (4-20), which is also what the withdraw request validates against.
+      withdrawalPassword: z
+        .string()
+        .min(4, t("signup.validation.withdrawalPasswordMinLength"))
+        .max(20, t("signup.validation.withdrawalPasswordMaxLength")),
       email: z
         .string()
         .email(t("signup.validation.emailInvalid"))

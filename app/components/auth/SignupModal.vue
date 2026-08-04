@@ -3,7 +3,7 @@
     <Transition name="modal" appear>
       <div
         v-if="isOpen"
-        class="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 px-3 pb-3 sm:px-4 sm:pb-4 pt-[max(0.75rem,env(safe-area-inset-top))]"
+        class="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 px-3 pb-3 sm:px-4 sm:pb-4 pt-[max(0.75rem,env(safe-area-inset-top))]"
         @click.self="handleBackdropClick">
         <!-- Shared modal frame (same gradient border as deposit/withdraw).
              modalVars sits here so the accent vars also reach the close button. -->
@@ -142,6 +142,44 @@
                         class="tm-toggle absolute right-3 top-1/2 -translate-y-1/2 transition-colors cursor-pointer"
                         @click="showConfirmPassword = !showConfirmPassword">
                         <svg v-if="showConfirmPassword" class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                        <svg v-else class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                        </svg>
+                      </button>
+                    </template>
+                  </FormField>
+                </div>
+              </div>
+
+              <!-- Withdrawal Password — a SECOND credential, separate from the
+                   login password: it authorises withdrawals (see the
+                   `withdrawalPassword` field on the withdraw request) and is
+                   set here at registration rather than only afterwards via
+                   /auth/change-withdrawal-password. Wallet glyph, so it does
+                   not read as a repeat of the login password above. -->
+              <div class="field-row">
+                <span class="octa" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 7.5A1.5 1.5 0 0 1 4.5 6h13A1.5 1.5 0 0 1 19 7.5V9" />
+                    <path d="M3 7.5v9A1.5 1.5 0 0 0 4.5 18h14a1.5 1.5 0 0 0 1.5-1.5V12a1.5 1.5 0 0 0-1.5-1.5h-3a1.5 1.5 0 0 0 0 3h4.5" />
+                    <path d="M15.5 13h.01" />
+                  </svg>
+                </span>
+                <div class="field-main">
+                  <FormField
+                    v-model="withdrawalPasswordField" :type="showWithdrawalPassword ? 'text' : 'password'"
+                    :label="$t('signup.withdrawalPassword')"
+                    :placeholder="$t('signup.withdrawalPasswordPlaceholder')"
+                    :error="errors.withdrawalPassword" required>
+                    <template #suffix>
+                      <button
+                        type="button"
+                        class="tm-toggle absolute right-3 top-1/2 -translate-y-1/2 transition-colors cursor-pointer"
+                        @click="showWithdrawalPassword = !showWithdrawalPassword">
+                        <svg v-if="showWithdrawalPassword" class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                         </svg>
@@ -394,6 +432,7 @@ const {
   usernameField,
   passwordField,
   confirmPasswordField,
+  withdrawalPasswordField,
   emailField,
   mobileField,
   bankNameField,
@@ -405,6 +444,7 @@ const {
   isCheckingReferral,
   showPassword,
   showConfirmPassword,
+  showWithdrawalPassword,
   usernameStatus,
   referralStatus,
   selectedCurrencyFlag,

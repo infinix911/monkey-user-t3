@@ -388,6 +388,12 @@ export interface ThemeSidebarConfig {
     divider: string;
     /** Label color for the active route. Hex color. */
     activeItemColor: string;
+    /**
+     * Outline color of the active row (the 1px width is fixed in AppSidebar,
+     * as it is for the rail itself). Hex color; empty means no outline, so the
+     * active row is marked by its label colour alone.
+     */
+    activeItemBorderColor: string;
     /** Row hover background. CSS color (rgba). */
     hoverBg: string;
     /**
@@ -407,12 +413,15 @@ export interface ThemeConfig {
     /** Page body background. Hex color. */
     bodyBgColor: string;
     /**
-     * Aspect ratio of the desktop banner slot. CSS aspect-ratio string, expressed
-     * against the 1202px content column so it resolves to a round height at full
-     * width (e.g. "1202 / 300" = 300px tall).
+     * Aspect ratio of the desktop banner slot. CSS aspect-ratio string.
+     *
+     * Set this to the BANNER ARTWORK's own ratio, not to a desired height. The
+     * slot fits its layers with object-cover, so any gap between this ratio and
+     * the artwork's is paid for by cropping the banner (and its overlay) — see
+     * BannerPreview.vue.
      */
     desktopBannerAspectRatio: string;
-    /** Aspect ratio of the mobile banner slot. CSS aspect-ratio string (e.g. "375 / 190"). */
+    /** Aspect ratio of the mobile banner slot. Same rule as the desktop one above. */
     mobileBannerAspectRatio: string;
     /**
      * Mobile/tablet header design height, scaled by min(1, vw/786). Read in sync
@@ -993,8 +1002,10 @@ export const getDefaultThemeConfig = (): SiteConfig => {
             brandColor: "#0077B6",
             themeColor: "#000000",
             bodyBgColor: "#000000",
-            desktopBannerAspectRatio: "1202 / 300",
-            mobileBannerAspectRatio: "375 / 190",
+            // 1200 / 450 is the banner overlay artwork's own size, so both
+            // layers fill the slot with nothing cropped.
+            desktopBannerAspectRatio: "1200 / 450",
+            mobileBannerAspectRatio: "1200 / 450",
             // Mobile/tablet header design height (scaled by min(1, vw/786)).
             // Read in sync by app.vue (pre-paint), AppHeader, and default.vue.
             // 63px keeps the bar compact on phones (the desktop header takes
@@ -1063,6 +1074,7 @@ export const getDefaultThemeConfig = (): SiteConfig => {
                 bg: "rgba(0, 0, 0, 0.6)",
                 divider: "#434343",
                 activeItemColor: "#FF8A21",
+                activeItemBorderColor: "#FF8A21",
                 hoverBg: "rgba(255, 255, 255, 0.06)",
                 // Ordered menu config, shared by the rail and the mobile profile
                 // modal. Page 1 is the game-category group, page 2 the

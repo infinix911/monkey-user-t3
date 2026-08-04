@@ -143,17 +143,15 @@ class="w-full h-[6px]" :style="{
       </div>
     </div>
 
-    <DepositModal v-if="uiStore.showDepositModal" :is-open="uiStore.showDepositModal"
-      @close="uiStore.setShowDepositModal(false)" />
-
-    <WithdrawalModal v-if="uiStore.showWithdrawalModal" :is-open="uiStore.showWithdrawalModal"
-      @close="uiStore.setShowWithdrawalModal(false)" />
-
+    <!-- Deposit/Withdrawal modals are NOT hosted here. This navbar is skipped on
+         the RTP page (layouts/default.vue), while the rail and bottom nav that
+         trigger them render everywhere — so the hosts live at layout level
+         beside the other shared modals. -->
   </nav>
 </template>
 
 <script setup lang="ts">
-import { computed, defineAsyncComponent } from "vue";
+import { computed } from "vue";
 
 withDefaults(defineProps<{
   /** Render the lg+ desktop bar. False when a left rail replaces it. */
@@ -162,14 +160,6 @@ withDefaults(defineProps<{
 
 const authStore = useAuthStore();
 const uiStore = useUiStore();
-
-// Async-loaded so the modal chunks (incl. vee-validate, zod, bank UI) stay
-// out of the initial page bundle. `v-if` in the template keeps the import
-// from firing until the user actually opens Deposit/Withdrawal.
-
-const DepositModal = defineAsyncComponent(() => import("@/components/transaction/DepositModal.vue"));
-
-const WithdrawalModal = defineAsyncComponent(() => import("@/components/transaction/WithdrawalModal.vue"));
 
 const siteConfig = useSiteConfig();
 const route = useRoute();

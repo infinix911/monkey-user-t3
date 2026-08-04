@@ -469,6 +469,7 @@
     "background": "내비게이션",
     "home": "홈",
     "menu": "메뉴",
+    "notice": "공지사항",
     "promotion": "프로모션",
     "rtp": "RTP",
     "login": "로그인"
@@ -759,6 +760,8 @@
     "idTaken": "이미 사용 중인 아이디입니다",
     "password": "비밀번호",
     "verifyPassword": "비밀번호 확인",
+    "withdrawalPassword": "출금 비밀번호",
+    "withdrawalPasswordPlaceholder": "출금 비밀번호를 입력하세요",
     "mobileNumber": "휴대폰 번호",
     "email": "이메일",
     "currency": "통화",
@@ -795,6 +798,8 @@
       "usernameMinLength": "아이디는 최소 4자 이상이어야 합니다",
       "usernameMaxLength": "아이디는 12자를 초과할 수 없습니다",
       "passwordMaxLength": "비밀번호는 20자를 초과할 수 없습니다",
+      "withdrawalPasswordMinLength": "출금 비밀번호는 최소 4자 이상이어야 합니다",
+      "withdrawalPasswordMaxLength": "출금 비밀번호는 20자를 초과할 수 없습니다",
       "mobileRequired": "전화번호를 입력해 주세요",
       "mobileInvalid": "전화번호는 숫자만 입력 가능합니다",
       "mobileMinLength": "전화번호는 최소 8자리 이상이어야 합니다",
@@ -816,7 +821,8 @@
     "userIconAlt": "사용자 아이콘",
     "menu": "메뉴",
     "honorific": "님",
-    "walletUnit": "원"
+    "walletUnit": "원",
+    "convert": "전환"
   },
   "sideMenu": {
     "myAccount": "내 계정"

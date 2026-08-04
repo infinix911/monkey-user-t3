@@ -98,8 +98,10 @@
       "placeholderBg": "#ffffff"
     },
     "authButton": {
-      "loginBg": "linear-gradient(to bottom, #1E1E1E, #1E1E1E) padding-box, linear-gradient( to bottom, #FFFFFF 0%, #E5E5E5 35%, #BFBFBF 50%, #E5E5E5 65%, #FFFFFF 100% ) border-box",
+      "loginBg": "linear-gradient(to bottom, #1E1E1E, #1E1E1E)",
+      "loginBorderGradient": "linear-gradient(to bottom, #F7E652, #C9B10C 66.8%, #F7E652)",
       "signupBg": "linear-gradient(to bottom, #FFB300 0%, #E86A00 50%, #DA4101 100%)",
+      "signupBorderGradient": "linear-gradient(to bottom, #3890F9, #194488 66.8%, #3890F9)",
       "loginTextGradient": "linear-gradient(to right, #FFFFFF, #F5F5F5 66.8%, #FFFFFF)",
       "mobileAuthSectionBg": "linear-gradient(to right, #000000, #1A1A1A 30%, #FFB300 50%, #1A1A1A 70%, #000000)"
     },
@@ -180,6 +182,7 @@
       "hoverBg": "rgba(255, 255, 255, 0.06)",
       "borderColor": "#B04C00",
       "activeItemColor": "#FF8A21",
+      "activeItemBorderColor": "#FF8A21",
       "menus": [
         {
           "key": "hot",
@@ -350,7 +353,7 @@
     },
     "mobileHeaderHeight": 63,
     "navMenuItemMarginTop": "10px",
-    "mobileBannerAspectRatio": "1516 / 750",
+    "mobileBannerAspectRatio": "1200 / 450",
     "panel": {
       "actionColor": "#FF7A00",
       "panelBorder": "#C2691A",

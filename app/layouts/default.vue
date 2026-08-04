@@ -39,6 +39,32 @@
       <!-- Normal page content — always mounted; hidden with v-show while
            the notice is pending. -->
       <div v-show="!uiStore.showNoticeModal">
+        <!-- Signed-in user info, directly under the header (mobile only). It
+             sits outside the two-column wrapper below so it spans the full
+             viewport width rather than the content column.
+
+             It is also the bar that PINS on scroll: balances are worth keeping
+             on screen, an announcement marquee is not, so the announcement bar
+             below stays in normal flow and this takes the slot under the header
+             that it used to hold. Same JS `fixed` + spacer mechanism (NOT CSS
+             sticky): html/body have `overflow-x: auto`, which disables
+             position:sticky for descendants. `userBarHeight` measures 0 for
+             guests and on desktop — the component renders nothing there — so
+             `isUserBarPinned` is false and this is inert without needing its own
+             viewport check. -->
+        <!-- Zero-height sentinel, ALWAYS in flow. The bar pins the moment this
+             reaches the bottom of the header, so it leaves and rejoins the flow
+             at exactly the point it would have scrolled under — no jump, and no
+             waiting for the navbar's trigger further down the page. Measuring
+             the bar itself would not work: once fixed its rect.top is pinned to
+             the header, which would latch the state on. -->
+        <div ref="userBarSentinel" aria-hidden="true" />
+        <div ref="userBarAnchor" :class="isUserBarPinned ? 'fixed left-0 right-0 z-40' : ''"
+          :style="isUserBarPinned ? { top: headerHeight + 'px' } : {}">
+          <MobileUserBar />
+        </div>
+        <!-- Spacer keeps the bar's flow space while it's fixed on scroll. -->
+        <div v-if="isUserBarPinned" :style="{ height: userBarHeight + 'px' }" aria-hidden="true" />
         <!-- Two columns from lg: the left rail, then the existing content stack.
              Below lg this wrapper is inert (no flex), so the single-column
              mobile/tablet layout — and all the sticky/scroll machinery tuned to
@@ -95,24 +121,23 @@
             ? { height: 0, overflow: 'hidden', visibility: 'hidden' }
             : {}
             ">
-          <!-- RTP page shows a single static banner; every other page shows the
-               rotating BannerPreview carousel. -->
+          <!-- Only the homepage carries the rotating BannerPreview carousel.
+               The RTP page has its own static banner, and every other page
+               shows the shared inner-page one. -->
           <img v-if="isRtpPage" :src="rtpBannerSrc" :alt="$t('navbar.rtp')"
+            class="block w-full h-auto" >
+          <img v-else-if="!isHomePage" :src="innerPageBannerSrc" :alt="brandSiteConfig.identity.siteName"
             class="block w-full h-auto" >
           <BannerPreview v-else />
         </div>
 
-        <!-- Announcement Bar (mobile/tablet < lg: below the banner). When the
-             navbar sticks on scroll this pins below the header too, so the order
-             stays header → announcement → navbar. Uses JS `fixed` + a spacer
-             (NOT CSS sticky): html/body have `overflow-x: auto`, which disables
-             position:sticky for descendants. The navbar's fixed top + stick
-             trigger are offset by this bar's height (announcementHeight). -->
+        <!-- Announcement Bar (mobile/tablet < lg: below the banner). It scrolls
+             away with the page — the pinned slot under the header belongs to
+             MobileUserBar above. -->
         <div v-if="!isRtpPage" class="block lg:hidden w-full xl:w-[1152px] mx-auto">
-          <div ref="announcementBar"
+          <div
             class="w-full shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] h-[36px] min-h-[36px] max-h-[36px] flex justify-center"
-            :class="effectiveNavFixed ? 'fixed left-0 right-0 z-40' : ''"
-            :style="[{ background: brandSiteConfig.theme.announcement.mobileBg }, effectiveNavFixed ? { top: headerHeight + 'px' } : {}]">
+            :style="{ background: brandSiteConfig.theme.announcement.mobileBg }">
             <div
               class="w-full flex items-center justify-center gap-1.5 md:gap-4 pr-2 md:pr-6 pl-2 md:pl-3 overflow-visible">
               <NuxtImg :src="brandSiteConfig.theme.announcement.mobileIcon" alt="" aria-hidden="true"
@@ -129,37 +154,11 @@
                 class="flex-shrink-0 h-5 w-auto object-contain invisible" />
             </div>
           </div>
-          <!-- Spacer keeps the bar's flow space while it's fixed on scroll. -->
-          <div v-if="effectiveNavFixed" :style="{ height: announcementHeight + 'px' }" aria-hidden="true" />
         </div>
 
-        <!-- Auth Buttons Section (mobile only, guests) — sits below the
-             announcement on a plain black background. Bottom padding is added
-             only when the nav below has a background IMAGE (so the black strip
-             reads separately from the image); when the nav is a solid colour it
-             already blends into this black strip, so the padding is dropped to
-             avoid a big undifferentiated gap. -->
-        <div v-if="!authStore.isAuthenticated && !isRtpPage"
-          class="block min-[690px]:hidden w-full xl:w-[1152px] mx-auto flex items-center justify-center gap-2 pt-3"
-          :class="brandSiteConfig.assets.navIcons.background ? 'pb-3' : 'pb-0'"
-          :style="{ background: '#000000' }">
-          <!-- Login: gold gradient border + gold gradient text -->
-          <button type="button"
-            class="cursor-pointer h-[37px] w-[125px] px-3 rounded-[8px] flex items-center justify-center font-extrabold italic uppercase text-[15px] tracking-tight transition-transform hover:scale-[1.03]"
-            :style="authButtonStyle.login"
-            @click="uiStore.setShowLoginModal(true)">
-            <span class="block w-full text-center truncate"
-              :style="{ background: brandSiteConfig.theme.authButton.loginTextGradient, WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }">{{
-                $t('header.login') }}</span>
-          </button>
-          <!-- Sign up: blue gradient border + white text -->
-          <button type="button"
-            class="cursor-pointer h-[37px] w-[125px] px-3 rounded-[8px] flex items-center justify-center font-extrabold italic uppercase text-[15px] tracking-tight text-white transition-transform hover:scale-[1.03]"
-            :style="authButtonStyle.signup"
-            @click="uiStore.setShowSignupModal(true)">
-            <span class="block w-full text-center truncate">{{ $t('header.signUp') }}</span>
-          </button>
-        </div>
+        <!-- The mobile guest auth buttons that used to sit here (a black strip
+             below the announcement bar) now live in the mobile header itself —
+             see components/layout/AppHeader.vue. -->
 
         <!-- Navbar + Main Content wrapper with optional game section bg -->
         <div ref="gameBgAnchor" class="relative">
@@ -204,7 +203,7 @@
           <!-- Navbar — hidden on the RTP page (own provider tabs). -->
           <div v-if="!isRtpPage" ref="navbarAnchor" class="relative z-20">
             <div :class="effectiveNavFixed ? 'fixed left-0 right-0 z-40' : ''"
-              :style="effectiveNavFixed ? { top: (headerHeight + announcementHeight) + 'px' } : {}">
+              :style="effectiveNavFixed ? { top: (headerHeight + (isUserBarPinned ? userBarHeight : 0)) + 'px' } : {}">
               <Navbar :desktop="false" />
             </div>
             <div v-if="effectiveNavFixed" :style="{ height: navbarHeight + 'px' }" />
@@ -230,10 +229,10 @@
           </div>
         </div>
 
-        <!-- Mobile Bottom Navigation — shown for guests too (the bar renders a
-             public BERANDA · RTP · MASUK · PROMOSI · MENU set when logged out).
-             Shown on every page, including the RTP page. -->
-        <BottomNav />
+        <!-- Mobile Bottom Navigation — signed-in only. Gated here rather than
+             inside the component so guests never fetch its async chunk. Shown
+             on every page, including the RTP page. -->
+        <BottomNav v-if="authStore.isAuthenticated" />
 
         <!-- Custom SEO footer — admin-managed HTML from /api/site/custom-seo.
              Only rendered when a row matches this hostname and supplies a
@@ -294,6 +293,14 @@
     <!-- Shared modal hosts (single instance, layout-level) — Promotion, Inquiry
          and FAQ. Triggered from anywhere via the ui store (footer quick links,
          etc.) so the same modal component is reused, never duplicated. -->
+    <!-- Deposit/Withdrawal belong here rather than inside Navbar: the RTP page
+         renders no navbar (see `isRtpPage` above), but the desktop rail and the
+         bottom nav that open them render on every page — hosting them in the
+         navbar left both triggers dead on that page. -->
+    <DepositModal v-if="uiStore.showDepositModal" :is-open="uiStore.showDepositModal"
+      @close="uiStore.setShowDepositModal(false)" />
+    <WithdrawalModal v-if="uiStore.showWithdrawalModal" :is-open="uiStore.showWithdrawalModal"
+      @close="uiStore.setShowWithdrawalModal(false)" />
     <PromotionModal v-if="uiStore.showPromotionModal" :is-open="uiStore.showPromotionModal"
       @close="uiStore.setShowPromotionModal(false)" />
     <InquiryModal v-if="uiStore.showInquiryModal" :is-open="uiStore.showInquiryModal"
@@ -334,6 +341,10 @@ const BottomNav = defineAsyncComponent(() => import("@/components/layout/BottomN
 const BannerPopup = defineAsyncComponent(() => import("@/components/banner/BannerPopup.vue"));
 
 // Shared, layout-level modal hosts (one instance each), driven by the ui store.
+// The `v-if` guards keep each chunk (Deposit/Withdrawal pull in vee-validate,
+// zod and the bank UI) from being requested until the modal is actually opened.
+const DepositModal = defineAsyncComponent(() => import("@/components/transaction/DepositModal.vue"));
+const WithdrawalModal = defineAsyncComponent(() => import("@/components/transaction/WithdrawalModal.vue"));
 const PromotionModal = defineAsyncComponent(() => import("@/components/promotion/PromotionModal.vue"));
 const InquiryModal = defineAsyncComponent(() => import("@/components/inquiry/InquiryModal.vue"));
 const FaqModal = defineAsyncComponent(() => import("@/components/faq/FaqModal.vue"));
@@ -392,16 +403,22 @@ const { data: popupBanners } = await useAsyncData<IPopupBanner[]>(
 
 const brandSiteConfig = useSiteConfig();
 const siteConfig = brandSiteConfig;
-// Same styles the desktop header renders — see useAuthButtonStyle.
-const authButtonStyle = useAuthButtonStyle();
 const route = useRoute();
 const localePath = useLocalePath();
 
-// The Slot RTP page is a stripped-down variant: no announcement bar, no guest
-// auth buttons, no bottom nav, and a single static promo banner (rtp-banner.png
-// on the asset CDN) instead of the rotating BannerPreview carousel.
+// The Slot RTP page is a stripped-down variant: no announcement bar, no bottom
+// nav, and a single static promo banner (rtp-banner.png on the asset CDN)
+// instead of the rotating BannerPreview carousel.
 const isRtpPage = computed(() => route.path === localePath("/slot-rtp"));
 const rtpBannerSrc = cdn("/designs/rtp-banner.png");
+
+// The BannerPreview carousel is the homepage's; every other page (bar RTP,
+// which has its own above) shows this one static banner instead. It is a
+// CMS-uploaded file on the deployment's own origin rather than a `/designs`
+// asset, so it is an absolute URL and does NOT go through cdn().
+const isHomePage = computed(() => route.path === localePath("/"));
+const innerPageBannerSrc =
+  "https://krw-demo1.jaeisol.com/designs/banana/banner/kimak-dk-scan-1782672134477.png";
 
 // The 102% big-screen zoom is off: it rendered the 1202px content column at
 // 1226px. The allow-list that drove it lived here — see the template comment on
@@ -453,10 +470,15 @@ const gameBgAnchor = ref<HTMLElement | null>(null);
 const isGameBgFixed = ref(false);
 const navbarHeight = ref(0);
 const navbarAnchor = ref<HTMLElement | null>(null);
-// Mobile announcement bar — measured so the sticky bar and the fixed navbar
-// stack (navbar top + its trigger are offset by this). 0 on desktop (hidden).
-const announcementBar = ref<HTMLElement | null>(null);
-const announcementHeight = ref(0);
+// Mobile user bar — measured so the pinned bar and the fixed navbar stack
+// (navbar top + its trigger are offset by this). 0 for guests and on desktop,
+// where MobileUserBar renders nothing.
+const userBarAnchor = ref<HTMLElement | null>(null);
+const userBarSentinel = ref<HTMLElement | null>(null);
+const userBarHeight = ref(0);
+// Set by the scroll handler off the sentinel above — the bar has its own
+// trigger rather than riding the navbar's, which fires much further down.
+const userBarStuck = ref(false);
 const bannerContainer = ref<HTMLElement | null>(null);
 const isBannerVisible = ref(false);
 const initialScrollDone = ref(false);
@@ -497,6 +519,17 @@ const effectiveNavFixed = computed(() =>
   isNavbarStickyPage.value ? !isBannerVisible.value : isNavFixed.value,
 );
 
+// The user bar has its OWN trigger (`userBarStuck`, set off the sentinel in the
+// scroll handler) rather than riding `effectiveNavFixed`: the navbar's trigger
+// fires only once the navbar itself reaches the header, by which point this bar
+// has long scrolled away — so it used to vanish and then snap back into place
+// somewhere past the announcement bar. `userBarHeight` is 0 for guests and at
+// lg+, where MobileUserBar renders nothing, which keeps this false there
+// without a second viewport check.
+const isUserBarPinned = computed(
+  () => userBarStuck.value && userBarHeight.value > 0,
+);
+
 // Side effect kept out of the computed so reactivity flushes don't fan out
 // into the Pinia store mutation path during hydration.
 watch(effectiveNavFixed, (fixed) => {
@@ -527,9 +560,10 @@ const measureNavbarHeight = () => {
     const navEl = navbarAnchor.value.querySelector("nav");
     if (navEl) navbarHeight.value = navEl.offsetHeight - 5;
   }
-  // Mobile announcement bar height (0 when hidden at lg+). Drives the navbar's
-  // sticky offset so the two pin without a gap/overlap.
-  announcementHeight.value = announcementBar.value?.offsetHeight ?? 0;
+  // Mobile user bar height (0 for guests and at lg+, where it renders nothing).
+  // Drives the navbar's sticky offset so the two pin without a gap/overlap, and
+  // gates `isUserBarPinned` — a 0 here means there is nothing to pin.
+  userBarHeight.value = userBarAnchor.value?.offsetHeight ?? 0;
 };
 
 /**
@@ -559,6 +593,15 @@ const scrollWork = () => {
   isAtTop.value = scrollY < 10;
   isImagesFixed.value = scrollY > 100;
 
+  // Mobile user bar: pin the moment its flow position reaches the bottom of the
+  // header. Measured off the zero-height sentinel that stays in flow, never off
+  // the bar itself — once fixed, the bar's own rect.top IS headerHeight, so it
+  // would latch on and never release.
+  if (userBarSentinel.value) {
+    userBarStuck.value =
+      userBarSentinel.value.getBoundingClientRect().top <= headerHeight.value;
+  }
+
   // Desktop game-section bg: pin it once its wrapper's top reaches the viewport
   // top, so it sticks there instead of scrolling off. Switching at top<=0 means
   // the bg is already at 0 when it becomes fixed → no visual jump.
@@ -568,11 +611,11 @@ const scrollWork = () => {
 
   if (navbarAnchor.value) {
     const rect = navbarAnchor.value.getBoundingClientRect();
-    // Fix the navbar once it reaches the bottom of the header + the sticky
-    // announcement bar, so it pins directly below the bar (not under it).
+    // Fix the navbar once it reaches the bottom of the header + the pinned user
+    // bar, so it pins directly below it (not under it).
     isNavFixed.value =
       isNavbarStickyPage.value ||
-      rect.top <= headerHeight.value + announcementHeight.value;
+      rect.top <= headerHeight.value + userBarHeight.value;
   }
 
   // Desktop rail: pin it under the header once its column would scroll past.
@@ -685,16 +728,24 @@ const stopBannerResizeObserver = () => {
 watch(
   () => authStore.isAuthenticated,
   (isAuth, wasAuth) => {
-    if (!isAuth || wasAuth || typeof window === "undefined") return;
-    document.body.style.overflow = "";
-    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-    initialScrollDone.value = false;
-    isBannerVisible.value = false;
-    isNavFixed.value = false;
-    isAtTop.value = true;
-    isImagesFixed.value = false;
-    // Re-measure and recompute once the reflow (auth-only sections mount/unmount)
-    // settles, so the spacers/flags reflect the final layout at the top.
+    if (typeof window === "undefined") return;
+
+    // Only the guest → authenticated direction needs the scroll/flag reset.
+    if (isAuth && !wasAuth) {
+      document.body.style.overflow = "";
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+      initialScrollDone.value = false;
+      isBannerVisible.value = false;
+      isNavFixed.value = false;
+      isAtTop.value = true;
+      isImagesFixed.value = false;
+      userBarStuck.value = false;
+    }
+
+    // Both directions need the re-measure: MobileUserBar mounts and unmounts
+    // with the session, and its height gates the pin and offsets the navbar —
+    // left stale on logout it would strand a 34px spacer as a black gap.
+    // Runs once the reflow (auth-only sections mount/unmount) settles.
     nextTick(() => {
       measureNavbarHeight();
       handleScroll();

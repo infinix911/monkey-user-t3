@@ -298,22 +298,45 @@ const icons = computed(() => siteConfig.assets.sidebarIcons);
 // which ships no hangul, so Korean labels fall through to the system hangul face
 // and their widths never followed that derivation anyway. Deposit/withdraw are
 // NOT on this row shape and keep their own 12px labels.
+//
+// EVERY row carries the 1px border, transparent unless the row is active: it is
+// what keeps the active outline from resizing anything. Rows are `box-border`,
+// so the border eats into the 31px rather than adding to it (the pitch holds),
+// and the horizontal padding drops 6px -> 5px so 8px list padding + 1px border +
+// 5px row padding still puts the icon box 14px inside the panel edge.
 const ROW_CLASS =
-  "group w-full flex items-center gap-[19px] px-1.5 h-[31px] rounded-[6px] text-[14px] font-medium cursor-pointer transition-colors duration-150 hover:bg-[var(--sb-hover)]";
+  "group w-full flex items-center gap-[19px] px-[5px] h-[31px] rounded-[6px] border border-transparent text-[14px] font-medium cursor-pointer transition-colors duration-150 hover:bg-[var(--sb-hover)]";
 
 /**
  * Per-row colour: the active route takes the accent, everything else is white.
  * `--sb-hover` is passed as a custom property so the hover background stays a
  * theme token instead of a hardcoded rgba in the class string.
  *
+ * The active row also takes a hairline outline in `activeItemBorderColor`,
+ * softened to 70% against the rail background so it reads as a quiet frame
+ * around the accent label rather than a second, competing accent. An empty
+ * token means "no outline" — a theme can then mark the active row by its label
+ * colour alone, as it did before this setting existed.
+ *
+ * The tint is left to the `--sb-hover` class rather than set here, because an
+ * inline `background` would outrank the hover utility and freeze the active row
+ * on hover.
+ *
  * @param active - Whether this row is the current route.
  * @returns {Record<string, string>} Inline style for the row.
  */
 function rowStyle(active: boolean): Record<string, string> {
-  return {
+  const style: Record<string, string> = {
     color: active ? sidebar.value.activeItemColor : "#ffffff",
     "--sb-hover": sidebar.value.hoverBg,
   };
+
+  const outline = sidebar.value.activeItemBorderColor?.trim();
+  if (active && outline) {
+    style.borderColor = `color-mix(in srgb, ${outline} 70%, transparent)`;
+  }
+
+  return style;
 }
 
 /**
