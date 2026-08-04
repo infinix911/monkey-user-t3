@@ -3,6 +3,7 @@ import { sanitizeHtml } from "@/utils/sanitizeHtml";
 import { renderRichContent, renderTiptap } from "@/composables/useTiptap";
 import { idempotencyHeaders } from "@/lib/idempotency";
 import {
+  isTrustedInternalI18nRequest,
   normalizeIpAddress,
   resolveCanonicalAuthority,
 } from "../../shared/utils/request-security";
@@ -10,6 +11,7 @@ import {
   escapeInlineScript,
   serializeJsonForHtml,
 } from "../../shared/utils/secure-serialization";
+import { normalizeFaqSchemaItems } from "@/composables/useStructuredData";
 
 describe("security boundaries", () => {
   it("issues a fresh UUID idempotency key for each financial submission", () => {
@@ -33,6 +35,45 @@ describe("security boundaries", () => {
     expect(
       resolveCanonicalAuthority("play.example.com:444", ["play.example.com"], true),
     ).toBeNull();
+  });
+
+  it("allows only Nitro's peerless internal i18n message request", () => {
+    const messagesPath = "/_i18n/8e737cb1/ko/messages.json";
+
+    expect(
+      isTrustedInternalI18nRequest("localhost", "", messagesPath),
+    ).toBe(true);
+    expect(
+      isTrustedInternalI18nRequest(
+        "localhost",
+        "127.0.0.1",
+        messagesPath,
+      ),
+    ).toBe(false);
+    expect(
+      isTrustedInternalI18nRequest("localhost", "", "/api/site/settings"),
+    ).toBe(false);
+    expect(
+      isTrustedInternalI18nRequest(
+        "localhost",
+        "",
+        "/_i18n/8e737cb1/ko/other.json",
+      ),
+    ).toBe(false);
+  });
+
+  it("normalizes FAQ messages without trusting the tm() return type", () => {
+    expect(normalizeFaqSchemaItems("home.faq.items", String)).toEqual([]);
+    expect(
+      normalizeFaqSchemaItems(
+        [
+          { q: "Question", a: "Answer" },
+          { q: "Missing answer" },
+          null,
+        ],
+        String,
+      ),
+    ).toEqual([{ question: "Question", answer: "Answer" }]);
   });
 
   it("normalizes a single IP but rejects spoofed address chains", () => {
