@@ -1,5 +1,10 @@
 <template>
-  <div class="relative z-10 w-full" :class="py">
+  <!-- `@container`: cards size themselves off THIS element's width with `cqw`
+       units (see the callers), so a row divides exactly into the space the
+       carousel actually has. Sizing them off `100vw` instead meant restating
+       the page's horizontal padding in every card class, and any drift there
+       left the last card of the row clipped. -->
+  <div class="@container relative z-10 w-full" :class="py">
     <div ref="scrollRef"
       class="carousel-scroll w-full overflow-x-auto overflow-y-hidden scrollbar-hide cursor-grab"
       style="scroll-snap-type: x mandatory">

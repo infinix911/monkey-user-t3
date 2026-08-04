@@ -13,7 +13,7 @@
        content so it sits flush right without a spacer.
        36px tall with 14px figures, matching the announcement bar below it. -->
   <div v-if="authStore.isAuthenticated"
-    class="min-[690px]:hidden w-full h-[36px] grid grid-cols-[repeat(3,minmax(0,1fr))_auto] items-center gap-2 px-2 overflow-hidden whitespace-nowrap"
+    class="min-[690px]:hidden w-full h-[36px] grid grid-cols-[repeat(3,minmax(0,1fr))_auto] items-center gap-2 px-4 overflow-hidden whitespace-nowrap"
     :style="{ backgroundColor: BAR_BG }">
     <!-- 1. Identity. `honorific` is the Korean "님" suffix; locales without an
          equivalent ship an empty string, so the element is dropped entirely
