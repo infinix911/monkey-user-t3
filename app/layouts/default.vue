@@ -121,14 +121,30 @@
             ? { height: 0, overflow: 'hidden', visibility: 'hidden' }
             : {}
             ">
-          <!-- Only the homepage carries the rotating BannerPreview carousel.
-               The RTP page has its own static banner, and every other page
-               shows the shared inner-page one. -->
+          <!-- Every page with a banner slot draws it from the CMS, scoped by
+               its own page key — so a category page can carry its own creative
+               instead of the single hardcoded image they used to share. Pages
+               with no key (and pages whose key has no active banner) render
+               nothing. /slot-rtp is the one exception: it keeps its own
+               hardcoded creative and is deliberately not CMS-driven. -->
           <img v-if="isRtpPage" :src="rtpBannerSrc" :alt="$t('navbar.rtp')"
             class="block w-full h-auto" >
-          <img v-else-if="!isHomePage" :src="innerPageBannerSrc" :alt="brandSiteConfig.identity.siteName"
-            class="block w-full h-auto" >
-          <BannerPreview v-else />
+          <template v-else>
+          <!-- `:key` is load-bearing. This layout persists across client-side
+               navigation, so Vue would reuse one BannerPreview instance and
+               only swap the prop — but its useAsyncData key is captured once at
+               setup, so the fetch would never re-run and every page would keep
+               showing the first page's banners. Keying on the page gives each
+               its own instance, its own request and its own cached payload.
+
+               That remount is also why this needs a transition: without one the
+               old creative is replaced in a single frame. `out-in` rather than
+               the default overlap, so two banners are never stacked in a slot
+               whose height is itself changing between pages. -->
+          <Transition name="banner-fade" mode="out-in">
+            <BannerPreview v-if="bannerPage" :key="bannerPage" :page="bannerPage" />
+          </Transition>
+          </template>
         </div>
 
         <!-- Announcement Bar (mobile/tablet < lg: below the banner). It scrolls
@@ -412,13 +428,20 @@ const localePath = useLocalePath();
 const isRtpPage = computed(() => route.path === localePath("/slot-rtp"));
 const rtpBannerSrc = cdn("/designs/rtp-banner.png");
 
-// The BannerPreview carousel is the homepage's; every other page (bar RTP,
-// which has its own above) shows this one static banner instead. It is a
-// CMS-uploaded file on the deployment's own origin rather than a `/designs`
-// asset, so it is an absolute URL and does NOT go through cdn().
-const isHomePage = computed(() => route.path === localePath("/"));
-const innerPageBannerSrc =
-  "https://krw-demo1.jaeisol.com/designs/banana/banner/kimak-dk-scan-1782672134477.png";
+/**
+ * Which page's CMS banners to render, or null for a page with no banner slot.
+ *
+ * Resolved against the UNLOCALISED path: `route.path` carries the locale
+ * prefix under `no_prefix`-less strategies, so each candidate is compared
+ * through `localePath` rather than matched literally. Replaces the single
+ * hardcoded image every non-home page used to share.
+ */
+const bannerPage = computed(() => {
+  for (const path of BANNER_PAGE_ROUTES) {
+    if (route.path === localePath(path)) return pageBannerKey(path);
+  }
+  return null;
+});
 
 // The 102% big-screen zoom is off: it rendered the 1202px content column at
 // 1226px. The allow-list that drove it lived here — see the template comment on

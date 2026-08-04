@@ -901,6 +901,22 @@
   opacity: 0;
 }
 
+/* banner-fade — the per-page banner swapping on client-side navigation.
+   Opacity only, and deliberately gentler than `page` (0.28s vs 0.22s): the
+   creative is the largest thing on screen, and the slot's own height is
+   animating underneath it at the same time (see #banner-container's
+   `transition-[height]`), so a soft cross-fade reads as one movement rather
+   than two competing ones. `mode="out-in"` means these never overlap. */
+.banner-fade-enter-active,
+.banner-fade-leave-active {
+  transition: opacity 0.28s ease;
+}
+
+.banner-fade-enter-from,
+.banner-fade-leave-to {
+  opacity: 0;
+}
+
 /* modal — backdrop + panel together: fade + subtle scale */
 .modal-enter-active,
 .modal-leave-active {
@@ -962,6 +978,8 @@
 @media (prefers-reduced-motion: reduce) {
   .page-enter-active,
   .page-leave-active,
+  .banner-fade-enter-active,
+  .banner-fade-leave-active,
   .modal-enter-active,
   .modal-leave-active,
   .modal-fade-enter-active,

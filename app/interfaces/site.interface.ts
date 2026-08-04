@@ -15,6 +15,11 @@ export const bannerCarouselWireSchema = z.object({
   overlayUrl: z.string().nullable().optional(),
   mainUrlMobile: z.string(),
   overlayUrlMobile: z.string().nullable().optional(),
+  // Slot shape, carried WITH the creative so the ratio can never disagree with
+  // the artwork it describes. Optional: a backend predating per-banner ratios
+  // omits it, and null means "inherit the theme value".
+  aspectRatioDesktop: z.string().nullable().optional(),
+  aspectRatioMobile: z.string().nullable().optional(),
   sort: z.number(),
 });
 
@@ -30,6 +35,9 @@ export interface BannerCarouselItem {
   overlay_url: string | null;
   main_url_mobile: string;
   overlay_url_mobile: string | null;
+  /** CSS aspect-ratio string; null falls back to the theme value. */
+  aspect_ratio_desktop: string | null;
+  aspect_ratio_mobile: string | null;
   sort: number;
 }
 
@@ -40,6 +48,8 @@ export const mapBannerCarousel = (
   overlay_url: w.overlayUrl ?? null,
   main_url_mobile: w.mainUrlMobile,
   overlay_url_mobile: w.overlayUrlMobile ?? null,
+  aspect_ratio_desktop: w.aspectRatioDesktop ?? null,
+  aspect_ratio_mobile: w.aspectRatioMobile ?? null,
   sort: w.sort,
 });
 

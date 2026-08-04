@@ -103,6 +103,19 @@ import {
   mapBannersCarouselResponse,
   type BannerCarouselItem as BannerPreviewItem,
 } from "@/interfaces/site.interface";
+import type { BannerPageKey } from "@/utils/pageBanner";
+
+const props = withDefaults(
+  defineProps<{
+    /**
+     * Which page's banners to render. Defaults to the homepage so existing
+     * usage — and the API, whose `page` query defaults the same way — is
+     * unchanged.
+     */
+    page?: BannerPageKey;
+  }>(),
+  { page: "homepage" },
+);
 
 // Mobile vs desktop is a *viewport* decision, but it must stay SSR-safe: render
 // only one branch (the off-screen branch's <video>/<img> must not be in the DOM
@@ -152,14 +165,14 @@ const BANNER_W = { desktop: 1280, mobile: 800 } as const;
 // width changes, or the banner height drifts. Placeholder/loading states reuse
 // the active box style so there is no layout jump when banners resolve.
 const siteConfig = useSiteConfig();
-const BANNER_AR_DESKTOP =
+// Theme values are the FALLBACK now: the ratio travels with each banner record
+// (see `aspect_ratio_*`), so it can never disagree with the artwork it
+// describes. These remain for banners saved without one, and for the
+// loading/empty boxes that must reserve space before any record exists.
+const THEME_AR_DESKTOP =
   siteConfig.theme.desktopBannerAspectRatio || "1202 / 300";
-const BANNER_AR_MOBILE = siteConfig.theme.mobileBannerAspectRatio || "375 / 190";
-const bannerBoxStyle = computed(() =>
-  isMobile.value
-    ? { aspectRatio: BANNER_AR_MOBILE }
-    : { aspectRatio: BANNER_AR_DESKTOP },
-);
+const THEME_AR_MOBILE = siteConfig.theme.mobileBannerAspectRatio || "375 / 190";
+
 const optimize = (url: string | null | undefined, width: number): string => {
   if (!url || isVideo(url) || isLocalObjectUrl(url)) return url ?? "";
   try {
@@ -211,11 +224,15 @@ function stopAutoPlay() {
 
 const api = useApi();
 
+// The page is part of the key: each page's banners are a distinct read, so
+// they cache and hydrate separately instead of sharing the homepage's payload.
 const { data: bannersData, pending: isLoading } = await useAsyncData<
   BannerPreviewItem[]
->("banners-carousel", async () => {
+>(`banners-carousel-${props.page}`, async () => {
   try {
-    const raw = await api("/site/banners-new/carousel");
+    const raw = await api("/site/banners-new/carousel", {
+      query: { page: props.page },
+    });
     const list = mapBannersCarouselResponse(
       validateResponse(bannersCarouselResponseSchema, raw, "/site/banners-new"),
     );
@@ -227,6 +244,26 @@ const { data: bannersData, pending: isLoading } = await useAsyncData<
 });
 
 const banners = computed<BannerPreviewItem[]>(() => bannersData.value ?? []);
+
+/**
+ * The slot is ONE box, but the ratio is per record: if each slide sized itself
+ * the box would resize mid-rotation and shunt the page around. So the first
+ * active banner (lowest `sort`, i.e. the one that renders first) sets the box
+ * for the whole carousel, and the rest fill it with object-cover as before.
+ * Falls back to the theme value for banners saved without a ratio, and for the
+ * loading/empty boxes, which must reserve space before any record exists.
+ */
+const BANNER_AR_DESKTOP = computed(
+  () => banners.value[0]?.aspect_ratio_desktop || THEME_AR_DESKTOP,
+);
+const BANNER_AR_MOBILE = computed(
+  () => banners.value[0]?.aspect_ratio_mobile || THEME_AR_MOBILE,
+);
+const bannerBoxStyle = computed(() =>
+  isMobile.value
+    ? { aspectRatio: BANNER_AR_MOBILE.value }
+    : { aspectRatio: BANNER_AR_DESKTOP.value },
+);
 
 // Preload the first banner's overlay image — this is the LCP element on the
 // homepage. Without `<link rel="preload">` the browser only discovers the URL
