@@ -25,12 +25,12 @@
          is GamePageLayout's games container, which spans the whole grid. -->
     <div v-if="providers.length" ref="providerAnchor" class="lg:sticky lg:z-40"
       :style="[
-        { top: 'var(--mh-header-height, 60px)' },
+        { top: STICKY_TOP },
         providerStuck && !isLgUp ? { height: providerBarH + 'px' } : {},
       ]">
       <div class="w-full"
-        :class="providerStuck && !isLgUp ? 'fixed left-0 right-0 z-40' : ''"
-        :style="providerStuck && !isLgUp ? { top: 'var(--mh-header-height, 60px)' } : {}">
+        :class="providerStuck && !isLgUp ? 'fixed left-0 right-0 z-30' : ''"
+        :style="providerStuck && !isLgUp ? { top: STICKY_TOP } : {}">
         <!-- Padding only needs rewriting on the FIXED path (below lg), where the
              bar escapes GamePageLayout and must reproduce its ancestors'
              effective padding: game-page-bg px-1.5 + providerBar px-1.5 = 12px.
@@ -66,22 +66,31 @@
                 <img :src="brandLogo" alt=""
                   class="absolute top-1 left-1/2 -translate-x-1/2 z-10 h-2.5 w-auto max-w-[64px] object-contain"
                   style="filter: brightness(0) invert(1)">
-                <!-- Provider logo (main image), served from the S3 CDN. Rendered
-                 as a plain <img> (not TrimmedImage) — the bucket sends no CORS
-                 headers, so canvas trimming can't run cross-origin. The assets are
-                 uniform 480×627 portrait canvases with the wordmark in a bottom band;
-                 object-cover in a fixed 5:2 box scales that band up (AppFooter's ratio,
-                 so nothing clips), and a BAKED per-logo object-position-y (p.posY)
-                 centres each wordmark — a single fixed position left whitespace above
-                 the lower-sitting logos. Logos with no baked position fall back to a
-                 never-cropped object-contain. Fixed height (not h-full) leaves slack
-                 so flex items-center centres the box in the full tab. -->
-                <div class="absolute inset-0 z-10 flex items-center justify-center px-2 w-full">
-                  <img v-if="!failedLogos[p.id]" :src="p.logo" :alt="p.name" loading="eager" decoding="async"
-                    class="h-11 sm:h-14 w-auto max-w-full aspect-[5/2]"
-                    :class="p.posY != null ? 'object-cover' : 'object-contain object-center'"
-                    :style="p.posY != null ? { objectPosition: `50% ${p.posY}%` } : undefined"
-                    @error="failedLogos[p.id] = true">
+                <!-- Provider logo (main image). The assets are uniform 480x627
+                 portrait canvases whose wordmark is a small band near the
+                 bottom, so any plain object-fit renders it tiny: `contain` fits
+                 the WHOLE empty canvas into the tab, and `cover` only works
+                 with a per-logo object-position that crops to the band.
+
+                 TrimmedImage instead measures the opaque bounding box on a
+                 canvas and SCALES that content to fill the tab — the wordmark
+                 comes out large at its natural aspect, with nothing cropped.
+                 `fit="contain"` fits it inside both the height and the tab
+                 width, so a wide wordmark renders shorter rather than losing
+                 its ends.
+
+                 This was previously ruled out because the logos came from the
+                 Linode bucket, which sends no CORS headers and taints the
+                 canvas. They are served same-origin from `public/` now (see
+                 `providers` below), so the measurement works. -->
+                <!-- The box is deliberately smaller than the tab: `fit="contain"`
+                     scales the wordmark to fill whatever box it is given, so the
+                     tab's breathing room has to come from here. ~45% of the tab
+                     height, inset `px-3`, and pushed just below centre (`pt-3`)
+                     to clear the JAE|SOLUTION strip pinned at the top. -->
+                <div class="absolute inset-0 z-10 flex items-center justify-center px-3 pt-3 w-full">
+                  <TrimmedImage v-if="!failedLogos[p.id]" :src="p.logo" :alt="p.name" fit="contain" loading="eager"
+                    class="h-8 sm:h-10 w-full" @error="failedLogos[p.id] = true" />
                   <span v-else class="text-xs font-bold text-center leading-tight whitespace-nowrap text-white">
                     {{ p.name }}
                   </span>
@@ -164,9 +173,9 @@ const api = useApi();
 // Slot providers (lobbies) feed the tab row; a lobby_id is required to list
 // games, so the first provider is auto-selected.
 const { lobbies } = useLobbyPage("slot");
-// Provider logos are served from the Linode CDN — cdn() rewrites the
-// /designs/slot-logo/<id>.webp path (built by lobbyLogoUrl, same source the
-// homepage slot cards use, not the CMS/API logo_path) to the CDN host.
+// Provider logos are the /designs/slot-logo/<id>.webp files built by
+// lobbyLogoUrl — the same source the homepage slot cards, /slots, /casino and
+// /sports use (not the CMS/API logo_path).
 const slotLogoBase = computed(() => siteConfig.assets.homepage.gameLogos.slot);
 const providers = computed(() =>
   (lobbies.value ?? []).map((l) => {
@@ -174,13 +183,12 @@ const providers = computed(() =>
     return {
       id,
       name: l.game_name ?? "",
-      // Provider logos served from the Linode (S3) CDN. The bucket sends no CORS
-      // headers, so TrimmedImage's canvas alpha-trim can't run cross-origin.
-      logo: cdn(lobbyLogoUrl(slotLogoBase.value, l.id)),
-      // Baked per-logo vertical object-position (%) that centres this logo's
-      // wordmark in its 5:2 object-cover box (see SLOT_LOGO_POS_Y). Undefined for
-      // any logo not in the map → falls back to a plain, never-cropped contain.
-      posY: SLOT_LOGO_POS_Y[id],
+      // Served same-origin from `public/`, NOT through cdn(). This page was the
+      // only one wrapping the path in cdn(), and the Linode bucket is behind:
+      // it holds 41 slot logos against the 112 in `public/`, so 71 of the 108
+      // slot lobbies 404'd and fell back to their text name. The four other
+      // pages that render these logos never went to the bucket.
+      logo: lobbyLogoUrl(slotLogoBase.value, l.id),
     };
   }),
 );
@@ -222,14 +230,25 @@ const providerStuck = ref(false);
 const providerBarH = ref(0);
 const isLgUp = ref(false);
 
-// Header height in px, from the CSS var app.vue/default.vue keep in sync.
-const headerPx = () => {
+// Where the bar pins: the bottom of the header, PLUS the signed-in mobile user
+// bar when that is itself pinned there. Both CSS vars are written to <html> by
+// the layout (`--mh-header-height` also pre-paint by app.vue); the user-bar one
+// is 0px for guests, at lg+ and whenever that bar is not pinned, so the same
+// expression is correct at every breakpoint and session state. Without the
+// second term this bar pinned at the header's bottom edge and landed straight
+// on top of the user bar on mobile.
+const STICKY_TOP = "calc(var(--mh-header-height, 60px) + var(--mh-userbar-height, 0px))";
+
+// The px twin of STICKY_TOP, used as the scroll threshold — the bar must pin at
+// the exact moment its flow position reaches that line, or it jumps.
+const stickyTopPx = () => {
   if (typeof window === "undefined") return 60;
-  const n = parseInt(
-    getComputedStyle(document.documentElement).getPropertyValue("--mh-header-height"),
-    10,
-  );
-  return Number.isFinite(n) ? n : 60;
+  const cs = getComputedStyle(document.documentElement);
+  const read = (name: string, fallback: number) => {
+    const n = parseInt(cs.getPropertyValue(name), 10);
+    return Number.isFinite(n) ? n : fallback;
+  };
+  return read("--mh-header-height", 60) + read("--mh-userbar-height", 0);
 };
 
 let stickyRaf: number | null = null;
@@ -241,15 +260,16 @@ const onStickyScroll = () => {
     if (!anchor) return;
     isLgUp.value = window.innerWidth >= 1024;
     const top = anchor.getBoundingClientRect().top;
+    const stickyTop = stickyTopPx();
     if (!providerStuck.value) {
-      if (top <= headerPx()) {
+      if (top <= stickyTop) {
         // Measure before pinning so the spacer keeps the exact flow height.
         // Only the fixed path uses it, but measuring here keeps it correct if
         // the viewport crosses lg while pinned.
         providerBarH.value = providerBar.value?.offsetHeight ?? anchor.offsetHeight;
         providerStuck.value = true;
       }
-    } else if (top > headerPx()) {
+    } else if (top > stickyTop) {
       providerStuck.value = false;
     }
     // The strip's usable width can change when it goes fixed — refresh arrows.
