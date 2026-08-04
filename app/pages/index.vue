@@ -23,14 +23,21 @@
          gutter (195 + 6). Re-derive both if the content column or the gap
          changes. Every row on this page uses the same figures.
 
-         Below `md` the width is container-relative instead: three cards plus
-         the two 6px gutters between them fill the carousel exactly
-         ((100cqw - 12px) / 3), so the row is flush at both ends on any phone
-         width without restating the page's padding here. -->
+         Below `xl` the width is container-relative instead, so the row is flush
+         at both ends at any width without restating the page's padding here:
+         three cards plus their two 6px gutters below `md` ((100cqw - 12px) / 3),
+         and FIVE plus their four gutters from `md` ((100cqw - 24px) / 5) — the
+         tablet rule, covering the iPad mini's 768px and the iPad Pro's 1024px
+         alike. The fixed 195px used to start at `md`, which left 3.9 cards in
+         view on a mini; five full cards read as a proper grid on both.
+
+         `cqw` measures the CAROUSEL, so from `lg` — where the left rail claims
+         210px + the 28px gap — the five cards divide the narrower content
+         column, not the viewport. That is the point of the container query. -->
 
       <GameCarousel :step="201" :per-page="6">
         <div v-for="(game, idx) in hotGames" :key="game.id"
-          class="flex-shrink-0 w-[calc((100cqw_-_12px)/3)] md:w-[195px]">
+          class="flex-shrink-0 w-[calc((100cqw_-_12px)/3)] md:w-[calc((100cqw_-_24px)/5)] xl:w-[195px]">
           <HotGameCard :game="game" :eager="idx < FIRST_ROW_COUNT" :priority="idx < 3" fluid aspect="240 / 313.04"
             @click="handleGameClick(game)" />
         </div>
@@ -42,7 +49,7 @@
       <GameSectionHeader name="slots" :label="$t('navbar.slot')" />
       <GameCarousel :step="201" :per-page="6">
         <div v-for="provider in slotProviders" :key="`slot-${provider.id}`"
-          class="flex-shrink-0 w-[calc((100cqw_-_12px)/3)] md:w-[195px]">
+          class="flex-shrink-0 w-[calc((100cqw_-_12px)/3)] md:w-[calc((100cqw_-_24px)/5)] xl:w-[195px]">
           <HomeGameCard :game="provider" game-type="slot" fluid aspect="240 / 313.04" />
         </div>
       </GameCarousel>
@@ -53,7 +60,7 @@
       <GameSectionHeader name="casino" :label="$t('navbar.casino')" />
       <GameCarousel :step="201" :per-page="6">
         <div v-for="provider in casinoProviders" :key="`casino-${provider.id}`"
-          class="flex-shrink-0 w-[calc((100cqw_-_12px)/3)] md:w-[195px]">
+          class="flex-shrink-0 w-[calc((100cqw_-_12px)/3)] md:w-[calc((100cqw_-_24px)/5)] xl:w-[195px]">
           <HomeGameCard :game="provider" game-type="casino" fluid aspect="240 / 313.04" />
         </div>
       </GameCarousel>
@@ -64,7 +71,7 @@
       <GameSectionHeader name="sports" :label="$t('navbar.sports')" />
       <GameCarousel :step="201" :per-page="6">
         <div v-for="provider in sportsProviders" :key="`sports-${provider.id}`"
-          class="flex-shrink-0 w-[calc((100cqw_-_12px)/3)] md:w-[195px]">
+          class="flex-shrink-0 w-[calc((100cqw_-_12px)/3)] md:w-[calc((100cqw_-_24px)/5)] xl:w-[195px]">
           <HomeGameCard :game="provider" game-type="sports" fluid aspect="240 / 313.04" />
         </div>
       </GameCarousel>
@@ -75,7 +82,7 @@
       <GameSectionHeader name="mini" :label="$t('navbar.mini')" />
       <GameCarousel :step="201" :per-page="6">
         <div v-for="game in miniGames" :key="`mini-${game.id}`"
-          class="flex-shrink-0 w-[calc((100cqw_-_12px)/3)] md:w-[195px]">
+          class="flex-shrink-0 w-[calc((100cqw_-_12px)/3)] md:w-[calc((100cqw_-_24px)/5)] xl:w-[195px]">
           <HotGameCard :game="game" fluid aspect="240 / 313.04" @click="handleGameClick(game)" />
         </div>
       </GameCarousel>
