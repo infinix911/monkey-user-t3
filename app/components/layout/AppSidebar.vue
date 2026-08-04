@@ -27,7 +27,12 @@
 
          Both halves are flex-1 and centre their own content, so the pair stays
          symmetric whatever the labels translate to. -->
-    <div v-if="features.payments" class="px-3 pt-[10px]">
+    <!-- `canDepWid` is a per-member permission from /auth/get-session: a member
+         the backend has denied would only get a rejection from the routes
+         behind these buttons, so the pair is dropped rather than shown and
+         refused. `features.payments` is the deployment-wide gate; this is the
+         member-level one. -->
+    <div v-if="features.payments && authStore.user.can_dep_wid" class="px-3 pt-[10px]">
       <div
         class="h-[67px] rounded-[8px] overflow-hidden flex items-stretch"
         :style="{ background: siteConfig.theme.nav.depositSectionGradient }">

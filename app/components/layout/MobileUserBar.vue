@@ -1,9 +1,17 @@
 <template>
-  <!-- Signed-in user info, mobile only, sitting directly under the app header.
-       This is the mobile twin of the desktop account bar in AppHeader: same
-       values, same value colours, same actions. It lives here rather than
-       inside the header because the header row is already the logo's, and the
-       values/actions below do not fit beside it on a 360px phone. -->
+  <!-- Signed-in user info, below `lg` only, sitting directly under the app
+       header. This is the small-screen twin of the desktop account bar in
+       AppHeader: same values, same value colours, same actions. It lives here
+       rather than inside the header because the header row is already the
+       logo's, and the values/actions below do not fit beside it on a 360px
+       phone.
+
+       `lg:hidden`, NOT `min-[690px]:hidden`: the header adopts its desktop
+       design at 690px, but the account bar inside it only has room from `lg`.
+       Between the two — an iPad mini at 768px portrait — that bar read as
+       crowded, so this takes over there. AppHeader's account bar is
+       `hidden lg:flex` for the same reason; exactly one of the two renders at
+       any width. -->
   <!-- FOUR COLUMNS — username · money · points · reload. A grid rather than a
        flex row so each value owns a fixed share of the width and they line up
        in the same places whatever their length; under flex a long balance stole
@@ -13,7 +21,7 @@
        content so it sits flush right without a spacer.
        36px tall with 14px figures, matching the announcement bar below it. -->
   <div v-if="authStore.isAuthenticated"
-    class="min-[690px]:hidden w-full h-[36px] grid grid-cols-[repeat(3,minmax(0,1fr))_auto] items-center gap-2 px-2 overflow-hidden whitespace-nowrap"
+    class="lg:hidden w-full h-[36px] grid grid-cols-[repeat(3,minmax(0,1fr))_auto] items-center gap-2 px-4 overflow-hidden whitespace-nowrap"
     :style="{ backgroundColor: BAR_BG }">
     <!-- 1. Identity. `honorific` is the Korean "님" suffix; locales without an
          equivalent ship an empty string, so the element is dropped entirely

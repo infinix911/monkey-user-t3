@@ -126,8 +126,16 @@
                  the floor: the bar never shrinks below its own content, so a long
                  username or a ten-digit balance widens it instead of
                  overflowing. -->
+            <!-- `hidden lg:flex`: from 690px up the header switches to its
+                 desktop design, but this bar only has room from `lg`. On a
+                 tablet (iPad mini at 768px portrait) it was squeezed into the
+                 narrow content column and read as crowded, so below `lg` the
+                 values move to MobileUserBar under the header instead — which
+                 is why that component is `lg:hidden` rather than
+                 `min-[690px]:hidden`. Keep the two breakpoints in step: exactly
+                 one of them must render at any width. -->
             <div
-              class="flex items-center h-[32px] px-4 w-[45%] min-w-fit rounded-[10px] bg-[#262626] whitespace-nowrap">
+              class="hidden lg:flex items-center h-[32px] px-4 w-[45%] min-w-fit rounded-[10px] bg-[#262626] whitespace-nowrap">
               <!-- Identity. `honorific` is the Korean "님" suffix; it is an empty
                    string in locales that have no equivalent, hence the guard. -->
               <span class="flex items-baseline gap-1">
@@ -196,8 +204,12 @@
               </div>
             </div>
 
-            <!-- Trailing controls -->
-            <div class="flex items-center gap-1 flex-shrink-0">
+            <!-- Trailing controls. `ms-auto` rather than relying on the row's
+                 `justify-between`: below `lg` the account bar beside this is
+                 hidden, and with a single child `justify-between` would park
+                 these at the LEADING edge. The auto margin pins them right at
+                 every width. -->
+            <div class="flex items-center gap-1 flex-shrink-0 ms-auto">
               <div class="relative" data-lang-selector>
                 <button
                   class="inline-flex justify-center items-center gap-1 px-1 h-[30px] xl:h-[30px] rounded-[7px] text-white/90 cursor-pointer hover:opacity-90 transition-opacity"

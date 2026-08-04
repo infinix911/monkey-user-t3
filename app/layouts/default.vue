@@ -459,7 +459,12 @@ const NAVBAR_STICKY_PAGES: string[] = [];
 const AUTO_SCROLL_PAGES: string[] = [];
 
 // State
-const headerHeight = ref(97);
+// Seeded to the DESKTOP header height rather than an arbitrary placeholder:
+// updateHeaderHeight() overwrites it on mount with 83 (>=690px) or the config's
+// mobileHeaderHeight, so any other starting value is wrong at both breakpoints
+// and shifts whatever reads it during the first client tick. (The desktop rail
+// no longer reads it at all — see railStyle.)
+const headerHeight = ref(83);
 const isAtTop = ref(true);
 const isImagesFixed = ref(true);
 const isNavFixed = ref(false);
@@ -547,8 +552,15 @@ watch(effectiveNavFixed, (fixed) => {
  * breathing room keeps the rounded bottom edge off the viewport edge.
  */
 const railStyle = computed(() => ({
-  top: `${headerHeight.value}px`,
-  maxHeight: `calc(100vh - ${headerHeight.value + 12}px)`,
+  // Driven by the CSS var, NOT by `headerHeight`: that ref starts at a
+  // placeholder and only becomes correct in updateHeaderHeight() on mount, so
+  // the rail used to paint at the placeholder offset and then visibly jump up
+  // once hydration corrected it. `--mh-header-height` is written pre-paint by
+  // app.vue's inline <head> script, so the very first paint is already right
+  // and nothing moves. Fallback matches the desktop header (the rail is
+  // lg-only, where the header is always 83px).
+  top: "var(--mh-header-height, 83px)",
+  maxHeight: "calc(100vh - var(--mh-header-height, 83px) - 12px)",
   overflowY: "auto" as const,
 }));
 

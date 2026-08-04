@@ -174,6 +174,14 @@ interface NavItem {
 
 const isAuth = computed(() => authStore.isAuthenticated);
 
+// Deposit/withdraw need BOTH gates: `features.payments` is the deployment-wide
+// one (derived from currency), `can_dep_wid` the per-member permission from
+// /auth/get-session. A denied member would only get a rejection from the routes
+// behind these buttons, so the slots are dropped rather than shown and refused.
+const canDepWid = computed(
+  () => features.payments && authStore.user.can_dep_wid,
+);
+
 // The bar has two faces. Authenticated: 공지사항 · 입금 · [홈] · 출금 · 메뉴 —
 // the centre FAB is HOME (labelled with the site name) and deposit/withdraw are
 // payments-gated. Guests get a public set instead: BERANDA · RTP · [MASUK] ·
@@ -183,7 +191,7 @@ const leftItems = computed<NavItem[]>(() =>
   isAuth.value
     ? [
         { id: "notice", labelKey: "navbar.notice", icon: "notice", requiresAuth: true },
-        ...(features.payments
+        ...(canDepWid.value
           ? [{ id: "deposit", labelKey: "navbar.deposit", icon: "deposit", requiresAuth: true }]
           : []),
       ]
@@ -196,7 +204,7 @@ const leftItems = computed<NavItem[]>(() =>
 const rightItems = computed<NavItem[]>(() =>
   isAuth.value
     ? [
-        ...(features.payments
+        ...(canDepWid.value
           ? [{ id: "withdraw", labelKey: "navbar.withdraw", icon: "withdraw", requiresAuth: true }]
           : []),
         { id: "menu", labelKey: "navbar.menu", icon: "menu", requiresAuth: true },

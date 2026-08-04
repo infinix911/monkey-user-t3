@@ -24,6 +24,11 @@ export const verifyUserResponseSchema = z.object({
   userType: z.number(),
   wallet: z.string(),
   pointWallet: z.string(),
+  // Whether the member may deposit/withdraw. Optional so a backend that
+  // predates the field still validates; the mapper treats anything but an
+  // explicit `false` as allowed, matching isDepositWithdrawalAllowed() in
+  // monkey-user-api — the same rule the routes reject on.
+  canDepWid: z.boolean().optional(),
   // No level fields: `getSession`'s hook in monkey-user-api returns
   // getAuthenticatedMemberByUserId(), which selects id/upperId/depth/username/
   // bank*/phone/userType/wallet/pointWallet and nothing else — not one level
@@ -55,6 +60,8 @@ export interface UserState {
   user_type: number;
   currency: string;
   upper_id: string;
+  /** False only when the backend explicitly denies deposit/withdrawal. */
+  can_dep_wid: boolean;
 }
 
 /** Empty/logged-out user state. */
@@ -70,6 +77,9 @@ export const defaultUserState: UserState = {
   user_type: 0,
   currency: "",
   upper_id: "",
+  // Guests never see the deposit/withdraw entry points anyway (they are inside
+  // authenticated-only surfaces), so this default is never what hides them.
+  can_dep_wid: true,
 };
 
 /**
@@ -141,5 +151,8 @@ export function mapVerifyUserToState(
     user_type: res.userType,
     currency,
     upper_id: res.upperId || "",
+    // Only an explicit `false` denies — an absent field (older backend) stays
+    // allowed, mirroring isDepositWithdrawalAllowed() on the server.
+    can_dep_wid: res.canDepWid !== false,
   };
 }
