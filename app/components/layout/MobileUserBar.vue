@@ -3,54 +3,57 @@
        This is the mobile twin of the desktop account bar in AppHeader: same
        values, same value colours, same actions. It lives here rather than
        inside the header because the header row is already the logo's, and the
-       five values/actions below do not fit beside it on a 360px phone. -->
+       values/actions below do not fit beside it on a 360px phone. -->
+  <!-- FOUR COLUMNS — username · money · points · reload. A grid rather than a
+       flex row so each value owns a fixed share of the width and they line up
+       in the same places whatever their length; under flex a long balance stole
+       room from the username. The three value columns split the space evenly
+       (`minmax(0,1fr)` — the 0 minimum is what lets a long username truncate
+       instead of widening its column), and the reload is sized to its own
+       content so it sits flush right without a spacer.
+       36px tall with 14px figures, matching the announcement bar below it. -->
   <div v-if="authStore.isAuthenticated"
-    class="min-[690px]:hidden w-full h-[34px] flex items-center gap-2 px-2 overflow-hidden whitespace-nowrap"
+    class="min-[690px]:hidden w-full h-[36px] grid grid-cols-[repeat(3,minmax(0,1fr))_auto] items-center gap-2 px-2 overflow-hidden whitespace-nowrap"
     :style="{ backgroundColor: BAR_BG }">
-    <!-- Identity. `honorific` is the Korean "님" suffix; locales without an
+    <!-- 1. Identity. `honorific` is the Korean "님" suffix; locales without an
          equivalent ship an empty string, so the element is dropped entirely
          rather than rendering a stray space. The username is the only part
          allowed to truncate — every other value is a figure that must stay
          readable in full. -->
     <span class="flex items-baseline gap-0.5 min-w-0">
-      <span class="font-bold text-[13px] uppercase leading-none truncate"
+      <span class="font-bold text-[14px] uppercase leading-none truncate"
         :style="{ color: ACCOUNT_BAR_COLORS.username }">{{ authStore.user.username }}</span>
-      <span v-if="honorific" class="text-white text-[11px] leading-none shrink-0">{{ honorific }}</span>
+      <span v-if="honorific" class="text-white text-[12px] leading-none shrink-0">{{ honorific }}</span>
     </span>
 
-    <!-- Wallet balance -->
-    <span class="flex items-center gap-1 shrink-0">
-      <NuxtImg :src="siteConfig.assets.navIcons.walletIcon" alt="" aria-hidden="true" width="15" height="15"
-        class="w-[15px] h-[15px] object-contain shrink-0" />
-      <span class="font-bold text-[13px] tabular-nums leading-none" :style="{ color: ACCOUNT_BAR_COLORS.wallet }">{{
+    <!-- 2. Wallet balance -->
+    <span class="flex items-center gap-1 min-w-0">
+      <NuxtImg :src="siteConfig.assets.navIcons.walletIcon" alt="" aria-hidden="true" width="16" height="16"
+        class="w-[16px] h-[16px] object-contain shrink-0" />
+      <span class="font-bold text-[14px] tabular-nums leading-none" :style="{ color: ACCOUNT_BAR_COLORS.wallet }">{{
         currency.formatNumber(authStore.user.wallet) }}</span>
-      <span class="text-white/90 text-[11px] leading-none">{{ walletUnit }}</span>
+      <span class="text-white/90 text-[12px] leading-none">{{ walletUnit }}</span>
     </span>
 
-    <!-- Point balance — the figure is itself the conversion trigger, as on
-         desktop, with the CONVERT button beside it as the explicit affordance. -->
+    <!-- 3. Point balance — the figure IS the conversion control, as on desktop.
+         No separate CONVERT button beside it: clicking the amount opens the
+         modal. -->
     <button type="button" :aria-label="$t('point.title')"
-      class="flex items-center gap-1 shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+      class="flex items-center gap-1 min-w-0 justify-self-start cursor-pointer hover:opacity-80 transition-opacity"
       @click="uiStore.setShowPointModal(true)">
-      <NuxtImg :src="siteConfig.assets.navIcons.pointIcon" alt="" aria-hidden="true" width="15" height="15"
-        class="w-[15px] h-[15px] object-contain shrink-0" />
-      <span class="font-bold text-[13px] tabular-nums leading-none" :style="{ color: ACCOUNT_BAR_COLORS.point }">{{
+      <NuxtImg :src="siteConfig.assets.navIcons.pointIcon" alt="" aria-hidden="true" width="16" height="16"
+        class="w-[16px] h-[16px] object-contain shrink-0" />
+      <span class="font-bold text-[14px] tabular-nums leading-none" :style="{ color: ACCOUNT_BAR_COLORS.point }">{{
         currency.formatNumber(authStore.user.point_wallet) }}</span>
     </button>
-    <button type="button"
-      class="shrink-0 h-[19px] px-2 rounded-[5px] border text-[10px] font-bold uppercase leading-none tracking-tight cursor-pointer"
-      :style="convertButtonStyle" @click="uiStore.setShowPointModal(true)">
-      {{ $t('header.convert') }}
-    </button>
 
-    <!-- Absorbs the slack so the reload pins to the trailing edge on wide
-         phones; on narrow ones there is none and it simply follows the values. -->
-    <span class="flex-1" aria-hidden="true" />
-
-    <!-- Wallet reload. The art ships in #434343, so it is tinted to white here
-         rather than shipping a second recoloured copy of the same file. -->
+    <!-- 4. Wallet reload. `pe-1.5` on top of the row's `px-2` keeps the glyph
+         off the screen edge — it is the last thing in the row, so without it
+         the icon reads as clipped against the bezel. The art ships in #434343,
+         so it is tinted to white here rather than shipping a second recoloured
+         copy of the same file. -->
     <button type="button" :aria-label="$t('common.refreshBalance')" :disabled="isRefreshingWallet"
-      class="shrink-0 cursor-pointer opacity-90 hover:opacity-100 transition-opacity disabled:opacity-60"
+      class="justify-self-end pe-1.5 cursor-pointer opacity-90 hover:opacity-100 transition-opacity disabled:opacity-60"
       :class="{ 'spin-once': isRefreshingWallet }" @click="refreshWallet">
       <NuxtImg :src="siteConfig.assets.navIcons.refreshIcon" alt="" aria-hidden="true" width="18" height="18"
         class="mobile-user-bar-icon-light w-[18px] h-[18px] object-contain" />
@@ -78,13 +81,6 @@ const ACCOUNT_BAR_COLORS = {
   wallet: "#37F327",
   point: "#269CF0",
 } as const;
-
-// Outlined in the point colour so it attaches to the figure it acts on rather
-// than competing with the header's own buttons. Mirrors AppHeader.
-const convertButtonStyle = {
-  color: ACCOUNT_BAR_COLORS.point,
-  borderColor: `${ACCOUNT_BAR_COLORS.point}99`,
-};
 
 const honorific = computed(() => t("header.honorific"));
 
