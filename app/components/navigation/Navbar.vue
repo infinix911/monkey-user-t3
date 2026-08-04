@@ -312,13 +312,33 @@ const navSkin = useNavSkin();
 // the per-category base icons, and the (temporary) activeKeys for gif hover.
 const nav = siteConfig.theme.nav;
 
-const navItems = computed(() => [
-  { path: "/hot", labelKey: "navbar.hot", icon: nav.icons.hot, activeIcon: nav.activeKeys?.hot, maskSizePercent: "78%", marginLeft: "9px" },
-  { path: "/slots", labelKey: "navbar.slot", icon: nav.icons.slot, activeIcon: nav.activeKeys?.slot },
-  { path: "/casino", labelKey: "navbar.casino", icon: nav.icons.casino, activeIcon: nav.activeKeys?.casino },
-  { path: "/sports", labelKey: "navbar.sports", icon: nav.icons.sport, activeIcon: nav.activeKeys?.sport },
-  { path: "/mini", labelKey: "navbar.mini", icon: nav.icons.mini, activeIcon: nav.activeKeys?.mini },
-  { path: "/fishing", labelKey: "navbar.fishing", icon: nav.icons.fishing, activeIcon: nav.activeKeys?.fishing },
-  { path: "/virtual", labelKey: "navbar.virtual", icon: nav.icons.virtual, activeIcon: nav.activeKeys?.virtual },
+/**
+ * Every category the bar can show. `id` is the lobby `game_type` the
+ * availability read matches on, except HOT — see the filter below.
+ */
+const ALL_NAV_ITEMS = computed(() => [
+  { id: "hot", path: "/hot", labelKey: "navbar.hot", icon: nav.icons.hot, activeIcon: nav.activeKeys?.hot, maskSizePercent: "78%", marginLeft: "9px" },
+  { id: "slot", path: "/slots", labelKey: "navbar.slot", icon: nav.icons.slot, activeIcon: nav.activeKeys?.slot },
+  { id: "casino", path: "/casino", labelKey: "navbar.casino", icon: nav.icons.casino, activeIcon: nav.activeKeys?.casino },
+  { id: "sport", path: "/sports", labelKey: "navbar.sports", icon: nav.icons.sport, activeIcon: nav.activeKeys?.sport },
+  { id: "mini", path: "/mini", labelKey: "navbar.mini", icon: nav.icons.mini, activeIcon: nav.activeKeys?.mini },
+  { id: "fishing", path: "/fishing", labelKey: "navbar.fishing", icon: nav.icons.fishing, activeIcon: nav.activeKeys?.fishing },
+  { id: "virtual", path: "/virtual", labelKey: "navbar.virtual", icon: nav.icons.virtual, activeIcon: nav.activeKeys?.virtual },
 ]);
+
+const { hasLobbies } = useGameCategoryAvailability();
+
+/**
+ * Categories with no lobby behind them are dropped — fishing and virtual today,
+ * whose pages render nothing but a work-in-progress panel. Same rule and same
+ * single `/games/lobbies` read the left rail uses (AppSidebar), so the bar and
+ * the rail always agree on which categories exist. HOT is exempt: it is a
+ * curated slice of slot games, not a lobby type, so the lobby read can never
+ * vouch for it.
+ */
+const navItems = computed(() =>
+  ALL_NAV_ITEMS.value.filter(
+    (item) => item.id === "hot" || hasLobbies(item.id),
+  ),
+);
 </script>
