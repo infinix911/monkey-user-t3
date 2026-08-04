@@ -406,13 +406,6 @@
 import { computed, ref, watch, onMounted, onUnmounted } from "vue";
 import { formatWallet } from "@/utils/currency";
 import { mobileHeaderScale } from "@/utils/scale";
-import { useApi } from "@/composables/useApi";
-import { validateResponse } from "@/lib/validateResponse";
-import {
-  notificationsResponseSchema,
-  mapNotification,
-  type NotificationItem,
-} from "@/interfaces/notification.interface";
 
 const authStore = useAuthStore();
 const uiStore = useUiStore();
@@ -564,10 +557,14 @@ onUnmounted(() => {
 // Computed
 const isAuthenticated = computed(() => authStore.isAuthenticated);
 
-const notifications = ref<NotificationItem[]>([]);
-const unreadNotificationCount = computed(
-  () => notifications.value.filter((n) => !n.is_read).length,
-);
+// Shared with the bottom nav's 공지사항 button, which opens the same panel from
+// the same single fetch — see useNotifications.
+const {
+  notifications,
+  unreadCount: unreadNotificationCount,
+  fetchNotifications,
+  markNotificationsRead,
+} = useNotifications();
 
 const showLangDropdown = ref(false);
 
@@ -589,27 +586,7 @@ const toggleMobileLangDropdown = () => {
   showLangDropdown.value = !showLangDropdown.value;
 };
 
-const fetchNotifications = async () => {
-  if (!authStore.isAuthenticated) return;
-  try {
-    const api = useApi();
-    const raw = await api("/notifications", { query: { lang: locale.value } });
-    notifications.value = validateResponse(
-      notificationsResponseSchema,
-      raw,
-      "/notifications",
-    ).map(mapNotification);
-  } catch {
-    notifications.value = [];
-  }
-};
 
-const markNotificationsRead = () => {
-  notifications.value = notifications.value.map((notification) => ({
-    ...notification,
-    is_read: true,
-  }));
-};
 
 type LangCode = "en" | "ko";
 

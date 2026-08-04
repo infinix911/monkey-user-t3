@@ -1,7 +1,7 @@
 <template>
   <div ref="dropdownRef" class="relative" data-notification-dropdown>
     <!-- Trigger slot -->
-    <div ref="triggerRef" @click="toggleDropdown">
+    <div ref="triggerRef" :class="triggerClass" @click="toggleDropdown">
       <slot />
     </div>
 
@@ -10,6 +10,21 @@
          container). Position is computed from the trigger's
          getBoundingClientRect() when the dropdown opens. -->
     <Teleport to="body">
+      <!-- Backdrop, as the inquiry/deposit/withdrawal modals have — but ONLY
+           when the panel is centred (`isSheet`), which is when it is presenting
+           as a modal. Anchored to the desktop header bell it is a dropdown, and
+           dimming the whole page behind a dropdown would be wrong.
+           `bg-black/90` is the value those modals settled on. Carries the
+           dropdown's data attribute so the document click-outside handler
+           ignores it, and closes on its own click instead. -->
+      <Transition name="dropdown">
+        <div
+          v-if="isOpen && isSheet"
+          data-notification-dropdown
+          class="fixed inset-0 z-[9998] bg-black/90"
+          @click="isOpen = false"
+        />
+      </Transition>
       <Transition name="dropdown">
         <div
           v-if="isOpen"
@@ -17,7 +32,8 @@
           class="tm-modal modal-body-fill fixed border border-[var(--tm-accent)]/40 rounded-xl shadow-2xl p-0 overflow-hidden w-[calc(100vw-2rem)] md:w-[450px] md:min-w-[450px] z-[9999]"
           :style="[modalTheme, {
             top: panelPos.top + 'px',
-            right: panelPos.right + 'px',
+            right: panelPos.right === null ? undefined : panelPos.right + 'px',
+            left: panelPos.left === null ? undefined : panelPos.left + 'px',
             boxShadow:
               '0 0 30px color-mix(in srgb, var(--tm-accent) 30%, transparent), 0 4px 20px rgba(0, 0, 0, 0.5)',
           }]"
@@ -29,15 +45,30 @@
               <span class="w-2 h-2 rounded-full bg-[var(--tm-accent)] animate-pulse" />
               {{ t("notifications.title") }}
             </h3>
-            <div
-              class="tm-card tm-muted text-xs px-2 py-1 rounded-full"
-            >
-              {{ notifications.length }}
-              {{
-                notifications.length === 1
-                  ? t("notifications.notification")
-                  : t("notifications.notifications")
-              }}
+            <div class="flex items-center gap-2">
+              <div
+                class="tm-card tm-muted text-xs px-2 py-1 rounded-full"
+              >
+                {{ notifications.length }}
+                {{
+                  notifications.length === 1
+                    ? t("notifications.notification")
+                    : t("notifications.notifications")
+                }}
+              </div>
+              <!-- Explicit close: the backdrop and an outside click both
+                   dismiss the panel, but as a full-width sheet on mobile it
+                   reads as a modal, and a modal is expected to have one. -->
+              <button
+                type="button"
+                class="tm-muted transition-colors hover:text-white cursor-pointer"
+                :aria-label="t('common.close')"
+                @click="isOpen = false"
+              >
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
           </div>
         </div>
@@ -123,10 +154,19 @@ export interface Notification {
 
 interface Props {
   notifications?: Notification[];
+  /**
+   * Classes for the trigger wrapper around the slot. The wrapper is sized by
+   * its content by default, which is right for the header bell; a caller that
+   * stretches this component (the bottom nav gives it a `flex-1` column) needs
+   * the trigger to fill that box too, or the slot content sits at the top of
+   * the column instead of centred in it.
+   */
+  triggerClass?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   notifications: () => [],
+  triggerClass: "",
 });
 const emit = defineEmits<{
   markedAllRead: [];
@@ -147,14 +187,53 @@ const isMarkingAllRead = ref(false);
 // trigger element on each open. The mobile header sits inside an
 // `overflow-hidden` + CSS-scaled container, so absolute positioning would
 // clip the panel — fixed positioning relative to the viewport avoids that.
-const panelPos = ref({ top: 0, right: 0 });
+const panelPos = ref<{ top: number; right: number | null; left: number | null }>(
+  { top: 0, right: 0, left: null },
+);
+/** True when the panel is centred, i.e. presenting as a modal — see below. */
+const isSheet = ref(false);
 const updatePanelPos = () => {
   if (!triggerRef.value) return;
   const rect = triggerRef.value.getBoundingClientRect();
-  panelPos.value = {
-    top: rect.bottom + 8,
-    right: window.innerWidth - rect.right,
-  };
+  // Flip above a trigger in the lower half of the viewport. The header bell
+  // opens downward as always; the bottom nav's 공지사항 button sits at the very
+  // bottom, where "below the trigger" is off-screen entirely. `max-h-96` on the
+  // scroller plus the header/footer chrome bound the panel at ~460px, so that
+  // is the height reserved when flipping — the panel is anchored by its top
+  // either way, so this is a position, not a measurement.
+  const PANEL_MAX_H = 460;
+  const openUpward = rect.top > window.innerHeight / 2;
+  const top = openUpward
+    ? Math.max(8, rect.top - 8 - PANEL_MAX_H)
+    : rect.bottom + 8;
+
+  // Horizontal: hang the panel's RIGHT edge off the trigger's where there is
+  // room for it — the header bell, on the right of a desktop viewport. Where
+  // there is not, CENTRE it rather than shoving it against a gutter: the bottom
+  // nav's 공지사항 button is the leftmost column, so anchoring put the panel off
+  // the left edge entirely, and clamping it merely pinned it to the left. On a
+  // tablet (iPad mini, 768px) that left a 450px panel sitting lopsided against
+  // the edge; centred, it reads as the modal it is.
+  //
+  // Decided by whether the anchored position FITS, not by a breakpoint — an
+  // earlier `innerWidth < 768` test put the iPad mini's exact 768 on the wrong
+  // side of it. The width mirrors the element's own classes:
+  // `w-[calc(100vw-2rem)]` below `md`, `md:w-[450px]` from there — keep in step.
+  const GUTTER = 16;
+  const vw = window.innerWidth;
+  const panelWidth = Math.min(450, vw - GUTTER * 2);
+  const anchoredLeft = rect.right - panelWidth;
+  const maxLeft = vw - panelWidth - GUTTER;
+  const fitsAnchored = anchoredLeft >= GUTTER && anchoredLeft <= maxLeft;
+  const left = fitsAnchored
+    ? anchoredLeft
+    : Math.round((vw - panelWidth) / 2);
+  // Centred means it is acting as a modal (small screens, or a trigger with no
+  // room beside it) — that is the case that gets a backdrop. Anchored to its
+  // trigger it is a dropdown, and a dropdown dimming the whole desktop page
+  // would be wrong.
+  isSheet.value = !fitsAnchored;
+  panelPos.value = { top, right: null, left };
 };
 
 const filteredNotifications = computed(() => props.notifications);
