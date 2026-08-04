@@ -52,6 +52,13 @@
              guests and on desktop — the component renders nothing there — so
              `isUserBarPinned` is false and this is inert without needing its own
              viewport check. -->
+        <!-- Zero-height sentinel, ALWAYS in flow. The bar pins the moment this
+             reaches the bottom of the header, so it leaves and rejoins the flow
+             at exactly the point it would have scrolled under — no jump, and no
+             waiting for the navbar's trigger further down the page. Measuring
+             the bar itself would not work: once fixed its rect.top is pinned to
+             the header, which would latch the state on. -->
+        <div ref="userBarSentinel" aria-hidden="true" />
         <div ref="userBarAnchor" :class="isUserBarPinned ? 'fixed left-0 right-0 z-40' : ''"
           :style="isUserBarPinned ? { top: headerHeight + 'px' } : {}">
           <MobileUserBar />
@@ -467,7 +474,11 @@ const navbarAnchor = ref<HTMLElement | null>(null);
 // (navbar top + its trigger are offset by this). 0 for guests and on desktop,
 // where MobileUserBar renders nothing.
 const userBarAnchor = ref<HTMLElement | null>(null);
+const userBarSentinel = ref<HTMLElement | null>(null);
 const userBarHeight = ref(0);
+// Set by the scroll handler off the sentinel above — the bar has its own
+// trigger rather than riding the navbar's, which fires much further down.
+const userBarStuck = ref(false);
 const bannerContainer = ref<HTMLElement | null>(null);
 const isBannerVisible = ref(false);
 const initialScrollDone = ref(false);
@@ -508,11 +519,15 @@ const effectiveNavFixed = computed(() =>
   isNavbarStickyPage.value ? !isBannerVisible.value : isNavFixed.value,
 );
 
-// The user bar pins on the same trigger as the navbar, but only when there is
-// one to pin: `userBarHeight` is 0 for guests and at lg+, where MobileUserBar
-// renders nothing, which keeps this false without a second viewport check.
+// The user bar has its OWN trigger (`userBarStuck`, set off the sentinel in the
+// scroll handler) rather than riding `effectiveNavFixed`: the navbar's trigger
+// fires only once the navbar itself reaches the header, by which point this bar
+// has long scrolled away — so it used to vanish and then snap back into place
+// somewhere past the announcement bar. `userBarHeight` is 0 for guests and at
+// lg+, where MobileUserBar renders nothing, which keeps this false there
+// without a second viewport check.
 const isUserBarPinned = computed(
-  () => effectiveNavFixed.value && userBarHeight.value > 0,
+  () => userBarStuck.value && userBarHeight.value > 0,
 );
 
 // Side effect kept out of the computed so reactivity flushes don't fan out
@@ -577,6 +592,15 @@ const scrollWork = () => {
 
   isAtTop.value = scrollY < 10;
   isImagesFixed.value = scrollY > 100;
+
+  // Mobile user bar: pin the moment its flow position reaches the bottom of the
+  // header. Measured off the zero-height sentinel that stays in flow, never off
+  // the bar itself — once fixed, the bar's own rect.top IS headerHeight, so it
+  // would latch on and never release.
+  if (userBarSentinel.value) {
+    userBarStuck.value =
+      userBarSentinel.value.getBoundingClientRect().top <= headerHeight.value;
+  }
 
   // Desktop game-section bg: pin it once its wrapper's top reaches the viewport
   // top, so it sticks there instead of scrolling off. Switching at top<=0 means
@@ -715,6 +739,7 @@ watch(
       isNavFixed.value = false;
       isAtTop.value = true;
       isImagesFixed.value = false;
+      userBarStuck.value = false;
     }
 
     // Both directions need the re-measure: MobileUserBar mounts and unmounts
