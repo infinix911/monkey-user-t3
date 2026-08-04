@@ -25,12 +25,12 @@
          is GamePageLayout's games container, which spans the whole grid. -->
     <div v-if="providers.length" ref="providerAnchor" class="lg:sticky lg:z-40"
       :style="[
-        { top: 'var(--mh-header-height, 60px)' },
+        { top: STICKY_TOP },
         providerStuck && !isLgUp ? { height: providerBarH + 'px' } : {},
       ]">
       <div class="w-full"
-        :class="providerStuck && !isLgUp ? 'fixed left-0 right-0 z-40' : ''"
-        :style="providerStuck && !isLgUp ? { top: 'var(--mh-header-height, 60px)' } : {}">
+        :class="providerStuck && !isLgUp ? 'fixed left-0 right-0 z-30' : ''"
+        :style="providerStuck && !isLgUp ? { top: STICKY_TOP } : {}">
         <!-- Padding only needs rewriting on the FIXED path (below lg), where the
              bar escapes GamePageLayout and must reproduce its ancestors'
              effective padding: game-page-bg px-1.5 + providerBar px-1.5 = 12px.
@@ -230,14 +230,25 @@ const providerStuck = ref(false);
 const providerBarH = ref(0);
 const isLgUp = ref(false);
 
-// Header height in px, from the CSS var app.vue/default.vue keep in sync.
-const headerPx = () => {
+// Where the bar pins: the bottom of the header, PLUS the signed-in mobile user
+// bar when that is itself pinned there. Both CSS vars are written to <html> by
+// the layout (`--mh-header-height` also pre-paint by app.vue); the user-bar one
+// is 0px for guests, at lg+ and whenever that bar is not pinned, so the same
+// expression is correct at every breakpoint and session state. Without the
+// second term this bar pinned at the header's bottom edge and landed straight
+// on top of the user bar on mobile.
+const STICKY_TOP = "calc(var(--mh-header-height, 60px) + var(--mh-userbar-height, 0px))";
+
+// The px twin of STICKY_TOP, used as the scroll threshold — the bar must pin at
+// the exact moment its flow position reaches that line, or it jumps.
+const stickyTopPx = () => {
   if (typeof window === "undefined") return 60;
-  const n = parseInt(
-    getComputedStyle(document.documentElement).getPropertyValue("--mh-header-height"),
-    10,
-  );
-  return Number.isFinite(n) ? n : 60;
+  const cs = getComputedStyle(document.documentElement);
+  const read = (name: string, fallback: number) => {
+    const n = parseInt(cs.getPropertyValue(name), 10);
+    return Number.isFinite(n) ? n : fallback;
+  };
+  return read("--mh-header-height", 60) + read("--mh-userbar-height", 0);
 };
 
 let stickyRaf: number | null = null;
@@ -249,15 +260,16 @@ const onStickyScroll = () => {
     if (!anchor) return;
     isLgUp.value = window.innerWidth >= 1024;
     const top = anchor.getBoundingClientRect().top;
+    const stickyTop = stickyTopPx();
     if (!providerStuck.value) {
-      if (top <= headerPx()) {
+      if (top <= stickyTop) {
         // Measure before pinning so the spacer keeps the exact flow height.
         // Only the fixed path uses it, but measuring here keeps it correct if
         // the viewport crosses lg while pinned.
         providerBarH.value = providerBar.value?.offsetHeight ?? anchor.offsetHeight;
         providerStuck.value = true;
       }
-    } else if (top > headerPx()) {
+    } else if (top > stickyTop) {
       providerStuck.value = false;
     }
     // The strip's usable width can change when it goes fixed — refresh arrows.

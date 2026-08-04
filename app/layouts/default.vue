@@ -541,6 +541,23 @@ watch(effectiveNavFixed, (fixed) => {
   uiStore.setNavSticky(fixed);
 }, { immediate: true });
 
+// The pinned user bar's height, published as a CSS var alongside
+// `--mh-header-height`. Elements INSIDE the page slot also pin under the header
+// (the RTP provider strip), and they have no access to `isUserBarPinned` /
+// `userBarHeight` from here — without this they pin at the header's bottom edge
+// and collide with this bar. `calc(var(--mh-header-height) +
+// var(--mh-userbar-height))` is the correct top for anything stacking below it.
+// 0px whenever the bar isn't pinned, and at lg+/for guests where it doesn't
+// render at all, so the calc is inert there.
+watch(
+  () => (isUserBarPinned.value ? userBarHeight.value : 0),
+  (h) => {
+    if (typeof document === "undefined") return;
+    document.documentElement.style.setProperty("--mh-userbar-height", h + "px");
+  },
+  { immediate: true },
+);
+
 /**
  * Sticky offset for the desktop rail. Only `headerHeight` is dynamic, and it
  * changes on resize rather than on scroll, so this costs nothing per frame —
