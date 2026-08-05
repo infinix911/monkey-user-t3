@@ -73,7 +73,7 @@
         <!-- 1456px shell = the 1202px content column + 210px rail + 28px gap +
              16px `lg:px-2` gutters. Sized from the content column, so adjust it
              here if the rail, the gap or the gutters change. -->
-        <div class="lg:flex lg:w-full lg:max-w-[1456px] lg:mx-auto lg:items-start gap-2 lg:gap-4 xl:gap-7 lg:px-2">
+        <div class="lg:flex lg:w-full lg:max-w-[1456px] lg:mx-auto lg:items-start gap-2 lg:gap-2 xl:gap-7 lg:px-2">
           <!-- The rail pins under the header on scroll with real `position:
                sticky` — main.css drops body's `overflow-x` from lg up so sticky
                can engage. Compositor-driven, so it does not trail the scroll the

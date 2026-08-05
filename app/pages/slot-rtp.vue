@@ -23,21 +23,18 @@
          wrapper — which is exactly the bar's own height, so it would have no
          distance to travel and would appear not to stick at all. Here the parent
          is GamePageLayout's games container, which spans the whole grid. -->
-    <div v-if="providers.length" ref="providerAnchor" class="lg:sticky lg:z-40"
-      :style="[
-        { top: STICKY_TOP },
-        providerStuck && !isLgUp ? { height: providerBarH + 'px' } : {},
-      ]">
-      <div class="w-full"
-        :class="providerStuck && !isLgUp ? 'fixed left-0 right-0 z-30' : ''"
+    <div v-if="providers.length" ref="providerAnchor" class="lg:sticky lg:z-40" :style="[
+      { top: STICKY_TOP },
+      providerStuck && !isLgUp ? { height: providerBarH + 'px' } : {},
+    ]">
+      <div class="w-full" :class="providerStuck && !isLgUp ? 'fixed left-0 right-0 z-30' : ''"
         :style="providerStuck && !isLgUp ? { top: STICKY_TOP } : {}">
         <!-- Padding only needs rewriting on the FIXED path (below lg), where the
              bar escapes GamePageLayout and must reproduce its ancestors'
              effective padding: game-page-bg px-1.5 + providerBar px-1.5 = 12px.
              The lg+ sticky path never leaves the column, so it keeps the normal
              padding and stays identical pinned or not. -->
-        <div ref="providerBar" class="w-full mx-auto"
-          :class="providerStuck && !isLgUp ? 'px-3' : 'px-1.5 lg:px-0'"
+        <div ref="providerBar" class="w-full mx-auto" :class="providerStuck && !isLgUp ? 'px-3' : 'px-1.5 lg:px-0'"
           :style="providerStuck ? { backgroundColor: bodyBg, boxShadow: '0 6px 12px rgba(0,0,0,0.45)' } : {}">
           <div class="relative mb-1">
             <!-- Scrollable strip -->
@@ -117,7 +114,7 @@
 
       <!-- Game grid -->
       <template v-else-if="games.length">
-        <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2">
+        <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 xl:grid-cols-6 gap-2">
           <div v-for="g in games" :key="g.id" class="cursor-pointer" @click="handleGameClick(g)">
             <RtpGameCard :game="g" />
           </div>
@@ -158,12 +155,12 @@ interface Game {
 type RemoteResponse =
   | Game[]
   | {
-      data?: Game[];
-      games?: Game[];
-      rows?: number;
-      total?: number;
-      meta?: { total?: number };
-    }
+    data?: Game[];
+    games?: Game[];
+    rows?: number;
+    total?: number;
+    meta?: { total?: number };
+  }
   | null;
 
 const { t } = useI18n();
