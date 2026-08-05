@@ -23,6 +23,7 @@ import PromotionContent from "~/components/promotion/PromotionContent.vue";
 import FaqContent from "~/components/faq/FaqContent.vue";
 import InquiryContent from "~/components/inquiry/InquiryContent.vue";
 import ContactContent from "~/components/contact/ContactContent.vue";
+import ProfileFeatureModals from "~/components/profile/ProfileFeatureModals.vue";
 
 /** A selected account section id, or `null` when none is open. */
 export type AccountSection = string | null;
@@ -43,6 +44,7 @@ export const ACCOUNT_SECTION_COMPONENTS = {
   faq: FaqContent,
   inquiry: InquiryContent,
   contact: ContactContent,
+  activity: ProfileFeatureModals,
 } satisfies Record<string, Component>;
 
 /**
