@@ -73,7 +73,7 @@
         <!-- 1456px shell = the 1202px content column + 210px rail + 28px gap +
              16px `lg:px-2` gutters. Sized from the content column, so adjust it
              here if the rail, the gap or the gutters change. -->
-        <div class="lg:flex lg:w-full lg:max-w-[1456px] lg:mx-auto lg:items-start lg:gap-7 lg:px-2">
+        <div class="lg:flex lg:w-full lg:max-w-[1456px] lg:mx-auto lg:items-start gap-2 lg:gap-2 xl:gap-7 lg:px-2">
           <!-- The rail pins under the header on scroll with real `position:
                sticky` — main.css drops body's `overflow-x` from lg up so sticky
                can engage. Compositor-driven, so it does not trail the scroll the
@@ -95,122 +95,126 @@
                declared here rather than only implied by the shell arithmetic
                above, and cannot drift if the shell, rail or gap changes. -->
           <div class="min-w-0 lg:flex-1 lg:max-w-[1202px]">
-        <!-- Announcement Bar (desktop lg+: above the banner). Hidden on the RTP page. -->
-        <!-- Fills the content column rather than pinning to a fixed 1152px: the
+            <!-- Announcement Bar (desktop lg+: above the banner). Hidden on the RTP page. -->
+            <!-- Fills the content column rather than pinning to a fixed 1152px: the
              column is capped at 1202px by its wrapper, so a fixed width here
              would leave dead space either side and break alignment with the
              banner directly below. -->
-        <div v-if="!isRtpPage" class="hidden lg:block w-full mx-auto">
-          <div
-            class="w-full rounded-t-[10px] shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] max-h-[30px] md:max-h-[40px] md:min-h-[40px] min-h-[32px] md:h-[40px] flex justify-center"
-            :style="{ background: brandSiteConfig.theme.announcement.desktopGradient }">
-            <div
-              class="w-full flex items-center justify-center gap-1.5 md:gap-4 pr-2 md:pr-6 pl-2 md:pl-3 overflow-visible">
-              <AnnouncementMarquee
-                :text="brandSiteConfig.theme.announcement.text"
-                size-class="text-[16px] lg:text-[16px]"
-                :text-stroke="brandSiteConfig.theme.announcement.textStroke"
-                :text-fill="brandSiteConfig.theme.announcement.textFill" />
+            <div v-if="!isRtpPage" class="hidden lg:block w-full mx-auto">
+              <div
+                class="w-full rounded-t-[10px] shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] max-h-[30px] md:max-h-[40px] md:min-h-[40px] min-h-[32px] md:h-[40px] flex justify-center"
+                :style="{ background: brandSiteConfig.theme.announcement.desktopGradient }">
+                <div
+                  class="w-full flex items-center justify-center gap-1.5 md:gap-4 pr-2 md:pr-6 pl-2 md:pl-3 overflow-visible">
+                  <AnnouncementMarquee :text="brandSiteConfig.theme.announcement.text"
+                    size-class="text-[16px] lg:text-[16px]" :text-stroke="brandSiteConfig.theme.announcement.textStroke"
+                    :text-fill="brandSiteConfig.theme.announcement.textFill" />
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
 
-        <!-- Banner (collapsed on sticky-navbar pages until scrolled past, so navbar sits under header). -->
-        <div id="banner-container" ref="bannerContainer"
-          class="w-full mx-auto transition-[height,visibility] duration-200" :style="!initialScrollDone && isNavbarStickyPage
-            ? { height: 0, overflow: 'hidden', visibility: 'hidden' }
-            : {}
-            ">
-          <!-- Only the homepage carries the rotating BannerPreview carousel.
-               The RTP page has its own static banner, and every other page
-               shows the shared inner-page one. -->
-          <img v-if="isRtpPage" :src="rtpBannerSrc" :alt="$t('navbar.rtp')"
-            class="block w-full h-auto" >
-          <img v-else-if="!isHomePage" :src="innerPageBannerSrc" :alt="brandSiteConfig.identity.siteName"
-            class="block w-full h-auto" >
-          <BannerPreview v-else />
-        </div>
+            <!-- Banner (collapsed on sticky-navbar pages until scrolled past, so navbar sits under header). -->
+            <div id="banner-container" ref="bannerContainer"
+              class="w-full mx-auto transition-[height,visibility] duration-200" :style="!initialScrollDone && isNavbarStickyPage
+                ? { height: 0, overflow: 'hidden', visibility: 'hidden' }
+                : {}
+                ">
+              <!-- Every page with a banner slot draws it from the CMS, scoped by
+               its own page key — so a category page can carry its own creative
+               instead of the single hardcoded image they used to share. Pages
+               with no key (and pages whose key has no active banner) render
+               nothing. /slot-rtp is the one exception: it keeps its own
+               hardcoded creative and is deliberately not CMS-driven. -->
+              <img v-if="isRtpPage" :src="rtpBannerSrc" :alt="$t('navbar.rtp')" class="block w-full h-auto">
+              <!-- Deliberately NOT keyed, and no transition here. This layout
+               survives client-side navigation, so one BannerPreview instance
+               persists and refetches when `page` changes — see its
+               `watch` + `keepPreviousData`. Keying it instead remounted the
+               component, which emptied the slot between the two pages: the
+               height collapsed to zero and the page below jumped up and back.
+               Keeping the instance is what makes the swap smooth; the fade and
+               the height glide live inside the component. -->
+              <BannerPreview v-else-if="bannerPage" :page="bannerPage" />
+            </div>
 
-        <!-- Announcement Bar (mobile/tablet < lg: below the banner). It scrolls
+            <!-- Announcement Bar (mobile/tablet < lg: below the banner). It scrolls
              away with the page — the pinned slot under the header belongs to
              MobileUserBar above. -->
-        <div v-if="!isRtpPage" class="block lg:hidden w-full xl:w-[1152px] mx-auto">
-          <div
-            class="w-full shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] h-[36px] min-h-[36px] max-h-[36px] flex justify-center"
-            :style="{ background: brandSiteConfig.theme.announcement.mobileBg }">
-            <div
-              class="w-full flex items-center justify-center gap-1.5 md:gap-4 pr-2 md:pr-6 pl-2 md:pl-3 overflow-visible">
-              <NuxtImg :src="brandSiteConfig.theme.announcement.mobileIcon" alt="" aria-hidden="true"
-                class="flex-shrink-0 h-5 w-auto object-contain" />
-              <AnnouncementMarquee
-                :text="brandSiteConfig.theme.announcement.text"
-                size-class="text-[14px] lg:text-[15px]"
-                :text-stroke="brandSiteConfig.theme.announcement.textStroke"
-                :text-fill="brandSiteConfig.theme.announcement.textFill" />
-              <!-- Invisible spacer mirrors the leading icon so the marquee region
+            <div v-if="!isRtpPage" class="block lg:hidden w-full xl:w-[1152px] mx-auto">
+              <div
+                class="w-full shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] h-[36px] min-h-[36px] max-h-[36px] flex justify-center"
+                :style="{ background: brandSiteConfig.theme.announcement.mobileBg }">
+                <div
+                  class="w-full flex items-center justify-center gap-1.5 md:gap-4 pr-2 md:pr-6 pl-2 md:pl-3 overflow-visible">
+                  <NuxtImg :src="brandSiteConfig.theme.announcement.mobileIcon" alt="" aria-hidden="true"
+                    class="flex-shrink-0 h-5 w-auto object-contain" />
+                  <AnnouncementMarquee :text="brandSiteConfig.theme.announcement.text"
+                    size-class="text-[14px] lg:text-[15px]" :text-stroke="brandSiteConfig.theme.announcement.textStroke"
+                    :text-fill="brandSiteConfig.theme.announcement.textFill" />
+                  <!-- Invisible spacer mirrors the leading icon so the marquee region
                    is symmetric and short (centered) text sits at the bar's true
                    centre rather than being pushed right by the icon. -->
-              <NuxtImg :src="brandSiteConfig.theme.announcement.mobileIcon" alt="" aria-hidden="true"
-                class="flex-shrink-0 h-5 w-auto object-contain invisible" />
+                  <NuxtImg :src="brandSiteConfig.theme.announcement.mobileIcon" alt="" aria-hidden="true"
+                    class="flex-shrink-0 h-5 w-auto object-contain invisible" />
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
 
-        <!-- The mobile guest auth buttons that used to sit here (a black strip
+            <!-- The mobile guest auth buttons that used to sit here (a black strip
              below the announcement bar) now live in the mobile header itself —
              see components/layout/AppHeader.vue. -->
 
-        <!-- Navbar + Main Content wrapper with optional game section bg -->
-        <div ref="gameBgAnchor" class="relative">
-          <!-- Game Section Background (starts at navigation, extends behind content) -->
-          <template
-            v-if="siteConfig.assets.homepage.gameSectionBg.enabled || siteConfig.assets.homepage.gameSectionBg.mobileOnly">
-            <!-- Mobile bg — always rendered when the gameSectionBg block is
+            <!-- Navbar + Main Content wrapper with optional game section bg -->
+            <div ref="gameBgAnchor" class="relative">
+              <!-- Game Section Background (starts at navigation, extends behind content) -->
+              <template
+                v-if="siteConfig.assets.homepage.gameSectionBg.enabled || siteConfig.assets.homepage.gameSectionBg.mobileOnly">
+                <!-- Mobile bg — always rendered when the gameSectionBg block is
                  active. Tailwind `lg:hidden` keeps it off desktop, so we no
                  longer need the `mobileOnly` flag to gate this branch. -->
-            <div :class="[
-              'lg:hidden z-0 pointer-events-none',
-              effectiveNavFixed ? 'fixed inset-0' : 'absolute inset-0',
-            ]">
-              <div :style="{
-                ...siteConfig.assets.homepage.gameSectionBg.mobileStyle,
-                backgroundColor: siteConfig.theme.bodyBgColor,
-                backgroundImage: `url('${siteConfig.assets.homepage.gameSectionBg.image}')`,
-              }" />
-            </div>
-            <!-- Desktop bg — `mobileOnly: true` brands (Tiger / Dragon /
+                <div :class="[
+                  'lg:hidden z-0 pointer-events-none',
+                  effectiveNavFixed ? 'fixed inset-0' : 'absolute inset-0',
+                ]">
+                  <div :style="{
+                    ...siteConfig.assets.homepage.gameSectionBg.mobileStyle,
+                    backgroundColor: siteConfig.theme.bodyBgColor,
+                    backgroundImage: `url('${siteConfig.assets.homepage.gameSectionBg.image}')`,
+                  }" />
+                </div>
+                <!-- Desktop bg — `mobileOnly: true` brands (Tiger / Dragon /
                  Space) still suppress this branch so we don't accidentally
                  render their mobile-only artwork stretched on desktop. -->
-            <!-- Desktop game-section bg "stickies" via JS (CSS position:sticky is
+                <!-- Desktop game-section bg "stickies" via JS (CSS position:sticky is
                  unavailable — html/body have overflow-x, which breaks it): it stays
                  absolute and scrolls with the page until its wrapper reaches the
                  viewport top (isGameBgFixed), then switches to fixed top-0 so the
                  artwork stays pinned and never disappears at the bottom. The switch
                  happens exactly when it's already at the top, so there's no jump. -->
-            <div v-if="!siteConfig.assets.homepage.gameSectionBg.mobileOnly" :class="[
-              'hidden lg:block z-0 pointer-events-none',
-              isGameBgFixed
-                ? 'fixed left-1/2 -translate-x-1/2 top-0'
-                : 'absolute left-1/2 -translate-x-1/2',
-            ]" :style="{ width: '100%' }">
-              <div :style="{
-                ...siteConfig.assets.homepage.gameSectionBg.desktopStyle,
-                backgroundImage: `url('${siteConfig.assets.homepage.gameSectionBg.image}')`,
-              }" />
-            </div>
-          </template>
+                <div v-if="!siteConfig.assets.homepage.gameSectionBg.mobileOnly" :class="[
+                  'hidden lg:block z-0 pointer-events-none',
+                  isGameBgFixed
+                    ? 'fixed left-1/2 -translate-x-1/2 top-0'
+                    : 'absolute left-1/2 -translate-x-1/2',
+                ]" :style="{ width: '100%' }">
+                  <div :style="{
+                    ...siteConfig.assets.homepage.gameSectionBg.desktopStyle,
+                    backgroundImage: `url('${siteConfig.assets.homepage.gameSectionBg.image}')`,
+                  }" />
+                </div>
+              </template>
 
-          <!-- Navbar — hidden on the RTP page (own provider tabs). -->
-          <div v-if="!isRtpPage" ref="navbarAnchor" class="relative z-20">
-            <div :class="effectiveNavFixed ? 'fixed left-0 right-0 z-40' : ''"
-              :style="effectiveNavFixed ? { top: (headerHeight + (isUserBarPinned ? userBarHeight : 0)) + 'px' } : {}">
-              <Navbar :desktop="false" />
-            </div>
-            <div v-if="effectiveNavFixed" :style="{ height: navbarHeight + 'px' }" />
-          </div>
+              <!-- Navbar — hidden on the RTP page (own provider tabs). -->
+              <div v-if="!isRtpPage" ref="navbarAnchor" class="relative z-20">
+                <div :class="effectiveNavFixed ? 'fixed left-0 right-0 z-40' : ''"
+                  :style="effectiveNavFixed ? { top: (headerHeight + (isUserBarPinned ? userBarHeight : 0)) + 'px' } : {}">
+                  <Navbar :desktop="false" />
+                </div>
+                <div v-if="effectiveNavFixed" :style="{ height: navbarHeight + 'px' }" />
+              </div>
 
-          <!-- Main Content -->
-          <!-- `lg:overflow-visible` is what lets page content use
+              <!-- Main Content -->
+              <!-- `lg:overflow-visible` is what lets page content use
                `position: sticky`. The overflow pair below makes this element a
                scroll container, and since it never scrolls vertically, a sticky
                descendant resolves against it and can never engage — the RTP
@@ -219,13 +223,12 @@
                Below lg the pair stays: narrow viewports still need the
                horizontal scroll, and body is a scroll container there anyway, so
                sticky is unavailable regardless. -->
-          <main ref="mainContent"
-            class="relative overflow-y-hidden overflow-x-auto lg:overflow-visible mt-0 z-10">
-            <div class="relative z-10 w-full">
-              <slot />
+              <main ref="mainContent" class="relative overflow-y-hidden overflow-x-auto lg:overflow-visible mt-0 z-10">
+                <div class="relative z-10 w-full">
+                  <slot />
+                </div>
+              </main>
             </div>
-          </main>
-        </div>
           </div>
         </div>
 
@@ -242,9 +245,7 @@
           <!-- No forced text-align here: the footer HTML is admin-authored and
                sanitizeHtml preserves its own layout/alignment, so alignment is
                the author's call (add text-align in the CMS to centre). -->
-          <footer
-            class="custom-seo-footer w-full mx-auto px-4 py-6 text-sm text-white"
-            v-html="customSeoFooter" />
+          <footer class="custom-seo-footer w-full mx-auto px-4 py-6 text-sm text-white" v-html="customSeoFooter" />
         </div>
 
         <!-- Premium site footer -->
@@ -412,13 +413,20 @@ const localePath = useLocalePath();
 const isRtpPage = computed(() => route.path === localePath("/slot-rtp"));
 const rtpBannerSrc = cdn("/designs/rtp-banner.png");
 
-// The BannerPreview carousel is the homepage's; every other page (bar RTP,
-// which has its own above) shows this one static banner instead. It is a
-// CMS-uploaded file on the deployment's own origin rather than a `/designs`
-// asset, so it is an absolute URL and does NOT go through cdn().
-const isHomePage = computed(() => route.path === localePath("/"));
-const innerPageBannerSrc =
-  "https://krw-demo1.jaeisol.com/designs/banana/banner/kimak-dk-scan-1782672134477.png";
+/**
+ * Which page's CMS banners to render, or null for a page with no banner slot.
+ *
+ * Resolved against the UNLOCALISED path: `route.path` carries the locale
+ * prefix under `no_prefix`-less strategies, so each candidate is compared
+ * through `localePath` rather than matched literally. Replaces the single
+ * hardcoded image every non-home page used to share.
+ */
+const bannerPage = computed(() => {
+  for (const path of BANNER_PAGE_ROUTES) {
+    if (route.path === localePath(path)) return pageBannerKey(path);
+  }
+  return null;
+});
 
 // The 102% big-screen zoom is off: it rendered the 1202px content column at
 // 1226px. The allow-list that drove it lived here — see the template comment on

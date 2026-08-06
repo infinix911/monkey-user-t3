@@ -3,20 +3,26 @@
        to 1152px would re-cap the banner inside the wider content column. -->
   <div class="w-full mx-auto">
     <div id="banner-container" class="bg-black w-full relative overflow-hidden z-10">
-      <!-- Loading State -->
-      <div v-if="isLoading" class="w-full flex items-center justify-center bg-black" :style="bannerBoxStyle">
+      <!-- Loading State — FIRST load only. On a page change the previous
+           banner stays on screen (keepPreviousData) while the next request is
+           in flight; swapping to this placeholder would empty the slot and
+           produce the very jump the refetch-in-place avoids. -->
+      <div v-if="isLoading && banners.length === 0"
+        class="banner-box w-full flex items-center justify-center bg-black" :style="bannerBoxStyle">
         <span class="text-white/50 text-sm">{{ $t('common.loadingBanners') }}</span>
       </div>
 
       <!-- Empty State -->
-      <div v-else-if="banners.length === 0" class="w-full flex items-center justify-center bg-black"
+      <div v-else-if="banners.length === 0" class="banner-box w-full flex items-center justify-center bg-black"
         :style="bannerBoxStyle">
         <span class="text-white/50 text-sm">{{ $t('common.noBanners') }}</span>
       </div>
 
-      <!-- Carousel -->
+      <!-- Carousel. Dimmed slightly while the next page's banners load, so the
+           swap reads as a deliberate cross-fade rather than a hard cut. -->
       <template v-else>
-        <div class="overflow-hidden w-full relative touch-pan-y" @pointerdown="onPointerDown"
+        <div class="banner-swap overflow-hidden w-full relative touch-pan-y" :class="{ 'is-loading': isLoading }"
+          @pointerdown="onPointerDown"
           @pointermove="onPointerMove" @pointerup="onPointerUp" @pointercancel="onPointerCancel"
           @click.capture="onClickCapture">
           <div class="flex w-full ease-in-out" :class="{ 'transition-transform duration-500': !isDragging }"
@@ -25,7 +31,7 @@
               <!-- Desktop Banner — v-if (not CSS hidden) so the off-viewport
                    <video>/<img decoding="async"> is not in the DOM and the browser doesn't
                    fetch its src. UA-based detection: see useIsMobileSSR. -->
-              <div v-if="!isMobile" class="relative w-full" :style="{ aspectRatio: BANNER_AR_DESKTOP }">
+              <div v-if="!isMobile" class="banner-box relative w-full" :style="{ aspectRatio: BANNER_AR_DESKTOP }">
                 <!-- Main media — first slide is LCP, others should not stream
                      bytes upfront (preload="metadata" only fetches headers). -->
                 <video v-if="isVideo(banner.main_url)" :src="banner.main_url"
@@ -53,7 +59,7 @@
               </div>
 
               <!-- Mobile Banner -->
-              <div v-else class="relative w-full" :style="{ aspectRatio: BANNER_AR_MOBILE }">
+              <div v-else class="banner-box relative w-full" :style="{ aspectRatio: BANNER_AR_MOBILE }">
                 <!-- Main media -->
                 <video v-if="isVideo(banner.main_url_mobile)" :src="banner.main_url_mobile"
                   class="absolute inset-0 w-full h-full object-cover" loop muted playsinline autoplay
@@ -103,6 +109,19 @@ import {
   mapBannersCarouselResponse,
   type BannerCarouselItem as BannerPreviewItem,
 } from "@/interfaces/site.interface";
+import type { BannerPageKey } from "@/utils/pageBanner";
+
+const props = withDefaults(
+  defineProps<{
+    /**
+     * Which page's banners to render. Defaults to the homepage so existing
+     * usage — and the API, whose `page` query defaults the same way — is
+     * unchanged.
+     */
+    page?: BannerPageKey;
+  }>(),
+  { page: "homepage" },
+);
 
 // Mobile vs desktop is a *viewport* decision, but it must stay SSR-safe: render
 // only one branch (the off-screen branch's <video>/<img> must not be in the DOM
@@ -152,14 +171,14 @@ const BANNER_W = { desktop: 1280, mobile: 800 } as const;
 // width changes, or the banner height drifts. Placeholder/loading states reuse
 // the active box style so there is no layout jump when banners resolve.
 const siteConfig = useSiteConfig();
-const BANNER_AR_DESKTOP =
+// Theme values are the FALLBACK now: the ratio travels with each banner record
+// (see `aspect_ratio_*`), so it can never disagree with the artwork it
+// describes. These remain for banners saved without one, and for the
+// loading/empty boxes that must reserve space before any record exists.
+const THEME_AR_DESKTOP =
   siteConfig.theme.desktopBannerAspectRatio || "1202 / 300";
-const BANNER_AR_MOBILE = siteConfig.theme.mobileBannerAspectRatio || "375 / 190";
-const bannerBoxStyle = computed(() =>
-  isMobile.value
-    ? { aspectRatio: BANNER_AR_MOBILE }
-    : { aspectRatio: BANNER_AR_DESKTOP },
-);
+const THEME_AR_MOBILE = siteConfig.theme.mobileBannerAspectRatio || "375 / 190";
+
 const optimize = (url: string | null | undefined, width: number): string => {
   if (!url || isVideo(url) || isLocalObjectUrl(url)) return url ?? "";
   try {
@@ -211,11 +230,26 @@ function stopAutoPlay() {
 
 const api = useApi();
 
+/**
+ * One fetch, re-run whenever `page` changes.
+ *
+ * `watch` rather than a per-page key + remount: this component is in the layout
+ * and survives navigation, so refetching in place keeps the previous banner on
+ * screen until the new one is ready. Remounting collapsed the slot to zero
+ * height between the two, which shunted the whole page up and back down —
+ * exactly the jump a fade cannot hide.
+ *
+ * `data` deliberately keeps its previous value while a refetch is pending (the
+ * default), which is what holds the old creative and its ratio in place; the
+ * loading placeholder is therefore gated on there being no data at all.
+ */
 const { data: bannersData, pending: isLoading } = await useAsyncData<
   BannerPreviewItem[]
 >("banners-carousel", async () => {
   try {
-    const raw = await api("/site/banners-new/carousel");
+    const raw = await api("/site/banners-new/carousel", {
+      query: { page: props.page },
+    });
     const list = mapBannersCarouselResponse(
       validateResponse(bannersCarouselResponseSchema, raw, "/site/banners-new"),
     );
@@ -224,9 +258,31 @@ const { data: bannersData, pending: isLoading } = await useAsyncData<
     if (import.meta.dev) console.error("Failed to fetch banners:", err);
     return [];
   }
+}, {
+  watch: [() => props.page],
 });
 
 const banners = computed<BannerPreviewItem[]>(() => bannersData.value ?? []);
+
+/**
+ * The slot is ONE box, but the ratio is per record: if each slide sized itself
+ * the box would resize mid-rotation and shunt the page around. So the first
+ * active banner (lowest `sort`, i.e. the one that renders first) sets the box
+ * for the whole carousel, and the rest fill it with object-cover as before.
+ * Falls back to the theme value for banners saved without a ratio, and for the
+ * loading/empty boxes, which must reserve space before any record exists.
+ */
+const BANNER_AR_DESKTOP = computed(
+  () => banners.value[0]?.aspect_ratio_desktop || THEME_AR_DESKTOP,
+);
+const BANNER_AR_MOBILE = computed(
+  () => banners.value[0]?.aspect_ratio_mobile || THEME_AR_MOBILE,
+);
+const bannerBoxStyle = computed(() =>
+  isMobile.value
+    ? { aspectRatio: BANNER_AR_MOBILE.value }
+    : { aspectRatio: BANNER_AR_DESKTOP.value },
+);
 
 // Preload the first banner's overlay image — this is the LCP element on the
 // homepage. Without `<link rel="preload">` the browser only discovers the URL
@@ -274,6 +330,34 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+/* Page-to-page banner swap.
+   The two pages' ratios differ (e.g. 4/1 vs 2.67/1), so the slot's height
+   changes on navigation. Animating `aspect-ratio` glides that instead of
+   snapping — browsers without interpolation for it simply land on the new
+   value, which is the old behaviour and no worse. */
+.banner-box {
+  transition: aspect-ratio 0.3s ease;
+}
+
+/* While the next page's banners are in flight the previous creative is still
+   on screen (keepPreviousData). Dimming it slightly marks the swap as
+   deliberate; it returns to full opacity as the new one paints. */
+.banner-swap {
+  transition: opacity 0.3s ease;
+}
+
+.banner-swap.is-loading {
+  opacity: 0.55;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .banner-box,
+  .banner-swap {
+    transition: none;
+  }
+}
+
 /* Block native image/media drag so a press-and-drag drives the carousel swipe
    instead of starting the browser's image drag (which would otherwise hijack
    the gesture and snap the slide back). */

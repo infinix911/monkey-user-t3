@@ -309,8 +309,11 @@ const icons = computed(() => siteConfig.assets.sidebarIcons);
 // so the border eats into the 31px rather than adding to it (the pitch holds),
 // and the horizontal padding drops 6px -> 5px so 8px list padding + 1px border +
 // 5px row padding still puts the icon box 14px inside the panel edge.
+// `sb-row` carries the active tint (see the scoped style). It is a plain class,
+// one specificity step below Tailwind's `hover:` utility, so hovering an active
+// row still shows the hover colour instead of being frozen by the tint.
 const ROW_CLASS =
-  "group w-full flex items-center gap-[19px] px-[5px] h-[31px] rounded-[6px] border border-transparent text-[14px] font-medium cursor-pointer transition-colors duration-150 hover:bg-[var(--sb-hover)]";
+  "sb-row group w-full flex items-center gap-[19px] px-[5px] h-[31px] rounded-[6px] border border-transparent text-[14px] font-medium cursor-pointer transition-colors duration-150 hover:bg-[var(--sb-hover)]";
 
 /**
  * Per-row colour: the active route takes the accent, everything else is white.
@@ -323,9 +326,16 @@ const ROW_CLASS =
  * token means "no outline" — a theme can then mark the active row by its label
  * colour alone, as it did before this setting existed.
  *
- * The tint is left to the `--sb-hover` class rather than set here, because an
- * inline `background` would outrank the hover utility and freeze the active row
- * on hover.
+ * The active row also takes a light FILL of the same token, at 14% against the
+ * rail. It is published as the `--sb-active-bg` custom property and painted by
+ * the `.sb-row` class rather than set inline, because an inline `background`
+ * would outrank the hover utility and freeze the active row on hover.
+ *
+ * 14% is chosen for legibility, not just for looks: the label on that row is
+ * the accent colour, so a heavy fill of the same hue would sit right underneath
+ * it and collapse the contrast. At 14% over a dark rail the fill stays close to
+ * the panel's own luminance, which leaves both the accent label and the white
+ * labels around it readable.
  *
  * @param active - Whether this row is the current route.
  * @returns {Record<string, string>} Inline style for the row.
@@ -339,6 +349,7 @@ function rowStyle(active: boolean): Record<string, string> {
   const outline = sidebar.value.activeItemBorderColor?.trim();
   if (active && outline) {
     style.borderColor = `color-mix(in srgb, ${outline} 70%, transparent)`;
+    style["--sb-active-bg"] = `color-mix(in srgb, ${outline} 14%, transparent)`;
   }
 
   return style;
@@ -429,6 +440,19 @@ function goTo(path: string): void {
 </script>
 
 <style scoped>
+/* Active row fill. `--sb-active-bg` is set inline by rowStyle() only for the
+   active row, and is a light mix of the same token that draws its outline, so
+   the fill and the frame always agree.
+
+   A plain class deliberately, NOT an inline background: this is one specificity
+   step below Tailwind's `hover:bg-[var(--sb-hover)]`, so hovering an active row
+   still shows the hover colour. Rows without the property fall back to
+   transparent, which is every inactive row and every theme that ships no
+   outline token. */
+.sb-row {
+  background-color: var(--sb-active-bg, transparent);
+}
+
 /* Fade the backdrop and settle the panel from slightly small — the sideways
    slide this used to do belonged to a panel that flew out beside the rail, and
    reads as a glitch on something centred. */
