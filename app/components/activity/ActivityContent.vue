@@ -81,14 +81,16 @@ stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
             <!-- No loading/empty props: this branch only renders once rows
                  exist, and the panel shows its own spinner and empty
                  illustration above, which are richer than a single table row. -->
-            <AppTable :columns="activeColumns" :rows="tableData">
+            <AppTable :columns="activeColumnLabels" :rows="tableData">
                 <template #row="{ row }">
-                    <td v-for="col in activeColumns" :key="col"
+                    <td
+v-for="col in activeColumns" :key="col"
                         :class="col === 'ID' ? 'break-all max-w-[180px]' : 'whitespace-nowrap'">
                         <TableDateCell v-if="DATE_COLUMNS.includes(col)" :value="String(row[col] ?? '')" />
                         <StatusBadge
 v-else-if="col === 'Status'" :tone="statusTone(String(row[col] ?? ''))"
                             :label="String(row[col] ?? '')" />
+                        <template v-else-if="col === 'Service' || col === 'Provider'">{{ transactionLabel(row[col]) }}</template>
                         <template v-else>{{ row[col] }}</template>
                     </td>
                 </template>
@@ -198,7 +200,36 @@ const GAME_COLUMNS = ["ID", "Provider", "Bet", "Win", "Balance", "Date"];
 
 const PAGE_SIZE = 50;
 
-const { t } = useI18n();
+const { t, te } = useI18n();
+
+/** Column key → i18n label key, so the AppTable headers localize. */
+const COLUMN_LABEL_KEYS: Record<string, string> = {
+  ID: "activity.columns.id",
+  Service: "activity.columns.service",
+  Amount: "activity.columns.amount",
+  Status: "activity.columns.status",
+  "Updated At": "activity.columns.updatedAt",
+  Provider: "activity.columns.provider",
+  Bet: "activity.columns.bet",
+  Win: "activity.columns.win",
+  Balance: "activity.columns.balance",
+  Date: "activity.columns.date",
+};
+
+/**
+ * Translate a backend transaction/status code (e.g. `DEPOSIT_APPROVED`) to a
+ * localized label, falling back to the raw value for unmapped codes and game
+ * provider names (Evolution, Pragmatic Slots, …).
+ *
+ * @param value - The raw `transaction` cell value.
+ * @returns {string} Localized label, or the raw value when unmapped.
+ */
+function transactionLabel(value: unknown): string {
+  const raw = String(value ?? "").trim();
+  if (!raw) return "";
+  const key = `activity.transactionTypes.${raw}`;
+  return te(key) ? t(key) : raw;
+}
 const activeTab = ref<ActivityCategory>("all");
 const loading = ref(false);
 const rawData = ref<ActivityRow[]>([]);
@@ -210,6 +241,11 @@ const activeColumns = computed(() =>
   activeTab.value === "transaction" || activeTab.value === "all"
     ? TRANSACTION_COLUMNS
     : GAME_COLUMNS,
+);
+
+/** Localized header labels (AppTable renders these); rows still key off activeColumns. */
+const activeColumnLabels = computed(() =>
+  activeColumns.value.map((col) => t(COLUMN_LABEL_KEYS[col] ?? col)),
 );
 
 /** Columns holding a timestamp, rendered through TableDateCell. */
