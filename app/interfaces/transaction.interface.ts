@@ -54,7 +54,9 @@ export const mapWalletTransaction = (
 // --- Activity ledger: GET /transactions/activity/:category ({ data, meta }) ---
 
 export const activityWireSchema = z.object({
-  id: z.number(),
+  // Wallet-ledger rows use a bigint id; game-ledger rows use a UUID — accept
+  // either and normalize to a string.
+  id: z.coerce.string(),
   createdAt: z.string(),
   type: z.string(),
   transaction: z.string(),
@@ -77,7 +79,7 @@ export type ActivityResponseWire = z.infer<typeof activityResponseWireSchema>;
 
 /** Normalized activity row consumed by ActivityContent. */
 export interface ActivityRow {
-  id: number;
+  id: string;
   created_at: string;
   type: string;
   transaction: string;

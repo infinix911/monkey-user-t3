@@ -49,6 +49,7 @@
               <option value="casino">{{ t("bettingReport.casino") }}</option>
               <option value="slot">{{ t("bettingReport.slot") }}</option>
               <option value="sport">{{ t("bettingReport.sport") }}</option>
+              <option value="mini">{{ t("bettingReport.mini") }}</option>
             </select>
             <svg
               class="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-white pointer-events-none" fill="none"
@@ -244,7 +245,7 @@ function typeLabel(type?: string): string {
 }
 const providers = ref<NormalizedLobby[]>([]);
 const loadingProviders = ref(false);
-const supportedGameTypes = ["casino", "slot", "sport"] as const;
+const supportedGameTypes = ["casino", "slot", "sport", "mini"] as const;
 
 // Green for a net win (positive), red for a net loss (negative), neutral at zero.
 function winLossClass(value: number): string {
@@ -327,7 +328,16 @@ async function fetchBetHistories(page: number = 1) {
         };
       }),
     );
-    betHistories.value = responses.flatMap((response) => response.data);
+    // Merge every game type's page into one list ordered by the date column the
+    // table shows (created_at, newest first). Without this the rows come out
+    // grouped by game type (each type's response concatenated) for the "all" tab.
+    betHistories.value = responses
+      .flatMap((response) => response.data)
+      .sort(
+        (a, b) =>
+          new Date(String(b.created_at)).getTime() -
+          new Date(String(a.created_at)).getTime(),
+      );
     totalPages.value = Math.max(...responses.map((response) => response.pages));
     totalRows.value = responses.reduce((total, response) => total + response.rows, 0);
     summary.value = {

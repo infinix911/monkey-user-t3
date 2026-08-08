@@ -713,7 +713,28 @@
   "activity": {
     "empty": "최근 활동 없음",
     "credit": "입금",
-    "debit": "출금"
+    "debit": "출금",
+    "columns": {
+      "id": "번호",
+      "service": "구분",
+      "amount": "금액",
+      "status": "상태",
+      "updatedAt": "처리일시",
+      "provider": "게임사",
+      "bet": "베팅",
+      "win": "당첨",
+      "balance": "잔액",
+      "date": "일시"
+    },
+    "transactionTypes": {
+      "DEPOSIT_APPROVED": "입금",
+      "WITHDRAWAL_REQUESTED": "출금 요청",
+      "WITHDRAWAL_CANCELLED": "출금 취소",
+      "WITHDRAWAL_REJECTED": "출금 거절",
+      "ADMIN_WALLET_ADJUSTMENT": "관리자 조정",
+      "POINT_EXCHANGE": "포인트 전환",
+      "User Withdrawal": "출금"
+    }
   },
   "bettingReport": {
     "title": "베팅 리포트",
@@ -727,6 +748,7 @@
     "casino": "카지노",
     "slot": "슬롯",
     "sport": "스포츠",
+    "mini": "미니",
     "allProviders": "모든 제공자",
     "room": "룸",
     "betAmount": "베팅 금액",

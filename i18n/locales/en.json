@@ -713,7 +713,28 @@
   "activity": {
     "empty": "No recent activity",
     "credit": "Credit",
-    "debit": "Debit"
+    "debit": "Debit",
+    "columns": {
+      "id": "ID",
+      "service": "Service",
+      "amount": "Amount",
+      "status": "Status",
+      "updatedAt": "Updated At",
+      "provider": "Provider",
+      "bet": "Bet",
+      "win": "Win",
+      "balance": "Balance",
+      "date": "Date"
+    },
+    "transactionTypes": {
+      "DEPOSIT_APPROVED": "Deposit",
+      "WITHDRAWAL_REQUESTED": "Withdrawal Requested",
+      "WITHDRAWAL_CANCELLED": "Withdrawal Cancelled",
+      "WITHDRAWAL_REJECTED": "Withdrawal Rejected",
+      "ADMIN_WALLET_ADJUSTMENT": "Admin Adjustment",
+      "POINT_EXCHANGE": "Point Exchange",
+      "User Withdrawal": "Withdrawal"
+    }
   },
   "bettingReport": {
     "title": "Betting Report",
@@ -727,6 +748,7 @@
     "casino": "Casino",
     "slot": "Slot",
     "sport": "Sport",
+    "mini": "Mini",
     "allProviders": "All Providers",
     "room": "Room",
     "betAmount": "Bet amount",
