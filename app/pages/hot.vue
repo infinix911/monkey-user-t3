@@ -89,6 +89,8 @@ interface HotGamesResponse {
 }
 
 const { t } = useI18n();
+// Backend error tokens -> localized copy (see composables/useApiMessage.ts).
+const apiMessage = useApiMessage();
 const route = useRoute();
 const router = useRouter();
 const api = useApi();
@@ -157,11 +159,12 @@ useItemListSchema(() =>
   })),
 );
 const isLoading = computed(() => pending.value);
-const error = computed<string | null>(() => {
-  if (!fetchError.value) return null;
-  const err = fetchError.value as { data?: { message?: string }; message?: string };
-  return err.data?.message || err.message || t("common.errorLoadingData");
-});
+// Was `err.data?.message` — the raw backend token as the page's inline error.
+const error = computed<string | null>(() =>
+  fetchError.value
+    ? apiMessage(fetchError.value, "game", "common.errorLoadingData")
+    : null,
+);
 
 const totalPages = computed(() =>
   Math.max(1, Math.ceil(totalGames.value / GAMES_PER_PAGE)),
