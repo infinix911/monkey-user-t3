@@ -118,14 +118,13 @@
                  are spaced uniformly rather than to those raw numbers. Within a
                  group the gaps are small (gap-1 / gap-1.5) and already match.
 
-                 WIDTH is a share of the banner: this sits in the header's
-                 content column — the same column the banner occupies below — so
-                 a percentage tracks it at every viewport without a hardcoded
-                 pixel value. The reference measures 569px of bar against a
-                 1200px column (47.4%); 45% is the chosen setting. `min-w-fit` is
-                 the floor: the bar never shrinks below its own content, so a long
-                 username or a ten-digit balance widens it instead of
-                 overflowing. -->
+                 WIDTH follows the content: `w-fit` sizes the bar to exactly what
+                 it holds, so it never carries empty space. It was previously a
+                 45% share of the content column, which on most viewports left a
+                 stretch of bare #262626 between the point balance and the action
+                 icons. `min-w-fit` stays as the floor — the flex row must not
+                 squeeze the bar, so a long username or a ten-digit balance
+                 widens it instead of overflowing. -->
             <!-- `hidden lg:flex`: from 690px up the header switches to its
                  desktop design, but this bar only has room from `lg`. On a
                  tablet (iPad mini at 768px portrait) it was squeezed into the
@@ -135,7 +134,7 @@
                  `min-[690px]:hidden`. Keep the two breakpoints in step: exactly
                  one of them must render at any width. -->
             <div
-              class="hidden lg:flex items-center h-[32px] px-4 w-[45%] min-w-fit rounded-[10px] bg-[#262626] whitespace-nowrap">
+              class="hidden lg:flex items-center h-[32px] px-4 w-fit min-w-fit rounded-[10px] bg-[#262626] whitespace-nowrap">
               <!-- Identity. `honorific` is the Korean "님" suffix; it is an empty
                    string in locales that have no equivalent, hence the guard. -->
               <span class="flex items-baseline gap-1">
@@ -167,16 +166,10 @@
                     currency.formatNumber(authStore.user.point_wallet) }}</span>
               </button>
 
-              <!-- Spacer: the bar is a fixed 45% of the column, so it is usually
-                   wider than its contents. This absorbs that slack, which pins
-                   the three action icons to the trailing edge instead of leaving
-                   a gap after the bell. `ms-10` below stays the MINIMUM gap, for
-                   when the balances grow enough to consume the slack. -->
-              <span class="flex-1" aria-hidden="true" />
-
               <!-- Actions — refresh + bell only; the conversion control now
-                   sits beside the point figure above. The spacer before this
-                   group pins them to the bar's trailing edge. -->
+                   sits beside the point figure above. The bar is content-width,
+                   so there is no slack to absorb and no spacer here: `ms-10` is
+                   the real gap, matching the spacing between the other groups. -->
               <div class="flex items-center gap-2.5 ms-10">
                 <!-- Wallet reload. The art ships in #434343, so it is tinted to
                      white here rather than shipping a second copy of the file. -->
