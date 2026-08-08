@@ -33,6 +33,7 @@
                 <button
                   type="button"
                   class="notice-btn notice-btn--agree"
+                  :disabled="isLeaving"
                   @click="handleAgree"
                 >
                   <svg
@@ -53,6 +54,7 @@
                 <button
                   type="button"
                   class="notice-btn notice-btn--disagree"
+                  :disabled="isLeaving"
                   @click="handleDisagree"
                 >
                   <svg
@@ -80,7 +82,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { renderRichContent } from "~/composables/useTiptap";
 
 const authStore = useAuthStore();
@@ -100,12 +102,35 @@ const noticeVars = computed(() => ({
 
 const noticeHtml = computed(() => renderRichContent(uiStore.noticeContent));
 
+/** True from the moment agree starts a reload until the document is replaced. */
+const isLeaving = ref(false);
+
 const handleAgree = () => {
+  // Set by the login flow only. Logging in deliberately stops after fetching
+  // the notice — no session verify, no websocket — so agreeing is what
+  // completes it, and the reloaded page is server-rendered as authenticated.
+  if (uiStore.reloadAfterNoticeAgree && typeof window !== "undefined") {
+    // The modal deliberately STAYS OPEN across the reload. Closing it first
+    // dropped the member onto the still-logged-out page underneath for the
+    // moment before navigation started. `markNoticeAgreed` records the
+    // agreement without touching visibility, so the notice does not come back
+    // after the reload; the buttons disable so it cannot be double-submitted
+    // while the document is being replaced.
+    isLeaving.value = true;
+    uiStore.markNoticeAgreed();
+    window.location.reload();
+    return;
+  }
+
+  // Ordinary page load: closing IS the agreement, and there is nothing to wait
+  // for — the page underneath is already the authenticated one.
   uiStore.setShowNoticeModal(false);
 };
 
 const handleDisagree = () => {
   uiStore.setShowNoticeModal(false);
+  // Nothing to reload into — logout() clears the session and redirects.
+  uiStore.setReloadAfterNoticeAgree(false);
   authStore.logout();
 };
 </script>

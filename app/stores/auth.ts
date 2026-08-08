@@ -136,7 +136,10 @@ export const useAuthStore = defineStore("auth", () => {
       } else if (status === 500) {
         throw new Error("INTERNAL_ERROR");
       } else {
-        throw new Error(apiErrorMessageOr(error, "Failed to verify user"));
+        // Throw the TOKEN, like the two branches above, so the display site
+        // can translate it. This used to throw the raw backend message (and a
+        // hardcoded English fallback), which callers then showed verbatim.
+        throw new Error(resolveApiToken(error) ?? "INTERNAL_ERROR");
       }
     }
   };

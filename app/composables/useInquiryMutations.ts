@@ -263,9 +263,10 @@ export const useInquiryMutations = (onRefresh?: () => Promise<void>) => {
         ),
       );
     } catch (error: unknown) {
-      const errorMessage = apiErrorMessageOr(error, "Failed to load replies");
-
-      await showErrorAlert(t("common.error"), errorMessage);
+      // Was apiErrorMessageOr(), which returns the RAW backend message and a
+      // hardcoded English fallback. Every other path in this file already
+      // translates through apiMessage().
+      await showErrorAlert(t("common.error"), apiMessage(error, "inquiry"));
       return null;
     }
   };

@@ -3,25 +3,16 @@
        to 1152px would re-cap the banner inside the wider content column. -->
   <div class="w-full mx-auto">
     <div id="banner-container" class="bg-black w-full relative overflow-hidden z-10">
-      <!-- Loading State — FIRST load only. On a page change the previous
-           banner stays on screen (keepPreviousData) while the next request is
-           in flight; swapping to this placeholder would empty the slot and
-           produce the very jump the refetch-in-place avoids. -->
-      <div v-if="isLoading && banners.length === 0"
-        class="banner-box w-full flex items-center justify-center bg-black" :style="bannerBoxStyle">
-        <span class="text-white/50 text-sm">{{ $t('common.loadingBanners') }}</span>
-      </div>
-
-      <!-- Empty State -->
-      <div v-else-if="banners.length === 0" class="banner-box w-full flex items-center justify-center bg-black"
+      <!-- Empty State. There is no loading state: every page's banners arrive
+           in the one SSR fetch behind the banner store, so by the time this
+           renders the list for this page is already known (possibly empty). -->
+      <div v-if="banners.length === 0" class="banner-box w-full flex items-center justify-center bg-black"
         :style="bannerBoxStyle">
         <span class="text-white/50 text-sm">{{ $t('common.noBanners') }}</span>
       </div>
 
-      <!-- Carousel. Dimmed slightly while the next page's banners load, so the
-           swap reads as a deliberate cross-fade rather than a hard cut. -->
       <template v-else>
-        <div class="banner-swap overflow-hidden w-full relative touch-pan-y" :class="{ 'is-loading': isLoading }"
+        <div class="banner-swap overflow-hidden w-full relative touch-pan-y"
           @pointerdown="onPointerDown"
           @pointermove="onPointerMove" @pointerup="onPointerUp" @pointercancel="onPointerCancel"
           @click.capture="onClickCapture">
@@ -101,14 +92,9 @@
 <script setup lang="ts">
 import type { ResolvableLink } from "@unhead/vue";
 import { computed, ref, onMounted, onUnmounted } from "vue";
-import { useApi } from "@/composables/useApi";
 import { useCarouselSwipe } from "@/composables/useCarouselSwipe";
-import { validateResponse } from "@/lib/validateResponse";
-import {
-  bannersCarouselResponseSchema,
-  mapBannersCarouselResponse,
-  type BannerCarouselItem as BannerPreviewItem,
-} from "@/interfaces/site.interface";
+import type { BannerCarouselItem as BannerPreviewItem } from "@/interfaces/site.interface";
+import { useBannerStore } from "@/stores/banner";
 import type { BannerPageKey } from "@/utils/pageBanner";
 
 const props = withDefaults(
@@ -228,41 +214,80 @@ function stopAutoPlay() {
   }
 }
 
-const api = useApi();
+/**
+ * This page's banners, read from the store — no fetching here.
+ *
+ * Every active banner for every page arrives in a single SSR request (see
+ * `fetchBanners`, invoked from app.vue), so switching pages is a re-filter of
+ * already-hydrated state rather than a network round trip.
+ */
+const bannerStore = useBannerStore();
 
 /**
- * One fetch, re-run whenever `page` changes.
+ * The page currently ON SCREEN, which deliberately lags `props.page` until the
+ * incoming creative can actually paint.
  *
- * `watch` rather than a per-page key + remount: this component is in the layout
- * and survives navigation, so refetching in place keeps the previous banner on
- * screen until the new one is ready. Remounting collapsed the slot to zero
- * height between the two, which shunted the whole page up and back down —
- * exactly the jump a fade cannot hide.
- *
- * `data` deliberately keeps its previous value while a refetch is pending (the
- * default), which is what holds the old creative and its ratio in place; the
- * loading placeholder is therefore gated on there being no data at all.
+ * Having the records in memory is not the same as having the artwork decoded:
+ * swapping `src` the instant the route changed left the slot showing its black
+ * background for as long as the new image took to decode (measured at ~340ms on
+ * a first visit), which read as a flicker. So the swap waits for the incoming
+ * image, and the previous creative stays up until then.
  */
-const { data: bannersData, pending: isLoading } = await useAsyncData<
-  BannerPreviewItem[]
->("banners-carousel", async () => {
-  try {
-    const raw = await api("/site/banners-new/carousel", {
-      query: { page: props.page },
-    });
-    const list = mapBannersCarouselResponse(
-      validateResponse(bannersCarouselResponseSchema, raw, "/site/banners-new"),
-    );
-    return [...list].sort((a, b) => a.sort - b.sort);
-  } catch (err) {
-    if (import.meta.dev) console.error("Failed to fetch banners:", err);
-    return [];
-  }
-}, {
-  watch: [() => props.page],
-});
+const displayPage = ref<BannerPageKey>(props.page);
+const banners = computed<BannerPreviewItem[]>(() =>
+  bannerStore.bannersByPage(displayPage.value),
+);
 
-const banners = computed<BannerPreviewItem[]>(() => bannersData.value ?? []);
+/** The URL that will actually render for a banner at the current viewport. */
+const mediaUrls = (banner: BannerPreviewItem | undefined): string[] => {
+  if (!banner) return [];
+  const width = isMobile.value ? BANNER_W.mobile : BANNER_W.desktop;
+  const main = isMobile.value ? banner.main_url_mobile : banner.main_url;
+  const overlay = isMobile.value
+    ? banner.overlay_url_mobile
+    : banner.overlay_url;
+  return [main, overlay]
+    .filter((url): url is string => !!url && !isVideo(url))
+    .map((url) => optimize(url, width));
+};
+
+/**
+ * Fetch and DECODE a banner's images, so a later render paints immediately.
+ * `decode()` (not just `load`) is the part that matters — an image can be
+ * downloaded and still cost a frame to decode. Failures are ignored: this is a
+ * pure optimisation, never a gate on showing the banner.
+ */
+const warm = async (banner: BannerPreviewItem | undefined): Promise<void> => {
+  if (!import.meta.client) return;
+  await Promise.all(
+    mediaUrls(banner).map(async (url) => {
+      const image = new Image();
+      image.src = url;
+      await image.decode().catch(() => {});
+    }),
+  );
+};
+
+/**
+ * Hold the old creative until the new one is ready, then swap both the artwork
+ * and the slot height together.
+ *
+ * Capped: a slow CDN must not strand the visitor on the previous page's banner,
+ * so after the timeout the swap happens regardless (the pre-existing behaviour).
+ * Videos resolve instantly — there is nothing to decode ahead of time.
+ */
+const SWAP_DECODE_BUDGET_MS = 600;
+watch(
+  () => props.page,
+  async (next) => {
+    await Promise.race([
+      warm(bannerStore.bannersByPage(next)[0]),
+      new Promise((resolve) => setTimeout(resolve, SWAP_DECODE_BUDGET_MS)),
+    ]);
+    // Ignore a swap that a faster subsequent navigation has already overtaken.
+    if (props.page === next) displayPage.value = next;
+  },
+);
 
 /**
  * The slot is ONE box, but the ratio is per record: if each slide sized itself
@@ -314,6 +339,24 @@ useHead(() => {
   return link.length ? { link } : {};
 });
 
+/**
+ * Decode the FIRST banner of every other page once the browser is idle.
+ *
+ * The whole set is already in the store, so this costs no extra requests
+ * against the API — it just moves each page's first paint off the navigation
+ * and into idle time, which is what makes the swap above resolve instantly
+ * rather than spending its decode budget. Deferred to idle so it never competes
+ * with the current page's LCP.
+ */
+const warmOtherPages = (): void => {
+  const seen = new Set<string>([displayPage.value]);
+  for (const banner of bannerStore.banners) {
+    if (seen.has(banner.page)) continue;
+    seen.add(banner.page);
+    void warm(banner);
+  }
+};
+
 onMounted(() => {
   // Switch from the SSR/UA seed to the real viewport, then keep it in sync as
   // the window is resized across the 767px boundary.
@@ -321,6 +364,11 @@ onMounted(() => {
   syncIsMobile();
   mobileMql.addEventListener("change", syncIsMobile);
   startAutoPlay();
+
+  const idle =
+    window.requestIdleCallback ??
+    ((cb: IdleRequestCallback) => window.setTimeout(cb, 300));
+  idle(() => warmOtherPages());
 });
 
 onUnmounted(() => {
@@ -339,15 +387,11 @@ onUnmounted(() => {
   transition: aspect-ratio 0.3s ease;
 }
 
-/* While the next page's banners are in flight the previous creative is still
-   on screen (keepPreviousData). Dimming it slightly marks the swap as
-   deliberate; it returns to full opacity as the new one paints. */
+/* Kept for the opacity transition on the slot; the `is-loading` dim it used to
+   pair with is gone, because banners no longer load per page — the whole set
+   is in the store before the swap happens. */
 .banner-swap {
   transition: opacity 0.3s ease;
-}
-
-.banner-swap.is-loading {
-  opacity: 0.55;
 }
 
 @media (prefers-reduced-motion: reduce) {

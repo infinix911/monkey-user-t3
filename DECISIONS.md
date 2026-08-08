@@ -227,3 +227,73 @@ sources of truth for the same menu); deleting Navbar's desktop branch outright
 (loses the modal hosts); hardcoding the design's hexes in the component (breaks
 the CMS theming contract).
 
+
+---
+
+## ADR-022 — Carousel banners: one SSR fetch for every page, held in Pinia
+
+**Status.** Accepted (2026-08-08).
+
+**Context.** `BannerPreview.vue` both fetched and rendered: it called
+`/site/banners-new/carousel?page=<key>` from its own `useAsyncData` and refetched
+whenever its `page` prop changed. Because the component lives in
+`layouts/default.vue` and survives navigation, that meant **one request per page
+the visitor opened** — client-side, after hydration. It also used a constant
+asyncData key (`"banners-carousel"`) for data that varied by page, so each
+navigation overwrote the same payload entry.
+
+**Decision.** Fetch **every** active carousel banner once, during SSR, and let
+pages filter it:
+
+- The backend endpoint accepts `page=all` (a new literal alongside the existing
+  page keys) and returns every active banner of the type, with each row tagged
+  by the `page` it belongs to. `page` is returned on *every* read, not only
+  `page=all`, so the row shape never varies by query.
+- `app/composables/useBanners.ts` (`fetchBanners`) is invoked from `app.vue`'s
+  `Promise.all`, alongside `fetchSiteSettings` — same `withServerCache` + host
+  forwarding, same `getCachedData` guard against a hydration refetch.
+- `app/stores/banner.ts` holds the list; `bannersByPage(key)` filters it.
+- `BannerPreview.vue` is now presentation only: it reads the store and renders.
+
+**Consequences.** Zero browser-side banner requests: the whole set travels in the
+SSR payload and navigation is a re-filter of hydrated state. The loading
+placeholder and the keep-previous-data cross-fade are gone with the per-page
+fetch they existed for — there is nothing to wait for, so the swap is immediate
+(the height glide on `aspect-ratio` stays, since ratios still differ per page).
+The `common.loadingBanners` i18n key was removed with its only consumer.
+
+**Backward compatibility.** Omitting `page` still defaults to `homepage`, so the
+other consumers of this shared multi-tenant endpoint are unaffected — the change
+is additive on both the query (`all`) and the response (`page`). Changing the
+*default* to "all" was rejected for exactly that reason. The frontend also treats
+`page` as optional on the wire and maps a missing value to `"homepage"`, so a
+backend that predates the field cannot fail validation and blank the carousel.
+
+**Alternatives rejected.** Keeping the per-page fetch but caching per page key in
+the store (still one request per distinct page, and still client-side);
+per-page asyncData keys (fixes the payload collision but not the request count).
+
+**Amendment (2026-08-08) — the swap waits for the incoming artwork.** The
+original wording above ("there is nothing to wait for, so the swap is
+immediate") was wrong in practice. Having the *records* in memory is not the
+same as having the *artwork* decoded: swapping `src` the instant the route
+changed left the slot showing its black background for as long as the new image
+took to decode — measured at ~344ms on a first visit, and visible as a flicker.
+
+`BannerPreview.vue` therefore keeps a `displayPage` that lags `props.page` until
+the incoming creative has been through `image.decode()`, bounded by
+`SWAP_DECODE_BUDGET_MS` (600ms) so a slow CDN cannot strand the visitor on the
+previous page's banner. The previous creative stays on screen for that window —
+the same *effect* as the old keepPreviousData behaviour, but ending precisely
+when the next image can paint rather than when a network request happened to
+return.
+
+Separately, the first banner of every *other* page is decoded at
+`requestIdleCallback` time. This costs no extra API requests (the whole set is
+already in the store) and is what makes the swap resolve instantly instead of
+spending its decode budget. Measured after the change: the new `src` appears
+already decoded on its first frame, i.e. zero black frames.
+
+The remaining motion on a page change is the deliberate `aspect-ratio` glide
+(~300ms) where the two pages' banner ratios differ — that is animation, not
+flicker, and is unchanged.

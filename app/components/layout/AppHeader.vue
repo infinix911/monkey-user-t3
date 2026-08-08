@@ -25,7 +25,9 @@
              the rail's, so the logo sits over the rail and everything after it
              starts at the content column's left edge. -->
         <div v-show="!uiStore.showNoticeModal" class="flex items-end gap-2 lg:w-[210px] lg:flex-shrink-0 lg:ps-2">
-          <NuxtLink to="/" class="flex items-center justify-center flex-shrink-0 lg:w-full">
+          <!-- `external`: a real document load, not a client-side route change,
+               so clicking the logo reloads the app on the home page. -->
+          <NuxtLink to="/" external class="flex items-center justify-center flex-shrink-0 lg:w-full">
             <!-- From `lg` the rail's width is the logo's limit: the config style
                  caps it at 282px, wider than the 215px column, and `flex-shrink-0`
                  means it would otherwise overflow across the account bar. `w-full`
@@ -118,14 +120,13 @@
                  are spaced uniformly rather than to those raw numbers. Within a
                  group the gaps are small (gap-1 / gap-1.5) and already match.
 
-                 WIDTH is a share of the banner: this sits in the header's
-                 content column — the same column the banner occupies below — so
-                 a percentage tracks it at every viewport without a hardcoded
-                 pixel value. The reference measures 569px of bar against a
-                 1200px column (47.4%); 45% is the chosen setting. `min-w-fit` is
-                 the floor: the bar never shrinks below its own content, so a long
-                 username or a ten-digit balance widens it instead of
-                 overflowing. -->
+                 WIDTH follows the content: `w-fit` sizes the bar to exactly what
+                 it holds, so it never carries empty space. It was previously a
+                 45% share of the content column, which on most viewports left a
+                 stretch of bare #262626 between the point balance and the action
+                 icons. `min-w-fit` stays as the floor — the flex row must not
+                 squeeze the bar, so a long username or a ten-digit balance
+                 widens it instead of overflowing. -->
             <!-- `hidden lg:flex`: from 690px up the header switches to its
                  desktop design, but this bar only has room from `lg`. On a
                  tablet (iPad mini at 768px portrait) it was squeezed into the
@@ -135,7 +136,7 @@
                  `min-[690px]:hidden`. Keep the two breakpoints in step: exactly
                  one of them must render at any width. -->
             <div
-              class="hidden lg:flex items-center h-[32px] px-4 w-[45%] min-w-fit rounded-[10px] bg-[#262626] whitespace-nowrap">
+              class="hidden lg:flex items-center h-[32px] px-4 w-fit min-w-fit rounded-[10px] bg-[#262626] whitespace-nowrap">
               <!-- Identity. `honorific` is the Korean "님" suffix; it is an empty
                    string in locales that have no equivalent, hence the guard. -->
               <span class="flex items-baseline gap-1">
@@ -167,16 +168,10 @@
                     currency.formatNumber(authStore.user.point_wallet) }}</span>
               </button>
 
-              <!-- Spacer: the bar is a fixed 45% of the column, so it is usually
-                   wider than its contents. This absorbs that slack, which pins
-                   the three action icons to the trailing edge instead of leaving
-                   a gap after the bell. `ms-10` below stays the MINIMUM gap, for
-                   when the balances grow enough to consume the slack. -->
-              <span class="flex-1" aria-hidden="true" />
-
               <!-- Actions — refresh + bell only; the conversion control now
-                   sits beside the point figure above. The spacer before this
-                   group pins them to the bar's trailing edge. -->
+                   sits beside the point figure above. The bar is content-width,
+                   so there is no slack to absorb and no spacer here: `ms-10` is
+                   the real gap, matching the spacing between the other groups. -->
               <div class="flex items-center gap-2.5 ms-10">
                 <!-- Wallet reload. The art ships in #434343, so it is tinted to
                      white here rather than shipping a second copy of the file. -->
@@ -279,7 +274,8 @@
                 fill="white" />
             </svg>
           </button>
-          <NuxtLink v-show="!uiStore.showNoticeModal" to="/" class="flex items-center">
+          <!-- `external`: full document load, same as the desktop logo above. -->
+          <NuxtLink v-show="!uiStore.showNoticeModal" to="/" external class="flex items-center">
             <NuxtImg :src="siteConfig.identity.logoMobile || siteConfig.identity.logo"
               :alt="siteConfig.identity.siteName" class="w-auto max-w-[210px] object-contain ml-1"
               :style="siteConfig.theme.logoStyles.mobileHeader" />
@@ -533,7 +529,9 @@ onMounted(() => {
   window.addEventListener("resize", updateMobileScale);
   window.addEventListener("scroll", updateScrolled, { passive: true });
   document.addEventListener("click", handleClickOutside);
-  fetchNotifications();
+  // Only when SSR did not already deliver the list. An unconditional fetch here
+  // repeated the SSR request on every page load.
+  if (!notificationsLoaded.value) fetchNotifications();
 });
 
 watch(
@@ -561,6 +559,7 @@ const isAuthenticated = computed(() => authStore.isAuthenticated);
 // the same single fetch — see useNotifications.
 const {
   notifications,
+  loaded: notificationsLoaded,
   unreadCount: unreadNotificationCount,
   fetchNotifications,
   markNotificationsRead,

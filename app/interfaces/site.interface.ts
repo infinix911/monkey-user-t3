@@ -11,6 +11,12 @@ import { z } from "zod";
 
 /** Wire shape of a carousel banner (getBannersSchema, /site/banners-new/:type). */
 export const bannerCarouselWireSchema = z.object({
+  // Which page's slot the banner fills. The app reads every page in one
+  // request (`?page=all`) and buckets by this value. Optional so a backend
+  // predating the field cannot fail validation and blank the carousel — it is
+  // mapped to "homepage" below, which is both the old response's implicit
+  // meaning and the column's default.
+  page: z.string().optional(),
   mainUrl: z.string(),
   overlayUrl: z.string().nullable().optional(),
   mainUrlMobile: z.string(),
@@ -31,6 +37,8 @@ export const bannersCarouselResponseSchema = z.union([
 
 /** Normalized carousel banner (snake_case) consumed by BannerPreview. */
 export interface BannerCarouselItem {
+  /** Page slot this banner belongs to — see {@link BannerPageKey}. */
+  page: string;
   main_url: string;
   overlay_url: string | null;
   main_url_mobile: string;
@@ -44,6 +52,7 @@ export interface BannerCarouselItem {
 export const mapBannerCarousel = (
   w: z.infer<typeof bannerCarouselWireSchema>,
 ): BannerCarouselItem => ({
+  page: w.page ?? "homepage",
   main_url: w.mainUrl,
   overlay_url: w.overlayUrl ?? null,
   main_url_mobile: w.mainUrlMobile,
