@@ -529,7 +529,9 @@ onMounted(() => {
   window.addEventListener("resize", updateMobileScale);
   window.addEventListener("scroll", updateScrolled, { passive: true });
   document.addEventListener("click", handleClickOutside);
-  fetchNotifications();
+  // Only when SSR did not already deliver the list. An unconditional fetch here
+  // repeated the SSR request on every page load.
+  if (!notificationsLoaded.value) fetchNotifications();
 });
 
 watch(
@@ -557,6 +559,7 @@ const isAuthenticated = computed(() => authStore.isAuthenticated);
 // the same single fetch — see useNotifications.
 const {
   notifications,
+  loaded: notificationsLoaded,
   unreadCount: unreadNotificationCount,
   fetchNotifications,
   markNotificationsRead,

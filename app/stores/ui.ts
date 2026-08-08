@@ -104,12 +104,41 @@ export const useUiStore = defineStore("ui", () => {
     hasUnreadInquiries.value = hasUnread;
   };
 
-  const setShowNoticeModal = (open: boolean) => {
-    showNoticeModal.value = open;
-    // When user agrees (modal closed), persist in sessionStorage so it survives refresh
-    if (!open && typeof window !== "undefined") {
+  /**
+   * Whether agreeing to the notice should reload the page.
+   *
+   * Set only by the login flow. Logging in deliberately does NOT reload yet and
+   * does NOT verify the session — verifyUser() would flip `isAuthenticated` and
+   * the watchers on it would fire /notifications and /games/lobbies twice. So
+   * login fetches the notice and nothing else; agreeing is what reloads, and
+   * the reloaded page is server-rendered with all of that already in the HTML.
+   *
+   * On an ordinary page load the notice is already on an SSR page, so agreeing
+   * must NOT reload — this flag is what keeps the two cases apart.
+   */
+  const reloadAfterNoticeAgree = ref(false);
+  const setReloadAfterNoticeAgree = (reload: boolean) => {
+    reloadAfterNoticeAgree.value = reload;
+  };
+
+  /**
+   * Persist the agreement WITHOUT touching the modal's visibility.
+   *
+   * The login flow reloads on agree, and the modal has to stay on screen until
+   * the document is replaced — closing it first would flash the logged-out page
+   * underneath. But the agreement still has to be recorded before the reload,
+   * or fetchNotice() shows the same notice again on the way back in.
+   */
+  const markNoticeAgreed = () => {
+    if (typeof window !== "undefined") {
       sessionStorage.setItem("noticeAgreed", "1");
     }
+  };
+
+  const setShowNoticeModal = (open: boolean) => {
+    showNoticeModal.value = open;
+    // Closing the modal IS the agreement — persist it so it survives a refresh.
+    if (!open) markNoticeAgreed();
   };
 
   /**
@@ -128,8 +157,13 @@ export const useUiStore = defineStore("ui", () => {
       )
         return;
 
-      const response = await axiosClient.get("/site/notice");
-      const data = response.data;
+      // Prefer the copy SSR already fetched (composables/useNoticePrefetch.ts):
+      // the content is identical, and using it means the browser makes no
+      // /site/notice request at all. Falls back to fetching when SSR could not
+      // supply it — an anonymous render, or a failed prefetch.
+      const prefetched = useNoticePrefetch();
+      const data =
+        prefetched.value ?? (await axiosClient.get("/site/notice")).data;
 
       // Respect the CMS active/inactive toggle. `/site/notice` returns the
       // Tiptap doc with an `isActive` flag; when it's explicitly false the
@@ -180,6 +214,9 @@ export const useUiStore = defineStore("ui", () => {
     setShowPointModal,
     setHasUnreadInquiries,
     setShowNoticeModal,
+    markNoticeAgreed,
+    reloadAfterNoticeAgree,
+    setReloadAfterNoticeAgree,
     fetchNotice,
   };
 });
