@@ -25,7 +25,9 @@
              the rail's, so the logo sits over the rail and everything after it
              starts at the content column's left edge. -->
         <div v-show="!uiStore.showNoticeModal" class="flex items-end gap-2 lg:w-[210px] lg:flex-shrink-0 lg:ps-2">
-          <NuxtLink to="/" class="flex items-center justify-center flex-shrink-0 lg:w-full">
+          <!-- `external`: a real document load, not a client-side route change,
+               so clicking the logo reloads the app on the home page. -->
+          <NuxtLink to="/" external class="flex items-center justify-center flex-shrink-0 lg:w-full">
             <!-- From `lg` the rail's width is the logo's limit: the config style
                  caps it at 282px, wider than the 215px column, and `flex-shrink-0`
                  means it would otherwise overflow across the account bar. `w-full`
@@ -272,7 +274,8 @@
                 fill="white" />
             </svg>
           </button>
-          <NuxtLink v-show="!uiStore.showNoticeModal" to="/" class="flex items-center">
+          <!-- `external`: full document load, same as the desktop logo above. -->
+          <NuxtLink v-show="!uiStore.showNoticeModal" to="/" external class="flex items-center">
             <NuxtImg :src="siteConfig.identity.logoMobile || siteConfig.identity.logo"
               :alt="siteConfig.identity.siteName" class="w-auto max-w-[210px] object-contain ml-1"
               :style="siteConfig.theme.logoStyles.mobileHeader" />
