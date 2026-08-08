@@ -394,7 +394,15 @@ export interface ThemeSidebarConfig {
      * active row is marked by its label colour alone.
      */
     activeItemBorderColor: string;
-    /** Row hover background. CSS color (rgba). */
+    /**
+     * Row hover background. CSS color (rgba).
+     *
+     * UNUSED as of the change that made a hovered row wear the ACTIVE row's
+     * look — hover now resolves `activeItemColor` / `activeItemBorderColor`
+     * instead, so the two states can never drift apart. Kept because the field
+     * is part of the CMS theme contract: dropping it means removing it from
+     * `theme-schema` in both admin apps too. Setting it has no effect.
+     */
     hoverBg: string;
     /**
      * Ordered account-menu items the rail renders below its divider — and the
