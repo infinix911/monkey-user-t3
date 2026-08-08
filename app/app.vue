@@ -28,6 +28,7 @@
 import { fetchSiteConfig } from "@/lib/siteConfig";
 import { fetchCustomScripts } from "@/composables/useCustomScripts";
 import { fetchSiteSettings } from "@/composables/useSiteSettings";
+import { fetchBanners } from "@/composables/useBanners";
 import { LOCALE_META, type SupportedLocale } from "@/lib/locale-meta";
 import { useSiteCurrency } from "@/composables/useSiteCurrency";
 import { currencyToLocale, isAppLocale } from "@/utils/locale-from-currency";
@@ -75,6 +76,17 @@ await Promise.all([
   // the live-chat button — present on every page — can read the link from the
   // site store synchronously on click (window.open must run in the click).
   useAsyncData("siteSettings", fetchSiteSettings, {
+    getCachedData: (key, nuxtApp) => {
+      const cached = nuxtApp.payload.data[key] ?? nuxtApp.static.data[key];
+      return cached ?? undefined;
+    },
+  }),
+  // Every active carousel banner, for every page, in ONE request. Fetched here
+  // rather than inside BannerPreview so it runs during SSR and lands in the
+  // payload: the component used to fetch its own page's banners and refetch on
+  // each navigation, which cost a request per page visited. Pages now filter
+  // the hydrated Pinia list — see useBannerStore.bannersByPage.
+  useAsyncData("banners", fetchBanners, {
     getCachedData: (key, nuxtApp) => {
       const cached = nuxtApp.payload.data[key] ?? nuxtApp.static.data[key];
       return cached ?? undefined;
