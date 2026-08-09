@@ -34,7 +34,7 @@
              effective padding: game-page-bg px-1.5 + providerBar px-1.5 = 12px.
              The lg+ sticky path never leaves the column, so it keeps the normal
              padding and stays identical pinned or not. -->
-        <div ref="providerBar" class="w-full mx-auto" :class="providerStuck && !isLgUp ? 'px-3' : 'px-1.5 lg:px-0'"
+        <div ref="providerBar" class="w-full mx-auto" :class="providerStuck && !isLgUp ? 'px-3' : 'px-0 lg:px-0'"
           :style="providerStuck ? { backgroundColor: bodyBg, boxShadow: '0 6px 12px rgba(0,0,0,0.45)' } : {}">
           <div class="relative mb-1">
             <!-- Scrollable strip -->
@@ -106,7 +106,7 @@
       </div>
     </div>
 
-    <div class="w-full mx-auto px-1.5 lg:px-0">
+    <div class="w-full mx-auto px-0">
       <!-- Loading -->
       <div v-if="isLoading" class="w-full py-12 text-center text-gray-400 text-sm">
         {{ $t("common.loading") }}
@@ -286,15 +286,32 @@ onBeforeUnmount(() => {
 });
 
 
-const selectedLobby = ref("");
-watch(
-  providers,
-  (list) => {
-    const firstProvider = list[0];
-    if (!selectedLobby.value && firstProvider) selectedLobby.value = firstProvider.id;
+/**
+ * The provider tab that is active.
+ *
+ * DERIVED, not assigned by a watcher, so the server and the client agree.
+ * This was a `ref("")` seeded by `watch(providers, …, { immediate: true })`,
+ * which produced a hydration mismatch on every tab's inline border style:
+ * during SSR the lobbies `useAsyncData` has not resolved when setup runs, so
+ * the immediate watcher saw an empty list and selected nothing — and Vue does
+ * not re-run watchers reactively on the server, so the page rendered with NO
+ * tab selected even though the data arrived before render. On the client the
+ * payload is present at setup, so the same watcher selected the first provider
+ * straight away. Server said `rgba(255,255,255,0.1)`, client said the accent
+ * border, and Vue flagged it.
+ *
+ * Falling back to the first provider inside a computed makes both sides reach
+ * the same answer from the same data. The ref now holds ONLY an explicit user
+ * choice, and the writable computed keeps `selectedLobby = id` working at the
+ * call sites unchanged.
+ */
+const chosenLobby = ref("");
+const selectedLobby = computed<string>({
+  get: () => chosenLobby.value || providers.value[0]?.id || "",
+  set: (id) => {
+    chosenLobby.value = id;
   },
-  { immediate: true },
-);
+});
 
 // Clicking a game launches it — but guests get the login modal first (same flow
 // as the lobby games grid).
@@ -334,6 +351,7 @@ async function loadGames() {
   if (!selectedLobby.value) {
     games.value = [];
     totalGames.value = 0;
+    gamesLoaded.value = true;
     return;
   }
   gamesLoading.value = true;
@@ -352,6 +370,7 @@ async function loadGames() {
     totalGames.value = 0;
   } finally {
     gamesLoading.value = false;
+    gamesLoaded.value = true;
   }
 }
 // Reset to page 1 when switching providers, then load.
@@ -367,7 +386,21 @@ function onPageChange(page: number) {
   if (import.meta.client) window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-const isLoading = computed(() => gamesLoading.value || !providers.value.length);
+/**
+ * The grid shows its loading state until games have actually been fetched.
+ *
+ * `gamesLoaded` exists to keep SSR and the client in step. Games are fetched
+ * imperatively on the client only (see loadGames), so the server renders with
+ * `games` empty and `gamesLoading` false — the EMPTY state — while the client's
+ * immediate watch sets `gamesLoading` before its first render and shows the
+ * LOADING state. Vue reported that as a hydration node mismatch inside
+ * GamePageLayout. Treating "never loaded" as loading makes both sides render
+ * the same branch, and is also what is actually true: the grid has no data yet.
+ */
+const gamesLoaded = ref(false);
+const isLoading = computed(
+  () => !gamesLoaded.value || gamesLoading.value || !providers.value.length,
+);
 
 useSeoHead({
   title: t("navbar.rtp"),
