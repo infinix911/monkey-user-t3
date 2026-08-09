@@ -16,7 +16,7 @@
             </h2>
             <button
               class="text-white hover:text-gray-300 transition-colors cursor-pointer"
-              aria-label="Close"
+              :aria-label="$t('common.close')"
               @click="$emit('close')"
             >
               <svg

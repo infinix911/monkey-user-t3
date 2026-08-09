@@ -341,7 +341,7 @@
                         :class="!(referralField ?? '').trim() || isCheckingReferral
                           ? 'text-gray-600 cursor-not-allowed'
                           : 'tm-accent-btn cursor-pointer'"
-                        aria-label="Check referral" @click="checkReferral">
+                        :aria-label="$t('signup.referralCode')" @click="checkReferral">
                         <svg v-if="isCheckingReferral" class="h-4 w-4 animate-spin rounded-full border-2" :style="{ borderColor: 'var(--tm-accent)', borderTopColor: 'transparent' }" />
                         <svg v-else class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />

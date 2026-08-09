@@ -11,7 +11,7 @@
       class="mb-4">
       <template #row="{ row }">
         <td class="whitespace-nowrap"><TableDateCell :value="String(row.created_at ?? '')" /></td>
-        <td>{{ row.transaction }}</td>
+        <td>{{ describeTransaction(String(row.transaction ?? "")) }}</td>
         <td>
           <!-- The ledger only records settled movements, so the status cell is a
                fixed "completed" badge rather than a per-row lookup. -->
@@ -48,7 +48,23 @@ import {
   type ILedgerItem,
 } from "@/interfaces/ledger";
 
-const { t } = useI18n();
+const { t, te } = useI18n();
+
+/**
+ * Render the ledger's `transaction` column.
+ *
+ * The backend column is free text: it holds UPPER_SNAKE tokens
+ * (`DEPOSIT_APPROVED`), prose the admin typed ("User Withdrawal"), and for game
+ * rows a lobby or provider name. So only token-shaped values with a translation
+ * are localized — everything else passes through untouched, which is the same
+ * rule InquiryCard applies to app-raised inquiry titles. Without this the raw
+ * token was printed straight into the Description column.
+ */
+function describeTransaction(value: string): string {
+  if (!/^[A-Z0-9_]+$/.test(value)) return value;
+  const key = `myAccount.transactionLogs.transactions.${value}`;
+  return te(key) ? t(key) : value;
+}
 // Ledger amounts follow the deployment currency, not a pinned locale.
 const { formatNumber } = useCurrency();
 

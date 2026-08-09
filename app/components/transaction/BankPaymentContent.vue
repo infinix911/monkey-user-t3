@@ -114,8 +114,11 @@ v-for="amount in quickAmounts" :key="amount" type="button"
           </div>
         </div>
 
-        <!-- Deposit Button -->
-        <div class="mb-6 font-medium w-full">
+        <!-- Deposit Button. `mt-4` separates it from the quick-amount grid
+             above, which ends flush against it otherwise — the wrapper carried
+             a bottom margin but no top one, so on mobile the RESET/MAX row and
+             the submit button read as one block. -->
+        <div class="mt-4 mb-6 font-medium w-full">
           <div class="relative">
             <button
 type="submit"

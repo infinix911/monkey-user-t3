@@ -60,14 +60,14 @@ class="text-4xl md:text-6xl font-bold text-center mb-6 wip-shimmer"
               '--brand-color': brandColor,
               '--brand-color-light': brandColorLight,
             }">
-            WORK IN PROGRESS
+            {{ $t("workInProgress.title") }}
           </h2>
 
           <!-- Subtitle -->
           <p
 class="text-lg md:text-xl text-center text-gray-300 mb-8"
             style="font-family: var(--font-line-seed), sans-serif">
-            We're crafting something amazing for you!
+            {{ $t("workInProgress.subtitle") }}
           </p>
 
           <!-- Decorative Divider -->
@@ -92,7 +92,7 @@ class="h-px w-16" :style="{
             Our team is working hard to bring you an incredible gaming
             experience.
             <br >
-            Stay tuned for updates!
+            {{ $t("workInProgress.stayTuned") }}
           </p>
 
           <!-- Loading Bar -->

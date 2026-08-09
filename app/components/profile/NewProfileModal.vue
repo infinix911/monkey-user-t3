@@ -6,10 +6,10 @@
 
       <!-- Menu Panel -->
       <div ref="menuRef"
-        class="px-4 py-1 z-[60] rounded-lg shadow-2xl border border-[2px] border-[#404040] overflow-hidden fixed bottom-0 left-0 right-0 mx-auto w-full max-w-[520px]"
+        class="px-2 lg:px-4 py-1 z-[60] rounded-lg shadow-2xl border border-[2px] border-[#404040] overflow-hidden fixed bottom-0 left-0 right-0 mx-auto w-full max-w-[520px]"
         style="background-color: #282828; height: auto; padding-bottom: 85px">
         <!-- User Info Header -->
-        <div class="pt-1.5 pb-1 border-b border-[#5C5C5C]">
+        <div class="pt-1.5 pb-1 border-b border-[#5C5C5C] px-2">
           <div class="flex justify-between">
             <NuxtImg :src="siteConfig.identity.logoPopup" :alt="siteConfig.identity.siteName"
               class="object-contain origin-left" :style="siteConfig.theme.logoStyles.profileModal" />
@@ -117,7 +117,7 @@
                 </h2>
               </div>
               <button type="button" class="self-start mt-1 hover:opacity-80 transition-opacity cursor-pointer pt-[14px]"
-                aria-label="Close" @click="closeMobileModal">
+                :aria-label="$t('common.close')" @click="closeMobileModal">
                 <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 26 26" fill="none"
                   class="w-[26px] h-[26px]">
                   <line x1="1.44191" y1="1.01958" x2="24.9799" y2="24.5575" stroke="#939393" stroke-width="2.03917"

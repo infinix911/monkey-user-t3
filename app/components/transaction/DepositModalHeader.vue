@@ -8,7 +8,7 @@
     <NuxtImg v-if="dep.showDepositImageTitle" :src="siteConfig.assets.transaction.depositIcon" alt="Deposit"
       class="h-11 md:h-15 w-auto object-contain select-none pointer-events-none" />
     <button type="button" class="absolute right-4 md:right-6 top-1/2 -translate-y-1/2 transition-colors cursor-pointer"
-      aria-label="Close" @click="emit('close')">
+      :aria-label="$t('common.close')" @click="emit('close')">
       <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 26 26" fill="none"
         class="md:w-[26px] md:h-[26px]">
         <line x1="1.44191" y1="1.01958" x2="24.9799" y2="24.5575" stroke="#939393" stroke-width="2.03917"
