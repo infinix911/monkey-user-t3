@@ -355,7 +355,8 @@
       "UNAUTHORIZED": "Access denied. Please log in first.",
       "MEMBER_NOT_FOUND": "User not found.",
       "VALIDATION_ERROR": "Invalid input. Please check your details and try again."
-    }
+    },
+    "noDataFound": "No data found"
   },
   "validation": {
     "idRequired": "ID is required",
@@ -505,14 +506,6 @@
     "apiMessages": {
       "NOTIF_NOT_FOUND": "Notification Not Found",
       "NOTIF_READ": "Notification Read"
-    },
-    "levelUp": {
-      "title": "Available To Level Up",
-      "description": "Congratulations, you can increase your loyalty level to Diamond then unlock more benefits and exclusive rewards.",
-      "message": "Congratulations! Explore your exclusive rewards and benefits",
-      "loyaltyBenefits": "Loyalty Benefits",
-      "noBenefits": "No benefits available for this level yet.",
-      "stayTuned": "Stay tuned for more exciting benefits on the Loyalty Page!"
     }
   },
   "deposit": {
@@ -538,11 +531,6 @@
     "id": "ID",
     "reset": "RESET",
     "max": "MAX",
-    "transactionSummary": {
-      "depositAmount": "Deposit Amount",
-      "serviceFee": "Service Fee (-)",
-      "netAmount": "Net Amount"
-    },
     "validation": {
       "amountRequired": "Deposit amount is required",
       "amountInvalid": "Please enter a valid amount",
@@ -650,6 +638,22 @@
         "new": "Pending",
         "completed": "Completed",
         "failed": "Failed"
+      },
+      "transactions": {
+        "DEPOSIT_REQUEST": "Deposit Request",
+        "DEPOSIT_NEW": "Deposit Request",
+        "DEPOSIT_APPROVED": "Deposit Approved",
+        "DEPOSIT_COMPLETED": "Deposit Completed",
+        "DEPOSIT_FAILED": "Deposit Failed",
+        "DEPOSIT_ERROR": "Deposit Error",
+        "WITHDRAWAL_REQUEST": "Withdrawal Request",
+        "WITHDRAWAL_REQUESTED": "Withdrawal Request",
+        "WITHDRAWAL_APPROVED": "Withdrawal Approved",
+        "WITHDRAWAL_COMPLETED": "Withdrawal Completed",
+        "WITHDRAWAL_REJECTED": "Withdrawal Rejected",
+        "WITHDRAWAL_CANCELLED": "Withdrawal Cancelled",
+        "WITHDRAWAL_FAILED": "Withdrawal Failed",
+        "WITHDRAWAL_ERROR": "Withdrawal Error"
       }
     }
   },
@@ -666,25 +670,7 @@
     "disagree": "I Don't Agree"
   },
   "faq": {
-    "title": "FAQ",
-    "items": {
-      "joinProgram": {
-        "question": "How do I join the loyalty program?",
-        "answer": "As soon as you start playing at the casino, you are automatically enrolled in the loyalty program. Start playing and begin leveling up right away."
-      },
-      "increaseLevel": {
-        "question": "How can I increase my level in the program?",
-        "answer": "You can increase your level by playing games and earning points. The more you play, the more points you accumulate, which helps you progress through the levels."
-      },
-      "vipBenefits": {
-        "question": "What benefits are provided by the various VIP statuses?",
-        "answer": "VIP statuses provide various benefits including higher withdrawal limits, exclusive bonuses, dedicated support, and special promotions tailored to your level."
-      },
-      "progressUpdate": {
-        "question": "How often is the program progress updated?",
-        "answer": "Your program progress is updated in real-time as you play. Points are credited immediately after each game session."
-      }
-    }
+    "title": "FAQ"
   },
   "contact": {
     "title": "Contact"
@@ -845,20 +831,11 @@
     "walletUnit": "",
     "convert": "CONVERT"
   },
-  "sideMenu": {
-    "myAccount": "My Account"
-  },
   "profileMenu": {
     "promotion": "Promotion",
     "faq": "F&Q",
     "inquiry": "Inquiry",
     "contact": "Contact"
-  },
-  "notificationsPage": {
-    "markAsRead": "Mark as Read",
-    "marking": "Marking...",
-    "successTitle": "Success",
-    "successMessage": "Notification marked as read successfully!"
   },
   "loyalty": {
     "statuses": {
@@ -889,14 +866,6 @@
       "title": "Progress:",
       "nextLevelReward": "Next level reward",
       "pointsTillNextLevel": "Points till next level:"
-    },
-    "levelsTable": {
-      "title": "Levels:",
-      "completed": "COMPLETED",
-      "completedLabel": "Completed",
-      "xpRequired": "XP required",
-      "prizes": "Prizes",
-      "progress": "Progress"
     },
     "faq": {
       "title": "FAQ",
@@ -929,13 +898,6 @@
   },
   "footer": {
     "tagline": "Premium gaming, engineered for trust. Fast payouts, fair play, and a seamless experience across every device.",
-    "newsletter": {
-      "title": "Stay in the loop",
-      "placeholder": "Enter your email",
-      "button": "Subscribe",
-      "success": "Thanks for subscribing.",
-      "invalid": "Please enter a valid email address."
-    },
     "cta": {
       "title": "Ready to play?",
       "subtitle": "Create your account in seconds and join the action.",
@@ -1010,5 +972,21 @@
     "transaction": "Transaction history",
     "betting": "Betting history",
     "password": "Change password"
+  },
+  "error": {
+    "notFound": {
+      "title": "Page Not Found",
+      "description": "The page you are looking for does not exist or has been moved."
+    },
+    "generic": {
+      "title": "Something Went Wrong",
+      "description": "An unexpected error occurred. Please try again later."
+    },
+    "goHome": "Go to Homepage"
+  },
+  "workInProgress": {
+    "title": "WORK IN PROGRESS",
+    "subtitle": "We're crafting something amazing for you!",
+    "stayTuned": "Stay tuned for updates!"
   }
 }

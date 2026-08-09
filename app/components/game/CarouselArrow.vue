@@ -8,7 +8,7 @@
         : 'right-0 justify-end -mr-1 pr-2'
     "
     :style="buttonStyle"
-    :aria-label="direction === 'left' ? 'Scroll left' : 'Scroll right'"
+    :aria-label="direction === 'left' ? $t('common.previous') : $t('common.next')"
     @click="$emit('click')">
     <svg
       viewBox="0 0 20 34" fill="none" xmlns="http://www.w3.org/2000/svg" width="20" height="28"

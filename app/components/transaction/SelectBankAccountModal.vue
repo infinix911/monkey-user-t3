@@ -7,7 +7,7 @@
           <!-- Close Button - Floating at top -->
           <div
             class="flex-shrink-0 px-4 md:px-6 py-3 md:py-4 flex items-center justify-center absolute -top-15 -right-3 z-10">
-            <button class="transition-colors cursor-pointer" aria-label="Close" @click="onClose">
+            <button class="transition-colors cursor-pointer" :aria-label="$t('common.close')" @click="onClose">
               <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 26 26" fill="none"
                 class="md:w-[26px] md:h-[26px]">
                 <line x1="1.44191" y1="1.01958" x2="24.9799" y2="24.5575" stroke="#939393" stroke-width="2.03917"
@@ -40,7 +40,7 @@
                     d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                 </svg>
                 <p class="tm-muted text-sm lg:text-base font-normal" style="font-family: var(--font-line-seed)">
-                  No data found
+                  {{ $t("common.noDataFound") }}
                 </p>
               </div>
 

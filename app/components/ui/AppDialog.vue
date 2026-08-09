@@ -18,7 +18,7 @@
             v-if="dialog.showCloseButton"
             type="button"
             class="tm-muted absolute right-4 top-4 hover:text-white cursor-pointer text-xl leading-none"
-            aria-label="Close"
+            :aria-label="$t('common.close')"
             @click="dismissDialog"
           >
             &times;

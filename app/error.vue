@@ -5,22 +5,20 @@
         {{ error?.statusCode || 404 }}
       </h1>
       <h2 class="text-xl text-white mb-6">
-        {{
-          error?.statusCode === 404 ? "Page Not Found" : "Something Went Wrong"
-        }}
+        {{ isNotFound ? $t("error.notFound.title") : $t("error.generic.title") }}
       </h2>
       <p class="text-gray-400 mb-8 max-w-md mx-auto">
         {{
-          error?.statusCode === 404
-            ? "The page you are looking for does not exist or has been moved."
-            : "An unexpected error occurred. Please try again later."
+          isNotFound
+            ? $t("error.notFound.description")
+            : $t("error.generic.description")
         }}
       </p>
       <button
         class="px-6 py-3 bg-yellow-500 text-black font-semibold rounded-lg hover:bg-yellow-600 transition-colors"
         @click="handleError"
       >
-        Go to Homepage
+        {{ $t("error.goHome") }}
       </button>
     </div>
   </div>
@@ -29,6 +27,9 @@
 <script setup lang="ts">
 const props = defineProps<{ error: { statusCode: number; message: string } }>();
 const siteConfig = useSiteConfig();
+
+/** 404 gets its own copy; every other status shares the generic message. */
+const isNotFound = computed(() => props.error?.statusCode === 404);
 
 useHead({
   title: `${props.error?.statusCode || "Error"} - ${siteConfig.identity.siteName}`,

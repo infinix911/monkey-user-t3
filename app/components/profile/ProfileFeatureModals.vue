@@ -15,7 +15,7 @@
               {{ t("profile.promotion") }}
             </h2>
             <button
-              type="button" class="absolute right-0 transition-colors cursor-pointer" aria-label="Close"
+              type="button" class="absolute right-0 transition-colors cursor-pointer" :aria-label="$t('common.close')"
               @click="emit('update:showPromotion', false)">
               <svg
                 xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 26 26" fill="none"
