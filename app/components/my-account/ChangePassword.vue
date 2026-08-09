@@ -73,14 +73,15 @@ import { useApi } from "@/composables/useApi";
 import { changePasswordSchema, withdrawalPasswordSchema } from "@/schemas";
 import PasswordField from "@/components/my-account/PasswordField.vue";
 import { showSuccessAlert, showErrorAlert } from "~~/utils/swal-alert";
+import { useApiMessage } from "@/composables/useApiMessage";
 
-/** Error shape carried by an ofetch/$fetch error. */
-interface FetchErrorLike {
-  data?: { message?: string };
-  message?: string;
-}
+// The ofetch error shape no longer needs a local interface: apiMessage()
+// resolves both backend response shapes itself.
 
 const { t, locale } = useI18n();
+// Backend errors arrive as UPPER_SNAKE tokens (INVALID_CURRENT_PASSWORD, …).
+// password.apiMessages already carries all of them in both locales.
+const apiMessage = useApiMessage();
 
 const emit = defineEmits<{
   "password-changed": [];
@@ -129,10 +130,11 @@ const onSubmit = handleSubmit(async (values) => {
       t("password.success.message"),
     );
   } catch (err: unknown) {
-    const e = err as FetchErrorLike;
-    const errorMessage =
-      e?.data?.message || e?.message || t("password.error.generic");
-    await showErrorAlert(t("password.error.title"), errorMessage);
+    // Was `e?.data?.message` — the raw token, shown verbatim to the member.
+    await showErrorAlert(
+      t("password.error.title"),
+      apiMessage(err, "password", "password.error.generic"),
+    );
   } finally {
     isSubmitting.value = false;
   }
@@ -179,10 +181,10 @@ const onSubmitWithdrawal = wdHandleSubmit(async (values) => {
       t("password.withdrawalSuccess"),
     );
   } catch (err: unknown) {
-    const e = err as FetchErrorLike;
-    const errorMessage =
-      e?.data?.message || e?.message || t("password.error.generic");
-    await showErrorAlert(t("password.error.title"), errorMessage);
+    await showErrorAlert(
+      t("password.error.title"),
+      apiMessage(err, "password", "password.error.generic"),
+    );
   } finally {
     wdSubmitting.value = false;
   }

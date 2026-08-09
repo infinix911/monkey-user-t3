@@ -25,6 +25,13 @@ export function useNotifications() {
     "member-notifications",
     () => [],
   );
+  /**
+   * Whether the list has been read once, INCLUDING a read that came back empty.
+   * `notifications.length` cannot tell those apart, and the difference decides
+   * whether a mounting header repeats the request SSR already made. Travels in
+   * the SSR payload with the list itself.
+   */
+  const loaded = useState<boolean>("member-notifications-loaded", () => false);
 
   const unreadCount = computed(
     () => notifications.value.filter((n) => !n.is_read).length,
@@ -42,6 +49,10 @@ export function useNotifications() {
       ).map(mapNotification);
     } catch {
       notifications.value = [];
+    } finally {
+      // Set even on failure: a retry belongs to an explicit trigger (login,
+      // locale change), not to every component that happens to mount.
+      loaded.value = true;
     }
   };
 
@@ -55,8 +66,22 @@ export function useNotifications() {
 
   return {
     notifications,
+    loaded,
     unreadCount,
     fetchNotifications,
     markNotificationsRead,
   };
+}
+
+/**
+ * SSR loader — call from useAsyncData in app.vue, after the session and locale
+ * resolve (it needs both). Server-only: the list and its `loaded` flag are
+ * `useState`, so they travel in the payload and the browser makes no request.
+ * Anonymous visitors no-op inside `fetchNotifications`.
+ */
+export async function fetchNotificationsSsr(): Promise<boolean> {
+  if (!import.meta.server) return false;
+  const { fetchNotifications } = useNotifications();
+  await fetchNotifications();
+  return true;
 }

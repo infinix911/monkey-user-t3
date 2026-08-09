@@ -197,15 +197,14 @@ import { useI18n } from "vue-i18n";
 import { useForm } from "vee-validate";
 import { useApi } from "@/composables/useApi";
 import { loginSchema } from "@/schemas";
-import { useWebSocketStore } from "@/stores/websocket";
 import { showErrorAlert } from "~~/utils/swal-alert";
 
-const authStore = useAuthStore();
+// No auth/websocket store here: a successful login reloads, so SSR hydrates the
+// session and plugins/session-verify.client.ts connects the socket on the new page.
 const uiStore = useUiStore();
 
 const { t, locale } = useI18n();
 const apiMessage = useApiMessage();
-const wsStore = useWebSocketStore();
 const siteConfig = useSiteConfig();
 
 // Props
@@ -324,41 +323,38 @@ const onSubmit = handleSubmit(async (values) => {
       },
     });
 
-    // Hydrate auth + notice on the same tick the modal closes, so the user
-    // never sees the page repaint as logged-out between login and notice.
-    // Previously we did window.location.reload(); but SSR on Cloudflare
-    // Pages can't see the cookie (API-domain scoped), so the reload
-    // produced ~4 visible state changes (blank → anonymous SSR →
-    // authenticated swap → notice). See PLAN-LOGIN-RELOAD-BLINK.md.
-    try {
-      await authStore.verifyUser();
-    } catch {
-      // Verify shouldn't fail right after a 200 login, but if it does
-      // (e.g. /auth/get-session 500s) fall back to the legacy reload path so we
-      // don't leave the user in an inconsistent state.
-      if (typeof window !== "undefined") {
-        window.location.reload();
-        return;
-      }
-    }
-    await uiStore.fetchNotice();
-    wsStore.connect();
-
-    // The login flow intentionally never reloads (see the comment above), so the
-    // guest session's scroll position would otherwise persist. Logging in from the
-    // footer/bottom of the page would then leave it scrolled down with the header
-    // stuck in its sticky (scrolled) state. Reset to the top — AppHeader's scroll
-    // listener flips `isScrolled` back off in response to this programmatic scroll,
-    // so the navbar repaints in its normal non-sticky state.
+    // Fetch the NOTICE and nothing else.
     //
-    // The open modal locked body scroll (`overflow: hidden`), which makes
-    // `scrollTo` a no-op. Release the lock first so the scroll actually lands at
-    // the top and fires the scroll event AppHeader listens for. The isOpen
-    // watcher will also clear overflow when the modal closes; doing it here just
-    // ensures the page is scrollable at the moment we scroll.
+    // Deliberately no verifyUser() here. That call is what used to pull in
+    // everything after a login: it flips `isAuthenticated`, and the three
+    // watchers keyed to that flip fire /notifications (AppHeader),
+    // /games/lobbies (useGameCategoryAvailability) and /games/lobbies again
+    // (useLobbyPage). Nor do we connect the websocket — the reload below does
+    // that on the new page. So the only request between the sign-in POST and
+    // the notice is the notice itself.
+    //
+    // The page underneath is still rendered logged-out during this window, but
+    // nobody sees it: layouts/default.vue hides the whole app behind
+    // `v-show="!uiStore.showNoticeModal"` while the notice is open.
+    await uiStore.fetchNotice();
+
+    if (uiStore.showNoticeModal) {
+      // NoticeSection reloads when the member agrees; disagreeing logs out,
+      // where a reload would be pointless.
+      uiStore.setReloadAfterNoticeAgree(true);
+      resetForm();
+      emit("close"); // close this modal so the notice is what they see
+      return;
+    }
+
+    // Nothing to agree to — disabled in the site config, already agreed this
+    // session, or no active content — so complete the login now. The reload is
+    // what makes the authenticated page server-rendered: the session,
+    // notifications, notice and lobbies all resolve during SSR and arrive in
+    // the HTML, so the browser requests none of them.
     if (typeof window !== "undefined") {
-      document.body.style.overflow = "";
-      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+      window.location.reload();
+      return;
     }
 
     resetForm();

@@ -349,7 +349,6 @@
     "loadingTransactions": "Loading transactions...",
     "noTransactionsFound": "No transactions found",
     "loadingResults": "Loading results...",
-    "loadingBanners": "Loading banners...",
     "apiMessages": {
       "UNEXPECTED_ERROR": "An unexpected error occurred. Please try again.",
       "INTERNAL_ERROR": "An internal error occurred. Please try again later.",

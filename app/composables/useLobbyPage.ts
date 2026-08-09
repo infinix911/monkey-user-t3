@@ -1,5 +1,4 @@
 import { computed, watch } from "vue";
-import { useI18n } from "vue-i18n";
 import { useAuthStore } from "@/stores/auth";
 import { validateResponse } from "@/lib/validateResponse";
 import {
@@ -9,8 +8,8 @@ import {
 } from "@/interfaces/game.interface";
 
 export function useLobbyPage(gameType: string) {
-  const { t } = useI18n();
   const api = useApi();
+  const apiMessage = useApiMessage();
 
   // SSR fetch via useApi — runs on the server during initial render and
   // hydrates on the client without re-fetching. The backend returns a
@@ -49,14 +48,14 @@ export function useLobbyPage(gameType: string) {
 
   const lobbies = computed<NormalizedLobby[]>(() => data.value ?? []);
   const isLoading = computed(() => pending.value);
-  const error = computed<string | null>(() => {
-    if (!fetchError.value) return null;
-    const err = fetchError.value as {
-      data?: { message?: string };
-      message?: string;
-    };
-    return err.data?.message || err.message || t("common.errorLoadingData");
-  });
+  // Was `err.data?.message` — the raw backend token, rendered as the page's
+  // inline error. apiMessage() translates known tokens and falls back to the
+  // generic copy for anything unrecognised.
+  const error = computed<string | null>(() =>
+    fetchError.value
+      ? apiMessage(fetchError.value, "game", "common.errorLoadingData")
+      : null,
+  );
 
   return {
     isLoading,

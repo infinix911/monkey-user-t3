@@ -9,7 +9,17 @@
          overflow-hidden / scaled ancestor (notably the mobile header
          container). Position is computed from the trigger's
          getBoundingClientRect() when the dropdown opens. -->
-    <Teleport to="body">
+    <!-- ClientOnly: a <Teleport> cannot be hydrated reliably here. The panel is
+         closed on load, so the server emits only the teleport's comment anchors,
+         and hydrateTeleport then fails to line them up with the client's — Vue
+         reports "Hydration node mismatch ... expected Symbol(v-cmt)" at this
+         component. It never surfaced while the session was resolved on the
+         client, because this whole subtree is authenticated-only and so never
+         server-rendered; it appeared the moment SSR started resolving the
+         member. Nothing is lost by skipping it on the server: a closed dropdown
+         has no SSR or SEO value. -->
+    <ClientOnly>
+      <Teleport to="body">
       <!-- Backdrop, as the inquiry/deposit/withdrawal modals have — but ONLY
            when the panel is centred (`isSheet`), which is when it is presenting
            as a modal. Anchored to the desktop header bell it is a dropdown, and
@@ -135,7 +145,8 @@
         </div>
       </div>
       </Transition>
-    </Teleport>
+      </Teleport>
+    </ClientOnly>
   </div>
 </template>
 

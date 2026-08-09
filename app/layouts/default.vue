@@ -128,12 +128,13 @@
               <img v-if="isRtpPage" :src="rtpBannerSrc" :alt="$t('navbar.rtp')" class="block w-full h-auto">
               <!-- Deliberately NOT keyed, and no transition here. This layout
                survives client-side navigation, so one BannerPreview instance
-               persists and refetches when `page` changes — see its
-               `watch` + `keepPreviousData`. Keying it instead remounted the
-               component, which emptied the slot between the two pages: the
-               height collapsed to zero and the page below jumped up and back.
-               Keeping the instance is what makes the swap smooth; the fade and
-               the height glide live inside the component. -->
+               persists and simply re-filters the banner store when `page`
+               changes — every page's banners are already hydrated, so there is
+               no fetch in the swap. Keying it instead remounted the component,
+               which emptied the slot between the two pages: the height
+               collapsed to zero and the page below jumped up and back. Keeping
+               the instance is what makes the swap smooth; the height glide
+               lives inside the component. -->
               <BannerPreview v-else-if="bannerPage" :page="bannerPage" />
             </div>
 

@@ -28,6 +28,10 @@
 import { fetchSiteConfig } from "@/lib/siteConfig";
 import { fetchCustomScripts } from "@/composables/useCustomScripts";
 import { fetchSiteSettings } from "@/composables/useSiteSettings";
+import { fetchBanners } from "@/composables/useBanners";
+import { fetchSession } from "@/composables/useSession";
+import { fetchNotificationsSsr } from "@/composables/useNotifications";
+import { fetchNoticeSsr } from "@/composables/useNoticePrefetch";
 import { LOCALE_META, type SupportedLocale } from "@/lib/locale-meta";
 import { useSiteCurrency } from "@/composables/useSiteCurrency";
 import { currencyToLocale, isAppLocale } from "@/utils/locale-from-currency";
@@ -80,6 +84,17 @@ await Promise.all([
       return cached ?? undefined;
     },
   }),
+  // Every active carousel banner, for every page, in ONE request. Fetched here
+  // rather than inside BannerPreview so it runs during SSR and lands in the
+  // payload: the component used to fetch its own page's banners and refetch on
+  // each navigation, which cost a request per page visited. Pages now filter
+  // the hydrated Pinia list — see useBannerStore.bannersByPage.
+  useAsyncData("banners", fetchBanners, {
+    getCachedData: (key, nuxtApp) => {
+      const cached = nuxtApp.payload.data[key] ?? nuxtApp.static.data[key];
+      return cached ?? undefined;
+    },
+  }),
 ]);
 
 // ---------------------------------------------------------------------------
@@ -104,6 +119,44 @@ await Promise.all([
     await setLocale(targetLocale);
   }
 }
+
+// ---------------------------------------------------------------------------
+// Member-scoped reads, resolved DURING SSR.
+//
+// After the block above, not in a plugin: the session stamps the currency from
+// the site config, and notifications send the resolved `lang`. Plugins run
+// before app.vue, so both would read defaults there.
+//
+// The session is the prerequisite for the other two AND for the lobbies: with
+// an empty auth store the server renders anonymous, then hydration flips
+// `isAuthenticated` false -> true and every watcher on it refires —
+// /auth/get-session, /notifications, and /games/lobbies from BOTH
+// useGameCategoryAvailability and useLobbyPage (the duplicate pair). Resolving
+// it here means no flip, so the lobbies need no change of their own.
+//
+// Each loader no-ops for anonymous visitors, so anonymous SSR (the cacheable
+// kind) makes no extra upstream calls.
+// ---------------------------------------------------------------------------
+await useAsyncData("session", fetchSession, {
+  getCachedData: (key, nuxtApp) => {
+    const cached = nuxtApp.payload.data[key] ?? nuxtApp.static.data[key];
+    return cached ?? undefined;
+  },
+});
+await Promise.all([
+  useAsyncData("notifications", fetchNotificationsSsr, {
+    getCachedData: (key, nuxtApp) => {
+      const cached = nuxtApp.payload.data[key] ?? nuxtApp.static.data[key];
+      return cached ?? undefined;
+    },
+  }),
+  useAsyncData("notice", fetchNoticeSsr, {
+    getCachedData: (key, nuxtApp) => {
+      const cached = nuxtApp.payload.data[key] ?? nuxtApp.static.data[key];
+      return cached ?? undefined;
+    },
+  }),
+]);
 
 // Global URL parameter handlers — these composables already guard themselves
 // with import.meta.client so they're safe to call unconditionally.

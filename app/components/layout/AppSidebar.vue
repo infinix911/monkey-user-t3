@@ -72,15 +72,16 @@
          height), so the hover pill never leaves a seam between neighbours. -->
     <ul class="px-2 flex flex-col" :class="features.payments ? 'pt-[18px]' : 'pt-[10px]'">
       <li v-for="item in gameItems" :key="item.id">
-        <button type="button" :class="ROW_CLASS" :style="rowStyle(isActive(item.path))" @click="goTo(item.path)">
+        <button
+          type="button" :class="[ROW_CLASS, { 'is-active': isActive(item.path) }]" :style="rowVars"
+          @click="goTo(item.path)">
           <img
             :src="item.icon"
             :alt="''"
             aria-hidden="true"
             width="28"
             height="28"
-            class="w-7 h-7 object-contain flex-shrink-0"
-            :class="{ 'sidebar-icon-active': isActive(item.path) }"
+            class="sb-icon w-7 h-7 object-contain flex-shrink-0"
             loading="lazy"
             decoding="async">
           <span>{{ $t(item.labelKey) }}</span>
@@ -99,28 +100,29 @@
     <ul class="px-2 pt-[14px] pb-[14px] flex flex-col">
       <li v-for="item in menu.visiblePage2Items.value" :key="item.id">
         <a v-if="item.id === 'telegram'" :href="menu.telegramHref.value" target="_blank" rel="noopener noreferrer"
-          :class="ROW_CLASS" :style="rowStyle(false)">
+          :class="ROW_CLASS" :style="rowVars">
           <img
             :src="iconFor(item)"
             alt=""
             aria-hidden="true"
             width="28"
             height="28"
-            class="w-7 h-7 object-contain flex-shrink-0"
+            class="sb-icon w-7 h-7 object-contain flex-shrink-0"
             loading="lazy"
             decoding="async">
           <span class="truncate">{{ menu.tLabel(item.labelKey) }}</span>
         </a>
-        <button v-else type="button" :class="ROW_CLASS"
-          :style="rowStyle(accountSection.section.value === item.id)" @click="onItemClick(item)">
+        <button
+          v-else type="button"
+          :class="[ROW_CLASS, { 'is-active': accountSection.section.value === item.id }]" :style="rowVars"
+          @click="onItemClick(item)">
           <img
             :src="iconFor(item)"
             alt=""
             aria-hidden="true"
             width="28"
             height="28"
-            class="w-7 h-7 object-contain flex-shrink-0"
-            :class="{ 'sidebar-icon-active': accountSection.section.value === item.id }"
+            class="sb-icon w-7 h-7 object-contain flex-shrink-0"
             loading="lazy"
             decoding="async">
           <span class="truncate">{{ menu.tLabel(item.labelKey) }}</span>
@@ -309,51 +311,50 @@ const icons = computed(() => siteConfig.assets.sidebarIcons);
 // so the border eats into the 31px rather than adding to it (the pitch holds),
 // and the horizontal padding drops 6px -> 5px so 8px list padding + 1px border +
 // 5px row padding still puts the icon box 14px inside the panel edge.
-// `sb-row` carries the active tint (see the scoped style). It is a plain class,
-// one specificity step below Tailwind's `hover:` utility, so hovering an active
-// row still shows the hover colour instead of being frozen by the tint.
+// `sb-row` carries BOTH the active tint and the hover background (see the scoped
+// style). Hover is deliberately not a `hover:bg-[…]` utility here: Tailwind v4
+// puts utilities in `@layer utilities`, which an unlayered scoped rule outranks
+// regardless of specificity, so the utility never applied.
 const ROW_CLASS =
-  "sb-row group w-full flex items-center gap-[19px] px-[5px] h-[31px] rounded-[6px] border border-transparent text-[14px] font-medium cursor-pointer transition-colors duration-150 hover:bg-[var(--sb-hover)]";
+  "sb-row group w-full flex items-center gap-[19px] px-[5px] h-[31px] rounded-[6px] border border-transparent text-[14px] font-medium cursor-pointer transition-colors duration-150";
 
 /**
- * Per-row colour: the active route takes the accent, everything else is white.
- * `--sb-hover` is passed as a custom property so the hover background stays a
- * theme token instead of a hardcoded rgba in the class string.
+ * The active row's look, published as custom properties on EVERY row.
  *
- * The active row also takes a hairline outline in `activeItemBorderColor`,
- * softened to 70% against the rail background so it reads as a quiet frame
- * around the accent label rather than a second, competing accent. An empty
- * token means "no outline" — a theme can then mark the active row by its label
- * colour alone, as it did before this setting existed.
+ * Hover and the active route paint the same thing, so they must resolve the
+ * same values — which means every row has to carry them, not just the active
+ * one. The scoped style then applies them to `.is-active` and `:hover` from a
+ * single rule.
  *
- * The active row also takes a light FILL of the same token, at 14% against the
- * rail. It is published as the `--sb-active-bg` custom property and painted by
- * the `.sb-row` class rather than set inline, because an inline `background`
- * would outrank the hover utility and freeze the active row on hover.
+ * Nothing here is a real CSS property: an inline `color`/`background` would
+ * outrank any stylesheet rule and freeze the row, which is exactly why the
+ * previous version could not be hovered. Custom properties are inherited
+ * values, not declarations on the element's own properties, so the CSS below
+ * stays in charge.
  *
- * 14% is chosen for legibility, not just for looks: the label on that row is
- * the accent colour, so a heavy fill of the same hue would sit right underneath
- * it and collapse the contrast. At 14% over a dark rail the fill stays close to
- * the panel's own luminance, which leaves both the accent label and the white
- * labels around it readable.
+ * The frame is `activeItemBorderColor` softened to 70% against the rail, so it
+ * reads as a quiet outline rather than a second competing accent. The fill is
+ * the same token at 14%: the label sits in the accent colour, so a heavy fill
+ * of the same hue underneath would collapse the contrast. At 14% over a dark
+ * rail the fill stays close to the panel's own luminance, which leaves both the
+ * accent label and the white labels around it readable.
  *
- * @param active - Whether this row is the current route.
- * @returns {Record<string, string>} Inline style for the row.
+ * An empty `activeItemBorderColor` means "no frame, no fill" — a theme can then
+ * mark the row by its label colour alone, as it did before that setting
+ * existed. Both fall back to transparent in that case.
  */
-function rowStyle(active: boolean): Record<string, string> {
-  const style: Record<string, string> = {
-    color: active ? sidebar.value.activeItemColor : "#ffffff",
-    "--sb-hover": sidebar.value.hoverBg,
-  };
-
+const rowVars = computed<Record<string, string>>(() => {
   const outline = sidebar.value.activeItemBorderColor?.trim();
-  if (active && outline) {
-    style.borderColor = `color-mix(in srgb, ${outline} 70%, transparent)`;
-    style["--sb-active-bg"] = `color-mix(in srgb, ${outline} 14%, transparent)`;
-  }
-
-  return style;
-}
+  return {
+    "--sb-active-color": sidebar.value.activeItemColor,
+    "--sb-active-border": outline
+      ? `color-mix(in srgb, ${outline} 70%, transparent)`
+      : "transparent",
+    "--sb-active-bg": outline
+      ? `color-mix(in srgb, ${outline} 14%, transparent)`
+      : "transparent",
+  };
+});
 
 /**
  * Every category the rail can show. `id` doubles as the lobby `game_type` the
@@ -440,17 +441,30 @@ function goTo(path: string): void {
 </script>
 
 <style scoped>
-/* Active row fill. `--sb-active-bg` is set inline by rowStyle() only for the
-   active row, and is a light mix of the same token that draws its outline, so
-   the fill and the frame always agree.
-
-   A plain class deliberately, NOT an inline background: this is one specificity
-   step below Tailwind's `hover:bg-[var(--sb-hover)]`, so hovering an active row
-   still shows the hover colour. Rows without the property fall back to
-   transparent, which is every inactive row and every theme that ships no
-   outline token. */
+/* Resting row. */
 .sb-row {
+  color: #ffffff;
+  background-color: transparent;
+  border-color: transparent;
+}
+
+/* Hover IS the active look — one rule, so the two can never drift apart.
+   Pointing a row at the state it would have if selected is the whole intent:
+   the label takes the accent, the frame and fill come from the same token, and
+   the icon is tinted to match (below).
+
+   This lives in the scoped block rather than as Tailwind `hover:` utilities
+   because Tailwind v4 emits utilities inside `@layer utilities`, and an
+   UNLAYERED rule beats a layered one whatever the specificity — the unlayered
+   `.sb-row[data-v-…]` rule above would silently win, which is exactly why the
+   previous `hover:bg-[…]` utility never painted anything. For the same reason
+   none of these are set inline by rowVars: an inline declaration would outrank
+   this rule and freeze the row. */
+.sb-row.is-active,
+.sb-row:hover {
+  color: var(--sb-active-color);
   background-color: var(--sb-active-bg, transparent);
+  border-color: var(--sb-active-border, transparent);
 }
 
 /* Fade the backdrop and settle the panel from slightly small — the sideways
@@ -476,9 +490,13 @@ function goTo(path: string): void {
   transform: scale(0.97);
 }
 
-/* The rail icons ship white; the active row tints its icon to match the active
-   label colour. A filter is used because the assets are flat PNGs, not SVGs. */
-.sidebar-icon-active {
+/* The rail icons ship white; the active row — and now a hovered one, which
+   wears the same look — tints its icon to match the accent label. A filter is
+   used because the assets are flat PNGs, not SVGs, so the tint is an
+   approximation of `activeItemColor` rather than the token itself: a theme that
+   changes that token materially needs this recomputed. */
+.sb-row.is-active .sb-icon,
+.sb-row:hover .sb-icon {
   filter: brightness(0) saturate(100%) invert(62%) sepia(72%) saturate(1355%) hue-rotate(345deg) brightness(101%) contrast(101%);
 }
 </style>
