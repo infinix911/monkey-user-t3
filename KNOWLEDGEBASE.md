@@ -32,8 +32,8 @@
 - **Backend:** `../monkey-user-api` (Bun+Elysia, HTTP + WS :4000) — the browser never talks to it directly (§4).
 - **Build/run:** Docker — Bun builds (`bun install --frozen-lockfile`, `bun run build`), **Node 22 runs** `.output/server/index.mjs` as non-root, port 3000, behind Traefik (router files written dynamically by the APIs).
 - **Size:** 831 tracked files; `app/components` 201 files (~45k lines, half of it togel), 41 composables, 26 pages, 6 Pinia stores, 4 togel money-math services (the only unit-tested code).
-- **Testing:** Playwright e2e (13 specs, ~52 tests, API-mocked, serial, NO webServer — start the app yourself), Vitest 2-project (unit = togel services 98 tests; component = 27 payload-characterization tests). Coverage measured only for `app/services/togel/**`.
-- **No CI, no git hooks.** The verification gate is manual convention: `npm run test:component && npm run test:unit && npm run typecheck && npm run build`.
+- **Testing:** Playwright e2e (13 specs, ~52 tests, API-mocked, serial, NO webServer — start the app yourself), Vitest `component` project only (the togel `unit` project went with the togel domain): payload/security characterization plus `tests/component/inquiry-card.spec.ts`, which mounts a component for real via `mountSuspended`. Mounting boots a Nuxt app in a `beforeAll`, which is why the project sets `hookTimeout: 120_000` in `vitest.config.ts`. No coverage-measured suite remains.
+- **No CI, no git hooks.** The verification gate is manual convention: `npm run test:component && npm run typecheck && npm run build`.
 
 ### ⚠️ Legacy drift you must not trust
 
