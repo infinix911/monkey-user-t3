@@ -16,9 +16,10 @@ import { signupSchema } from "@/schemas";
 import { toTitleCase } from "@/lib/formatter";
 
 /**
- * Static bank list for the signup dropdown. The backend has no `/banks`
- * endpoint (register accepts a free-text `bankName`), so this is a curated
- * list for the KRW deployment. Replace with an API source if one is added.
+ * Offline fallback bank list for the signup dropdown. The primary source is
+ * the DB via `GET /site/banks` (active + registerable); this curated KRW list
+ * is only used if that public read fails, so the form never renders an empty
+ * dropdown.
  */
 const STATIC_BANK_NAMES: string[] = [
   "KB국민은행",
@@ -64,9 +65,25 @@ export function useSignupForm(options: UseSignupFormOptions) {
   const currency = useCurrency();
   const api = useApi();
 
-  // Bank names for the signup dropdown. Sourced statically — the backend has
-  // no bank-list endpoint and register takes a free-text `bankName`.
+  // Bank names for the signup dropdown. Loaded from the DB (active +
+  // registerable) via GET /site/banks; the static list seeds the ref and is the
+  // fallback if that public read fails, so the pre-auth form is never empty.
   const bankNames = ref<string[]>([...STATIC_BANK_NAMES]);
+  let banksLoaded = false;
+
+  /** Populate the bank dropdown from the DB, keeping the static fallback on failure. */
+  async function loadBanks(): Promise<void> {
+    if (banksLoaded) return;
+    try {
+      const rows = await api<{ id: string; name: string }[]>("/site/banks");
+      if (Array.isArray(rows) && rows.length) {
+        bankNames.value = rows.map((b) => b.name);
+        banksLoaded = true;
+      }
+    } catch {
+      // Network/API failure — keep the static fallback list.
+    }
+  }
 
   // All currencies the codebase knows how to render. The dropdown is
   // filtered to only the deployment currency below — keeping the full
@@ -293,6 +310,7 @@ export function useSignupForm(options: UseSignupFormOptions) {
       if (newVal) {
         document.addEventListener("keydown", handleKeydown);
         document.body.style.overflow = "hidden";
+        void loadBanks();
 
         // Load referral code from authStore or localStorage
         const storedReferral =
