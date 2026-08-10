@@ -47,8 +47,8 @@
          the default band height, so those specific ids get a taller band. All
          other logos keep the default size. -->
       <div class="flex items-center justify-center z-30 pointer-events-none" :style="logoBoxStyle">
-        <img v-if="logoSrc" :key="logoSrc" :src="logoSrc" :alt="game.name" :loading="eager ? 'eager' : 'lazy'"
-          class="w-full h-full object-cover" @error="onLogoError">
+        <img v-if="game.logo && !logoError" :src="game.logo" :alt="game.name" :loading="eager ? 'eager' : 'lazy'"
+          class="w-full h-full object-cover" @error="logoError = true">
         <p v-else class="text-white text-[13px] font-bold leading-tight truncate text-center" :title="game.name">
           {{ game.name }}
         </p>
@@ -64,6 +64,8 @@
       <span class="absolute inset-0 z-40 pointer-events-none"
         :style="{ border: `2.5px solid ${siteConfig.theme.cardFrame.borderColor}`, borderRadius: 'inherit' }"
         aria-hidden="true" />
+
+      <!-- <div class="absolute top-0 left-0 bg-white z-[10000] text-black">{{ game }}</div> -->
     </div>
   </component>
 </template>
@@ -79,9 +81,8 @@ const uiStore = useUiStore();
 const nuxtLink = resolveComponent("NuxtLink");
 
 interface CasinoProvider {
+  code: any;
   id: string | number;
-  /** Provider code (the lobby's `gameProvider`) — names the logo file. */
-  code?: string | null;
   name: string;
   logo?: string;
   character?: string;
@@ -89,6 +90,7 @@ interface CasinoProvider {
   frameImage?: string;
 }
 
+const logoError = ref(false);
 const charError = ref(false);
 const bgError = ref(false);
 
@@ -145,43 +147,6 @@ const logoBoxStyle = {
   position: "absolute" as const,
   inset: 0,
 };
-
-/**
- * Provider logo, resolved from the provider code.
- *
- * Logo files are being renamed from the lobby UUID to the provider code
- * (`game.code`, the lobby's `gameProvider`), which is stable across
- * environments where the UUID is not — the same provider carries a different
- * lobby id per deployment, so a UUID-named file only ever matched one of them.
- *
- * Both names are tried in turn: the code file first, then the id-named URL the
- * page passed as `game.logo`, so lobbies whose asset has not been renamed yet
- * keep their logo. When neither loads the card falls back to the provider name
- * as text (the `v-else` in the template).
- */
-const logoCandidates = computed<string[]>(() => {
-  const base = siteConfig.assets.homepage.gameLogos[props.gameType];
-  const code = props.game.code?.trim();
-  const urls: string[] = [];
-  if (code && base) urls.push(lobbyLogoUrl(base, code));
-  if (props.game.logo) urls.push(props.game.logo);
-  return [...new Set(urls)];
-});
-
-const logoAttempt = ref(0);
-
-const logoSrc = computed(() => logoCandidates.value[logoAttempt.value] ?? "");
-
-/** Step to the next candidate; running out drops through to the name text. */
-const onLogoError = () => {
-  logoAttempt.value += 1;
-};
-
-// Card components are reused across rows (v-for keyed by lobby id), so a new
-// lobby landing in the same slot must start from its own first candidate.
-watch(logoCandidates, () => {
-  logoAttempt.value = 0;
-});
 
 // Mirrors LobbyCard.openGamePopup so homepage cards launch identically to
 // the /casino and /sports lobby pages. Casino lobbies launch by lobby id

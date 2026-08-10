@@ -46,8 +46,10 @@ const { isLoading, error, lobbies, fetchLobbies } = useLobbyPage("slot");
 const siteConfig = useSiteConfig();
 
 // Build layered cards (bg + character + frame + logo) from local assets the
-// same way /casino does — logo/character art keyed by lobby id, with a shared
-// slot background + frame from siteConfig.
+// same way /casino does — a shared slot background + frame from siteConfig,
+// character art keyed by lobby id, and the provider logo keyed by the provider
+// code (`<gameProvider>.webp`), which is stable across deployments where the
+// lobby id is not. Lobbies with no code fall back to the id-named file.
 const providers = computed(() => {
   const logoBase = siteConfig.assets.homepage.gameLogos.slot;
   const charBase = siteConfig.assets.homepage.gameCharacters.slot;
@@ -58,7 +60,7 @@ const providers = computed(() => {
     (l, i: number) => ({
       id: l.id,
       name: l.game_name ?? "",
-      logo: lobbyLogoUrl(logoBase, l.id),
+      logo: lobbyLogoUrl(logoBase, l.gameProvider ?? l.id),
       character: resolveLobbyCharacter(charBase, "slot", i, l.id, charOverrides),
       bgImage: bg,
       code: l.gameProvider,

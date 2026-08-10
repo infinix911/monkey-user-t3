@@ -319,14 +319,22 @@ await Promise.all([
 
 const miniGames = computed<AnyList>(() => miniGamesData.value ?? []);
 
+/**
+ * Sections whose logo files have been renamed from the lobby UUID to the
+ * provider code (`<gameProvider>.webp`) — the code is stable across
+ * deployments, where the same provider carries a different lobby id in each.
+ * `sport-logo` is still keyed by id, so it is deliberately not in this set;
+ * add it once those files are renamed too. Lobbies with no code keep the
+ * id-named file either way.
+ */
+const CODE_KEYED_LOGOS = new Set(["casino", "slot"]);
+
 // Local logos + character art live at paths declared in
 // `siteConfig.assets.homepage.gameLogos.{casino,sports}` and
 // `siteConfig.assets.homepage.gameCharacters.{casino,sports}` (see
-// docs/CASINO_GAMES.md). Character art is named after the lobby UUID; logos are
-// named after the provider code, with the UUID name still honoured as a
-// fallback (HomeGameCard resolves the pair). Skipping the API's
-// `logo_path` keeps the homepage off the external CDN — faster paint, no
-// extra network dependency.
+// docs/CASINO_GAMES.md). Character art stays keyed by the lobby UUID.
+// Skipping the API's `logo_path` keeps the homepage off the external CDN —
+// faster paint, no extra network dependency.
 const toCard = (
   l: NormalizedLobby,
   index: number,
@@ -340,7 +348,10 @@ const toCard = (
   id: l.id,
   code: l.gameProvider,
   name: l.game_name ?? "",
-  logo: lobbyLogoUrl(logoBase, l.id),
+  logo: lobbyLogoUrl(
+    logoBase,
+    (CODE_KEYED_LOGOS.has(gameType) && l.gameProvider) || l.id,
+  ),
   character: resolveLobbyCharacter(
     characterBase,
     gameType,

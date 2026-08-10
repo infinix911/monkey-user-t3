@@ -46,8 +46,12 @@ const { isLoading, error, lobbies, fetchLobbies } = useLobbyPage("casino");
 const siteConfig = useSiteConfig();
 
 // Build cards from local assets the same way the homepage does (see
-// app/pages/index.vue `toCard`): logo/character art keyed by lobby id, with
-// a shared per-section background + frame from siteConfig.
+// app/pages/index.vue `toCard`): a shared per-section background + frame from
+// siteConfig, character art keyed by lobby id, and the provider logo keyed by
+// the provider code (`<gameProvider>.webp`) — the code is stable across
+// deployments, where the same provider carries a different lobby id in each,
+// so a UUID-named file only ever matched one of them. Lobbies with no code
+// fall back to the id-named file.
 const providers = computed(() => {
   const logoBase = siteConfig.assets.homepage.gameLogos.casino;
   const charBase = siteConfig.assets.homepage.gameCharacters.casino;
@@ -57,7 +61,7 @@ const providers = computed(() => {
   return (lobbies.value ?? []).map((l, i: number) => ({
     id: l.id,
     name: l.game_name ?? "",
-    logo: lobbyLogoUrl(logoBase, l.id),
+    logo: lobbyLogoUrl(logoBase, l.gameProvider ?? l.id),
     character: resolveLobbyCharacter(charBase, "casino", i, l.id, charOverrides),
     bgImage: bg,
     code: l.gameProvider,
