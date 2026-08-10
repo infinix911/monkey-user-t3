@@ -18,9 +18,16 @@ export const HOMEPAGE_CHARACTER_COUNTS: Record<string, number> = {
     slot: 40,
 };
 
-/** Local provider-logo URL, keyed by lobby UUID (`<base>/<id>.webp`). */
-export function lobbyLogoUrl(logoBase: string, id: string | number): string {
-    return `${logoBase}/${id}.webp`;
+/**
+ * Local provider-logo URL (`<base>/<key>.webp`).
+ *
+ * The key is the provider code where the asset has been named after it, and the
+ * lobby UUID otherwise — logos are migrating from the UUID (which differs per
+ * deployment for the same provider) to the code. `HomeGameCard` tries the code
+ * first and falls back to the id, so both naming schemes resolve.
+ */
+export function lobbyLogoUrl(logoBase: string, key: string | number): string {
+    return `${logoBase}/${key}.webp`;
 }
 
 /**

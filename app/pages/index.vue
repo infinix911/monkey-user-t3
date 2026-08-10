@@ -233,6 +233,8 @@ const hotGames = computed<AnyList>(() => hotGamesData.value ?? []);
 // SSR-cached payloads are shared across pages.
 interface LobbyCard {
   id: string | number;
+  /** Provider code — HomeGameCard names the logo file after it. */
+  code?: string | null;
   name: string;
   logo: string;
   character: string;
@@ -319,8 +321,10 @@ const miniGames = computed<AnyList>(() => miniGamesData.value ?? []);
 
 // Local logos + character art live at paths declared in
 // `siteConfig.assets.homepage.gameLogos.{casino,sports}` and
-// `siteConfig.assets.homepage.gameCharacters.{casino,sports}`, both named
-// after the lobby UUID (see docs/CASINO_GAMES.md). Skipping the API's
+// `siteConfig.assets.homepage.gameCharacters.{casino,sports}` (see
+// docs/CASINO_GAMES.md). Character art is named after the lobby UUID; logos are
+// named after the provider code, with the UUID name still honoured as a
+// fallback (HomeGameCard resolves the pair). Skipping the API's
 // `logo_path` keeps the homepage off the external CDN — faster paint, no
 // extra network dependency.
 const toCard = (
@@ -334,6 +338,7 @@ const toCard = (
   characterOverrides?: Record<string, string>,
 ): LobbyCard => ({
   id: l.id,
+  code: l.gameProvider,
   name: l.game_name ?? "",
   logo: lobbyLogoUrl(logoBase, l.id),
   character: resolveLobbyCharacter(
