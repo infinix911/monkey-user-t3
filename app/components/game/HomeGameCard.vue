@@ -47,7 +47,7 @@
          the default band height, so those specific ids get a taller band. All
          other logos keep the default size. -->
       <div class="flex items-center justify-center z-30 pointer-events-none" :style="logoBoxStyle">
-        <img v-if="game.logo && !logoError" :src="game.logo" :alt="game.name" :loading="eager ? 'eager' : 'lazy'"
+        <img v-if="providerLogo && !logoError" :src="providerLogo" :alt="game.name" :loading="eager ? 'eager' : 'lazy'"
           class="w-full h-full object-cover" @error="logoError = true">
         <p v-else class="text-white text-[13px] font-bold leading-tight truncate text-center" :title="game.name">
           {{ game.name }}
@@ -119,6 +119,23 @@ const props = withDefaults(
 );
 
 const siteConfig = useSiteConfig();
+
+// Provider logo, resolved from the provider code against the display-name-keyed
+// assets in /designs/game-logo (getLogoImages, app/utils/gameProviderLogo.ts).
+// The code is stable across deployments; the caller-supplied `game.logo` (a
+// lobby-UUID-named file) stays as the fallback for providers with no mapping
+// yet — sports lobbies in particular. Empty means neither resolved, and the
+// template falls back to rendering the provider name as text.
+const providerLogo = computed(
+  () => getLogoImages(props.game.code) || props.game.logo || "",
+);
+
+// A card instance is reused across rows when the list re-renders, so clear the
+// error latch whenever the resolved logo changes — otherwise one broken asset
+// permanently suppresses the next provider's logo.
+watch(providerLogo, () => {
+  logoError.value = false;
+});
 
 // Slot lobbies have sub-games: the card is a link to the lobby's game list
 // (mirrors LobbyCard subGames behaviour) rather than launching directly.

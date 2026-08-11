@@ -1,0 +1,542 @@
+[
+  {
+    "name": "AllBet",
+    "codes": [
+      "allbet_casino"
+    ]
+  },
+  {
+    "name": "Asiangaming",
+    "codes": [
+      "ag_casino"
+    ]
+  },
+  {
+    "name": "Betgames",
+    "codes": [
+      "betgames_casino",
+      "41"
+    ]
+  },
+  {
+    "name": "Big Gaming",
+    "codes": [
+      "bg_casino",
+      "2"
+    ]
+  },
+  {
+    "name": "Bota",
+    "codes": [
+      "bota_casino"
+    ]
+  },
+  {
+    "name": "CreedRoomz",
+    "codes": [
+      "50"
+    ]
+  },
+  {
+    "name": "Cyberbetx",
+    "codes": [
+      "cyberbetx_casino"
+    ]
+  },
+  {
+    "name": "Dowinn",
+    "codes": [
+      "dowinn_casino"
+    ]
+  },
+  {
+    "name": "Dream Gaming",
+    "codes": [
+      "dg_casino",
+      "6"
+    ]
+  },
+  {
+    "name": "EEAI",
+    "codes": [
+      "46"
+    ]
+  },
+  {
+    "name": "Emperor Gaming",
+    "codes": [
+      "43"
+    ]
+  },
+  {
+    "name": "Evolution",
+    "codes": [
+      "31",
+      "evolution_casino"
+    ]
+  },
+  {
+    "name": "Ezugi",
+    "codes": [
+      "17"
+    ]
+  },
+  {
+    "name": "GPI",
+    "codes": [
+      "gpi_casino"
+    ]
+  },
+  {
+    "name": "HO Gaming",
+    "codes": [
+      "54"
+    ]
+  },
+  {
+    "name": "Live 88",
+    "codes": [
+      "11"
+    ]
+  },
+  {
+    "name": "Microgaming",
+    "codes": [
+      "mg_casino",
+      "3",
+      "209"
+    ]
+  },
+  {
+    "name": "Miki World",
+    "codes": [
+      "53"
+    ]
+  },
+  {
+    "name": "Motivation",
+    "codes": [
+      "motivation_casino"
+    ]
+  },
+  {
+    "name": "Oriental",
+    "codes": [
+      "oriental_casino",
+      "24",
+      "2001"
+    ]
+  },
+  {
+    "name": "Playtech",
+    "codes": [
+      "playtech_casino",
+      "296"
+    ]
+  },
+  {
+    "name": "Pragmatic",
+    "codes": [
+      "pragmatic_casino",
+      "28",
+      "pragmatic_slot",
+      "226"
+    ]
+  },
+  {
+    "name": "Pretty Gaming",
+    "codes": [
+      "prettygaming_casino",
+      "42"
+    ]
+  },
+  {
+    "name": "SA Gaming",
+    "codes": [
+      "sa_casino",
+      "44"
+    ]
+  },
+  {
+    "name": "Sexy Gaming",
+    "codes": [
+      "sexybaccarat_casino",
+      "9"
+    ]
+  },
+  {
+    "name": "Skywind",
+    "codes": [
+      "skywind_casino",
+      "19",
+      "skywind_slot",
+      "221"
+    ]
+  },
+  {
+    "name": "Winfinity",
+    "codes": [
+      "48"
+    ]
+  },
+  {
+    "name": "WM",
+    "codes": [
+      "wm_casino"
+    ]
+  },
+  {
+    "name": "Alize",
+    "codes": [
+      "302"
+    ]
+  },
+  {
+    "name": "Aviator",
+    "codes": [
+      "311"
+    ]
+  },
+  {
+    "name": "Aviatrix",
+    "codes": [
+      "303"
+    ]
+  },
+  {
+    "name": "Fast Game",
+    "codes": [
+      "304"
+    ]
+  },
+  {
+    "name": "Spribe",
+    "codes": [
+      "300"
+    ]
+  },
+  {
+    "name": "Turbo Games",
+    "codes": [
+      "310"
+    ]
+  },
+  {
+    "name": "4 The Player",
+    "codes": [
+      "4theplayer_slot"
+    ]
+  },
+  {
+    "name": "Avatar UX",
+    "codes": [
+      "avatarux_slot"
+    ]
+  },
+  {
+    "name": "Big Time Gaming",
+    "codes": [
+      "292",
+      "btg_slot"
+    ]
+  },
+  {
+    "name": "Blueprint",
+    "codes": [
+      "blueprint_slot",
+      "258"
+    ]
+  },
+  {
+    "name": "BNG",
+    "codes": [
+      "bng_slot",
+      "217"
+    ]
+  },
+  {
+    "name": "Booming",
+    "codes": [
+      "booming_slot",
+      "271"
+    ]
+  },
+  {
+    "name": "CosmoPlay",
+    "codes": [
+      "2000"
+    ]
+  },
+  {
+    "name": "CQ9",
+    "codes": [
+      "220",
+      "cq9_slot"
+    ]
+  },
+  {
+    "name": "Evoplay",
+    "codes": [
+      "evoplay_slot",
+      "276"
+    ]
+  },
+  {
+    "name": "Expanse",
+    "codes": [
+      "expanse_slot"
+    ]
+  },
+  {
+    "name": "Fantasma",
+    "codes": [
+      "fantasma_slot"
+    ]
+  },
+  {
+    "name": "Gameart",
+    "codes": [
+      "gameart_slot"
+    ]
+  },
+  {
+    "name": "GMW",
+    "codes": [
+      "gmw_slot"
+    ]
+  },
+  {
+    "name": "Habanero",
+    "codes": [
+      "201",
+      "habanero_slot"
+    ]
+  },
+  {
+    "name": "Hacksaw",
+    "codes": [
+      "255",
+      "hacksaw_slot"
+    ]
+  },
+  {
+    "name": "JDB",
+    "codes": [
+      "265"
+    ]
+  },
+  {
+    "name": "JiLi",
+    "codes": [
+      "263"
+    ]
+  },
+  {
+    "name": "Joker",
+    "codes": [
+      "210"
+    ]
+  },
+  {
+    "name": "MG",
+    "codes": [
+      "mg_slot"
+    ]
+  },
+  {
+    "name": "Naga",
+    "codes": [
+      "249"
+    ]
+  },
+  {
+    "name": "Netent",
+    "codes": [
+      "291",
+      "netent_slot"
+    ]
+  },
+  {
+    "name": "NextSpin",
+    "codes": [
+      "nextspin_slot",
+      "231"
+    ]
+  },
+  {
+    "name": "Nolimit City",
+    "codes": [
+      "nolimit_slot",
+      "293"
+    ]
+  },
+  {
+    "name": "Octoplay",
+    "codes": [
+      "286",
+      "octoplay_slot"
+    ]
+  },
+  {
+    "name": "OneTouch",
+    "codes": [
+      "211"
+    ]
+  },
+  {
+    "name": "Peter & Sons",
+    "codes": [
+      "peterandsons_slot"
+    ]
+  },
+  {
+    "name": "PG Soft",
+    "codes": [
+      "pgsoft_slot",
+      "285"
+    ]
+  },
+  {
+    "name": "Play N Go",
+    "codes": [
+      "playngo_slot",
+      "207"
+    ]
+  },
+  {
+    "name": "Playstar",
+    "codes": [
+      "ps_slot"
+    ]
+  },
+  {
+    "name": "Quickspin",
+    "codes": [
+      "204"
+    ]
+  },
+  {
+    "name": "Red Tiger",
+    "codes": [
+      "redtiger_slot",
+      "290"
+    ]
+  },
+  {
+    "name": "Reelplay",
+    "codes": [
+      "reelplay_slot"
+    ]
+  },
+  {
+    "name": "Relax",
+    "codes": [
+      "229",
+      "relax_slot"
+    ]
+  },
+  {
+    "name": "Slotmill",
+    "codes": [
+      "slotmill_slot",
+      "253"
+    ]
+  },
+  {
+    "name": "Smartsoft",
+    "codes": [
+      "278"
+    ]
+  },
+  {
+    "name": "Spade Slots",
+    "codes": [
+      "205"
+    ]
+  },
+  {
+    "name": "VA Gaming",
+    "codes": [
+      "288"
+    ]
+  },
+  {
+    "name": "Wazdan",
+    "codes": [
+      "222"
+    ]
+  },
+  {
+    "name": "Winfast",
+    "codes": [
+      "289"
+    ]
+  },
+  {
+    "name": "Wonwon",
+    "codes": [
+      "298"
+    ]
+  },
+  {
+    "name": "World Match",
+    "codes": [
+      "208"
+    ]
+  },
+  {
+    "name": "YGGDrasil",
+    "codes": [
+      "yggdrasil_slot",
+      "216"
+    ]
+  },
+  {
+    "name": "BTI Sports",
+    "codes": [
+      "105"
+    ]
+  },
+  {
+    "name": "CMD",
+    "codes": [
+      "114"
+    ]
+  },
+  {
+    "name": "Fulla.Bet",
+    "codes": [
+      "111"
+    ]
+  },
+  {
+    "name": "Illustrative Analytics",
+    "codes": [
+      "100"
+    ]
+  },
+  {
+    "name": "Pinnacle",
+    "codes": [
+      "103"
+    ]
+  },
+  {
+    "name": "Saba",
+    "codes": [
+      "113"
+    ]
+  },
+  {
+    "name": "SBO",
+    "codes": [
+      "110"
+    ]
+  },
+  {
+    "name": "WS Sports",
+    "codes": [
+      "112"
+    ]
+  }
+]
