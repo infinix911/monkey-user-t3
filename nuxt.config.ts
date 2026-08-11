@@ -144,6 +144,22 @@ export default defineNuxtConfig({
         // visitor's Accept-Language. This is what removes the root redirect.
         detectBrowserLanguage: false,
         vueI18n: "./i18n.config.ts",
+        experimental: {
+          /**
+           * Cache the messages endpoint hard.
+           *
+           * The browser no longer requests it at all — `app/plugins/
+           * i18n-bundled-messages.client.ts` serves messages from the bundle —
+           * but the endpoint still backs SSR, and this keeps a stray hit (an
+           * old cached document, a client whose plugin patch did not run) off
+           * the wire. Live currently answers with `max-age=10`, which is why
+           * the JSON re-downloaded every few seconds. The URL carries a content
+           * hash, so a long TTL cannot serve stale copy: editing a locale file
+           * changes the hash and therefore the URL.
+           */
+          cacheLifetime: 86400,
+          httpCacheDuration: 86400,
+        },
       },
     ],
     "@nuxt/fonts",
