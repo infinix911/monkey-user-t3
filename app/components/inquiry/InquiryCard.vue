@@ -121,9 +121,14 @@
           >
             {{ t("inquiry.body") }}
           </span>
-          <p class="text-[15px] leading-relaxed break-words text-white/90">
-            {{ translateToken(extractTextFromMessage(inquiry.message)) }}
-          </p>
+          <!-- Rendered as markup: admin-authored messages are rich text. Every
+               path in `renderMessage` runs the allowlist sanitizer first. -->
+          <!-- eslint-disable vue/no-v-html -->
+          <div
+            class="rich-body text-[15px] leading-relaxed break-words text-white/90"
+            v-html="inquiryBodyHtml"
+          />
+          <!-- eslint-enable vue/no-v-html -->
         </div>
 
         <!-- Loading State -->
@@ -196,17 +201,19 @@
                       {{ formatTimeAgo(reply.created_at) }}
                     </span>
                   </div>
-                  <p
-                    v-if="extractTextFromMessage(reply.message)"
-                    class="px-3.5 py-2.5 text-[15px] leading-relaxed break-words whitespace-pre-line"
+                  <!-- Sanitized in `renderMessage`; see the note above. -->
+                  <!-- eslint-disable vue/no-v-html -->
+                  <div
+                    v-if="reply.html"
+                    class="rich-body px-3.5 py-2.5 text-[15px] leading-relaxed break-words"
                     :class="
                       isUserReply(reply)
                         ? 'tm-bubble-self rounded-[14px] rounded-br-[4px]'
                         : 'tm-card rounded-[14px] rounded-bl-[4px]'
                     "
-                  >
-                    {{ extractTextFromMessage(reply.message) }}
-                  </p>
+                    v-html="reply.html"
+                  />
+                  <!-- eslint-enable vue/no-v-html -->
                 </div>
               </div>
             </template>
@@ -287,6 +294,8 @@ import type {
   InquiryItem,
   RepliesResponse,
 } from "~/interfaces/inquiry.interface";
+import { tiptapToHtml } from "~/composables/useTiptap";
+import { escapeHtml, sanitizeHtml } from "~/utils/sanitizeHtml";
 
 interface Props {
   inquiry: InquiryItem;
@@ -328,8 +337,14 @@ watch(
 const hasReplies = computed(() => (props.replies?.data?.length ?? 0) > 0);
 
 /** Oldest → newest, so the conversation reads downwards and the newest message
- *  is the one the auto-scroll lands on. The API returns newest first. */
-const orderedReplies = computed(() => [...(props.replies?.data ?? [])].reverse());
+ *  is the one the auto-scroll lands on. The API returns newest first. Each row
+ *  carries its message pre-rendered, so the template renders it once. */
+const orderedReplies = computed(() =>
+  [...(props.replies?.data ?? [])].map((reply) => ({
+    ...reply,
+    html: renderMessage(reply.message),
+  })).reverse(),
+);
 
 const statusBadgeClass = computed(() => {
   if (props.isExpanded) {
@@ -398,42 +413,60 @@ const formatTimeAgo = (dateString: string): string => {
   }
 };
 
-const extractTextFromMessage = (message: unknown): string => {
+/** Markup, as opposed to a member sentence that merely contains an angle bracket. */
+const HTML_TAG = /<\/?[a-z][a-z0-9-]*(?:\s[^>]*)?\/?>/i;
+
+/**
+ * Render a stored message as display HTML.
+ *
+ * A message reaches us in one of three shapes and all three have to survive the
+ * trip to the bubble:
+ *   - Tiptap JSON (a document object, or that document as a JSON string),
+ *   - an HTML string — what the admin console's rich-text reply box saves,
+ *   - plain text — what the member types into the textarea below.
+ *
+ * The HTML case is the one that was broken: it fell past the `JSON.parse`, was
+ * returned as a bare string and then interpolated as text, so an operator reply
+ * rendered as its literal source (`<p>New Reply Template</p>`) on screen.
+ *
+ * Everything goes through the deterministic allowlist sanitizer, which has no
+ * DOM dependency, so SSR and hydration agree. Plain text is escaped rather than
+ * sanitized so the member's own line breaks survive as `<br>`.
+ */
+const renderMessage = (message: unknown): string => {
   if (!message) return "";
-  if (typeof message === "string") {
-    // Try parsing as JSON (tiptap content)
-    try {
-      const parsed = JSON.parse(message);
-      return extractFromJSON(parsed);
-    } catch {
-      return message;
-    }
-  }
-  // Handle case where message is already a parsed object (from API)
   if (typeof message === "object") {
-    return extractFromJSON(message);
+    return sanitizeHtml(tiptapToHtml(message as Parameters<typeof tiptapToHtml>[0]));
   }
-  return "";
+  if (typeof message !== "string") return "";
+
+  const value = message.trim();
+  if (!value) return "";
+
+  try {
+    const parsed: unknown = JSON.parse(value);
+    if (parsed && typeof parsed === "object") {
+      return sanitizeHtml(tiptapToHtml(parsed as Parameters<typeof tiptapToHtml>[0]));
+    }
+  } catch {
+    /* not a Tiptap document — fall through to the HTML/plain-text paths */
+  }
+
+  if (HTML_TAG.test(value)) return sanitizeHtml(value);
+  return escapeHtml(value).replace(/\r?\n/g, "<br>");
 };
 
-const extractFromJSON = (content: unknown): string => {
-  if (!content) return "";
-  if (typeof content === "string") return content;
-  if (typeof content === "object") {
-    const obj = content as { text?: string; content?: unknown[]; type?: string };
-    let text = "";
-    if (obj.text) text += obj.text;
-    if (obj.content && Array.isArray(obj.content)) {
-      obj.content.forEach((node: unknown) => {
-        text += extractFromJSON(node);
-        const n = node as { type?: string };
-        if (n.type === "paragraph" || n.type === "heading") text += " ";
-      });
-    }
-    return text.trim();
-  }
-  return "";
-};
+/**
+ * The member's own question. App-raised tokens (`BANK_ACCOUNT_REQUEST`) are
+ * plain strings, so they take the i18n path; anything else is a real message and
+ * is rendered like a reply.
+ */
+const inquiryBodyHtml = computed(() => {
+  const raw = props.inquiry.message ?? "";
+  const trimmed = typeof raw === "string" ? raw.trim() : "";
+  if (/^[A-Z0-9_]+$/.test(trimmed)) return escapeHtml(translateToken(trimmed));
+  return renderMessage(raw);
+});
 
 const handleSendReply = () => {
   if (!replyText.value.trim()) return;
@@ -490,4 +523,104 @@ function onExpandLeave(el: Element, done: () => void): void {
 <style scoped>
 /* The expand/collapse motion lives in the transition hooks above: the distance
    is the thread's runtime height, which a keyframe cannot know. */
+
+/* Admin replies are authored in a rich-text editor, so they arrive as real
+   markup. Tailwind's preflight zeroes margins and list markers, which would
+   collapse a multi-paragraph reply into one run-on line inside the bubble —
+   these rules give the sanitizer's allowed tags their spacing back, scoped to
+   the message body so nothing leaks into the card chrome. */
+.rich-body :deep(p) {
+  margin: 0;
+}
+
+.rich-body :deep(p + p),
+.rich-body :deep(ul),
+.rich-body :deep(ol),
+.rich-body :deep(blockquote),
+.rich-body :deep(pre) {
+  margin-top: 0.5em;
+}
+
+.rich-body :deep(ul),
+.rich-body :deep(ol) {
+  margin-bottom: 0.5em;
+  padding-left: 1.25em;
+  list-style-position: outside;
+}
+
+.rich-body :deep(ul) {
+  list-style-type: disc;
+}
+
+.rich-body :deep(ol) {
+  list-style-type: decimal;
+}
+
+.rich-body :deep(h1),
+.rich-body :deep(h2),
+.rich-body :deep(h3),
+.rich-body :deep(h4),
+.rich-body :deep(h5),
+.rich-body :deep(h6) {
+  margin-top: 0.5em;
+  font-weight: 600;
+  font-size: 1em;
+}
+
+.rich-body :deep(a) {
+  color: var(--tm-accent);
+  text-decoration: underline;
+  overflow-wrap: anywhere;
+}
+
+.rich-body :deep(strong) {
+  font-weight: 600;
+}
+
+.rich-body :deep(blockquote) {
+  padding-left: 0.75em;
+  border-left: 2px solid rgb(255 255 255 / 0.2);
+  color: rgb(255 255 255 / 0.75);
+}
+
+.rich-body :deep(pre),
+.rich-body :deep(code) {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.9em;
+}
+
+.rich-body :deep(pre) {
+  padding: 0.5em 0.75em;
+  border-radius: 8px;
+  background: rgb(255 255 255 / 0.06);
+  overflow-x: auto;
+}
+
+.rich-body :deep(img) {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+.rich-body :deep(hr) {
+  margin: 0.6em 0;
+  border-color: rgb(255 255 255 / 0.15);
+}
+
+.rich-body :deep(table) {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.rich-body :deep(td),
+.rich-body :deep(th) {
+  padding: 0.25em 0.5em;
+  border: 1px solid rgb(255 255 255 / 0.15);
+}
+
+/* A trailing empty paragraph is how the editor stores "user pressed Enter at
+   the end"; it would otherwise add a blank line to every bubble. */
+.rich-body :deep(p:last-child:empty) {
+  display: none;
+}
 </style>

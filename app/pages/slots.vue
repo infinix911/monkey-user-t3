@@ -16,30 +16,17 @@
     <!-- Error State -->
     <div v-else-if="error" class="w-full py-8 text-white text-center">
       <p class="text-lg text-red-400">{{ error }}</p>
-      <button
-        class="mt-4 px-6 py-2 bg-yellow-500 text-black rounded hover:bg-yellow-600 transition-colors"
-        @click="() => fetchLobbies()"
-      >
+      <button class="mt-4 px-6 py-2 bg-yellow-500 text-black rounded hover:bg-yellow-600 transition-colors"
+        @click="() => fetchLobbies()">
         {{ $t("common.retry") }}
       </button>
     </div>
 
     <!-- Provider Lobbies Grid -->
-    <div
-      v-else-if="providers.length > 0"
-      class="w-full max-w-[1300px] mx-auto mb-[2rem] lg:px-0 mt-[10px] sm:mt-[8px]"
-    >
-      <div
-        class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-[5px]"
-      >
-        <HomeGameCard
-          v-for="provider in providers"
-          :key="provider.id"
-          :game="provider"
-          game-type="slot"
-          fluid
-          aspect="240 / 313.04"
-        />
+    <div v-else-if="providers.length > 0" class="w-full max-w-[1300px] mx-auto mb-[2rem] lg:px-0 mt-[10px] sm:mt-[8px]">
+      <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-[5px]">
+        <HomeGameCard v-for="provider in providers" :key="provider.id" :game="provider" game-type="slot" fluid
+          aspect="240 / 313.04" />
       </div>
     </div>
 
@@ -59,8 +46,10 @@ const { isLoading, error, lobbies, fetchLobbies } = useLobbyPage("slot");
 const siteConfig = useSiteConfig();
 
 // Build layered cards (bg + character + frame + logo) from local assets the
-// same way /casino does — logo/character art keyed by lobby id, with a shared
-// slot background + frame from siteConfig.
+// same way /casino does — a shared slot background + frame from siteConfig,
+// character art keyed by lobby id, and the provider logo keyed by the provider
+// code (`<gameProvider>.webp`), which is stable across deployments where the
+// lobby id is not. Lobbies with no code fall back to the id-named file.
 const providers = computed(() => {
   const logoBase = siteConfig.assets.homepage.gameLogos.slot;
   const charBase = siteConfig.assets.homepage.gameCharacters.slot;
@@ -71,9 +60,10 @@ const providers = computed(() => {
     (l, i: number) => ({
       id: l.id,
       name: l.game_name ?? "",
-      logo: lobbyLogoUrl(logoBase, l.id),
+      logo: lobbyLogoUrl(logoBase, l.gameProvider ?? l.id),
       character: resolveLobbyCharacter(charBase, "slot", i, l.id, charOverrides),
       bgImage: bg,
+      code: l.gameProvider,
       frameImage: frame || undefined,
     }),
   );

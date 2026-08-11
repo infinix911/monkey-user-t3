@@ -15,30 +15,17 @@
     <!-- Error State -->
     <div v-else-if="error" class="w-full py-8 text-white text-center">
       <p class="text-lg text-red-400">{{ error }}</p>
-      <button
-        class="mt-4 px-6 py-2 bg-yellow-500 text-black rounded hover:bg-yellow-600 transition-colors"
-        @click="() => fetchLobbies()"
-      >
+      <button class="mt-4 px-6 py-2 bg-yellow-500 text-black rounded hover:bg-yellow-600 transition-colors"
+        @click="() => fetchLobbies()">
         {{ $t("common.retry") }}
       </button>
     </div>
 
     <!-- Provider Lobbies Grid -->
-    <div
-      v-else-if="providers.length > 0"
-      class="w-full max-w-[1300px] mx-auto mb-[2rem] lg:px-0 mt-[10px] sm:mt-[8px]"
-    >
-      <div
-        class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-[5px]"
-      >
-        <HomeGameCard
-          v-for="provider in providers"
-          :key="provider.id"
-          :game="provider"
-          game-type="sports"
-          fluid
-          aspect="240 / 313.04"
-        />
+    <div v-else-if="providers.length > 0" class="w-full max-w-[1300px] mx-auto mb-[2rem] lg:px-0 mt-[10px] sm:mt-[8px]">
+      <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-[5px]">
+        <HomeGameCard v-for="provider in providers" :key="provider.id" :game="provider" game-type="sports" fluid
+          aspect="240 / 313.04" />
       </div>
     </div>
 
@@ -74,6 +61,7 @@ const providers = computed(() => {
     logo: lobbyLogoUrl(logoBase, l.id),
     character: resolveLobbyCharacter(charBase, "sports", i, l.id, charOverrides),
     bgImage: ratioIds.has(String(l.id)) ? bgRatio : bgDefault,
+    code: l.gameProvider,
     frameImage: frame || undefined,
   }));
 });

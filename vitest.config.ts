@@ -32,6 +32,14 @@ export default defineConfig({
           globals: true,
           include: ["tests/component/**/*.spec.ts"],
           setupFiles: ["tests/component/setup.ts"],
+          /**
+           * `@nuxt/test-utils` boots a real Nuxt app in a `beforeAll` the first
+           * time a spec mounts a component. That boot regularly exceeds the 10s
+           * default on a cold cache and fails the whole file before any test
+           * runs, so the hook — not the tests — gets the long budget.
+           */
+          hookTimeout: 120_000,
+          testTimeout: 30_000,
         },
       }),
     ],

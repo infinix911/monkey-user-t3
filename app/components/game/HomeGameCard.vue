@@ -1,73 +1,71 @@
 <template>
-  <component :is="navigateAsLink ? nuxtLink : 'div'"
-    :to="navigateAsLink ? `/lobbies/${game.id}/games` : undefined"
-    class="casino-card relative cursor-pointer group block" :class="fluid ? 'w-full' : 'flex-shrink-0'"
-    :style="{
+  <component :is="navigateAsLink ? nuxtLink : 'div'" :to="navigateAsLink ? `/lobbies/${game.id}/games` : undefined"
+    class="casino-card relative cursor-pointer group block" :class="fluid ? 'w-full' : 'flex-shrink-0'" :style="{
       ...(fluid ? { aspectRatio: aspect } : { width: '186px', height: '250px' }),
       containerType: 'inline-size',
-    }"
-    @click="onCardClick">
+    }" @click="onCardClick">
     <!-- Rounded surface — clips the content and carries the corner radius, which
          scales with the card width (container query units; the .casino-card root
          is the query container). -->
     <div class="casino-surface absolute inset-0 overflow-hidden"
       :style="{ backgroundColor: siteConfig.theme.cardFrame.bgColor }">
-    <!-- 1. Background gradient (per-section, via prop). Plain <img>: provider
+      <!-- 1. Background gradient (per-section, via prop). Plain <img>: provider
          CDN images aren't routed through IPX (see HotGameCard). Guarded with
          v-if + @error so a missing/failed bg doesn't render the browser's
          broken-image glyph — the card's dark surface (bgColor) shows instead. -->
-    <img v-if="game.bgImage && !bgError" :src="game.bgImage" alt="" aria-hidden="true"
-      :loading="eager ? 'eager' : 'lazy'"
-      class="absolute inset-0 w-full h-full z-0 object-cover object-top pointer-events-none"
-      @error="bgError = true">
+      <img v-if="game.bgImage && !bgError" :src="game.bgImage" alt="" aria-hidden="true"
+        :loading="eager ? 'eager' : 'lazy'"
+        class="absolute inset-0 w-full h-full z-0 object-cover object-top pointer-events-none" @error="bgError = true">
 
-    <!-- 2. Character art — sits above the gradient, below the frame.
+      <!-- 2. Character art — sits above the gradient, below the frame.
          object-top + slight inset keeps face/body in the visible upper area
          (the bottom strip is covered by the frame's dark band). -->
-    <img v-if="game.character && !charError" :src="game.character" :alt="game.name" width="240" height="311"
-      :loading="eager ? 'eager' : 'lazy'" :fetchpriority="priority ? 'high' : undefined"
-      class="absolute z-10 object-cover object-top transition-transform duration-300 group-hover:scale-[1.03]"
-      style="inset: 0; width: 100%; height: 100%;" @error="charError = true">
+      <img v-if="game.character && !charError" :src="game.character" :alt="game.name" width="240" height="311"
+        :loading="eager ? 'eager' : 'lazy'" :fetchpriority="priority ? 'high' : undefined"
+        class="absolute z-10 object-cover object-top transition-transform duration-300 group-hover:scale-[1.03]"
+        style="inset: 0; width: 100%; height: 100%;" @error="charError = true">
 
-    <!-- 3. Decorative frame overlay — pure CSS (see .casino-frame-band below).
+      <!-- 3. Decorative frame overlay — pure CSS (see .casino-frame-band below).
          Reproduces the old frame.png: a bottom black→orange gradient band that
          darkens the character's lower third so the provider logo reads. The
          orange border + rounded corners live on .casino-card itself.
          pointer-events-none so the underlying card stays clickable. -->
-    <span class="casino-frame-band" :style="{ background: siteConfig.theme.cardFrame.bandGradient }"
-      aria-hidden="true" />
+      <span class="casino-frame-band" :style="{ background: siteConfig.theme.cardFrame.bandGradient }"
+        aria-hidden="true" />
 
-    <!-- 4. Brand logo — top-center, above the frame, filtered to white. -->
-    <div v-if="siteConfig.identity.logo && (gameType === 'casino' || gameType === 'slot' || gameType === 'sports')"
-      class="absolute inset-x-0 flex items-center justify-center z-30 pointer-events-none"
-      style="top: 2px; height: 9%;">
-      <img :src="siteConfig.identity.logo" :alt="siteConfig.identity.siteName" :loading="eager ? 'eager' : 'lazy'"
-        class="object-contain h-full" style="width: auto; max-width: 48%; filter: brightness(0) invert(1);">
-    </div>
+      <!-- 4. Brand logo — top-center, above the frame, filtered to white. -->
+      <div v-if="siteConfig.identity.logo && (gameType === 'casino' || gameType === 'slot' || gameType === 'sports')"
+        class="absolute inset-x-0 flex items-center justify-center z-30 pointer-events-none"
+        style="top: 2px; height: 9%;">
+        <img :src="siteConfig.identity.logo" :alt="siteConfig.identity.siteName" :loading="eager ? 'eager' : 'lazy'"
+          class="object-contain h-full" style="width: auto; max-width: 48%; filter: brightness(0) invert(1);">
+      </div>
 
-    <!-- 5. Provider logo — sits on the dark gradient band of the frame
+      <!-- 5. Provider logo — sits on the dark gradient band of the frame
          (or the bottom of the bg when no frame is used). A few slot logos are
          tall/stacked (Pragmatic, Octoplay, Oriental Game) and look dwarfed at
          the default band height, so those specific ids get a taller band. All
          other logos keep the default size. -->
-    <div class="flex items-center justify-center z-30 pointer-events-none" :style="logoBoxStyle">
-      <img v-if="game.logo && !logoError" :src="game.logo" :alt="game.name" :loading="eager ? 'eager' : 'lazy'"
-        class="w-full h-full object-cover" @error="logoError = true">
-      <p v-else class="text-white text-[13px] font-bold leading-tight truncate text-center" :title="game.name">
-        {{ game.name }}
-      </p>
-    </div>
+      <div class="flex items-center justify-center z-30 pointer-events-none" :style="logoBoxStyle">
+        <img v-if="game.logo && !logoError" :src="game.logo" :alt="game.name" :loading="eager ? 'eager' : 'lazy'"
+          class="w-full h-full object-cover" @error="logoError = true">
+        <p v-else class="text-white text-[13px] font-bold leading-tight truncate text-center" :title="game.name">
+          {{ game.name }}
+        </p>
+      </div>
 
-    <!-- Hover effects: dim overlay + shimmer sweep (character keeps its scale) -->
-    <span class="casino-dim" aria-hidden="true" />
-    <span class="casino-shimmer" aria-hidden="true" />
+      <!-- Hover effects: dim overlay + shimmer sweep (character keeps its scale) -->
+      <span class="casino-dim" aria-hidden="true" />
+      <span class="casino-shimmer" aria-hidden="true" />
 
-    <!-- Frame ring — drawn as a top overlay rather than a real border on the
+      <!-- Frame ring — drawn as a top overlay rather than a real border on the
          clipping element, so the border never seams against the overflow-clipped
          content at the rounded corners (that seam showed as a thin black line). -->
-    <span class="absolute inset-0 z-40 pointer-events-none"
-      :style="{ border: `2.5px solid ${siteConfig.theme.cardFrame.borderColor}`, borderRadius: 'inherit' }"
-      aria-hidden="true" />
+      <span class="absolute inset-0 z-40 pointer-events-none"
+        :style="{ border: `2.5px solid ${siteConfig.theme.cardFrame.borderColor}`, borderRadius: 'inherit' }"
+        aria-hidden="true" />
+
+      <!-- <div class="absolute top-0 left-0 bg-white z-[10000] text-black">{{ game }}</div> -->
     </div>
   </component>
 </template>
@@ -83,6 +81,7 @@ const uiStore = useUiStore();
 const nuxtLink = resolveComponent("NuxtLink");
 
 interface CasinoProvider {
+  code: any;
   id: string | number;
   name: string;
   logo?: string;
