@@ -953,7 +953,31 @@ export interface SeoConfig {
 // SiteConfig (root)
 // ───────────────────────────────────────────────────────────────────────────
 
-/** The full bundled site-config contract (6 CMS-tab-aligned groups). */
+/**
+ * CMS-authored copy carried inside the site-config document.
+ *
+ * Distinct from the other groups, which hold styling tokens and asset paths:
+ * these are editorial bodies written in the CMS. They ride in the theme blob so
+ * this app reads them from the config it already fetches during SSR, with no
+ * extra endpoint and no second source of truth.
+ *
+ * ⚠ This interface is the userpage half of a cross-repo contract — the admin
+ * mirrors it in `monkey-admin/app/theme-schema/site-config.ts`. The shapes must
+ * match: `useSiteConfig()` silently ignores CMS paths that are absent from this
+ * typed default, so a drift shows up as a value that never appears, with no
+ * error anywhere.
+ */
+export interface ContentConfig {
+    /**
+     * Deposit rules / instructions as an HTML string, authored on the CMS
+     * "Deposit Rule" page and rendered in the bank-account card of the deposit
+     * modal (BankPaymentContent.vue). Untrusted — sanitize at the render
+     * boundary, never here. Empty string means "render nothing".
+     */
+    depositRule: string;
+}
+
+/** The full bundled site-config contract (7 CMS-tab-aligned groups). */
 export interface SiteConfig {
     /** Brand identity. */
     identity: IdentityConfig;
@@ -967,6 +991,8 @@ export interface SiteConfig {
     integrations: IntegrationsConfig;
     /** SEO configuration. */
     seo: SeoConfig;
+    /** CMS-authored copy (deposit rule). */
+    content: ContentConfig;
 }
 
 /** PWA app icons - use the Jae brand logo (matches favicon/logo) */
@@ -1473,6 +1499,15 @@ export const getDefaultThemeConfig = (): SiteConfig => {
                     "og:locale:alternate": "en_US",
                 },
             },
+        },
+
+        // ───────────────────────────────────────────────────────────────────
+        // content — CMS-authored copy (deposit rule)
+        // ───────────────────────────────────────────────────────────────────
+        content: {
+            // Empty by default: the deposit modal renders nothing until an
+            // admin publishes a rule on the CMS "Deposit Rule" page.
+            depositRule: "",
         },
     };
 };

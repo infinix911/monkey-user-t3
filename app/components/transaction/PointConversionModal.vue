@@ -1,9 +1,15 @@
 <template>
   <Teleport to="body">
     <Transition name="modal">
-      <div v-if="isOpen" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 px-3 md:p-4"
+      <!-- Top-aligned rather than centred. The panel is short, so centring left
+           it floating mid-screen; anchoring it near the top puts it where a
+           modal is expected and keeps it clear of the mobile keyboard when the
+           amount field takes focus. `overflow-y-auto` on the backdrop so a
+           short viewport can still scroll to the submit button. -->
+      <div v-if="isOpen"
+        class="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-black/80 px-3 pt-[6vh] pb-6 md:pt-[8vh] md:px-4"
         @click.self="onClose">
-        <div class="relative w-full md:max-w-[520px] max-h-[calc(100dvh-2rem)] flex flex-col" role="dialog"
+        <div class="relative w-full md:max-w-[520px] max-h-[calc(100dvh-10vh)] flex flex-col" role="dialog"
           :aria-label="t('point.title')">
           <!-- Header -->
           <div class="flex-shrink-0 px-5 pt-3.5 pb-1 flex items-center justify-center relative">
@@ -26,8 +32,11 @@
             :style="borderStyle">
             <div class="flex-1 overflow-y-auto min-h-0 px-5 py-5 space-y-5">
               <!-- Available points hero -->
-              <div class="flex items-center justify-between rounded-lg px-4 py-3.5 border"
-                :style="{ background: dep.inputBgColor, borderColor: dep.inputBorderColor }">
+              <!-- No border: the fill already separates this panel from the
+                   modal surface, and the outline competed with the amount field
+                   below, which is the only thing here to act on. -->
+              <div class="flex items-center justify-between rounded-lg px-4 py-3.5"
+                :style="{ background: dep.inputBgColor }">
                 <div class="flex items-center gap-3">
                   <span class="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
                     :style="{ background: accent }">
@@ -46,83 +55,36 @@
                 </div>
               </div>
 
-              <!-- Before / After ledger -->
-              <div class="rounded-lg border px-4 py-4"
-                :style="{ background: dep.inputBgColor, borderColor: dep.inputBorderColor }">
-                <div class="grid grid-cols-[1fr_auto_1fr] gap-x-3 gap-y-3 items-center">
-                  <!-- Column headers -->
-                  <div class="text-center text-white/45 text-xs uppercase tracking-wider font-bold">{{ t('point.before')
-                  }}</div>
-                  <div />
-                  <div class="text-center text-xs uppercase tracking-wider font-bold" :style="{ color: accent }">
-                    {{ t('point.after') }}</div>
-
-                  <!-- Point row -->
-                  <div class="rounded px-3 py-2.5 flex items-center justify-between gap-2 bg-black/25">
-                    <span class="text-white/50 text-xs font-semibold">{{ t('point.point') }}</span>
-                    <span class="text-white font-bold text-[15px] tabular-nums">{{ fmt(pointCurrent) }}</span>
-                  </div>
-                  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 mx-auto text-white/30" fill="none"
-                    viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-                  </svg>
-                  <div class="rounded px-3 py-2.5 flex items-center justify-between gap-2 bg-black/25">
-                    <span class="text-white/50 text-xs font-semibold">{{ t('point.point') }}</span>
-                    <span class="text-white font-bold text-[15px] tabular-nums">{{ fmt(pointAfter) }}</span>
-                  </div>
-
-                  <!-- Balance row -->
-                  <div class="rounded px-3 py-2.5 flex items-center justify-between gap-2 bg-black/25">
-                    <span class="text-white/50 text-xs font-semibold">{{ t('point.balance') }}</span>
-                    <span class="text-white font-bold text-[15px] tabular-nums">{{ fmt(balanceCurrent) }}</span>
-                  </div>
-                  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 mx-auto text-white/30" fill="none"
-                    viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-                  </svg>
-                  <div class="rounded px-3 py-2.5 flex items-center justify-between gap-2 border"
-                    :style="{ borderColor: accent, background: 'rgba(255,255,255,0.04)' }">
-                    <span class="text-white/50 text-xs font-semibold">{{ t('point.balance') }}</span>
-                    <span class="font-extrabold text-[15px] tabular-nums" :style="{ color: accent }">{{ fmt(balanceAfter)
-                    }}</span>
-                  </div>
-                </div>
-              </div>
-
               <!-- Amount input -->
               <div>
                 <div class="flex items-center justify-between mb-2">
                   <label class="text-white text-sm font-medium">{{ t('point.turningPoint') }}</label>
                 </div>
-                <div class="relative">
-                  <input :value="amount" inputmode="numeric" placeholder="0"
-                    class="h-11 px-4 py-2 pr-9 rounded w-full text-right font-bold tabular-nums outline-none" :style="{
-                      backgroundColor: dep.inputBgColor,
-                      color: dep.inputTextColor,
-                      border: `1px solid ${dep.inputBorderColor}`,
-                    }" @input="onAmountInput">
-                  <span
-                    class="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 text-sm font-bold pointer-events-none">P</span>
-                </div>
-                <p class="text-white/40 text-xs mt-2 leading-snug">{{ t('point.notes') }}</p>
-
-                <!-- Quick amounts (same sizing as deposit/withdraw) -->
-                <div class="grid grid-cols-4 gap-1.5 mt-3">
-                  <button v-for="q in QUICK_AMOUNTS" :key="q.label" type="button"
-                    class="amt-btn text-[15px] md:text-[17px] tabular-nums" :style="{
-                      '--amt-bg': dep.quickAmountBgColor,
-                      '--amt-text': dep.quickAmountTextColor,
-                      '--amt-accent': dep.accentColor,
-                    }" @click="addAmount(q.value)">
-                    {{ quickLabel(q.label) }}
-                  </button>
-                  <button type="button" class="amt-btn amt-max text-[15px] md:text-[17px]" @click="setMax">
+                <!-- Amount + MAX/RESET on one row: both act on the field they
+                     sit beside. Widths are inline because `.amt-btn` sets
+                     `width: 100%` for grid use, and as a later same-specificity
+                     rule it beats a `w-*` utility. -->
+                <div class="flex items-stretch gap-1.5">
+                  <div class="relative min-w-0 flex-1">
+                    <input :value="amount" inputmode="numeric" placeholder="0"
+                      class="h-11 px-4 py-2 pr-9 rounded w-full text-right font-bold tabular-nums outline-none" :style="{
+                        backgroundColor: dep.inputBgColor,
+                        color: dep.inputTextColor,
+                        border: `1px solid ${dep.inputBorderColor}`,
+                      }" @input="onAmountInput">
+                    <span
+                      class="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 text-sm font-bold pointer-events-none">P</span>
+                  </div>
+                  <button type="button" class="amt-btn amt-max text-[15px] md:text-[17px]"
+                    style="height: 44px; width: 78px; flex: 0 0 78px" @click="setMax">
                     {{ t('point.maxAmount') }}
                   </button>
-                  <button type="button" class="amt-btn amt-reset text-[15px] md:text-[16px]" @click="clearAmount">
+                  <button type="button" class="amt-btn amt-reset text-[15px] md:text-[16px]"
+                    style="height: 44px; width: 78px; flex: 0 0 78px" @click="clearAmount">
                     {{ t('point.clear') }}
                   </button>
                 </div>
+                <p class="text-white/40 text-xs mt-2 leading-snug">{{ t('point.notes') }}</p>
               </div>
 
               <!-- Submit (same sizing as deposit) -->
@@ -164,35 +126,14 @@ const accent = computed(() => dep.value.accentColor);
 // Shared `.tm-modal` chrome tokens (same as DepositModal/Withdrawal/signup).
 const borderStyle = useModalTheme();
 
-// Same quick-amount set as the deposit/withdraw modals.
-const QUICK_AMOUNTS = [
-  { value: 5000, label: "5K" },
-  { value: 50000, label: "50K" },
-  { value: 100000, label: "100K" },
-  { value: 250000, label: "250K" },
-  { value: 500000, label: "500K" },
-  { value: 1000000, label: "1JT" },
-] as const;
-
-const quickLabel = (label: string) =>
-  t(`common.quickAmounts.${label}`) || label;
-
 const amount = ref("");
 
 const pointCurrent = computed(() => Number(authStore.user.point_wallet) || 0);
-const balanceCurrent = computed(() => Number(authStore.user.wallet) || 0);
 const amt = computed(() => Number(amount.value) || 0);
 
-// Converting points → balance: points go down, balance goes up. Clamp to the
-// available point balance (can't convert more points than you hold).
-const over = computed(() => amt.value > pointCurrent.value);
-const pointAfter = computed(() =>
-  over.value ? pointCurrent.value : pointCurrent.value - amt.value,
-);
-const balanceAfter = computed(() =>
-  over.value ? balanceCurrent.value : balanceCurrent.value + amt.value,
-);
-
+// Converting points → balance: convert at least 1 point, never more than the
+// balance on hand. The before/after projection panel and the additive
+// quick-amount ladder were removed — MAX and RESET are the only shortcuts.
 const canSubmit = computed(() => amt.value >= 1 && amt.value <= pointCurrent.value);
 
 const fmt = (v: number) => currency.formatNumber(v);
@@ -203,18 +144,6 @@ function onAmountInput(e: Event) {
 
 function setMax() {
   amount.value = String(Math.trunc(pointCurrent.value));
-}
-
-/**
- * Adds a quick amount, clamped to the member's point balance.
- *
- * Without the clamp, repeated clicks walk the field past the balance — the
- * submit is blocked by `canSubmit`, but the input still shows an amount that
- * cannot be converted. Topping out at the balance is what MAX already does.
- */
-function addAmount(v: number) {
-  const next = (Number(amount.value) || 0) + v;
-  amount.value = String(Math.min(next, Math.trunc(pointCurrent.value)));
 }
 
 function clearAmount() {

@@ -8,8 +8,9 @@
            them. Width now matches the withdrawal modal's max-w-md body. -->
       <div class="mt-2 md:mt-4">
         <!-- Account request — raises a BANK_ACCOUNT_REQUEST inquiry asking
-             support for a deposit account. Sits at the very top: it's what a
-             user needs when the account card below shows no bank yet.
+             support for a deposit account. Sits at the very top: it is how a
+             member obtains an account to pay into, and the modal no longer
+             displays one anywhere else.
              type="button" so it never submits the deposit form. -->
         <button
           type="button" :disabled="isRequestingAccount"
@@ -30,32 +31,29 @@
         </button>
 
         <div class="mb-0 md:mb-4 w-full">
-          <!-- Account Info Card -->
+          <!-- Deposit rule card — CMS copy from site config
+               (`content.depositRule`, authored on the admin's Deposit Rule
+               page). This card used to show the MEMBER'S OWN registered bank
+               account, which had no business in a deposit flow: the member does
+               not pay themselves, so those details told them nothing. The CMS
+               rule replaced it outright.
+               The whole card is dropped when no rule is published, rather than
+               leaving an empty bordered box. `renderRichContent` sanitizes and
+               accepts either an HTML string or tiptap JSON, matching how
+               NoticeSection and FaqContent render CMS bodies. -->
           <div
+            v-if="depositRuleHtml"
 class="mt-4 flex flex-col justify-center gap-2 p-4" :style="{
-            borderRadius: '10px',
-            border: `1px solid ${dep.inputBorderColor}`,
-            backgroundColor: dep.inputBgColor,
-            fontFamily: 'var(--font-line-seed)',
-            fontWeight: '400',
-          }">
-            <!-- Bank name (no logo image — lead with an emoji instead) -->
-            <p class="flex items-center gap-2 text-[15px] lg:text-[17px] text-white">
-              <span aria-hidden="true">🏦</span>
-              <span>{{ user.bank_name || "—" }}</span>
-            </p>
-            <div class="text-white">
-              <p class="text-[14px] lg:text-[16px] text-white/60">
-                {{ user.bank_account_name }}
-              </p>
-              <p class="text-[17px] lg:text-[19px] tracking-wide">
-                {{
-                  user.bank_account
-                    ? user.bank_account.match(/.{1,4}/g)?.join("-")
-                    : ""
-                }}
-              </p>
-            </div>
+              borderRadius: '10px',
+              border: `1px solid ${dep.inputBorderColor}`,
+              backgroundColor: dep.inputBgColor,
+              fontFamily: 'var(--font-line-seed)',
+              fontWeight: '400',
+            }">
+            <!-- eslint-disable-next-line vue/no-v-html -->
+            <div
+              class="deposit-rule text-[13px] lg:text-[14px] leading-relaxed text-white/80"
+              v-html="depositRuleHtml" />
           </div>
 
           <!-- Divider -->
@@ -75,22 +73,40 @@ class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-wid
               </span>
               {{ t("deposit.depositAmount") }}
             </label>
-            <input
-type="text" :value="`${currency.symbol} ${formatCurrencyInput(depositAmount)}`" :class="[
-              'h-11 px-4 py-2 rounded w-full',
-              errors.depositAmount ? 'border-2 border-red-500 mb-1' : 'mb-3',
-            ]" :style="{
-              backgroundColor: dep.inputBgColor,
-              color: dep.inputTextColor,
-              ...(errors.depositAmount
-                ? {}
-                : { border: `1px solid ${dep.inputBorderColor}` }),
-            }" @input="handleAmountInput">
+            <!-- Amount + RESET on one row. RESET clears the field it sits
+                 beside, so it belongs here rather than in the chip grid, where
+                 it read as a seventh "amount" among the six. -->
+            <div
+              :class="[
+                'flex items-stretch gap-1.5',
+                errors.depositAmount ? 'mb-1' : 'mb-3',
+              ]">
+              <input
+type="text" :value="`${currency.symbol} ${formatCurrencyInput(depositAmount)}`"
+                class="h-11 px-4 py-2 rounded min-w-0 flex-1" :style="{
+                  backgroundColor: dep.inputBgColor,
+                  color: dep.inputTextColor,
+                  ...(errors.depositAmount
+                    ? { border: '2px solid #ef4444' }
+                    : { border: `1px solid ${dep.inputBorderColor}` }),
+                }" @input="handleAmountInput">
+              <!-- Width is inline, not a `w-*` utility: `.amt-btn` below sets
+                   `width: 100%` for the grid chips, and being a later
+                   same-specificity rule it beats the utility — the button took
+                   the whole row. -->
+              <button
+                type="button" class="amt-btn amt-reset text-[15px] md:text-[16px]"
+                style="height: 44px; width: 84px; flex: 0 0 84px" @click="handleReset">
+                {{ t("deposit.reset") }}
+              </button>
+            </div>
             <p v-if="errors.depositAmount" class="text-xs text-red-500 mb-2">
               {{ errors.depositAmount }}
             </p>
-            <div class="grid grid-cols-4 gap-1.5 mt-3">
-              <!-- Quick amount chips -->
+            <!-- Six quick-amount chips, 3 per row. MAX was removed: a deposit
+                 has no balance to max out, so it only ever meant "the largest
+                 chip", which the chips already say. -->
+            <div class="grid grid-cols-3 gap-1.5 mt-3">
               <button
 v-for="amount in quickAmounts" :key="amount" type="button"
                 class="amt-btn text-[15px] md:text-[17px]" :style="{
@@ -99,16 +115,6 @@ v-for="amount in quickAmounts" :key="amount" type="button"
                   '--amt-accent': dep.accentColor,
                 }" @click="handleAmountClick(amount)">
                 {{ getTranslatedAmount(amount) }}
-              </button>
-
-              <!-- MAX (violet) -->
-              <button type="button" class="amt-btn amt-max text-[15px] md:text-[17px]" @click="handleMax">
-                {{ t("deposit.max") }}
-              </button>
-
-              <!-- RESET (red) -->
-              <button type="button" class="amt-btn amt-reset text-[15px] md:text-[16px]" @click="handleReset">
-                {{ t("deposit.reset") }}
               </button>
             </div>
           </div>
@@ -143,19 +149,14 @@ import {
   useBankPayment,
   type IBankAccount,
 } from "@/components/transaction/useBankPayment";
-import { useAuthStore } from "~/stores/auth";
 import { showConfirmationAlert } from "~~/utils/swal-alert";
+import { renderRichContent } from "~/composables/useTiptap";
 
 const props = defineProps<{
   bankAccounts?: IBankAccount[];
 }>();
 
 const { t } = useI18n();
-
-// The account card shows the logged-in user's own registered bank (from Better Auth get-session),
-// not the deposit destination account.
-const authStore = useAuthStore();
-const user = computed(() => authStore.user);
 
 const {
   siteConfig,
@@ -167,7 +168,6 @@ const {
   formatCurrencyInput,
   handleAmountInput,
   handleAmountClick,
-  handleMax,
   handleReset,
   onSubmit,
 } = useBankPayment({
@@ -175,6 +175,14 @@ const {
 });
 
 const dep = computed(() => siteConfig.theme.transactionmodal);
+
+// Deposit rule authored in the admin CMS. It ships inside the site-config
+// document (`content.depositRule`) rather than behind its own endpoint, so it
+// arrives with the config this app already fetches during SSR. Empty string is
+// the bundled default, which the template treats as "render nothing".
+const depositRuleHtml = computed(() =>
+  renderRichContent(siteConfig.content?.depositRule ?? ""),
+);
 
 // "Account request" button — posts a BANK_ACCOUNT_REQUEST inquiry. No refresh
 // callback is passed: the deposit modal has no inquiry list to refresh, and the
@@ -244,21 +252,6 @@ async function handleAccountRequest() {
   transform: scale(0.96);
 }
 
-/* MAX — violet */
-.amt-max {
-  background: linear-gradient(180deg, #3e0a6e 0%, #2a0456 100%);
-  border-color: #5a2a86;
-  color: #ffffff;
-}
-
-.amt-max:hover,
-.amt-max:active {
-  border-color: #7c3aed;
-  color: #ffffff;
-  box-shadow: 0 0 12px rgba(124, 58, 237, 0.55);
-  filter: brightness(1.15);
-}
-
 /* RESET — red gradient bg with red font */
 .amt-reset {
   background: linear-gradient(180deg, #5e1714 0%, #2e0a09 100%);
@@ -281,5 +274,34 @@ async function handleAccountRequest() {
 
 .deposit-primary-btn:hover:not(:disabled) {
   background: var(--btn-grad-hover);
+}
+
+/* Deposit-rule body (CMS HTML via v-html, hence :deep).
+   Lists render WITHOUT auto markers, matching the CMS editor: rules are
+   authored with their own numbering typed into each line, so adding a marker
+   here printed it twice ("1. 1. Please make sure…"). What the author writes is
+   what shows.
+   This block deliberately does not reuse the `tiptap-content` class — that is
+   FaqContent.vue's non-scoped style, whose `list-style-type: decimal` was the
+   source of the second number, and depending on another component's global CSS
+   is how the two got out of step in the first place. */
+.deposit-rule :deep(p) {
+  margin-bottom: 0.35rem;
+}
+
+.deposit-rule :deep(p:last-child) {
+  margin-bottom: 0;
+}
+
+.deposit-rule :deep(ul),
+.deposit-rule :deep(ol) {
+  list-style: none;
+  padding-left: 0;
+  margin-bottom: 0.35rem;
+}
+
+.deposit-rule :deep(a) {
+  color: var(--tm-accent, currentColor);
+  text-decoration: underline;
 }
 </style>

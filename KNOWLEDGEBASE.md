@@ -150,7 +150,7 @@ Browser ──HTTP──▶ Nitro (:3000)
 
 Resolution chain (verified, replaces the stale CLAUDE.md story):
 
-1. **Bundled base:** `getDefaultThemeConfig()` in `app/composables/useDefaultThemeConfig.ts` (1477L) — the full typed `SiteConfig` tree: `identity, theme, assets, contact, integrations, seo` (6 CMS tabs, ~45 sub-interfaces).
+1. **Bundled base:** `getDefaultThemeConfig()` in `app/composables/useDefaultThemeConfig.ts` (1477L) — the full typed `SiteConfig` tree: `identity, theme, assets, contact, integrations, seo, content` (7 CMS tabs, ~45 sub-interfaces). `content` is CMS-authored *copy* rather than tokens/assets — currently `content.depositRule` (HTML, rendered in the deposit modal's bank card). See ADR-024.
 2. **CMS override:** `/site/config/theme` payload (hostname-scoped) in `useState('userPageConfig')`.
 3. **Merge:** `useSiteConfig()` = `deepMerge(base, override)` — exact-path override wins; `null`/`undefined` falls back to bundled (CMS cannot blank a field); wrong path = silently ignored. **NOT reactive** — returns a snapshot per call.
 4. Extra cache layers in `app/lib/siteConfig.ts`: server module-memo per hostname 5s TTL; client localStorage warm-start `themeConfig.v1`. Preview mode `?themePreview=1` bypasses all caches + live-updates via `theme-preview.client.ts` postMessage bridge (origin-allowlisted to `NUXT_PUBLIC_ADMIN_PREVIEW_ORIGIN`).

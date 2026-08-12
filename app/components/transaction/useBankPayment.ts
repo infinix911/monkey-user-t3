@@ -42,7 +42,10 @@ export interface PaymentMethod {
  */
 const MAX_DEPOSIT_AMOUNT = 100000000;
 
-export const QUICK_AMOUNTS = ["5K", "50K", "100K", "250K", "500K", "1JT"];
+// Labels double as the value: `handleAmountClick` expands K -> 000 and
+// JT -> 000000, so the id encodes the amount (10K = 10,000 … 5JT = 5,000,000).
+// Display text comes from `common.quickAmounts.<label>` — 만원 / 5만원 / … in ko.
+export const QUICK_AMOUNTS = ["10K", "50K", "100K", "500K", "1JT", "5JT"];
 
 export interface UseBankPaymentOptions {
   bankAccounts: () => IBankAccount[] | undefined;
@@ -225,10 +228,8 @@ export function useBankPayment(options: UseBankPaymentOptions) {
         headers: idempotencyHeaders(),
         body: depositData,
       });
-      await showSuccessAlert(
-        t("deposit.success.title"),
-        t("deposit.success.text"),
-      );
+      // Title only — no supporting line (showSuccessAlert's `text` is optional).
+      await showSuccessAlert(t("deposit.success.title"));
       resetForm();
     } catch (error: unknown) {
       await showErrorAlert(t("deposit.title"), apiMessage(error, "deposit"));

@@ -87,6 +87,7 @@
       "newPasswordMinLength": "Password must be at least 6 characters",
       "newPasswordMaxLength": "Password must be at most 20 characters",
       "confirmPasswordRequired": "Please confirm your password",
+      "currentWithdrawalRequired": "Please enter your current withdrawal password",
       "passwordsMismatch": "Passwords don't match",
       "withdrawalMinLength": "Withdrawal password must be at least 4 characters",
       "withdrawalMaxLength": "Withdrawal password must be at most 20 characters"
@@ -105,7 +106,8 @@
       "PASSWORD_UPDATED": "Password updated successfully.",
       "INVALID_CURRENT_PASSWORD": "Current password is incorrect.",
       "PASSWORD_NOT_SAME": "New passwords do not match.",
-      "INTERNAL_ERROR": "An internal error occurred. Please try again later."
+      "INTERNAL_ERROR": "An internal error occurred. Please try again later.",
+      "INVALID_WITHDRAWAL_PASSWORD": "Your current withdrawal password is incorrect."
     },
     "show": "Show password",
     "hide": "Hide password",
@@ -114,6 +116,7 @@
       "withdrawal": "Withdrawal Password"
     },
     "withdrawalHint": "Set the password required to confirm a withdrawal. It is separate from your login password.",
+    "currentWithdrawalPassword": "Current withdrawal password",
     "newWithdrawalPassword": "New withdrawal password",
     "confirmWithdrawalPassword": "Confirm new withdrawal password",
     "withdrawalSuccess": "Your withdrawal password has been changed successfully."
@@ -136,7 +139,7 @@
       "passwordRequired": "Please enter your withdrawal password"
     },
     "withdrawCheck": "Withdrawal amount must be 10,000 or more.",
-    "success": "Withdrawal request has been completed.",
+    "success": "Withdrawal Request Submitted",
     "withdrawDivCheck": "Withdrawal amount must be in multiples of 10,000",
     "checkRollingLastDep": "Rolling amount check:",
     "checkRollingLastDep1": "(Based on last deposit)",
@@ -145,6 +148,7 @@
     "submitting": "Submitting...",
     "WithdrawRequest": "Withdrawal Request",
     "accountName": "Account Name",
+    "accountHolder": "Account Holder",
     "accountNumber": "Account Number",
     "currentBalance": "Currently Balance",
     "withdrawalAmount": "Withdrawal Amount",
@@ -291,12 +295,14 @@
     "signUp": "SIGN UP",
     "quickAmounts": {
       "title": "Quick Amount Selection",
-      "5K": "5K",
+      "10K": "10K",
       "50K": "50K",
       "100K": "100K",
-      "250K": "250K",
       "500K": "500K",
       "1JT": "1M",
+      "5JT": "5M",
+      "5K": "5K",
+      "250K": "250K",
       "10JT": "10M"
     },
     "search": "Search",
@@ -582,8 +588,7 @@
       "noBankSelected": "Please select a bank account"
     },
     "success": {
-      "title": "Deposit Success",
-      "text": "Your deposit request has been submitted. It will be credited to your account once our team confirms it."
+      "title": "Deposit Request Submitted"
     },
     "apiMessages": {
       "DEPOSIT_REQUEST_SUCCESS": "Deposit request submitted successfully!",

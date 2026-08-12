@@ -297,3 +297,99 @@ already decoded on its first frame, i.e. zero black frames.
 The remaining motion on a page change is the deliberate `aspect-ratio` glide
 (~300ms) where the two pages' banner ratios differ — that is animation, not
 flicker, and is unchanged.
+
+## ADR-023 — i18n messages are served from the client bundle, not the messages endpoint
+
+**Status:** Accepted
+
+`@nuxtjs/i18n` v10 keeps messages behind the Nitro route
+`/_i18n/<hash>/<locale>/messages.json`. In a production SSR build the client
+*always* resolves them through it, because `loadMessages()` only takes the
+bundled-import branch when `dynamicResourcesSSG || import.meta.dev`, and
+`dynamicResourcesSSG` is false whenever `ssr: true` and the build is not
+prerendered. Every visit therefore downloaded ~74 kB of `ko.json` during
+hydration, answered with `Cache-Control: max-age=10`.
+
+`experimental.preload: true` was tried first and does **not** solve it. Preload
+inlines the messages into the HTML as a `data-nuxt-i18n` script, but
+`loadAndSetLocale()` still calls `ctx.loadMessages()` unconditionally, and
+`loadMessages()` never consults `ctx.preloaded` — its only early return is
+`nuxt.isHydrating && loadMap.has(locale)`, and nothing seeds `loadMap` on the
+client. Confirmed against the shipped 10.3 and 10.5 sources. Preload would have
+added ~90 kB of inlined JSON per response *and kept the request*.
+
+`app/plugins/i18n-bundled-messages.client.ts` replaces `ctx.loadMessages` with
+one that merges the statically imported locale JSON, so the client never calls
+the endpoint. The patch installs from the `i18n:beforeLocaleSwitch` hook, which
+is awaited immediately before `ctx.loadMessages()` inside `loadAndSetLocale()`.
+That makes correctness independent of plugin ordering: the plugin only has to
+register the hook before the module plugins run (`enforce: "pre"`), rather than
+having to run between two of them.
+
+SSR is unchanged and still uses the endpoint — an internal, peerless request,
+which is what `isTrustedInternalI18nRequest` in
+`server/middleware/00-validate-host.ts` exists to allow.
+
+`experimental.cacheLifetime` / `httpCacheDuration` are raised to 86400s so any
+remaining hit (an old cached document, a client where the patch did not run) is
+a cache hit rather than a download. The URL carries a content hash, so a long
+TTL cannot serve stale copy: editing a locale file changes the hash, and with it
+the URL.
+
+**Caveat:** this patches module internals (`nuxtApp._nuxtI18n.loadMessages`).
+If an upgrade changes that contract the patch silently stops applying and the
+endpoint fetch returns — it degrades to the old behaviour rather than breaking.
+Re-check on any `@nuxtjs/i18n` major/minor bump. v10.6 adds a
+`usesRuntimeLoaders()` branch to `loadMessages` that may make this unnecessary.
+
+---
+
+## ADR-024 — CMS-authored copy rides in the site-config document (`content` group)
+
+**Status:** Accepted (2026-08-12)
+
+**Context.** The deposit modal's bank-account card needed CMS-managed copy (the
+"Deposit Rule"). The existing precedent for CMS bodies is the post-login notice:
+its HTML lives in its own `cmsUserNotice` table behind `GET/PATCH /cms/user-notice`
+(monkey-admin-api), and the userpage reads it from a dedicated `/site/notice`
+endpoint. Only its on/off flag lives in the theme document, at
+`theme.noticeModal.enabled`.
+
+Copying that shape here would have meant a new table, migration, controller,
+routes, validator and cache invalidation — and, because the requirement also
+asked for the value to be readable from site config, a second copy of the same
+content in the theme document. Two sources of truth to keep in sync.
+
+**Decision.** Store the body **only** in the site-config (theme) document, under
+a new top-level group: `content.depositRule`. The admin writes it through
+`useThemeEditor.saveCategory('depositRule', ['content.depositRule'])`, the same
+overlay-and-PUT the notice's `enabled` flag already uses, so the styling
+categories edited on the Userpage Theme page are untouched by the write.
+
+A 7th group rather than a slot inside `theme.*`: the existing six hold styling
+tokens, asset paths and SEO metadata. An editorial HTML body is none of those,
+and burying prose in `theme.transactionmodal.*` would misrepresent that group.
+
+**Consequences.**
+- No backend work at all; no new endpoint. The userpage gets the rule with the
+  config it already fetches during SSR.
+- Rules are **hostname-scoped for free**, because the theme document is. The
+  notice table is global (`scope: 'default'`) — the two surfaces differ here.
+- The body is paid for on **every SSR page load for every visitor**, not just
+  when the deposit modal opens. Keep bodies short; a long HTML document does not
+  belong in this group.
+- Propagation is subject to the config's cache layers (5s server memo, client
+  localStorage warm-start, anon page cache), so a CMS edit is not instant.
+- **Cross-repo coupling.** `content` must be declared identically in
+  `monkey-user-t3/app/composables/useDefaultThemeConfig.ts` and
+  `monkey-admin/app/theme-schema/site-config.ts`. `useSiteConfig()` silently
+  ignores paths absent from the typed default, so drift shows up as a value that
+  never appears, with no error on either side. Pinned by
+  `tests/component/deposit-rule-config.spec.ts` here and
+  `test/components/CmsDepositRulePage.spec.ts` in the admin.
+- The body is untrusted HTML: render through `renderRichContent`
+  (`app/composables/useTiptap.ts`), which sanitizes. Never interpolate raw.
+
+**Alternatives rejected.** Own table + endpoint mirroring Notices (backend cost,
+plus a second source of truth given the site-config requirement); a slot under
+`theme.transactionmodal.*` (misplaces prose among styling tokens).

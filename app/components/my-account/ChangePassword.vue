@@ -43,9 +43,15 @@
       <form v-show="activeTab === 'withdrawal'" class="space-y-4" @submit.prevent="onSubmitWithdrawal">
         <p class="tm-muted text-xs mb-4">{{ t("password.withdrawalHint") }}</p>
 
-        <!-- No current-password field: POST /auth/change-withdrawal-password
-             takes only the new one — the session is the proof of identity, as
-             it is for the bank-detail and profile updates. -->
+        <!-- The current password is sent and verified server-side against the
+             stored hash before the new one is written, so a live session alone
+             cannot rotate the credential that guards withdrawals.
+             Left blank it still submits: the same endpoint doubles as first-time
+             setup, and a member who has never set a withdrawal password has
+             nothing to enter. The server skips the check only in that case. -->
+        <PasswordField
+          v-model="wdCurrentField" :label="t('password.currentWithdrawalPassword')"
+          :error="wdErrors.currentPassword" :disabled="wdSubmitting" autocomplete="current-password" />
         <PasswordField
           v-model="wdNewField" :label="t('password.newWithdrawalPassword')" :error="wdErrors.newPassword"
           :disabled="wdSubmitting" autocomplete="new-password" />
@@ -144,9 +150,10 @@ const onSubmit = handleSubmit(async (values) => {
 // Its own form and submit: a failure here must not leave the login-password
 // change half-applied, or the reverse.
 //
-// The endpoint takes only `newPassword`, so this form is new + confirm. Confirm
-// is checked here and never sent — it exists so a typo cannot silently become
-// the credential that guards withdrawals.
+// The endpoint takes `currentPassword` (optional) + `newPassword`. Confirm is
+// checked here and never sent — it exists so a typo cannot silently become the
+// credential that guards withdrawals. Current IS sent, and the server verifies
+// it against the stored hash whenever one exists.
 const WITHDRAWAL_PASSWORD_ENDPOINT = "/auth/change-withdrawal-password";
 
 const {
@@ -161,6 +168,7 @@ const {
   }),
 });
 
+const [wdCurrentField] = wdDefineField("currentPassword");
 const [wdNewField] = wdDefineField("newPassword");
 const [wdConfirmField] = wdDefineField("confirmPassword");
 
@@ -172,7 +180,10 @@ const onSubmitWithdrawal = wdHandleSubmit(async (values) => {
     const api = useApi();
     await api(WITHDRAWAL_PASSWORD_ENDPOINT, {
       method: "POST",
-      body: { newPassword: values.newPassword },
+      body: {
+        currentPassword: values.currentPassword,
+        newPassword: values.newPassword,
+      },
     });
 
     wdResetForm();

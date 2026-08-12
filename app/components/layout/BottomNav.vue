@@ -71,28 +71,11 @@
            excludes the SVG's shadow space below), and each column centres its
            icon+label group vertically so there's equal padding above and below. -->
       <div class="absolute left-0 right-0 top-0 bottom-[1.85cqw] z-10 flex items-stretch mb-[-3px]">
-        <!-- Left items. 공지사항 is not a plain nav action: it is the trigger for
-             the notifications panel, so it is wrapped in the same
-             NotificationDropdown the desktop header bell uses (one shared list,
-             see useNotifications). The dropdown flips above a trigger this low
-             in the viewport. `contents` keeps the wrapper out of the flex
-             layout so the button still takes its own `flex-1` column. -->
+        <!-- Left items. 공지사항 is an ordinary nav action: it opens the 공지사항
+             account panel (the section formerly labelled FAQ), the same one the
+             desktop sidebar's 공지사항 item opens. -->
         <template v-for="item in leftItems" :key="item.id">
-          <NotificationDropdown v-if="item.id === 'notice'" class="flex-1"
-            trigger-class="w-full h-full" :notifications="notifications"
-            @marked-all-read="markNotificationsRead">
-            <div
-              class="w-full h-full flex flex-col items-center justify-center gap-[1cqw] transition-transform active:scale-95 cursor-pointer">
-              <span class="flex items-end justify-center h-[6cqw]">
-                <BottomNavIcon :name="item.icon" :class="iconSizeClass(item.id)"
-                  class="block w-auto text-white [filter:drop-shadow(0_2px_2px_rgba(0,0,0,0.55))_drop-shadow(0_3px_4px_rgba(0,0,0,0.45))]" />
-              </span>
-              <span class="text-white font-bold uppercase leading-none tracking-wide" :style="labelStyle">
-                {{ $t(item.labelKey) }}
-              </span>
-            </div>
-          </NotificationDropdown>
-          <button v-else type="button"
+          <button type="button"
             class="flex-1 flex flex-col items-center justify-center gap-[1cqw] transition-transform active:scale-95"
             @click="handleNavClick(item)">
             <span class="flex items-end justify-center h-[6cqw]">
@@ -146,14 +129,14 @@
 
 <script setup lang="ts">
 
-import NotificationDropdown from "@/components/notification/NotificationDropdown.vue";
+import { useAccountSection } from "@/composables/useAccountSections";
 
 const authStore = useAuthStore();
 const uiStore = useUiStore();
 
-// Same list the header bell shows — one fetch, one mark-all-read state.
-const { notifications, markNotificationsRead } = useNotifications();
-
+// Shared with the desktop sidebar and the profile modal, so opening 공지사항 from
+// the bar selects the same panel those surfaces render.
+const accountSection = useAccountSection();
 
 const features = useFeatures();
 const route = useRoute();
@@ -302,9 +285,13 @@ const handleNavClick = (item: NavItem) => {
     return;
   }
 
-  // `notice` never reaches here — it is the NotificationDropdown's trigger in
-  // the template, not a click handler.
-  if (item.id === "deposit") uiStore.setShowDepositModal(true);
+  // 공지사항 — open the account panel in the profile modal, which is where a
+  // section is rendered on mobile (NewProfileModal hosts AccountSectionPanel).
+  // `faq` is the CMS id for that slot; only its label changed to 공지사항.
+  if (item.id === "notice") {
+    accountSection.open("faq");
+    uiStore.setShowProfileModal(true);
+  } else if (item.id === "deposit") uiStore.setShowDepositModal(true);
   else if (item.id === "withdraw") uiStore.setShowWithdrawalModal(true);
   else if (item.id === "menu") {
     // Toggle the profile modal — tapping the menu icon again closes it.

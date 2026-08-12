@@ -86,6 +86,20 @@
   font-display: swap;
 }
 
+/* Kode Mono — squarish technical monospace for the account number on the
+   withdrawal bank card (.wd-account-number in WithdrawalContent.vue).
+   Self-hosted rather than provisioned by @nuxt/fonts: one variable file (latin
+   subset, ~15 KB) covers the whole 400-700 range, so `font-weight` is free to
+   move without adding requests. Licensed OFL 1.1 — see /fonts/KodeMono-OFL.txt,
+   which ships alongside the font as the license requires. */
+@font-face {
+  font-family: "Kode Mono";
+  src: url("/fonts/KodeMono-Variable.woff2") format("woff2-variations");
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* IBM Plex Sans Condensed — used by game-card thumbnails (name / labels =
    Medium 500, countdown time = SemiBold 600). */
 @font-face {

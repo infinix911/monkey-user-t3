@@ -85,7 +85,11 @@ export function useProfileMenuItems() {
       image: profileMenu.changePassword,
     },
     promotion: { labelKey: "profile.promotion", image: profileMenu.promotions },
-    faq: { labelKey: "myAccount.faq", image: profileMenu.faq },
+    // The `faq` id is the CMS's, so it stays — but the slot is presented as
+    // 공지사항 (Notice), not FAQ. `sidebar.notice` already carries that string in
+    // both locales, and AppSidebar's RAIL_ICON_IDS already maps this id to the
+    // notice icon.
+    faq: { labelKey: "sidebar.notice", image: profileMenu.faq },
     apk: { labelKey: "profile.apk", image: profileMenu.apk },
     telegram: {
       labelKey: "profile.telegram",
