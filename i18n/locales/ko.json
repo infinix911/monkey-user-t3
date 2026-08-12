@@ -672,7 +672,8 @@
     "titleLabel": "제목",
     "contentLabel": "내용",
     "agree": "동의합니다",
-    "disagree": "동의하지 않습니다"
+    "disagree": "동의하지 않습니다",
+    "empty": "등록된 공지가 없습니다."
   },
   "faq": {
     "title": "FAQ"

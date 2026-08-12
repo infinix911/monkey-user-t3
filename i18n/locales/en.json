@@ -672,7 +672,8 @@
     "titleLabel": "Title",
     "contentLabel": "Content",
     "agree": "I Agree",
-    "disagree": "I Don't Agree"
+    "disagree": "I Don't Agree",
+    "empty": "No notices yet."
   },
   "faq": {
     "title": "FAQ"

@@ -40,7 +40,7 @@
                The whole card is dropped when no rule is published, rather than
                leaving an empty bordered box. `renderRichContent` sanitizes and
                accepts either an HTML string or tiptap JSON, matching how
-               NoticeSection and FaqContent render CMS bodies. -->
+               NoticeSection and NoticeContent render CMS bodies. -->
           <div
             v-if="depositRuleHtml"
 class="mt-4 flex flex-col justify-center gap-2 p-4" :style="{
@@ -303,7 +303,7 @@ async function handleAccountRequest() {
    here printed it twice ("1. 1. Please make sure…"). What the author writes is
    what shows.
    This block deliberately does not reuse the `tiptap-content` class — that is
-   FaqContent.vue's non-scoped style, whose `list-style-type: decimal` was the
+   NoticeContent.vue's non-scoped style, whose `list-style-type: decimal` was the
    source of the second number, and depending on another component's global CSS
    is how the two got out of step in the first place. */
 .deposit-rule :deep(p) {

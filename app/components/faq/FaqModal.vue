@@ -41,7 +41,7 @@
             class="tm-card flex flex-col flex-1 relative min-h-0 px-6 md:px-8 py-6 rounded-xl mx-2"
           >
             <div class="tm-scroll overflow-y-auto flex-1 min-h-0">
-              <FaqContent />
+              <NoticeContent />
             </div>
           </div>
         </div>
@@ -64,7 +64,7 @@ defineEmits<Emits>();
 
 const { t } = useI18n();
 
-/** Deposit/withdraw palette, inherited by FaqContent. */
+/** Deposit/withdraw palette, inherited by NoticeContent. */
 const modalTheme = useModalTheme();
 </script>
 
