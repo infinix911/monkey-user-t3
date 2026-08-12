@@ -90,13 +90,18 @@ type="text" :value="`${currency.symbol} ${formatCurrencyInput(depositAmount)}`"
                     ? { border: '2px solid #ef4444' }
                     : { border: `1px solid ${dep.inputBorderColor}` }),
                 }" @input="handleAmountInput">
-              <!-- Width is inline, not a `w-*` utility: `.amt-btn` below sets
-                   `width: 100%` for the grid chips, and being a later
-                   same-specificity rule it beats the utility — the button took
-                   the whole row. -->
+              <!-- MAX then RESET. Widths are inline, not `w-*` utilities:
+                   `.amt-btn` below sets `width: 100%` for the chip grid, and as
+                   a later same-specificity rule it beats the utility — the
+                   button would take the whole row. -->
+              <button
+                type="button" class="amt-btn amt-max text-[15px] md:text-[16px]"
+                style="height: 44px; width: 72px; flex: 0 0 72px" @click="handleMax">
+                {{ t("deposit.max") }}
+              </button>
               <button
                 type="button" class="amt-btn amt-reset text-[15px] md:text-[16px]"
-                style="height: 44px; width: 84px; flex: 0 0 84px" @click="handleReset">
+                style="height: 44px; width: 72px; flex: 0 0 72px" @click="handleReset">
                 {{ t("deposit.reset") }}
               </button>
             </div>
@@ -168,6 +173,7 @@ const {
   formatCurrencyInput,
   handleAmountInput,
   handleAmountClick,
+  handleMax,
   handleReset,
   onSubmit,
 } = useBankPayment({
@@ -250,6 +256,21 @@ async function handleAccountRequest() {
 
 .amt-btn:active {
   transform: scale(0.96);
+}
+
+/* MAX — violet */
+.amt-max {
+  background: linear-gradient(180deg, #3e0a6e 0%, #2a0456 100%);
+  border-color: #5a2a86;
+  color: #ffffff;
+}
+
+.amt-max:hover,
+.amt-max:active {
+  border-color: #7c3aed;
+  color: #ffffff;
+  box-shadow: 0 0 12px rgba(124, 58, 237, 0.55);
+  filter: brightness(1.15);
 }
 
 /* RESET — red gradient bg with red font */

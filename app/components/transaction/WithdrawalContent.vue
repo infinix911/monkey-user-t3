@@ -103,11 +103,16 @@
                 handleAmountChange((e.target as HTMLInputElement).value);
               }
             ">
-          <!-- Width is inline, not a `w-*` utility: `.amt-btn` below sets
-               `width: 100%` for the grid chips, and being a later same-specificity
-               rule it beats the utility — the button took the whole row. -->
+          <!-- MAX then RESET. Widths are inline, not `w-*` utilities:
+               `.amt-btn` below sets `width: 100%` for the chip grid, and as a
+               later same-specificity rule it beats the utility — the button
+               would take the whole row. -->
+          <button type="button" class="amt-btn amt-max text-[15px] md:text-[16px]"
+            style="height: 53px; width: 78px; flex: 0 0 78px" @click="handleMax">
+            {{ t("withdrawal.max") }}
+          </button>
           <button type="button" class="amt-btn amt-reset text-[15px] md:text-[16px]"
-            style="height: 53px; width: 92px; flex: 0 0 92px" @click="handleReset">
+            style="height: 53px; width: 78px; flex: 0 0 78px" @click="handleReset">
             {{ t("withdrawal.reset") }}
           </button>
         </div>
@@ -369,6 +374,11 @@ function handleAmountClick(qa: { value: number; label: string }) {
   amount.value = clampWithdrawal(currentAmount + qa.value).toString();
 }
 
+function handleMax() {
+  lastSelectedButton.value = "MAX";
+  amount.value = clampWithdrawal(Number.MAX_SAFE_INTEGER).toString();
+}
+
 function handleReset() {
   lastSelectedButton.value = "RESET";
   amount.value = "0";
@@ -463,6 +473,21 @@ const veeSubmit = veeHandleSubmit(async (values) => {
 
 .amt-btn:active {
   transform: scale(0.96);
+}
+
+/* MAX — deep violet */
+.amt-max {
+  background: linear-gradient(180deg, #3e0a6e 0%, #2a0456 100%);
+  border-color: #5a2a86;
+  color: #ffffff;
+}
+
+.amt-max:hover,
+.amt-max:active {
+  border-color: #7c3aed;
+  color: #ffffff;
+  box-shadow: 0 0 12px rgba(124, 58, 237, 0.55);
+  filter: brightness(1.15);
 }
 
 /* RESET — red gradient bg with red font */
