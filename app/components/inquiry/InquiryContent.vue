@@ -4,6 +4,36 @@
     <div class="flex-shrink-0 px-0 py-6">
       <div class="flex gap-2 md:gap-3">
         <template v-if="!showForm">
+          <!-- 전체 읽기 — clears every unread flag in one call, which is also
+               what releases the close guard (uiStore.hasUnreadInquiries blocks
+               dismissing this modal while anything is unread). Disabled when
+               there is nothing unread, so it never looks like a no-op action.
+               Highlighted while unread exist: it is the way out of the guard. -->
+          <button
+            :disabled="!hasUnread"
+            :class="[
+              'font-medium rounded-lg w-full flex items-center justify-center gap-1.5 px-4 py-2.5 transition-colors text-sm md:text-base',
+              hasUnread
+                ? 'tm-btn-ghost !text-[#FF7575] !border-[#FF7575]/60 hover:!bg-[#FF7575]/10 cursor-pointer'
+                : 'tm-btn-ghost opacity-40 cursor-not-allowed',
+            ]"
+            @click="handleReadAll"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-4 h-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="m1.5 12.5 4 4 8-8" />
+              <path d="m10.5 12.5 4 4 8-8" />
+            </svg>
+            <span>{{ t("inquiry.readAll") }}</span>
+          </button>
           <!-- Destructive action: an outline button, so the yellow "write"
                button next to it stays the one primary call to action. -->
           <button
@@ -79,6 +109,32 @@
 
       <!-- Inquiry Content -->
       <template v-else>
+        <!-- Unread notice. The modal cannot be closed while anything is unread
+             (uiStore.hasUnreadInquiries — see InquiryModal.handleCloseClick and
+             useProfileMenu.closeMobileModal), so say that up front rather than
+             letting the member discover it by pressing X and getting an error. -->
+        <div
+          v-if="hasUnread"
+          class="mb-3 flex items-center gap-2 rounded-lg border border-[#FF7575]/40 bg-[#FF7575]/10 px-3 py-2.5"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="w-4 h-4 shrink-0 text-[#FF7575]"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 8v5M12 16.5v.01" />
+          </svg>
+          <span class="text-[12px] md:text-[13px] leading-snug text-white/85">
+            {{ t("inquiry.mustReadMessages") }}
+          </span>
+        </div>
+
         <!-- All Inquiries -->
         <div
           v-if="inquiryData?.data && inquiryData.data.length > 0"
@@ -257,6 +313,18 @@ watch(
 
 // Utilities
 const hasInquiries = computed(() => (props.inquiryData?.data?.length ?? 0) > 0);
+
+/**
+ * Whether any inquiry on this page still has replies the member has not read.
+ *
+ * Drives the 전체 읽기 button's enabled state and the notice above the list.
+ * Scoped to the current page because that is what this component is given; the
+ * authoritative account-wide flag is `uiStore.hasUnreadInquiries`, which is what
+ * actually holds the modal open.
+ */
+const hasUnread = computed(() =>
+  (props.inquiryData?.data ?? []).some((i) => (i.member_unread ?? 0) > 0),
+);
 const totalPages = computed(() => props.inquiryData?.pages || 1);
 
 const getPageNumbers = (): (number | string)[] => {
@@ -385,6 +453,14 @@ const handleDelete = async (id: string) => {
   if (confirmed) {
     await mutations.updateInquiryStatus(id, "delete");
   }
+};
+
+const handleReadAll = async () => {
+  if (!hasUnread.value) return;
+  // status 4 = mark read (see updateAllInquiriesStatus). No confirmation:
+  // marking read is non-destructive and is the action the close guard is
+  // asking for, so an extra dialog would only be in the way.
+  await mutations.updateAllInquiriesStatus(4);
 };
 
 const handleDeleteAll = async () => {

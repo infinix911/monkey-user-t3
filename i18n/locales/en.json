@@ -14,7 +14,8 @@
       "usernameInvalidChars": "User ID may only contain letters, numbers, underscores and hyphens",
       "passwordCheck": "Password is required",
       "passwordTooLong": "Password must be 128 characters or fewer",
-      "captchaCheck": "Security code is required"
+      "captchaCheck": "Security code is required",
+      "passwordMinLength": "Password must be at least 6 characters"
     },
     "idPlaceHolder": "ID",
     "passPlaceHolder": "PASSWORD",
@@ -89,8 +90,9 @@
       "confirmPasswordRequired": "Please confirm your password",
       "currentWithdrawalRequired": "Please enter your current withdrawal password",
       "passwordsMismatch": "Passwords don't match",
-      "withdrawalMinLength": "Withdrawal password must be at least 4 characters",
-      "withdrawalMaxLength": "Withdrawal password must be at most 20 characters"
+      "withdrawalMinLength": "Withdrawal password must be at least 6 characters",
+      "withdrawalMaxLength": "Withdrawal password must be at most 20 characters",
+      "oldPasswordMinLength": "Current password must be at least 6 characters"
     },
     "success": {
       "title": "Success!",
@@ -136,7 +138,8 @@
       "amountMinimum": "Minimum withdrawal amount is {min}",
       "amountMaximum": "Maximum withdrawal amount is {max}",
       "amountDivisible": "Withdrawal amount must be in multiples of {step}",
-      "passwordRequired": "Please enter your withdrawal password"
+      "passwordRequired": "Please enter your withdrawal password",
+      "passwordMinLength": "Withdrawal password must be at least 6 characters"
     },
     "withdrawCheck": "Withdrawal amount must be 10,000 or more.",
     "success": "Withdrawal Request Submitted",
@@ -258,8 +261,8 @@
     "loadingReplies": "Loading replies...",
     "noReplies": "No replies yet",
     "you": "You",
-    "unreadMessages": "Unread replies remaining",
-    "mustReadMessages": "Please read all unread inquiry replies before closing.",
+    "unreadMessages": "There are unread messages",
+    "mustReadMessages": "Please read your unread inquiry replies before continuing.",
     "apiMessages": {
       "INQUIRY_NEW": "Your inquiry has been created successfully.",
       "PENDING_INQUIRY_FOUND": "You already have a pending inquiry.",
@@ -270,7 +273,9 @@
       "INQUIRY_NOT_FOUND": "Inquiry not found.",
       "BANK_ACCOUNT_REQUEST": "Bank Account Request",
       "INQUIRY_REPLIED": "Inquiry Replied"
-    }
+    },
+    "confirmed": "Read",
+    "unconfirmed": "Unread"
   },
   "game": {
     "apiMessages": {
@@ -811,7 +816,7 @@
       "usernameMinLength": "Username must be at least 4 characters",
       "usernameMaxLength": "Username must not exceed 12 characters",
       "passwordMaxLength": "Password must not exceed 20 characters",
-      "withdrawalPasswordMinLength": "Withdrawal password must be at least 4 characters",
+      "withdrawalPasswordMinLength": "Withdrawal password must be at least 6 characters",
       "withdrawalPasswordMaxLength": "Withdrawal password must not exceed 20 characters",
       "mobileRequired": "Mobile number is required",
       "mobileInvalid": "Mobile number must contain only digits",

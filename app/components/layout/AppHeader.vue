@@ -160,7 +160,7 @@
                    read as decoration and a labelled button beside it was a third
                    competing button, so clicking the amount opens the modal. -->
               <button type="button" class="flex items-center gap-1.5 ms-10 cursor-pointer hover:opacity-80 transition-opacity"
-                :aria-label="$t('point.title')" @click="uiStore.setShowPointModal(true)">
+                :aria-label="$t('point.title')" @click="openPointModal">
                 <NuxtImg :src="siteConfig.assets.navIcons.pointIcon" alt="" aria-hidden="true" width="18" height="18"
                   class="w-[18px] h-[18px] object-contain shrink-0" />
                 <span class="font-bold text-[15px] tabular-nums leading-none"
@@ -462,6 +462,13 @@ const ACCOUNT_BAR_COLORS = {
 // "님" in Korean; locales without an equivalent ship an empty string, and the
 // template drops the element entirely rather than rendering a stray space.
 const honorific = computed(() => t("header.honorific"));
+
+// Point transfer is a money action, so unread inquiry replies block it too —
+// see `blockedByUnreadInquiries`.
+const openPointModal = async () => {
+  if (await blockedByUnreadInquiries()) return;
+  uiStore.setShowPointModal(true);
+};
 
 // Wallet reload — the account bar's own refresh action (was `show-refresh` on
 // UserBalancePill before the bar was flattened).

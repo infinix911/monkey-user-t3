@@ -72,7 +72,7 @@ export const withdrawalSchema = (t: TFn, limits: TransactionLimits) =>
       }),
       password: z
         .string()
-        .min(1, t("withdrawal.validation.passwordRequired")),
+        .min(6, t("withdrawal.validation.passwordMinLength")),
     }),
   );
 

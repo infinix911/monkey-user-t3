@@ -206,49 +206,9 @@
                 </div>
               </div>
 
-              <!-- Email -->
-              <div class="field-row">
-                <span class="octa" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="3" y="5" width="18" height="14" rx="2.5" />
-                    <path d="M4 7.5l8 5.5 8-5.5" />
-                  </svg>
-                </span>
-                <div class="field-main">
-                  <FormField
-                    v-model="emailField" type="email" :label="$t('signup.email')"
-                    :placeholder="$t('signup.emailPlaceholder')" :error="errors.email" required />
-                </div>
-              </div>
-
               <!-- Section divider: Bank Information -->
               <div class="sect-divider">
                 <span>{{ $t("signup.bankInformation") }}</span>
-              </div>
-
-              <!-- Currency -->
-              <div class="field-row">
-                <span class="octa" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="8.5" />
-                    <path d="M14.5 9.3c-.5-1-1.5-1.5-2.5-1.5-1.5 0-2.6.8-2.6 2s1 1.8 2.6 2.1 2.6.9 2.6 2.1-1.1 2-2.6 2c-1 0-2-.5-2.5-1.5M12 6.3v11.4" />
-                  </svg>
-                </span>
-                <div class="field-main">
-                  <label class="mb-1 block text-[13px] font-bold leading-tight text-white">
-                    {{ $t("signup.currency") }} <span class="text-[#FF5A3C]">*</span>
-                  </label>
-                  <div
-                    class="flex h-[42px] w-full cursor-not-allowed items-center gap-2 rounded-[8px] border px-3 opacity-95"
-                    :style="{ backgroundColor: 'var(--tm-input-bg)', borderColor: 'var(--tm-input-border)', color: 'var(--tm-input-text)' }">
-                    <LanguageFlag :code="selectedCurrencyFlag" class="h-4 w-6 shrink-0 overflow-hidden rounded-sm" />
-                    <span class="truncate text-[14px]">{{ selectedCurrencyLabel }}</span>
-                    <svg class="ml-auto h-4 w-4" :style="{ color: 'var(--tm-accent)' }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </div>
-                  <span v-if="errors.currency" class="mt-1 block text-xs text-[#FF5A3C]">{{ errors.currency }}</span>
-                </div>
               </div>
 
               <!-- Bank Name -->
@@ -433,7 +393,6 @@ const {
   passwordField,
   confirmPasswordField,
   withdrawalPasswordField,
-  emailField,
   mobileField,
   bankNameField,
   bankAccountNameField,
@@ -447,8 +406,6 @@ const {
   showWithdrawalPassword,
   usernameStatus,
   referralStatus,
-  selectedCurrencyFlag,
-  selectedCurrencyLabel,
   checkUsername,
   checkReferral,
   onSubmit,

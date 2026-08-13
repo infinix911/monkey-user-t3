@@ -323,6 +323,18 @@ import { sanitizeHtml } from "@/utils/sanitizeHtml";
 const authStore = useAuthStore();
 const uiStore = useUiStore();
 
+// Populate `uiStore.hasUnreadInquiries` for the whole session.
+//
+// Everything that gates on unread replies — the deposit/withdraw/point/game/
+// sidebar guard (`blockedByUnreadInquiries`) and the inquiry modal's close
+// guard — reads that flag, but nothing set it until the member happened to
+// open the inquiry screen, so the guards were dead on a fresh page load.
+// Mounted here, in the layout every authenticated page renders, so the flag is
+// live from the moment the session is verified. The composable also registers
+// itself with the websocket store, so a reply arriving mid-session flips the
+// flag without a reload.
+useUnreadInquiries();
+
 // Non-critical components — async-loaded so their JS/CSS stays out of the
 // initial bundle. `v-if` guards in the template below keep the chunks from
 // even being requested until the right moment (modal opens, user authed,

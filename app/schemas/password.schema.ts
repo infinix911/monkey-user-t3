@@ -12,7 +12,7 @@ export const changePasswordSchema = (t: TFn) =>
       .object({
         oldPassword: z
           .string()
-          .min(1, t("password.validation.oldPasswordRequired")),
+          .min(6, t("password.validation.oldPasswordMinLength")),
         newPassword: z
           .string()
           .min(6, t("password.validation.newPasswordMinLength"))
@@ -58,7 +58,7 @@ export const withdrawalPasswordSchema = (t: TFn) =>
         currentPassword: z.string().optional(),
         newPassword: z
           .string()
-          .min(4, t("password.validation.withdrawalMinLength"))
+          .min(6, t("password.validation.withdrawalMinLength"))
           .max(20, t("password.validation.withdrawalMaxLength")),
         confirmPassword: z
           .string()

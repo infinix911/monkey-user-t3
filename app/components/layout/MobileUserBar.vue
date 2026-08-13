@@ -74,7 +74,7 @@
          modal. Right-aligned so it sits against the reload button. -->
     <button type="button" :aria-label="$t('point.title')"
       class="mub-group flex items-center min-w-0 justify-self-end overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
-      @click="uiStore.setShowPointModal(true)">
+      @click="openPointModal">
       <NuxtImg :src="siteConfig.assets.navIcons.pointIcon" alt="" aria-hidden="true" width="16" height="16"
         class="mub-icon object-contain shrink-0" />
       <span class="mub-figure min-w-0 font-bold tabular-nums leading-none truncate"
@@ -121,6 +121,13 @@ const ACCOUNT_BAR_COLORS = {
 } as const;
 
 const honorific = computed(() => t("header.honorific"));
+
+// Point transfer is a money action, so unread inquiry replies block it too —
+// see `blockedByUnreadInquiries`.
+const openPointModal = async () => {
+  if (await blockedByUnreadInquiries()) return;
+  uiStore.setShowPointModal(true);
+};
 
 // The unit printed after the balance. Korean spells the won out as "원", so the
 // locale wins where it supplies one; other deployments fall back to the

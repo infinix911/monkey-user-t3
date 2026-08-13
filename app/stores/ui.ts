@@ -22,6 +22,8 @@ export const useUiStore = defineStore("ui", () => {
   // Point-conversion modal (opened from the header point icon).
   const showPointModal = ref(false);
   const hasUnreadInquiries = ref(false);
+  /** Total unread inquiry replies, for the sidebar badge. */
+  const unreadInquiryCount = ref(0);
   const showNoticeModal = ref(false);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const noticeContent = ref<any>(null);
@@ -100,8 +102,10 @@ export const useUiStore = defineStore("ui", () => {
     showPointModal.value = open;
   };
 
-  const setHasUnreadInquiries = (hasUnread: boolean) => {
+  const setHasUnreadInquiries = (hasUnread: boolean, count = 0) => {
     hasUnreadInquiries.value = hasUnread;
+    // Kept beside the boolean so the flag and the badge can never disagree.
+    unreadInquiryCount.value = hasUnread ? count : 0;
   };
 
   /**
@@ -194,6 +198,7 @@ export const useUiStore = defineStore("ui", () => {
     showWithdrawalModal,
     showPointModal,
     hasUnreadInquiries,
+    unreadInquiryCount,
     showNoticeModal,
     noticeContent,
     isIOS,
