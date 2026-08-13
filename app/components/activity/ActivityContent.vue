@@ -265,13 +265,15 @@ function statusTone(value: string): StatusTone {
   return "pending";
 }
 
+// Currency/locale-aware number formatting (KRW → "1,234,567" with no forced
+// decimals), matching the account transaction ledger. Adapts to the deployment
+// currency instead of hardcoding a locale.
+const { formatNumber } = useCurrency();
+
 const formatAmount = (value: unknown): string => {
   const num = parseFloat(String(value ?? ""));
   if (isNaN(num) || num === 0) return "0";
-  return new Intl.NumberFormat("id-ID", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(num);
+  return formatNumber(num);
 };
 
 // Prefix with "#" and add a space after each comma so multi-ID values
