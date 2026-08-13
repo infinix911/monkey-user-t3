@@ -14,27 +14,35 @@
           {{ t("withdrawal.selectMethod") }}
         </label>
 
-        <!-- Bank Account Card (dark with accent glow border) -->
-        <div v-if="bankName && bankAccountNumber" class="relative flex flex-col justify-between min-h-[140px] mb-6 p-4"
-          :style="cardStyle">
-          <!-- Bank name (no logo image — lead with an emoji, same as the deposit card) -->
-          <p class="self-start flex items-center gap-2 text-white font-bold text-[15px] lg:text-[17px]">
-            <span aria-hidden="true">🏦</span>
-            <span>{{ user.bank_name || t("withdrawal.bankName") }}</span>
+        <!-- Bank Account Card (dark with accent glow border).
+             Stacked: bank name, then the account number, then the holder under
+             it. No logo or icon mark — the text carries it. -->
+        <div v-if="bankName && bankAccountNumber" class="relative mb-5 px-3.5 py-2.5" :style="cardStyle">
+          <!-- Bank name — text only; no logo/emoji mark. -->
+          <p class="min-w-0 truncate text-white/75 font-semibold text-[14px] lg:text-[15px] tracking-tight">
+            {{ user.bank_name || t("withdrawal.bankName") }}
           </p>
 
-          <div class="mt-auto pt-4">
-            <p class="text-white text-[18px] lg:text-[20px] tracking-wide">
-              {{
-                user.bank_account
-                  ? user.bank_account.match(/.{1,4}/g)?.join("-")
-                  : ""
-              }}
-            </p>
-            <p class="text-[14px] lg:text-[16px] text-white/60">
-              {{ user.bank_account ? user.bank_account_name : "" }}
-            </p>
-          </div>
+          <!-- Hairline in the theme accent — separates the header from the
+               account block without spending the space a margin would. -->
+          <div class="my-1.5 h-px" :style="{
+            background: `linear-gradient(90deg, color-mix(in srgb, ${dep.accentColor} 30%, transparent) 0%, transparent 100%)`,
+          }" />
+
+          <!-- Account number — set in the card-number face
+               (see .wd-account-number). `leading-none` trims the line box to the
+               glyphs; the face's default leading was adding vertical air that
+               read as padding inside the card. -->
+          <p class="wd-account-number leading-none text-white/90 text-[18px] lg:text-[21px]">
+            {{ accountNumberDisplay }}
+          </p>
+
+          <!-- Holder below the number. `shrink-0` on the label keeps "예금주 :"
+               intact and truncates a long name instead. -->
+          <p class="mt-1 flex min-w-0 items-baseline gap-1 leading-none text-white/70 text-[12px] lg:text-[13px]">
+            <span class="shrink-0">{{ t("withdrawal.accountHolder") }} :</span>
+            <span class="truncate">{{ user.bank_account_name }}</span>
+          </p>
         </div>
 
         <!-- Current Balance -->
@@ -79,41 +87,50 @@
           </span>
           {{ t("withdrawal.withdrawalAmount") }}
         </label>
-        <input type="text" :value="amountDisplay" :placeholder="`${currency.symbol} 0`" maxlength="15"
-          class="px-4 py-3 rounded w-full text-base lg:text-[20px] h-[53px]" :style="{
-            backgroundColor: dep.inputBgColor,
-            color: dep.inputTextColor,
-            border: `1px solid ${dep.inputBorderColor}`,
-            borderRadius: '4px',
-          }" @input="
-            (e: Event) => {
-              lastSelectedButton = null;
-              handleAmountChange((e.target as HTMLInputElement).value);
-            }
-          ">
+        <!-- Amount + RESET on one row. RESET clears the field it sits beside,
+             so it belongs here rather than in the chip grid, where it read as a
+             seventh "amount" among the six. -->
+        <div class="flex items-stretch gap-2">
+          <input type="text" :value="amountDisplay" :placeholder="`${currency.symbol} 0`" maxlength="15"
+            class="px-4 py-3 rounded min-w-0 flex-1 text-base lg:text-[20px] h-[53px]" :style="{
+              backgroundColor: dep.inputBgColor,
+              color: dep.inputTextColor,
+              border: `1px solid ${dep.inputBorderColor}`,
+              borderRadius: '4px',
+            }" @input="
+              (e: Event) => {
+                lastSelectedButton = null;
+                handleAmountChange((e.target as HTMLInputElement).value);
+              }
+            ">
+          <!-- MAX then RESET. Widths are inline, not `w-*` utilities:
+               `.amt-btn` below sets `width: 100%` for the chip grid, and as a
+               later same-specificity rule it beats the utility — the button
+               would take the whole row. -->
+          <button type="button" class="amt-btn amt-max text-[15px] md:text-[16px]"
+            style="height: 53px; width: 78px; flex: 0 0 78px" @click="handleMax">
+            {{ t("withdrawal.max") }}
+          </button>
+          <button type="button" class="amt-btn amt-reset text-[15px] md:text-[16px]"
+            style="height: 53px; width: 78px; flex: 0 0 78px" @click="handleReset">
+            {{ t("withdrawal.reset") }}
+          </button>
+        </div>
         <p v-if="errors.amount" class="text-xs text-red-500 mt-1">
           {{ errors.amount }}
         </p>
 
-        <div class="grid grid-cols-4 gap-2 mt-4">
-          <!-- Quick amount chips -->
+        <!-- Six quick-amount chips, 3 per row. MAX was removed at the same time
+             as the deposit modal's, so the two read alike; the chips already
+             reach the balance, and `clampWithdrawal` still caps every add. -->
+        <div class="grid grid-cols-3 gap-2 mt-4">
           <button v-for="qa in quickAmounts" :key="qa.label" type="button" class="amt-btn text-[15px] md:text-[17px]"
             :class="{ 'is-selected': lastSelectedButton === qa.label }" :style="{
               '--amt-bg': dep.quickAmountBgColor,
               '--amt-text': dep.quickAmountTextColor,
               '--amt-accent': dep.accentColor,
             }" @click="handleAmountClick(qa)">
-            {{ qa.label }}
-          </button>
-
-          <!-- MAX (violet) -->
-          <button type="button" class="amt-btn amt-max text-[15px] md:text-[17px]" @click="handleMax">
-            {{ t("withdrawal.max") }}
-          </button>
-
-          <!-- RESET (red) -->
-          <button type="button" class="amt-btn amt-reset text-[15px] md:text-[16px]" @click="handleReset">
-            {{ t("withdrawal.reset") }}
+            {{ quickLabel(qa.label) }}
           </button>
         </div>
 
@@ -219,11 +236,14 @@ const dep = computed(() => siteConfig.theme.transactionmodal);
 
 // Bank-account card: dark fill with a top-left accent gradient flowing down
 // and an accent glow border (the selected-method look).
+// Softer than the old treatment: a 1px hairline border and a tighter glow read
+// as a surface rather than a neon outline, which is what let the card shrink to
+// two rows without looking cramped.
 const cardStyle = computed(() => ({
-  borderRadius: "12px",
-  border: `1.5px solid ${dep.value.accentColor}`,
-  background: `radial-gradient(135% 135% at 0% 0%, color-mix(in srgb, ${dep.value.accentColor} 18%, transparent) 0%, color-mix(in srgb, ${dep.value.accentColor} 6%, transparent) 30%, transparent 62%), ${dep.value.inputBgColor}`,
-  boxShadow: `0 0 18px color-mix(in srgb, ${dep.value.accentColor} 38%, transparent), inset 0 0 0 1px color-mix(in srgb, ${dep.value.accentColor} 22%, transparent)`,
+  borderRadius: "14px",
+  border: `1px solid color-mix(in srgb, ${dep.value.accentColor} 55%, transparent)`,
+  background: `radial-gradient(135% 135% at 0% 0%, color-mix(in srgb, ${dep.value.accentColor} 16%, transparent) 0%, color-mix(in srgb, ${dep.value.accentColor} 5%, transparent) 32%, transparent 64%), ${dep.value.inputBgColor}`,
+  boxShadow: `0 0 12px color-mix(in srgb, ${dep.value.accentColor} 22%, transparent), inset 0 0 0 1px color-mix(in srgb, ${dep.value.accentColor} 12%, transparent)`,
   fontWeight: "400",
 }));
 
@@ -275,6 +295,11 @@ const amount = ref("0");
 const bankName = computed(() => user.value.bank_name || "");
 const bankAccountNumber = computed(() => user.value.bank_account || "");
 
+// Account number in 4-digit groups (1234-5678-9012).
+const accountNumberDisplay = computed(
+  () => bankAccountNumber.value.match(/.{1,4}/g)?.join("-") ?? "",
+);
+
 const currency = useCurrency();
 
 const amountDisplay = computed(() => {
@@ -287,14 +312,21 @@ watch(amount, (newVal) => {
   setFieldValue("amount", newVal, false);
 });
 
+// Kept in step with the deposit/point-transfer chips.
 const quickAmounts = [
-  { value: 5000, label: "5K" },
+  { value: 10000, label: "10K" },
   { value: 50000, label: "50K" },
   { value: 100000, label: "100K" },
-  { value: 250000, label: "250K" },
   { value: 500000, label: "500K" },
   { value: 1000000, label: "1JT" },
+  { value: 5000000, label: "5JT" },
 ];
+
+// The label is an id (`common.quickAmounts.<label>`), not display text — it was
+// being rendered raw here, which is why these chips read "5K" while the deposit
+// modal's read 5만.
+const quickLabel = (label: string) =>
+  t(`common.quickAmounts.${label}`) || label;
 
 function formatCurrency(value: string | number): string {
   const num =
@@ -372,10 +404,8 @@ const veeSubmit = veeHandleSubmit(async (values) => {
       },
     });
 
-    await showSuccessAlert(
-      t("withdrawal.title"),
-      t("withdrawal.apiMessages.WITHDRAWAL_REQUEST_SUCCESS"),
-    );
+    // Title only — no supporting line (showSuccessAlert's `text` is optional).
+    await showSuccessAlert(t("withdrawal.success"));
 
     amount.value = "0";
     lastSelectedButton.value = null;
@@ -394,6 +424,20 @@ const veeSubmit = veeHandleSubmit(async (values) => {
 </script>
 
 <style scoped>
+
+/* Card-number face — Kode Mono is a squarish technical monospace, so the number
+   reads as a machine readout while staying solid and legible (unlike a
+   dot-matrix face). Monospace, so the digits land on a strict grid.
+   Declared in nuxt.config `fonts.families`, so @nuxt/fonts subsets it at build
+   time and serves it same-origin from /_fonts (no remote stylesheet).
+   Fallbacks stay monospace so the digits keep even spacing if it fails to load;
+   tabular-nums only matters for those fallbacks. */
+.wd-account-number {
+  font-family: "Kode Mono", ui-monospace, "Courier New", monospace;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.08em;
+}
 
 /* Quick-amount chips — flat dark button; on hover/active/selected the border
    and text take the theme accent with a matching glow. */

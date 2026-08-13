@@ -150,7 +150,7 @@ Browser ──HTTP──▶ Nitro (:3000)
 
 Resolution chain (verified, replaces the stale CLAUDE.md story):
 
-1. **Bundled base:** `getDefaultThemeConfig()` in `app/composables/useDefaultThemeConfig.ts` (1477L) — the full typed `SiteConfig` tree: `identity, theme, assets, contact, integrations, seo` (6 CMS tabs, ~45 sub-interfaces).
+1. **Bundled base:** `getDefaultThemeConfig()` in `app/composables/useDefaultThemeConfig.ts` (1477L) — the full typed `SiteConfig` tree: `identity, theme, assets, contact, integrations, seo, content` (7 CMS tabs, ~45 sub-interfaces). `content` is CMS-authored *copy* rather than tokens/assets — currently `content.depositRule` (HTML, rendered in the deposit modal's bank card). See ADR-024.
 2. **CMS override:** `/site/config/theme` payload (hostname-scoped) in `useState('userPageConfig')`.
 3. **Merge:** `useSiteConfig()` = `deepMerge(base, override)` — exact-path override wins; `null`/`undefined` falls back to bundled (CMS cannot blank a field); wrong path = silently ignored. **NOT reactive** — returns a snapshot per call.
 4. Extra cache layers in `app/lib/siteConfig.ts`: server module-memo per hostname 5s TTL; client localStorage warm-start `themeConfig.v1`. Preview mode `?themePreview=1` bypasses all caches + live-updates via `theme-preview.client.ts` postMessage bridge (origin-allowlisted to `NUXT_PUBLIC_ADMIN_PREVIEW_ORIGIN`).
@@ -228,11 +228,13 @@ Money logic never lives in stores — mutations go through `useApi`/`axios-clien
 | Build/deploy                      | `Dockerfile`, `nuxt.config.ts`, `.env.example`                                                                                             | src                          |
 | Banners (carousel)                | `composables/useBanners.ts`, `stores/banner.ts`, `utils/pageBanner.ts`, `banner/BannerPreview.vue`                                          | popup banner files           |
 | E2E / tests                       | `playwright.config.ts`, `tests/e2e/fixtures/api-mocks.ts`, `vitest.config.ts`                                                              | —                            |
+| Game-card provider logos          | `utils/gameProviderLogo.ts`, `data/gameProviderLogos.json`, `game/HomeGameCard.vue`, `utils/homepageLobbyAssets.ts`                        | the logo `.webp` files       |
 
 ## 12. AI Edit Map (features → edit / avoid)
 
 - **New page:** edit `app/pages/`, sitemap, locales. Avoid server/middleware unless protected.
 - **Theme/config field:** edit `useDefaultThemeConfig.ts` + consumer. Avoid hardcoding hex (check for an existing token first).
+- **Provider logo on a game card:** `getLogoImages(providerCode)` (`app/utils/gameProviderLogo.ts`) resolves `public/designs/game-logo/<Display Name>.webp` via the code→name table in `app/data/gameProviderLogos.json`. One asset serves every code a provider has (slug per game type + numeric ids). To add a provider: add the entry to the JSON **and** drop in a `.webp` named exactly like `name` (case-sensitive — prod serves from Linux). Returns `""` for unmapped codes; `HomeGameCard` then falls back to the lobby-UUID-named `game.logo` (`lobbyLogoUrl`, the older `/designs/{casino,slot,sport}-logo` scheme still used by /sports), then to the provider name as text.
 - **Modal/nav shell:** edit AppHeader/Navbar/BottomNav + uiStore. Watch outside-click attribute conventions (`data-hamburger-menu`, `[data-lang-selector]`) and Teleport-to-body for anything inside overflow-hidden shells.
 - **Server behavior:** middleware order is alphabetical — renaming files changes execution order. Never add `server/api/**` (proxy shadow).
 

@@ -20,7 +20,7 @@ import LoginHistory from "~/components/my-account/LoginHistory.vue";
 import ChangePassword from "~/components/my-account/ChangePassword.vue";
 import TransactionLogs from "~/components/my-account/TransactionLogs.vue";
 import PromotionContent from "~/components/promotion/PromotionContent.vue";
-import FaqContent from "~/components/faq/FaqContent.vue";
+import NoticeContent from "~/components/notice/NoticeContent.vue";
 import InquiryContent from "~/components/inquiry/InquiryContent.vue";
 import ContactContent from "~/components/contact/ContactContent.vue";
 import ProfileFeatureModals from "~/components/profile/ProfileFeatureModals.vue";
@@ -41,7 +41,10 @@ export const ACCOUNT_SECTION_COMPONENTS = {
   transaksi: TransactionLogs,
   transaction: TransactionLogs,
   promotion: PromotionContent,
-  faq: FaqContent,
+  // `faq` is the CMS id for this slot; the surface it opens is the notices
+  // list — only the label ever said FAQ, and the product no longer has one.
+  faq: NoticeContent,
+  notice: NoticeContent,
   inquiry: InquiryContent,
   contact: ContactContent,
   activity: ProfileFeatureModals,
