@@ -54,6 +54,13 @@
         </p>
       </div>
 
+      <!-- 6. Lobby badge — short label (e.g. "1:10") for lobbies that share a
+           provider brand with a sibling lobby, so the two cards are tellable
+           apart. Bottom-centre, below the provider wordmark and above the logo
+           layer (the logo box is a full-card z-30 overlay). Sized in
+           container-query units so it tracks the card at every breakpoint. -->
+      <span v-if="lobbyBadge" class="casino-badge">{{ lobbyBadge }}</span>
+
       <!-- Hover effects: dim overlay + shimmer sweep (character keeps its scale) -->
       <span class="casino-dim" aria-hidden="true" />
       <span class="casino-shimmer" aria-hidden="true" />
@@ -136,6 +143,10 @@ const providerLogo = computed(
 watch(providerLogo, () => {
   logoError.value = false;
 });
+
+// Short label pinned to specific lobby ids (app/utils/lobbyBadges.ts) — used
+// where one provider ships two lobbies and the card art is identical.
+const lobbyBadge = computed(() => getLobbyBadge(props.game.id));
 
 // Slot lobbies have sub-games: the card is a link to the lobby's game list
 // (mirrors LobbyCard subGames behaviour) rather than launching directly.
@@ -230,6 +241,43 @@ async function handleClick() {
   z-index: 20;
   pointer-events: none;
   border-radius: inherit;
+}
+
+/* Lobby badge — bare label centred at the very bottom, in the narrow strip
+   below the provider wordmark (the logo asset is a full-card image whose
+   wordmark fills the bottom band). No pill: dropping the chrome frees the
+   strip's limited height for the type itself, so the label reads bigger without
+   riding up over the wordmark.
+   Sizing is in cqw against .casino-card (the inline-size query container) so it
+   stays proportional from the 3-per-row mobile grid up to the 6-per-row desktop
+   one, with a max() pixel floor so the label stays legible on the smallest
+   cards.
+   z-35 clears the full-card logo overlay (z-30) but stays under the frame ring
+   (z-40). */
+.casino-badge {
+  position: absolute;
+  left: 50%;
+  bottom: 3.5%;
+  transform: translateX(-50%);
+  z-index: 35;
+  pointer-events: none;
+
+  font-size: max(9px, 7.5cqw);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+
+  /* Colors set literally rather than mixed from a custom property: a
+     color-mix() that fails to resolve makes the whole declaration invalid and
+     the label silently falls back to inherited color. White text with a green
+     glow — the dark shadow buys contrast on the band, the glow ties the label
+     to the badge accent without tinting the type itself. */
+  color: #fff;
+  text-shadow:
+    0 0.4cqw 0.9cqw rgb(0 0 0 / 75%),
+    0 0 2cqw rgb(74 222 128 / 55%);
 }
 
 /* Hover: dim overlay + diagonal shimmer sweep. The character keeps its own
