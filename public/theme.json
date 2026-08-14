@@ -13,12 +13,12 @@
       "defaultFollow": true
     },
     "social": {
-      "defaultOgImage": "/storage/kimak/KIMAKS-mobile-TOGEL.webp",
+      "defaultOgImage": "https://banana.sg-sin-1.linodeobjects.com/designs/screenshots/ocean.webp",
       "defaultOgTitle": "JAEISOL | 공식 로그인 & 회원가입 온라인 게임 사이트",
       "twitterCardType": "summary_large_image",
       "defaultOgImageType": "WEBP",
       "defaultOgImageWidth": 1099,
-      "defaultTwitterImage": "/storage/kimak/KIMAKS-mobile-TOGEL.webp",
+      "defaultTwitterImage": "https://banana.sg-sin-1.linodeobjects.com/designs/screenshots/ocean.webp",
       "defaultTwitterTitle": "JAEISOL | 공식 로그인 & 회원가입 온라인 게임 사이트",
       "defaultOgDescription": "JAEISOL은 슬롯, 라이브 카지노, 스포츠를 한곳에서 제공하는 온라인 게임 사이트입니다. 빠른 입출금, 모바일 최적화 화면, 24시간 고객센터로 언제 어디서나 안전하게 이용하실 수 있습니다.",
       "defaultOgImageHeight": 535,
@@ -47,14 +47,14 @@
         "rating": "general",
         "robots": "index, follow",
         "og:type": "website",
-        "language": "id-ID",
+        "language": "ko-KR",
         "googlebot": "index, follow",
-        "og:locale": "id_ID",
+        "og:locale": "ko_KR",
         "publisher": "jaeisol",
-        "geo.region": "ID-JK",
-        "geo.country": "ID",
+        "geo.region": "KR-11",
+        "geo.country": "KR",
         "distribution": "global",
-        "geo.placename": "Jakarta",
+        "geo.placename": "Seoul",
         "og:locale:alternate": "en_US"
       }
     },
@@ -234,74 +234,95 @@
           "is_active": true
         },
         {
-          "key": "rtp",
+          "key": "faq",
           "page": 2,
           "sort": 1,
-          "image": "https://krw-demo1.jaeisol.com/designs/navigation/rtp.png",
+          "image": "https://krw-demo1.jaeisol.com/designs/menu/faq.webp",
           "is_active": true
         },
         {
-          "key": "livechat",
+          "key": "inquiry",
           "page": 2,
           "sort": 2,
-          "image": "https://krw-demo1.jaeisol.com/designs/menu/livechat.webp",
-          "is_active": true
-        },
-        {
-          "key": "transaksi",
-          "page": 2,
-          "sort": 3,
-          "image": "https://krw-demo1.jaeisol.com/designs/menu/transaction.webp",
+          "image": "https://krw-demo1.jaeisol.com/designs/menu/inquiry.webp",
           "is_active": true
         },
         {
           "key": "activity",
           "page": 2,
-          "sort": 4,
+          "sort": 3,
           "image": "https://krw-demo1.jaeisol.com/designs/menu/activity.webp",
           "is_active": true
         },
         {
           "key": "referral",
           "page": 2,
-          "sort": 5,
+          "sort": 4,
           "image": "https://krw-demo1.jaeisol.com/designs/menu/referral.webp",
           "is_active": true
+        },
+        {
+          "key": "loginHistory",
+          "page": 2,
+          "sort": 5,
+          "image": "https://krw-demo1.jaeisol.com/designs/menu/login.webp",
+          "is_active": true
+        },
+        {
+          "key": "changePassword",
+          "page": 2,
+          "sort": 6,
+          "image": "https://krw-demo1.jaeisol.com/designs/menu/change-pass.webp",
+          "is_active": true
+        },
+        {
+          "key": "rtp",
+          "page": 2,
+          "sort": 1,
+          "image": "https://krw-demo1.jaeisol.com/designs/navigation/rtp.png",
+          "is_active": false
+        },
+        {
+          "key": "livechat",
+          "page": 2,
+          "sort": 2,
+          "image": "https://krw-demo1.jaeisol.com/designs/menu/livechat.webp",
+          "is_active": false
+        },
+        {
+          "key": "transaksi",
+          "page": 2,
+          "sort": 3,
+          "image": "https://krw-demo1.jaeisol.com/designs/menu/transaction.webp",
+          "is_active": false
         },
         {
           "key": "bettingReport",
           "page": 2,
           "sort": 6,
           "image": "https://krw-demo1.jaeisol.com/designs/menu/betting-report.webp",
-          "is_active": true
+          "is_active": false
         },
         {
           "key": "history",
           "page": 2,
           "sort": 7,
           "image": "https://krw-demo1.jaeisol.com/designs/menu/history.webp",
-          "is_active": true
+          "is_active": false
         },
         {
           "key": "contact",
           "page": 2,
           "sort": 8,
           "image": "https://krw-demo1.jaeisol.com/designs/menu/contact.webp",
-          "is_active": true
-        },
-        {
-          "key": "changePassword",
-          "page": 2,
-          "sort": 9,
-          "image": "https://krw-demo1.jaeisol.com/designs/menu/change-pass.webp",
-          "is_active": true
+          "is_active": false
         },
         {
           "key": "apk",
           "page": 2,
           "sort": 10,
           "image": "https://krw-demo1.jaeisol.com/designs/menu/apk.webp",
-          "is_active": true
+          "is_active": false
         },
         {
           "key": "telegram",
@@ -309,27 +330,6 @@
           "sort": 11,
           "image": "https://krw-demo1.jaeisol.com/designs/menu/telegram.webp",
           "is_active": false
-        },
-        {
-          "key": "faq",
-          "page": 2,
-          "sort": 12,
-          "image": "https://krw-demo1.jaeisol.com/designs/menu/faq.webp",
-          "is_active": true
-        },
-        {
-          "key": "loginHistory",
-          "page": 2,
-          "sort": 13,
-          "image": "https://krw-demo1.jaeisol.com/designs/menu/login.webp",
-          "is_active": true
-        },
-        {
-          "key": "inquiry",
-          "page": 2,
-          "sort": 14,
-          "image": "https://krw-demo1.jaeisol.com/designs/menu/inquiry.webp",
-          "is_active": true
         }
       ]
     },
@@ -455,12 +455,12 @@
     }
   },
   "identity": {
-    "logo": "/designs/banana/theme/kiiiiiiiimmm-mmmmmmmmaaaaaaaaaaaaaaaaaaax-1781619514685.webp",
+    "logo": "/designs/logo/ocean.webp",
     "slug": "ocean",
-    "favicon": "/designs/banana/theme/kimakicon-1781679808366.webp",
+    "favicon": "/designs/logo/ocean.webp",
     "siteName": "JAEISOL",
-    "logoPopup": "/designs/banana/theme/kiiiiiiiimmm-mmmmmmmmaaaaaaaaaaaaaaaaaaax-1781619514685.webp",
-    "logoMobile": "/designs/banana/theme/kiiiiiiiimmm-mmmmmmmmaaaaaaaaaaaaaaaaaaax-1781619514685.webp",
+    "logoPopup": "/designs/logo/ocean.webp",
+    "logoMobile": "/designs/logo/ocean.webp",
     "description": "JAEISOL은 슬롯, 라이브 카지노, 스포츠를 한곳에서 제공하는 온라인 게임 사이트입니다. 빠른 입출금, 모바일 최적화 화면, 24시간 고객센터로 언제 어디서나 안전하게 이용하실 수 있습니다."
   },
   "integrations": {

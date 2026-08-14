@@ -77,7 +77,32 @@ export function useProfileNavigation(options: UseProfileNavigationOptions) {
    * @param item - The chosen item.
    * @returns {void}
    */
+  /**
+   * Menu ids that stay reachable while unread replies are blocking everything
+   * else. Without this the member is trapped: the warning tells them to read
+   * their inquiries, but the item that opens them is itself gated.
+   * `faq` is the CMS id for the 공지사항 slot.
+   */
+  const UNREAD_GUARD_EXEMPT = new Set(["inquiry", "faq", "notice", "livechat"]);
+
   function handleItemClick(item: MenuItem): void {
+    const id = normalize(item.id);
+
+    // Unread inquiry replies block the rest of the account menu — see
+    // `blockedByUnreadInquiries`. Async, so this returns immediately and the
+    // guard shows the warning (and opens the inquiry surface) on its own.
+    if (!UNREAD_GUARD_EXEMPT.has(item.id) && !UNREAD_GUARD_EXEMPT.has(id)) {
+      void blockedByUnreadInquiries().then((blocked) => {
+        if (!blocked) runItemClick(item);
+      });
+      return;
+    }
+
+    runItemClick(item);
+  }
+
+  /** The item's real behaviour, once the unread guard has allowed it. */
+  function runItemClick(item: MenuItem): void {
     const id = normalize(item.id);
 
     // Live chat — open the configured URL in a new tab, same as the header's

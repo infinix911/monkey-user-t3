@@ -5,90 +5,68 @@
       !isExpanded ? 'rounded-[15px]' : '',
     ]"
   >
-    <!-- Header -->
+    <!-- Header.
+         Unread rows get their own tinted surface rather than being sorted to
+         the top: the list stays in the order the member filed the tickets in,
+         which is how they look for a specific one, and the colour does the
+         "deal with this" work instead. The tint is dropped once the row is
+         expanded — reading it is the point, and a highlighted open row would
+         still be shouting after the member has acted on it. -->
     <div
       :class="[
         isExpanded ? 'tm-accent-bar' : 'tm-card',
+        !isExpanded && isUnread ? 'is-unread' : '',
         'p-3 md:p-3 md:px-4 cursor-pointer hover:opacity-95 transition-colors font-medium rounded-[15px] relative z-10',
       ]"
       @click="$emit('toggle', inquiry.id)"
     >
-      <div class="flex flex-col gap-0">
-        <!-- First row: Status and Question -->
-        <div class="flex items-center gap-2 md:gap-2">
-          <span
-            :class="[
-              statusBadgeClass,
-              'px-3 rounded-[29.664px] text-xs md:text-xs whitespace-nowrap',
-            ]"
-          >
-            {{ t(`inquiry.state.${String(inquiry.status)}`) }}
-          </span>
-          <span
-            class="text-white text-base md:text-sm lg:text-base flex-1 font-bold"
-          >
-            {{ translateToken(inquiry.title) }}
-          </span>
-        </div>
+      <!-- ONE line: [확인/미확인] Title ......... [Date] [Delete].
+           The read/unread badge replaced the status badge (새 문의 / 대기중 / …):
+           what a member needs at a glance is whether there is something waiting
+           for them, not the ticket's workflow state. The reply icon is gone —
+           the whole row is already the toggle that opens the thread. -->
+      <div class="flex items-center gap-2 md:gap-3">
+        <!-- Left: read state + title -->
+        <span
+          :class="[
+            readBadgeClass,
+            'shrink-0 px-2.5 py-0.5 rounded-[29.664px] text-[11px] md:text-xs whitespace-nowrap',
+          ]"
+        >
+          {{ isUnread ? t("inquiry.unconfirmed") : t("inquiry.confirmed") }}
+        </span>
+        <span
+          class="min-w-0 flex-1 truncate text-white text-sm md:text-[15px]"
+          :class="isUnread ? 'font-bold' : 'font-medium text-white/80'"
+        >
+          {{ translateToken(inquiry.title) }}
+        </span>
 
-        <!-- Second row: Date and Icons -->
-        <div class="flex items-center justify-between mt-0.5">
-          <div class="flex items-center gap-2">
-            <span class="text-white/90 text-[13px] font-normal">
-              {{ inquiry.created_at }}
-            </span>
-            <!-- Unread Badge -->
-            <span
-              v-if="inquiry.member_unread > 0"
-              class="tm-btn text-[11px] font-semibold px-2 py-0.5 rounded-full"
-            >
-              {{ t("inquiry.unreadMessage") }}
-            </span>
-          </div>
-          <div class="flex items-center gap-3 md:gap-4">
+        <!-- Right: date + delete -->
+        <div class="flex shrink-0 items-center gap-2 md:gap-3">
+          <span class="text-white/70 text-[11px] md:text-[12px] font-normal whitespace-nowrap tabular-nums">
+            {{ inquiry.created_at }}
+          </span>
+          <button
+            class="text-white hover:opacity-80 transition-opacity cursor-pointer"
+            :aria-label="t('inquiry.delete')"
+            @click.stop="$emit('delete', inquiry.id)"
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              width="23"
-              height="23"
-              viewBox="0 0 33 33"
+              class="w-[18px] h-[18px]"
               fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
             >
-              <g clip-path="url(#clip0_inquiry_icon)">
-                <path
-                  d="M26.125 8.25C28.4032 8.25 30.25 6.40317 30.25 4.125C30.25 1.84683 28.4032 0 26.125 0C23.8468 0 22 1.84683 22 4.125C22 6.40317 23.8468 8.25 26.125 8.25Z"
-                  fill="#EFEFEF"
-                />
-                <path
-                  d="M8.25 11V8.25H20.6663C19.0025 6.05 19.1812 3.83625 19.4012 2.75H5.51375C4.00125 2.75 2.76375 3.97375 2.76375 5.5L2.75 30.25L8.25 24.75H27.5C29.0125 24.75 30.25 23.5125 30.25 22V9.58375C29.095 10.4637 27.6787 11 26.125 11H8.25ZM19.25 19.25H8.25V16.5H19.25V19.25ZM24.75 15.125H8.25V12.375H24.75V15.125Z"
-                  fill="#EFEFEF"
-                />
-              </g>
-              <defs>
-                <clipPath id="clip0_inquiry_icon">
-                  <rect width="33" height="33" fill="white" />
-                </clipPath>
-              </defs>
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+              />
             </svg>
-            <button
-              class="text-white hover:opacity-80 transition-opacity cursor-pointer"
-              @click.stop="$emit('delete', inquiry.id)"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-5 h-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                />
-              </svg>
-            </button>
-          </div>
+          </button>
         </div>
       </div>
     </div>
@@ -256,8 +234,12 @@
           />
         </div>
 
-        <!-- Action Buttons -->
-        <div class="flex gap-2 md:gap-3 justify-end pt-1">
+        <!-- Action Buttons. Both are hidden on app-raised inquiries, so the row
+             collapses to nothing rather than leaving an empty bar. -->
+        <div
+          v-if="!isAppRaised"
+          class="flex gap-2 md:gap-3 justify-end pt-1"
+        >
           <button
             :disabled="isClosing"
             class="tm-btn-ghost px-4 py-2 md:px-5 md:py-2.5 rounded-lg transition-colors font-normal text-sm md:text-base cursor-pointer flex items-center gap-2"
@@ -266,7 +248,6 @@
             {{ isClosing ? t("inquiry.closing") : t("inquiry.closeInquiry") }}
           </button>
           <button
-            v-if="!isAppRaised"
             :disabled="!replyText.trim()"
             class="tm-btn px-4 py-2 md:px-5 md:py-2.5 rounded-lg transition-colors font-normal text-sm md:text-base shadow-sm cursor-pointer flex items-center gap-2"
             @click="handleSendReply"
@@ -346,22 +327,24 @@ const orderedReplies = computed(() =>
   })).reverse(),
 );
 
-const statusBadgeClass = computed(() => {
-  if (props.isExpanded) {
-    return "text-white border border-white";
-  }
-  switch (props.inquiry.status) {
-    case 1:
-      return "bg-transparent text-white border border-white";
-    case 2:
-      return "bg-transparent tm-accent-text border border-current";
-    case 0:
-    case 9:
-      return "bg-transparent text-[#FF7575] border border-[#FF7575]";
-    default:
-      return "bg-transparent text-white border border-white";
-  }
-});
+/**
+ * Whether this inquiry has replies the member has not opened yet.
+ *
+ * `member_unread` is the count the API keeps per ticket; it is also what
+ * `uiStore.hasUnreadInquiries` aggregates to hold the modal open, so the row
+ * badge and the close guard read the same source and cannot disagree.
+ */
+const isUnread = computed(() => (props.inquiry.member_unread ?? 0) > 0);
+
+/**
+ * 미확인 reads as the accent alert colour so an unread row is findable at a
+ * glance down a long list; 확인 is muted and recedes.
+ */
+const readBadgeClass = computed(() =>
+  isUnread.value
+    ? "bg-transparent text-[#FF7575] border border-[#FF7575] font-semibold"
+    : "bg-transparent text-white/45 border border-white/25",
+);
 
 /**
  * Render app-raised inquiries through their i18n label.
@@ -383,8 +366,8 @@ const translateToken = (value: string): string => {
 /**
  * Inquiries the app raised on the member's behalf rather than ones they typed.
  * They are a one-way record for the admin to act on, so there is nothing for the
- * member to reply to — the reply box and its send button are hidden. Closing the
- * ticket stays available.
+ * member to do with them: the reply box, the send button and Close inquiry are
+ * all hidden. The operator resolves the ticket from the admin side.
  */
 const APP_RAISED_TITLES = new Set(["BANK_ACCOUNT_REQUEST"]);
 
@@ -521,6 +504,46 @@ function onExpandLeave(el: Element, done: () => void): void {
 </script>
 
 <style scoped>
+/* Unread row. A tinted surface plus a left rule, so an unread ticket is
+   identifiable at a glance without reordering the list. The rule is drawn
+   with an inset shadow rather than a border so it adds no width and cannot
+   shift the row against its read neighbours.
+
+   The tint breathes slowly rather than blinking: a hard on/off flash on a
+   full-width row is punishing to read past, and there may be several at
+   once. Suppressed under prefers-reduced-motion. */
+.is-unread {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(255, 117, 117, 0.14) 0%,
+      rgba(255, 117, 117, 0.05) 45%,
+      transparent 100%
+    ),
+    var(--tm-card-bg, rgba(255, 255, 255, 0.04));
+  box-shadow: inset 3px 0 0 0 #ff7575;
+  animation: inq-unread-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes inq-unread-pulse {
+  0%,
+  100% {
+    box-shadow: inset 3px 0 0 0 #ff7575;
+  }
+
+  50% {
+    box-shadow:
+      inset 3px 0 0 0 #ff7575,
+      0 0 12px rgba(255, 117, 117, 0.35);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .is-unread {
+    animation: none;
+  }
+}
+
 /* The expand/collapse motion lives in the transition hooks above: the distance
    is the thread's runtime height, which a keyframe cannot know. */
 

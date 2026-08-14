@@ -3,7 +3,7 @@
  * submit flow for SignupModal.vue.
  *
  * Extracted from the component so the .vue stays a thin presentation layer.
- * Behavior is preserved exactly: vee-validate wiring, currency filtering,
+ * Behavior is preserved exactly: vee-validate wiring,
  * username/referral availability checks, debounced referral auto-check,
  * auto-lowercasing watches, registration submit and the open/close DOM
  * lifecycle (keydown + body scroll lock + stored-referral hydration).
@@ -62,7 +62,6 @@ export function useSignupForm(options: UseSignupFormOptions) {
   const { t, locale } = useI18n();
   const apiMessage = useApiMessage();
   const authStore = useAuthStore();
-  const currency = useCurrency();
   const api = useApi();
 
   // Bank names for the signup dropdown. Loaded from the DB (active +
@@ -85,30 +84,6 @@ export function useSignupForm(options: UseSignupFormOptions) {
     }
   }
 
-  // All currencies the codebase knows how to render. The dropdown is
-  // filtered to only the deployment currency below — keeping the full
-  // list here lets a future multi-currency deployment opt in by removing
-  // the filter.
-  // Flags render via the inline-SVG <LanguageFlag> component (the same one the
-  // header language selector uses), keyed by locale code — no image assets.
-  const ALL_CURRENCY_OPTIONS: Array<{
-    value: string;
-    label: string;
-    flagCode: "en" | "id" | "ko" | "th";
-  }> = [
-    { value: "USD", label: "US Dollar ($)", flagCode: "en" },
-    { value: "IDR", label: "Indonesian Rupiah (Rp)", flagCode: "id" },
-    { value: "THB", label: "Thai Baht (฿)", flagCode: "th" },
-    { value: "KRW", label: "Korean Won (₩)", flagCode: "ko" },
-  ];
-
-  // Restrict signup to the deployment currency. The backend can only
-  // service the wallets it has banks/limits configured for; allowing a
-  // user to register with a different currency would 4xx every deposit.
-  const currencyOptions = ALL_CURRENCY_OPTIONS.filter(
-    (c) => c.value === currency.code,
-  );
-
   // VeeValidate form
   const { handleSubmit, errors, defineField, resetForm, setFieldValue } =
     useForm({
@@ -124,9 +99,7 @@ export function useSignupForm(options: UseSignupFormOptions) {
         password: "",
         confirmPassword: "",
         withdrawalPassword: "",
-        email: "",
         mobile: "",
-        currency: currency.code,
         bankName: "",
         bankAccountName: "",
         bankAccount: "",
@@ -138,9 +111,7 @@ export function useSignupForm(options: UseSignupFormOptions) {
   const [passwordField] = defineField("password");
   const [confirmPasswordField] = defineField("confirmPassword");
   const [withdrawalPasswordField] = defineField("withdrawalPassword");
-  const [emailField] = defineField("email");
   const [mobileField] = defineField("mobile");
-  const [currencyField] = defineField("currency");
   const [bankNameField] = defineField("bankName");
   const [bankAccountNameField] = defineField("bankAccountName");
   const [bankAccountField] = defineField("bankAccount");
@@ -154,26 +125,6 @@ export function useSignupForm(options: UseSignupFormOptions) {
   const showWithdrawalPassword = ref(false);
   const usernameStatus = ref<"available" | "taken" | null>(null);
   const referralStatus = ref<"valid" | "invalid" | null>(null);
-
-  // Computed — fallback to the (single) deployment-currency option so a
-  // THB site shows ฿ and "Thai Baht" instead of the IDR-pinned literals.
-  const selectedCurrencyFlag = computed<"en" | "id" | "ko" | "th">(() => {
-    const selected = currencyOptions.find(
-      (c) => c.value === currencyField.value,
-    );
-    return selected?.flagCode || currencyOptions[0]?.flagCode || "id";
-  });
-
-  const selectedCurrencyLabel = computed(() => {
-    const selected = currencyOptions.find(
-      (c) => c.value === currencyField.value,
-    );
-    return (
-      selected?.label ||
-      currencyOptions[0]?.label ||
-      "Indonesian Rupiah (Rp)"
-    );
-  });
 
   // Methods
   const checkUsername = async () => {
@@ -223,9 +174,11 @@ export function useSignupForm(options: UseSignupFormOptions) {
 
     try {
       // Backend contract (camelCase, see registerSchema in monkey-user-api):
-      // { username, email?, password, confirmPassword, withdrawalPassword?,
-      //   phone, bankName, bankAccount, bankAccountName, referral? }. No
-      // `currency` field. `withdrawalPassword` is optional server-side (older
+      // { username, password, confirmPassword, withdrawalPassword?, phone,
+      //   bankName, bankAccount, bankAccountName, referral? }. Neither email
+      // nor currency is sent: email is optional server-side and the form no
+      // longer collects it, and registerSchema has no currency field at all.
+      // `withdrawalPassword` is optional server-side (older
       // clients omit it) but the form requires it, so it is always sent here.
       await api("/auth/register", {
         method: "POST",
@@ -234,7 +187,6 @@ export function useSignupForm(options: UseSignupFormOptions) {
           password: values.password,
           confirmPassword: values.confirmPassword,
           withdrawalPassword: values.withdrawalPassword,
-          email: values.email?.trim() || undefined,
           phone: values.mobile.trim(),
           bankName: values.bankName,
           bankAccountName: toTitleCase(values.bankAccountName.trim()),
@@ -261,16 +213,10 @@ export function useSignupForm(options: UseSignupFormOptions) {
     }
   };
 
-  // Auto-lowercase username, email, and bank account name as the user types
+  // Auto-lowercase username and title-case bank account name as the user types
   watch(usernameField, (newVal) => {
     if (typeof newVal === "string" && newVal !== newVal.toLowerCase()) {
       usernameField.value = newVal.toLowerCase();
-    }
-  });
-
-  watch(emailField, (newVal) => {
-    if (typeof newVal === "string" && newVal !== newVal.toLowerCase()) {
-      emailField.value = newVal.toLowerCase();
     }
   });
 
@@ -343,9 +289,7 @@ export function useSignupForm(options: UseSignupFormOptions) {
     passwordField,
     confirmPasswordField,
     withdrawalPasswordField,
-    emailField,
     mobileField,
-    currencyField,
     bankNameField,
     bankAccountNameField,
     bankAccountField,
@@ -358,8 +302,6 @@ export function useSignupForm(options: UseSignupFormOptions) {
     showWithdrawalPassword,
     usernameStatus,
     referralStatus,
-    selectedCurrencyFlag,
-    selectedCurrencyLabel,
     checkUsername,
     checkReferral,
     onSubmit,

@@ -3,6 +3,8 @@
  * Ported from banana-lucky-next/lib/utils/game-navigation.ts
  */
 
+import { blockedByUnreadInquiries } from "~/utils/unreadInquiryGuard";
+
 /**
  * Check if the user is on a mobile device
  */
@@ -59,9 +61,26 @@ export function shouldOpenGameInSameWindow(): boolean {
 }
 
 /**
- * Open a game URL - navigates in same window inside Telegram, otherwise opens in a new tab
+ * Open a game URL - navigates in same window inside Telegram, otherwise opens
+ * in a new tab.
+ *
+ * Blocked while the member has unread inquiry replies: an unread reply is
+ * usually the operator asking for something, and launching a game buries it.
+ * Guarded HERE rather than at each call site so every launch surface —
+ * HomeGameCard, LobbyCard, SubGames, RecentlyPlayed, Recommended, the home
+ * page and slot-RTP — is covered by construction, and a new one cannot miss
+ * it. Fire-and-forget: the guard shows the warning and opens the inquiry
+ * modal itself, so callers need not await.
  */
 export function openGame(gameUrl: string): void {
+  void blockedByUnreadInquiries().then((blocked) => {
+    if (blocked) return;
+    launchGame(gameUrl);
+  });
+}
+
+/** Perform the actual navigation, once the guard has allowed it. */
+function launchGame(gameUrl: string): void {
   if (shouldOpenGameInSameWindow()) {
     // Inside Telegram WebApp, navigate in the same window
     window.location.href = gameUrl;

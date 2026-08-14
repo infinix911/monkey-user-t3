@@ -181,7 +181,11 @@ const onSubmitWithdrawal = wdHandleSubmit(async (values) => {
     await api(WITHDRAWAL_PASSWORD_ENDPOINT, {
       method: "POST",
       body: {
-        currentPassword: values.currentPassword,
+        // Omitted rather than sent empty: the field is blank during first-time
+        // setup, and the API's `currentPassword` is optional but min-6 when
+        // present — an empty string would fail validation with a 422 instead of
+        // taking the first-time-setup path.
+        currentPassword: values.currentPassword || undefined,
         newPassword: values.newPassword,
       },
     });

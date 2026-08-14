@@ -116,15 +116,27 @@
           v-else type="button"
           :class="[ROW_CLASS, { 'is-active': accountSection.section.value === item.id }]" :style="rowVars"
           @click="onItemClick(item)">
-          <img
-            :src="iconFor(item)"
-            alt=""
-            aria-hidden="true"
-            width="28"
-            height="28"
-            class="sb-icon w-7 h-7 object-contain flex-shrink-0"
-            loading="lazy"
-            decoding="async">
+          <span class="relative flex-shrink-0">
+            <img
+              :src="iconFor(item)"
+              alt=""
+              aria-hidden="true"
+              width="28"
+              height="28"
+              class="sb-icon w-7 h-7 object-contain"
+              loading="lazy"
+              decoding="async">
+            <!-- Unread badge — pinned to the 문의 icon only. Blinks so it is
+                 noticed in peripheral vision: the member is otherwise blocked
+                 from transacting with no on-screen reason why. Capped at 99+ so
+                 a long-neglected inbox cannot widen the rail. -->
+            <span
+              v-if="item.id === 'inquiry' && uiStore.unreadInquiryCount > 0"
+              class="sb-unread-badge"
+              :aria-label="`${uiStore.unreadInquiryCount} ${$t('inquiry.unreadMessage')}`">
+              <span>{{ uiStore.unreadInquiryCount > 99 ? "99+" : uiStore.unreadInquiryCount }}</span>
+            </span>
+          </span>
           <span class="truncate">{{ menu.tLabel(item.labelKey) }}</span>
         </button>
       </li>
@@ -441,6 +453,59 @@ function goTo(path: string): void {
 </script>
 
 <style scoped>
+/* Unread-inquiry badge on the 문의 row.
+   Sits on the icon's top-right corner, overlapping it slightly so it reads
+   as attached to the icon rather than as a separate column. The blink is
+   opacity-only (no transform) so it cannot shift the row's layout, and it
+   stops for anyone who has asked for reduced motion — a flashing element is
+   exactly what that setting exists to suppress. */
+.sb-unread-badge {
+  position: absolute;
+  top: -4px;
+  right: -6px;
+
+  /* Flex centring rather than line-height + text-align: a numeral's ink sits
+     high in its line box (no descender), so matching line-height to the pill
+     height left the digit visibly above centre. `align-items: center` centres
+     the line BOX, and `line-height: 1` shrinks that box to the glyph so the
+     two coincide. `justify-content` handles the horizontal axis for both the
+     one-digit (min-width) and multi-digit (padding) cases. */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  box-sizing: border-box;
+  border-radius: 9999px;
+  background: #ff3b30;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.55);
+  pointer-events: none;
+  animation: sb-unread-blink 1.15s ease-in-out infinite;
+}
+
+@keyframes sb-unread-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.25;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sb-unread-badge {
+    animation: none;
+  }
+}
+
 /* Resting row. */
 .sb-row {
   color: #ffffff;

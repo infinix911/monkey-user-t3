@@ -115,7 +115,13 @@ const fetchInquiryData = async (page: number = 1) => {
   }
 };
 
-// Fetch data when modal opens
+// Fetch data when the modal opens.
+//
+// `immediate` is required, not a nicety: the layout renders this component
+// behind `v-if="uiStore.showInquiryModal"`, so it is CREATED with `isOpen`
+// already true and a lazy watcher never fires — the modal mounts empty and
+// stays empty. That is what the unread guard hit: it flips the flag, the
+// component mounts open, and nothing fetched.
 watch(
   () => props.isOpen,
   async (open) => {
@@ -123,6 +129,7 @@ watch(
       await fetchInquiryData(1);
     }
   },
+  { immediate: true },
 );
 
 const handleCloseClick = async () => {

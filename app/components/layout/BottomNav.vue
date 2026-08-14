@@ -262,7 +262,7 @@ const handleCenterClick = () => {
   else uiStore.setShowLoginModal(true);
 };
 
-const handleNavClick = (item: NavItem) => {
+const handleNavClick = async (item: NavItem) => {
   if (item.id === "home") {
     goHome();
     return;
@@ -291,9 +291,12 @@ const handleNavClick = (item: NavItem) => {
   if (item.id === "notice") {
     accountSection.open("faq");
     uiStore.setShowProfileModal(true);
-  } else if (item.id === "deposit") uiStore.setShowDepositModal(true);
-  else if (item.id === "withdraw") uiStore.setShowWithdrawalModal(true);
-  else if (item.id === "menu") {
+  } else if (item.id === "deposit" || item.id === "withdraw") {
+    // Unread inquiry replies block transacting — see `blockedByUnreadInquiries`.
+    if (await blockedByUnreadInquiries()) return;
+    if (item.id === "deposit") uiStore.setShowDepositModal(true);
+    else uiStore.setShowWithdrawalModal(true);
+  } else if (item.id === "menu") {
     // Toggle the profile modal — tapping the menu icon again closes it.
     uiStore.setShowProfileModal(!uiStore.showProfileModal);
   }

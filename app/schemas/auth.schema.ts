@@ -16,7 +16,7 @@ export const loginSchema = (t: TFn) =>
         .regex(/^[a-zA-Z0-9_-]+$/, t("auth.validation.usernameInvalidChars")),
       password: z
         .string()
-        .min(1, t("auth.validation.passwordCheck"))
+        .min(6, t("auth.validation.passwordMinLength"))
         .max(20, t("auth.validation.passwordTooLong")),
     }),
   );
@@ -39,15 +39,11 @@ const signupRawSchema = (t: TFn) =>
         .string()
         .min(1, t("password.validation.confirmPasswordRequired")),
       // Bounds mirror registerSchema's `withdrawalPassword` in monkey-user-api
-      // (4-20), which is also what the withdraw request validates against.
+      // (6-20), which is also what the withdraw request validates against.
       withdrawalPassword: z
         .string()
-        .min(4, t("signup.validation.withdrawalPasswordMinLength"))
+        .min(6, t("signup.validation.withdrawalPasswordMinLength"))
         .max(20, t("signup.validation.withdrawalPasswordMaxLength")),
-      email: z
-        .string()
-        .email(t("signup.validation.emailInvalid"))
-        .or(z.literal("")),
       mobile: z
         .string()
         .min(1, t("signup.validation.mobileRequired"))
@@ -56,7 +52,6 @@ const signupRawSchema = (t: TFn) =>
           (v) => v.replace(/\D/g, "").length >= 8,
           t("signup.validation.mobileMinLength"),
         ),
-      currency: z.string().min(1, t("signup.validation.currencyRequired")),
       bankName: z
         .string()
         .min(1, t("signup.validation.bankNameRequired"))
