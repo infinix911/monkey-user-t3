@@ -36,9 +36,27 @@
        The type therefore stays as large as the width allows at any size, and
        reaches the full 14px design value from ~400px up.
        36px tall, matching the announcement bar below it. -->
-  <div v-if="authStore.isAuthenticated"
-    class="mub-bar lg:hidden w-full h-[36px] grid grid-cols-[minmax(0,max-content)_minmax(0,1fr)_minmax(0,1fr)_auto] items-center overflow-hidden whitespace-nowrap"
-    :style="{ backgroundColor: BAR_BG }">
+  <!-- INSET. The bar used to run edge to edge; it now floats with clearance at
+       the sides and below, matching the partner console's account bar. It stays
+       flush against the header at the top.
+
+       The clearance is PADDING on this wrapper, not margin on the bar. The
+       layout measures the bar with `offsetHeight` (see `userBarHeight` in
+       layouts/default.vue) to size the spacer that holds its place while it is
+       pinned on scroll, and to offset the navbar beneath it. `offsetHeight`
+       excludes margins, and the anchor around this has no padding or border of
+       its own, so a vertical margin here would collapse straight through it —
+       the measurement would come back 36px while the bar occupied more, and the
+       page would jump as it pinned. Padding is inside the border box, so it is
+       measured.
+
+       The wrapper carries the header's own background rather than sitting
+       transparent: while pinned it is `position: fixed`, so page content would
+       otherwise scroll through the gap around the bar. -->
+  <div v-if="authStore.isAuthenticated" class="mub-wrap lg:hidden w-full" :style="{ backgroundColor: WRAP_BG }">
+    <div
+      class="mub-bar w-full h-[36px] grid grid-cols-[minmax(0,max-content)_minmax(0,1fr)_minmax(0,1fr)_auto] items-center overflow-hidden whitespace-nowrap rounded-[10px]"
+      :style="{ backgroundColor: BAR_BG }">
     <!-- 1. Identity. `honorific` is the Korean "님" suffix; locales without an
          equivalent ship an empty string, so the element is dropped entirely
          rather than rendering a stray space. The username is the only part
@@ -56,8 +74,11 @@
          `min-width: auto`, so without it the span refuses to shrink below its
          text and pushes into the neighbouring column instead of ellipsising. -->
     <span class="mub-group flex items-center min-w-0 justify-self-end overflow-hidden">
-      <NuxtImg :src="siteConfig.assets.navIcons.walletIcon" alt="" aria-hidden="true" width="16" height="16"
-        class="mub-icon object-contain shrink-0" />
+      <!-- The wallet coin runs one pixel larger than the point disc: its artwork
+           reads a touch smaller at a matched box, so an equal size leaves the two
+           looking uneven. Matches the partner console's account bar. -->
+      <NuxtImg :src="siteConfig.assets.navIcons.walletIcon" alt="" aria-hidden="true" width="17" height="17"
+        class="mub-icon mub-icon-wallet object-contain shrink-0" />
       <!-- Figure and unit share a baseline (they are one phrase, at two sizes);
            the icon centres against that block. Centring all three together put
            the smaller 원 on the figure's mid-line instead of its baseline. -->
@@ -96,6 +117,7 @@
       <NuxtImg :src="siteConfig.assets.navIcons.refreshIcon" alt="" aria-hidden="true" width="18" height="18"
         class="mub-reload-icon mobile-user-bar-icon-light object-contain" />
     </button>
+    </div>
   </div>
 </template>
 
@@ -110,6 +132,10 @@ const { t } = useI18n();
 
 /** Same surface as the desktop account bar, so the two read as one component. */
 const BAR_BG = "#262626";
+
+/** Behind the inset bar. The header's own sticky colour, so the strip the bar
+ *  floats in reads as a continuation of the header rather than a second band. */
+const WRAP_BG = computed(() => siteConfig.theme.nav.stickyBg);
 
 // Value semantics, matching the desktop bar: the username reads gold, the
 // wallet balance green and the point balance blue, so the three are told apart
@@ -171,6 +197,19 @@ const refreshWallet = async () => {
    truncate guard absorbs the narrow-phone cases where a long username and two
    8-digit balances no longer fit. Suffixes and icons use the same shape so the
    whole bar scales as one system rather than drifting apart. */
+/* The bar's clearance from the screen edges and from the banner below. Fluid
+   like everything else here, so the inset shrinks with the phone rather than
+   eating a fixed 24px of a 320px screen — the figures inside are competing for
+   that same width.
+
+   No clearance at the top: the bar sits flush against the header so the two read
+   as one piece of chrome, with the gap only below it separating the pair from
+   the content that follows. */
+.mub-wrap {
+  padding-inline: clamp(6px, 2.2vw - 1px, 12px);
+  padding-block: 0 clamp(6px, 2.2vw - 1px, 12px);
+}
+
 .mub-bar {
   --mub-figure: clamp(12px, 4vw - 1.5px, 15px);
   --mub-suffix: clamp(10px, 3.4vw - 1.3px, 13px);
@@ -199,6 +238,14 @@ const refreshWallet = async () => {
   width: var(--mub-icon);
   height: var(--mub-icon);
   margin-block-start: calc(var(--mub-figure) * -0.05);
+}
+
+/* The wallet coin, one pixel up on the same fluid scale. Expressed off
+   `--mub-icon` rather than as its own clamp() so it tracks the scale instead of
+   drifting from the point icon at the ends of the range. */
+.mub-icon-wallet {
+  width: calc(var(--mub-icon) + 1px);
+  height: calc(var(--mub-icon) + 1px);
 }
 
 /* Gap between an icon and its figure, inside a value group. */
