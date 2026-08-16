@@ -29,7 +29,6 @@
     <!-- Table -->
     <AppTable :columns="columns" :rows="transactions" :empty-text="t(`${type}.history.noData`)">
       <template #row="{ row }">
-        <td>{{ row.method }}</td>
         <td><TableDateCell :value="String(row.updated_at ?? '')" /></td>
         <td>{{ formatNumber(parseFloat(String(row.amount ?? '0'))) }}</td>
         <td>
@@ -67,7 +66,6 @@ const transactions = ref<ITransactionHistory[]>([]);
 
 /** Header labels, in column order — the `row` slot emits cells to match. */
 const columns = computed(() => [
-  t(`${props.type}.history.type`),
   t(`${props.type}.history.date`),
   t(`${props.type}.history.amount`),
   t(`${props.type}.history.status`),

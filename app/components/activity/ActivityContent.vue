@@ -288,9 +288,14 @@ const tableData = computed(() => {
     const credit = parseFloat(String(row.credit ?? "0")) || 0;
     if (activeTab.value === "transaction" || activeTab.value === "all") {
       const amount = credit > 0 ? credit : debit;
+      // Agent wallet transfer: show "Agent Transfer (executer <arrow> other)".
+      // DEDUCT = executer took money (←); ADD = executer gave money (→).
+      const service = row.transfer_executer
+        ? `${t("activity.agentTransfer")} (${row.transfer_executer} ${row.transfer_type === "DEDUCT" ? "←" : "→"} ${row.transfer_counterparty ?? ""})`
+        : row.transaction || "";
       return {
         ID: formatId(row.id),
-        Service: row.transaction || "",
+        Service: service,
         Amount: formatAmount(amount),
         Status: credit > 0 ? t("activity.credit") : t("activity.debit"),
         "Updated At": String(row.created_at || ""),
