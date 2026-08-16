@@ -335,6 +335,19 @@ const uiStore = useUiStore();
 // flag without a reload.
 useUnreadInquiries();
 
+// Hard block: force the inquiry modal open whenever an inquiry has unread admin
+// replies. It is a non-dismissible full-screen overlay until the member reads
+// them (InquiryModal.handleCloseClick / 전체 읽기), so this blocks every other
+// action until they do. `immediate` catches a load that starts unread; the
+// websocket flip above reopens it if a reply arrives mid-session.
+watch(
+  () => uiStore.hasUnreadInquiries,
+  (hasUnread) => {
+    if (hasUnread) void blockedByUnreadInquiries();
+  },
+  { immediate: true },
+);
+
 // Non-critical components — async-loaded so their JS/CSS stays out of the
 // initial bundle. `v-if` guards in the template below keep the chunks from
 // even being requested until the right moment (modal opens, user authed,

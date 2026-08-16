@@ -731,7 +731,8 @@
       "ADMIN_WALLET_ADJUSTMENT": "Admin Adjustment",
       "POINT_EXCHANGE": "Point Exchange",
       "User Withdrawal": "Withdrawal"
-    }
+    },
+    "agentTransfer": "Agent Transfer"
   },
   "bettingReport": {
     "title": "Betting Report",
@@ -963,6 +964,7 @@
     "apiMessages": {
       "POINTS_EXCHANGED": "Points converted successfully.",
       "INSUFFICIENT_POINTS": "You don't have enough points.",
+      "POINT_EXCHANGE_BELOW_MINIMUM": "Amount is below the minimum conversion amount.",
       "MEMBER_NOT_FOUND": "Member not found.",
       "INTERNAL_ERROR": "Something went wrong. Please try again."
     },

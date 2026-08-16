@@ -14,7 +14,7 @@ export const walletTransactionWireSchema = z.object({
   bankName: z.string(),
   bankAccount: z.string(),
   bankAccountName: z.string(),
-  method: z.string(),
+  // method: z.string(), // deposit/withdrawal 'type' (bank) — column removed from history tables; keep for future reuse
   amount: z.string(),
   status: z.number(),
   createdAt: z.string(),
@@ -30,7 +30,7 @@ export interface WalletTransaction {
   bank_name: string;
   bank_account: string;
   bank_account_name: string;
-  method: string;
+  // method: string; // deposit/withdrawal 'type' (bank) — column removed from history tables; keep for future reuse
   amount: string;
   status: number;
   created_at: string;
@@ -44,7 +44,7 @@ export const mapWalletTransaction = (
   bank_name: w.bankName,
   bank_account: w.bankAccount,
   bank_account_name: w.bankAccountName,
-  method: w.method,
+  // method: w.method, // deposit/withdrawal 'type' (bank) — column removed from history tables; keep for future reuse
   amount: w.amount,
   status: w.status,
   created_at: w.createdAt,
@@ -64,6 +64,9 @@ export const activityWireSchema = z.object({
   debit: z.string(),
   credit: z.string(),
   walletAfter: z.string(),
+  transferExecuter: z.string().optional(),
+  transferCounterparty: z.string().optional(),
+  transferType: z.string().optional(),
 });
 
 export const activityResponseWireSchema = z.object({
@@ -87,6 +90,9 @@ export interface ActivityRow {
   debit: string;
   credit: string;
   wallet_after: string;
+  transfer_executer?: string;
+  transfer_counterparty?: string;
+  transfer_type?: string;
 }
 
 /** Normalized activity response — the { rows, pages, data } shape consumers use. */
@@ -107,6 +113,9 @@ export const mapActivityRow = (
   debit: w.debit,
   credit: w.credit,
   wallet_after: w.walletAfter,
+  transfer_executer: w.transferExecuter,
+  transfer_counterparty: w.transferCounterparty,
+  transfer_type: w.transferType,
 });
 
 export const mapActivityResponse = (
