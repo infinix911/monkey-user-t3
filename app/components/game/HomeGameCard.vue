@@ -128,7 +128,7 @@ const props = withDefaults(
 const siteConfig = useSiteConfig();
 
 // Provider logo, resolved from the provider code against the display-name-keyed
-// assets in /designs/game-logo (getLogoImages, app/utils/gameProviderLogo.ts).
+// assets in /designs/game_logo (getLogoImages, app/utils/gameProviderLogo.ts).
 // The code is stable across deployments; the caller-supplied `game.logo` (a
 // lobby-UUID-named file) stays as the fallback for providers with no mapping
 // yet — sports lobbies in particular. Empty means neither resolved, and the

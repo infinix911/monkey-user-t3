@@ -67,7 +67,7 @@
                   class="group relative inline-flex shrink-0 items-center justify-center">
                   <img :src="logo" alt="" width="120" height="48" loading="eager" fetchpriority="low" decoding="async"
                     class="footer-logo invisible block h-12 w-[120px] object-contain object-center opacity-60 grayscale transition-[transform,opacity,filter] duration-500 ease-out group-hover:scale-110 group-hover:opacity-100 group-hover:grayscale-0 sm:h-14 sm:w-[140px]"
-                    @load="onLogoLoad">
+                    @load="onLogoLoad" @error="onLogoError(logo)">
                   <!-- Continuous shine sweep, masked to the logo's silhouette -->
                   <span class="logo-shine pointer-events-none absolute inset-0" :style="shineStyle(logo, i)"
                     aria-hidden="true" />
@@ -236,6 +236,20 @@ const onLogoLoad = (e: Event) => {
   img.classList.remove("invisible");
 };
 
+// A logo that fails to fetch would otherwise sit in the row FOREVER INVISIBLE
+// but still 120px wide: `onLogoLoad` above is the only thing that unhides an
+// image, and a 404 never fires `load`. That is how a stale path list (see
+// footerLogos.ts — the whole set once pointed at a renamed folder) turned these
+// rows into blank bands rather than an obvious break. Dropping the failed src
+// out of the track instead keeps the marquee tight and makes the loss look like
+// a shorter row. Keyed by src, so both copies in the duplicated track go at
+// once and a re-render cannot resurrect it.
+const failedLogos = ref(new Set<string>());
+const onLogoError = (logo: string) => {
+  if (failedLogos.value.has(logo)) return;
+  failedLogos.value = new Set(failedLogos.value).add(logo);
+};
+
 // Clips the shine sweep to each logo's own silhouette (alpha mask) and
 // staggers the start so the sheen flows across the row as a continuous wave.
 const shineStyle = (logo: string, i: number) => ({
@@ -257,7 +271,13 @@ const logoGroups = computed(() =>
     { key: "casino", title: t("footer.links.casino"), logos: CASINO_LOGOS },
     { key: "slots", title: t("footer.links.slots"), logos: SLOT_LOGOS },
     { key: "sports", title: t("footer.links.sports"), logos: SPORT_LOGOS },
-  ].map((g) => ({ ...g, marquee: [...g.logos, ...g.logos] })),
+  ].map((g) => {
+    // Anything that 404'd is dropped from BOTH the track and the length the
+    // animation duration is derived from, so the loop still shifts by exactly
+    // one set (-50%) and stays seamless.
+    const logos = g.logos.filter((l) => !failedLogos.value.has(l));
+    return { ...g, logos, marquee: [...logos, ...logos] };
+  }),
 );
 
 // Footer navigation. Internal paths (starting with "/") render as locale-aware
