@@ -17,10 +17,15 @@
        and the values land in the same places whatever their length; under flex
        a long balance stole room from the username.
        The username is CENTRED in the left third and the balance CENTRED in the
-       middle one — and because the two side sections are equal, the balance
-       centres on the bar's own centre line. The point figure and the reload
-       button share the right third as one flush-right group, so the reload
-       stays at the screen edge where the thumb expects it.
+       middle one. The point figure and the reload button share the right third
+       as one flush-right group, so the reload stays at the screen edge where the
+       thumb expects it.
+       The balance sits ~4-6px left of the bar's VISUAL centre, not on it: the
+       sections are equal, but the bar's padding box is not (0 leading, 8-12px
+       trailing to hold the reload off the edge), so the middle column's centre
+       is half the trailing padding left of the bar's. Recentring it means giving
+       that width back, and the fit below has no width to give — it would drop
+       the balance's or the point's clearance to nothing.
        `grid-cols-3` is `repeat(3,minmax(0,1fr))`; the 0 minimum is what lets an
        over-long value truncate inside its own third instead of pushing into a
        neighbouring section.
@@ -218,11 +223,14 @@ const refreshWallet = async () => {
    — an all-caps 9-character name truncates by design. If either maximum grows a
    digit, this scale has to come down: the digit count is the input here.
 
-   The bar's own padding (was 10–16px) and column gaps (was 6–8px) were trimmed
-   to pay for the equal split, and it still costs the figure ~1.2px against the
-   previous four-column layout: 11.7px at 360px (was 12.9px), 13.4px at 412px
-   (was 15px), with the 15px ceiling now reached at ~461px. That is the price of
-   a 억 balance never clipping, which is the requirement.
+   The bar's own padding (was 10–16px both sides, now 0 leading) and column gaps
+   (was 6–8px) were trimmed to pay for the equal split, and it still costs the
+   figure ~1.2px against the previous four-column layout: 11.7px at 360px (was
+   12.9px), 13.4px at 412px (was 15px), with the 15px ceiling now reached at
+   ~461px. That is the price of a 억 balance never clipping, which is the
+   requirement. Dropping the leading padding bought ~2.7px of clearance per
+   section rather than a bigger figure — the scale is left where it is so the
+   fit keeps a margin for the font's uneven digit widths.
 
    Suffix and icon sizes are DERIVED from the figure rather than getting their
    own clamp()s. Three independent lines drifted apart at the ends of the range,
@@ -248,7 +256,12 @@ const refreshWallet = async () => {
   --mub-gap: clamp(2px, 1.1vw - 1px, 4px);
 
   column-gap: clamp(4px, 1.7vw - 2.1px, 6px);
-  padding-inline: clamp(8px, 3.3vw - 3.9px, 12px);
+  /* Leading padding is deliberately 0 — the username starts flush against the
+     bar's left edge (the wrapper's own inset still holds the bar off the
+     bezel). Trailing padding stays: it is what keeps the reload button clear of
+     the edge, and it is the only side with a control hard against it. The 8px
+     this frees goes straight into the three sections. */
+  padding-inline: 0 clamp(8px, 3.3vw - 3.9px, 12px);
 }
 
 /* Gap between the point figure and the reload button — the same value as the
