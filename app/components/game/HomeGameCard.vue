@@ -36,9 +36,9 @@
       <!-- 4. Brand logo — top-center, above the frame, filtered to white. -->
       <div v-if="siteConfig.identity.logo && (gameType === 'casino' || gameType === 'slot' || gameType === 'sports')"
         class="absolute inset-x-0 flex items-center justify-center z-30 pointer-events-none"
-        style="top: 2px; height: 9%;">
+        style="top: 2px; height: 8%;">
         <img :src="siteConfig.identity.logo" :alt="siteConfig.identity.siteName" :loading="eager ? 'eager' : 'lazy'"
-          class="object-contain h-full" style="width: auto; max-width: 48%; filter: brightness(0) invert(1);">
+          class="object-contain h-full" style="width: auto; max-width: 35%; filter: brightness(0) invert(1);">
       </div>
 
       <!-- 5. Provider logo — sits on the dark gradient band of the frame
