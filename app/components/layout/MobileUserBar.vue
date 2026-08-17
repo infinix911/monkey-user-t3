@@ -12,29 +12,29 @@
        crowded, so this takes over there. AppHeader's account bar is
        `hidden lg:flex` for the same reason; exactly one of the two renders at
        any width. -->
-  <!-- FOUR COLUMNS — username · money · points · reload. A grid rather than a
-       flex row so each value owns a fixed share of the width and they line up
-       in the same places whatever their length; under flex a long balance stole
-       room from the username.
-       The identity and the reload button are sized to their own content and are
-       excluded from the split; the space LEFT OVER between them is halved, one
-       half each for the wallet and point figures. Both figures are
-       `justify-self-end`, so the wallet ends exactly on the midpoint and the
-       point ends against the reload button. Equal thirds (the previous
-       `repeat(3,minmax(0,1fr))`) gave the figures no room to grow into, so a
-       balance running past its third overlapped its neighbour.
-       `minmax(0,max-content)` on the identity caps it at its natural width while
-       the 0 minimum still lets a long username truncate rather than eat a half.
+  <!-- THREE EQUAL SECTIONS — identity · money · (points + reload). A grid
+       rather than a flex row so each section owns the same share of the width
+       and the values land in the same places whatever their length; under flex
+       a long balance stole room from the username.
+       The username is CENTRED in the left third and the balance CENTRED in the
+       middle one — and because the two side sections are equal, the balance
+       centres on the bar's own centre line. The point figure and the reload
+       button share the right third as one flush-right group, so the reload
+       stays at the screen edge where the thumb expects it.
+       `grid-cols-3` is `repeat(3,minmax(0,1fr))`; the 0 minimum is what lets an
+       over-long value truncate inside its own third instead of pushing into a
+       neighbouring section.
 
-       SIZING is fluid, and it is load-bearing rather than cosmetic. Worst
-       realistic case is a 9-character username with two 8-digit balances; at a
-       flat 14px that measures ~315px of content against ~280px of usable width
-       on a 360px phone, so it cannot fit and something has to collide or clip.
-       Rather than stepping down at a breakpoint — which is either too small on
-       the wide side of the step or still too big on the narrow side — every
-       dimension scales with the viewport via clamp() (see the style block).
-       The type therefore stays as large as the width allows at any size, and
-       reaches the full 14px design value from ~400px up.
+       SIZING is fluid, and it is load-bearing rather than cosmetic. Equal
+       sections give the money the same room as the much shorter username, so
+       the widest realistic value sets the type scale for the whole bar. Worst
+       case is a 억-scale balance (`999,999,999 원`, 9 digits) in the middle and
+       an 8-digit point figure plus the reload button on the right; those two
+       measure within a pixel of each other, so one scale satisfies both (the
+       derivation is in the style block). Rather than stepping down at a
+       breakpoint — either too small on the wide side of the step or still too
+       big on the narrow side — every dimension scales with the viewport via
+       clamp(), so the type stays as large as the width allows at any size.
        36px tall, matching the announcement bar below it. -->
   <!-- INSET. The bar used to run edge to edge; it now floats with clearance at
        the sides and below, matching the partner console's account bar. It stays
@@ -55,25 +55,26 @@
        otherwise scroll through the gap around the bar. -->
   <div v-if="authStore.isAuthenticated" class="mub-wrap lg:hidden w-full" :style="{ backgroundColor: WRAP_BG }">
     <div
-      class="mub-bar w-full h-[36px] grid grid-cols-[minmax(0,max-content)_minmax(0,1fr)_minmax(0,1fr)_auto] items-center overflow-hidden whitespace-nowrap rounded-[10px]"
+      class="mub-bar w-full h-[36px] grid grid-cols-3 items-center overflow-hidden whitespace-nowrap rounded-[10px]"
       :style="{ backgroundColor: BAR_BG }">
-    <!-- 1. Identity. `honorific` is the Korean "님" suffix; locales without an
-         equivalent ship an empty string, so the element is dropped entirely
-         rather than rendering a stray space. The username is the only part
-         allowed to truncate — every other value is a figure that must stay
-         readable in full. -->
-    <span class="flex items-baseline gap-0.5 min-w-0 overflow-hidden">
+    <!-- SECTION 1. Identity, centred in its third. `honorific` is the Korean
+         "님" suffix; locales without an equivalent ship an empty string, so the
+         element is dropped entirely rather than rendering a stray space. The
+         username is the only part allowed to truncate — every other value is a
+         figure that must stay readable in full. `max-w-full` keeps the centred
+         item inside its column so the truncation actually engages. -->
+    <span class="flex items-baseline gap-0.5 min-w-0 max-w-full justify-self-center overflow-hidden">
       <span class="mub-figure min-w-0 font-bold uppercase leading-none truncate"
         :style="{ color: ACCOUNT_BAR_COLORS.username }">{{ authStore.user.username }}</span>
       <span v-if="honorific" class="mub-suffix text-white leading-none shrink-0">{{ honorific }}</span>
     </span>
 
-    <!-- 2. Wallet balance — right-aligned on the midpoint of the space between
-         the identity and the reload button. `min-w-0` on the figure is what
-         makes `truncate` work at all: a flex child defaults to
-         `min-width: auto`, so without it the span refuses to shrink below its
-         text and pushes into the neighbouring column instead of ellipsising. -->
-    <span class="mub-group flex items-center min-w-0 justify-self-end overflow-hidden">
+    <!-- SECTION 2. Wallet balance, centred in the middle third — and therefore
+         on the bar's centre line, the side sections being equal. `min-w-0` on
+         the figure is what makes `truncate` work at all: a flex child defaults
+         to `min-width: auto`, so without it the span refuses to shrink below its
+         text and pushes into the neighbouring section instead of ellipsising. -->
+    <span class="mub-group flex items-center min-w-0 max-w-full justify-self-center overflow-hidden">
       <!-- The wallet coin runs one pixel larger than the point disc: its artwork
            reads a touch smaller at a matched box, so an equal size leaves the two
            looking uneven. Matches the partner console's account bar. -->
@@ -90,33 +91,36 @@
       </span>
     </span>
 
-    <!-- 3. Point balance — the figure IS the conversion control, as on desktop.
-         No separate CONVERT button beside it: clicking the amount opens the
-         modal. Right-aligned so it sits against the reload button. -->
-    <button type="button" :aria-label="$t('point.title')"
-      class="mub-group flex items-center min-w-0 justify-self-end overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
-      @click="openPointModal">
-      <NuxtImg :src="siteConfig.assets.navIcons.pointIcon" alt="" aria-hidden="true" width="16" height="16"
-        class="mub-icon object-contain shrink-0" />
-      <span class="mub-figure min-w-0 font-bold tabular-nums leading-none truncate"
-        :style="{ color: ACCOUNT_BAR_COLORS.point }">{{
-          currency.formatNumber(authStore.user.point_wallet) }}</span>
-    </button>
+    <!-- SECTION 3. Point balance and wallet reload, as one group flush against
+         the trailing edge of the bar. They share a section rather than owning a
+         column each so the reload stays at the screen edge (where the thumb
+         expects it) while the three value sections stay equal. -->
+    <div class="mub-actions flex items-center min-w-0 max-w-full justify-self-end overflow-hidden">
+      <!-- The point figure IS the conversion control, as on desktop. No separate
+           CONVERT button beside it: clicking the amount opens the modal. -->
+      <button type="button" :aria-label="$t('point.title')"
+        class="mub-group flex items-center min-w-0 overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
+        @click="openPointModal">
+        <NuxtImg :src="siteConfig.assets.navIcons.pointIcon" alt="" aria-hidden="true" width="16" height="16"
+          class="mub-icon object-contain shrink-0" />
+        <span class="mub-figure min-w-0 font-bold tabular-nums leading-none truncate"
+          :style="{ color: ACCOUNT_BAR_COLORS.point }">{{
+            currency.formatNumber(authStore.user.point_wallet) }}</span>
+      </button>
 
-    <!-- 4. Wallet reload. The glyph is centred in its own column rather than
-         pushed flush right: the trailing `pe-1.5` that used to hold it off the
-         screen edge also pulled it off-centre, so it no longer lined up with
-         the values beside it. The bar's own `padding-inline` already keeps it
-         clear of the bezel, so the extra end padding is not needed.
-         `place-items-center` centres the icon on both axes, which also keeps it
-         on the spin animation's axis. The art ships in #434343, so it is tinted
-         to white here rather than shipping a second recoloured copy. -->
-    <button type="button" :aria-label="$t('common.refreshBalance')" :disabled="isRefreshingWallet"
-      class="mub-reload-btn grid place-items-center text-center justify-self-center cursor-pointer opacity-90 hover:opacity-100 transition-opacity disabled:opacity-60"
-      :class="{ 'spin-once': isRefreshingWallet }" @click="refreshWallet">
-      <NuxtImg :src="siteConfig.assets.navIcons.refreshIcon" alt="" aria-hidden="true" width="18" height="18"
-        class="mub-reload-icon mobile-user-bar-icon-light object-contain" />
-    </button>
+      <!-- Wallet reload. No trailing padding of its own: the bar's
+           `padding-inline` already holds it clear of the bezel, and the `pe-1.5`
+           it used to carry pulled the glyph off the values' centre line.
+           `place-items-center` centres the icon on both axes, which also keeps
+           it on the spin animation's axis. The art ships in #434343, so it is
+           tinted to white here rather than shipping a second recoloured copy. -->
+      <button type="button" :aria-label="$t('common.refreshBalance')" :disabled="isRefreshingWallet"
+        class="mub-reload-btn grid place-items-center text-center shrink-0 cursor-pointer opacity-90 hover:opacity-100 transition-opacity disabled:opacity-60"
+        :class="{ 'spin-once': isRefreshingWallet }" @click="refreshWallet">
+        <NuxtImg :src="siteConfig.assets.navIcons.refreshIcon" alt="" aria-hidden="true" width="18" height="18"
+          class="mub-reload-icon mobile-user-bar-icon-light object-contain" />
+      </button>
+    </div>
     </div>
   </div>
 </template>
@@ -186,17 +190,44 @@ const refreshWallet = async () => {
    is always as large as the available width allows, instead of stepping down at
    a breakpoint and reading too small for the rest of that range.
 
-   The coefficients are derived, not picked by eye. Total content width scales
-   linearly with the figure size, and the worst realistic case (9-char username
-   + two 8-digit balances) measures ~315px at 14px. Usable width is the viewport
-   less padding, gaps and the reload button (~80px), so the largest size that
-   still fits is roughly `14 * (100vw - 80) / 315` — i.e. about `4.4vw - 3.5px`.
-   The scale sits slightly ABOVE that pure-fit line: fitted exactly, the bar
-   read too small. The ceiling is 15px (reached at ~412px) and the floor 12px —
-   a middle setting, having tried 14px (too small) and 16px (too big). The
-   truncate guard absorbs the narrow-phone cases where a long username and two
-   8-digit balances no longer fit. Suffixes and icons use the same shape so the
-   whole bar scales as one system rather than drifting apart. */
+   The coefficients are MEASURED in the app's own font, not picked by eye. With
+   three EQUAL sections the widest value sets the type size for the whole bar,
+   since the money gets no more room than the much shorter username. The two
+   contended sections are:
+
+     middle  wallet icon + a 9-digit 억 balance + `원`
+     right   point icon + an 8-digit point figure + gap + reload button
+
+   ⚠ LINE Seed has NO tabular figures, so the `tabular-nums` below is a no-op in
+   the shipped font (it only bites in the system-ui fallback) and digit widths
+   VARY: at 15px a `0` advances 10.0px against a `1`'s 6.5px. The worst case is
+   therefore not `999,999,999` but a balance full of zeros — a realistic
+   `500,000,000` is ~11px wider than all-nines at the same size. Both sections
+   were rendered with all-zero values across 320–768px and their natural width
+   compared against the column width `(100vw - wrapper padding - bar padding -
+   column gaps) / 3`; the line below is the largest scale that clears both. The
+   money needs ~8.9px of column per 1px of type and the point group ~8.7px —
+   near enough identical, which is why equal sections are not just what was asked
+   for but also the width-optimal split: widening the middle only starves the
+   right by the same amount.
+
+   Margins at the shipped scale: the balance clears its column by 2.4px at 320px
+   (the app's enforced minimum width — see `min-width: 320px` on body in
+   main.css) and by ~3px from 360px up; the point figure by 3.2–5.2px. The
+   username is the one value allowed to ellipsise, so it is excluded from the fit
+   — an all-caps 9-character name truncates by design. If either maximum grows a
+   digit, this scale has to come down: the digit count is the input here.
+
+   The bar's own padding (was 10–16px) and column gaps (was 6–8px) were trimmed
+   to pay for the equal split, and it still costs the figure ~1.2px against the
+   previous four-column layout: 11.7px at 360px (was 12.9px), 13.4px at 412px
+   (was 15px), with the 15px ceiling now reached at ~461px. That is the price of
+   a 억 balance never clipping, which is the requirement.
+
+   Suffix and icon sizes are DERIVED from the figure rather than getting their
+   own clamp()s. Three independent lines drifted apart at the ends of the range,
+   which is exactly where the fit has to hold; off one variable the whole bar
+   scales as one system and the tuning stays a single number. */
 /* The bar's clearance from the screen edges and from the banner below. Fluid
    like everything else here, so the inset shrinks with the phone rather than
    eating a fixed 24px of a 320px screen — the figures inside are competing for
@@ -211,13 +242,20 @@ const refreshWallet = async () => {
 }
 
 .mub-bar {
-  --mub-figure: clamp(12px, 4vw - 1.5px, 15px);
-  --mub-suffix: clamp(10px, 3.4vw - 1.3px, 13px);
-  --mub-icon: clamp(14px, 4.4vw - 1.5px, 17px);
+  --mub-figure: clamp(10px, 3.25vw, 15px);
+  --mub-suffix: calc(var(--mub-figure) * 0.85);
+  --mub-icon: calc(var(--mub-figure) * 1.1);
   --mub-gap: clamp(2px, 1.1vw - 1px, 4px);
 
-  column-gap: clamp(6px, 2.2vw - 1.9px, 8px);
-  padding-inline: clamp(10px, 4.4vw - 5.8px, 16px);
+  column-gap: clamp(4px, 1.7vw - 2.1px, 6px);
+  padding-inline: clamp(8px, 3.3vw - 3.9px, 12px);
+}
+
+/* Gap between the point figure and the reload button — the same value as the
+   gap between sections, so the right group reads as part of the same rhythm
+   rather than a tighter cluster. */
+.mub-actions {
+  gap: clamp(4px, 1.7vw - 2.1px, 6px);
 }
 
 .mub-figure {
