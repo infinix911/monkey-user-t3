@@ -203,14 +203,14 @@ async function openGamePopup() {
         return;
       }
       const url = `/${props.gameType}/${firstGame.id}?lobbyId=${encodeURIComponent(props.game.id)}`;
-      openGame(url);
+      openGame(url, { gameName: props.game.game_name });
       return;
     }
 
     // Casino: lobby id IS the launchable id (backend treats CASINO type
     // specially and allows lobby-only launch).
     const url = `/${props.gameType}/${props.game.id}`;
-    openGame(url);
+    openGame(url, { gameName: props.game.game_name });
   } catch (err) {
     console.error("Failed to open game:", err);
   }

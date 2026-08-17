@@ -235,6 +235,6 @@ const handleGameClick = (game: GameItem) => {
   const url = lobbyId
     ? `/${gameType}/${gameCode}?lobbyId=${encodeURIComponent(lobbyId)}`
     : `/${gameType}/${gameCode}`;
-  openGame(url);
+  openGame(url, { gameName: game.name });
 };
 </script>

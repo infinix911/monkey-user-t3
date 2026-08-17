@@ -196,7 +196,7 @@ const handleGameClick = (game: Game) => {
   const url = lobbyId
     ? `/${gameType}/${game.id}?lobbyId=${encodeURIComponent(lobbyId)}`
     : `/${gameType}/${game.id}`;
-  openGame(url);
+  openGame(url, { gameName: game.game_name_en });
 };
 
 const filteredGames = computed(() => {

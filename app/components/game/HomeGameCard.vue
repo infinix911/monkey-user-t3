@@ -206,11 +206,12 @@ async function handleClick() {
       }
       openGame(
         `/${props.gameType}/${firstGame.id}?lobbyId=${encodeURIComponent(String(props.game.id))}`,
+        { gameName: props.game.name },
       );
       return;
     }
 
-    openGame(`/${props.gameType}/${props.game.id}`);
+    openGame(`/${props.gameType}/${props.game.id}`, { gameName: props.game.name });
   } catch (err) {
     console.error("Failed to open game:", err);
   }

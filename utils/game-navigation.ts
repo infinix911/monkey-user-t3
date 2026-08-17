@@ -4,6 +4,15 @@
  */
 
 import { blockedByUnreadInquiries } from "~/utils/unreadInquiryGuard";
+import {
+  requestEvolutionOneToTenConsent,
+  requiresEvolutionOneToTenConsent,
+} from "~/composables/useEvolutionOneToTenConsent";
+
+export interface GameLaunchOptions {
+  /** Display name supplied by the launch surface, used for policy-specific gates. */
+  gameName?: string;
+}
 
 /**
  * Check if the user is on a mobile device
@@ -72,10 +81,17 @@ export function shouldOpenGameInSameWindow(): boolean {
  * it. Fire-and-forget: the guard shows the warning and opens the inquiry
  * modal itself, so callers need not await.
  */
-export function openGame(gameUrl: string): void {
+export function openGame(gameUrl: string, options: GameLaunchOptions = {}): void {
   void blockedByUnreadInquiries().then((blocked) => {
     if (blocked) return;
-    launchGame(gameUrl);
+    if (!requiresEvolutionOneToTenConsent(options.gameName)) {
+      launchGame(gameUrl);
+      return;
+    }
+
+    void requestEvolutionOneToTenConsent().then((consented) => {
+      if (consented) launchGame(gameUrl);
+    });
   });
 }
 

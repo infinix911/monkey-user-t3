@@ -181,7 +181,7 @@ const handleGameClick = (game: any) => {
   const url = lobbyId
     ? `/${gameType}/${game.id}?lobbyId=${encodeURIComponent(lobbyId)}`
     : `/${gameType}/${game.id}`;
-  openGame(url);
+  openGame(url, { gameName: game.game_name_en || game.name || "" });
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

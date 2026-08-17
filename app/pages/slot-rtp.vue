@@ -331,7 +331,7 @@ const handleGameClick = (game: NormalizedGame) => {
   const url = lobbyId
     ? `/slot/${game.id}?lobbyId=${encodeURIComponent(lobbyId)}`
     : `/slot/${game.id}`;
-  openGame(url);
+  openGame(url, { gameName: game.game_name_en ?? "" });
 };
 
 // Games for the selected provider — fetched imperatively whenever the tab or

@@ -13,6 +13,7 @@
     </NuxtLayout>
     <Toaster position="top-right" :visible-toasts="5" />
     <AppDialog />
+    <EvolutionOneToTenConsentModal />
   </template>
   <div v-else-if="configError" class="fixed inset-0 flex items-center justify-center bg-black text-white z-[9999]">
     <div class="text-center p-8">

@@ -288,6 +288,17 @@
       "PROVIDER_LAUNCH_FAILED": "Failed to launch game. Please try again.",
       "INTERNAL_ERROR": "An internal error occurred. Please try again later."
     },
+    "evolutionOneToTenConsent": {
+      "title": "Agreement Notice",
+      "notice": "The site is not responsible for bets made because of misunderstanding or confusion about amounts. Please keep this in mind when using the casino.",
+      "explanation": "This game is provided in real time through an overseas local casino. To standardize the different currencies and casino-chip units, all amounts shown after entering the casino — including balance, bets, and winnings — are displayed as one tenth of your site money.",
+      "examples": "Site money 100,000 → Casino entry chips 10,000\nCasino chips 5,000 bet → Site money 50,000 bet\nCasino chips 10,000 win → Site money 100,000 win",
+      "confirmationDescription": "I understand that casino chips are converted to 1/10 after entry. To continue, type “{word}” below, then select Agree.",
+      "confirmationWord": "Agree",
+      "inputLabel": "Agreement confirmation",
+      "inputPlaceholder": "Type “{word}”",
+      "agree": "Agree"
+    },
     "new": "NEW"
   },
   "common": {
