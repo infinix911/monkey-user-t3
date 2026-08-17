@@ -20,6 +20,7 @@ export const betHistoryItemWireSchema = z.object({
   gameRound: z.string().optional(),
   gameTxn: z.string().optional(),
   betAmount: z.string(),
+  autoDeductedAmount: z.string(),
   winAmount: z.string(),
   betResult: z.string(),
   walletBefore: z.string().optional(),
@@ -57,6 +58,7 @@ export interface BetHistoryRow {
   game_room: string;
   bet_amount: string;
   win_amount: string;
+  auto_deducted_amount: string;
   bet_result: string;
   status: number;
   created_at: string;
@@ -84,6 +86,7 @@ export const mapBetHistoryItem = (
   game_room: w.gameRoom,
   bet_amount: w.betAmount,
   win_amount: w.winAmount,
+  auto_deducted_amount: w.autoDeductedAmount,
   bet_result: w.betResult,
   status: w.status ?? 0,
   created_at: w.createdAt,

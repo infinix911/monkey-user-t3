@@ -15,7 +15,20 @@ import {
 describe("member API contract mappers", () => {
   it("preserves the bet-history summary from the camelCase API envelope", () => {
     const response = betHistoriesResponseWireSchema.parse({
-      data: [],
+      data: [
+        {
+          id: "bet-1",
+          gameProvider: "provider",
+          gameName: "game",
+          gameRoom: "room",
+          betAmount: "12500",
+          autoDeductedAmount: "2500",
+          winAmount: "10000",
+          betResult: "lose",
+          status: 2,
+          createdAt: "2026-07-21 12:00:00",
+        },
+      ],
       meta: { total: 0, page: 1, limit: 25, totalPages: 0 },
       summary: {
         betAmount: "12500",
@@ -31,6 +44,9 @@ describe("member API contract mappers", () => {
       roll_amount: "12500",
       net_amount: "-2500",
     });
+    expect(mapBetHistoriesResponse(response).data[0]?.auto_deducted_amount).toBe(
+      "2500",
+    );
   });
 
   it("keeps the notification read state from the camelCase API response", () => {

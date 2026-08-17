@@ -762,6 +762,7 @@
     "room": "Room",
     "betAmount": "Bet amount",
     "winAmount": "Win amount",
+    "autoDeductedAmount": "Auto Deducted",
     "winLoss": "Win/Loss",
     "total": "Total",
     "loading": "Loading...",

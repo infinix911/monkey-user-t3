@@ -762,6 +762,7 @@
     "room": "룸",
     "betAmount": "베팅 금액",
     "winAmount": "승리 금액",
+    "autoDeductedAmount": "자동 차감",
     "winLoss": "승/패",
     "total": "총합",
     "loading": "로딩 중...",

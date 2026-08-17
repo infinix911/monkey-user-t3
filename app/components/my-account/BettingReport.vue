@@ -105,6 +105,7 @@
         <td class="whitespace-nowrap">{{ row.game_room }}</td>
         <td class="whitespace-nowrap">{{ formatNumber(row.bet_amount as number) }}</td>
         <td class="whitespace-nowrap">{{ formatNumber(row.win_amount as number) }}</td>
+        <td class="whitespace-nowrap">{{ formatNumber(row.auto_deducted_amount as number) }}</td>
         <td :class="winLossClass(Number(row.win_amount) - Number(row.bet_amount))">
           {{ formatNumber(Number(row.win_amount) - Number(row.bet_amount)) }}
         </td>
@@ -114,6 +115,7 @@
         <td :colspan="showTypeColumn ? 4 : 3" class="font-semibold">{{ t("bettingReport.total") }}</td>
         <td class="whitespace-nowrap">{{ totals.betAmount }}</td>
         <td class="whitespace-nowrap">{{ totals.winAmount }}</td>
+        <td class="whitespace-nowrap">—</td>
         <td :class="winLossClass(Number(summary?.net_amount ?? 0))">{{ totals.winLoss }}</td>
       </template>
     </AppTable>
@@ -233,6 +235,7 @@ const columns = computed(() => [
   t("bettingReport.room"),
   t("bettingReport.betAmount"),
   t("bettingReport.winAmount"),
+  t("bettingReport.autoDeductedAmount"),
   t("bettingReport.winLoss"),
 ]);
 
