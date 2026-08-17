@@ -976,6 +976,11 @@
       "POINTS_EXCHANGED": "Points converted successfully.",
       "INSUFFICIENT_POINTS": "You don't have enough points.",
       "POINT_EXCHANGE_BELOW_MINIMUM": "Amount is below the minimum conversion amount.",
+      "POINT_EXCHANGE_ABOVE_MAXIMUM": "Amount exceeds the maximum conversion amount.",
+      "POINT_EXCHANGE_NOT_DIVISIBLE": "Amount must match the configured conversion increment.",
+      "POINT_EXCHANGE_COOLDOWN_ACTIVE": "Please wait before converting points again.",
+      "POINT_EXCHANGE_SETTINGS_NOT_CONFIGURED": "Point conversion is not configured. Please contact support.",
+      "INVALID_POINT_EXCHANGE_SETTINGS": "Point conversion is temporarily unavailable. Please contact support.",
       "MEMBER_NOT_FOUND": "Member not found.",
       "INTERNAL_ERROR": "Something went wrong. Please try again."
     },
