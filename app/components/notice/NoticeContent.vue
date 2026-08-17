@@ -140,6 +140,13 @@ onMounted(async () => {
 </script>
 
 <style>
+/* Print space runs as the admin typed them. The CMS stores the body as HTML,
+   where consecutive spaces collapse by default — the admin editor sets the same
+   declaration, so both sides show identical spacing. */
+.tiptap-content {
+  white-space: pre-wrap;
+}
+
 .tiptap-content p {
   margin-bottom: 0.4rem;
 }

@@ -1,7 +1,7 @@
 /**
  * Provider-logo resolution by provider code (auto-imported).
  *
- * Logos under `public/designs/game-logo/` are named after the provider's
+ * Logos under `public/designs/game_logo/` are named after the provider's
  * DISPLAY name (`AllBet.webp`), not its code — one asset serves every code the
  * backend uses for that provider. The backend hands out several codes per
  * provider (a slug per game type plus numeric ids that differ per integration),
@@ -9,8 +9,12 @@
  * this module inverts it into a code -> name lookup.
  *
  * Deliberately separate from `lobbyLogoUrl` (homepageLobbyAssets.ts), which
- * resolves the older `<base>/<lobby-uuid>.webp` scheme still used by /sports and
- * the legacy casino-logo/slot-logo folders.
+ * resolves the older `<base>/<lobby-uuid>.webp` scheme still used by /sports.
+ * ⚠ Those legacy `casino-logo/`, `slot-logo/` and `sport-logo/` folders no
+ * longer exist — 8f0ae6f renamed their art into `game_logo/`. The bases in
+ * `assets.homepage.gameLogos` (useDefaultThemeConfig.ts) still point at them, so
+ * `lobbyLogoUrl` only ever resolves as a FALLBACK for codes this module cannot
+ * map, and that fallback 404s. Cards degrade to the provider name as text.
  */
 import providerLogos from "~/data/gameProviderLogos.json";
 

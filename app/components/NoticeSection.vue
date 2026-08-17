@@ -196,9 +196,13 @@ const handleDisagree = () => {
   color: #cbd5e1;
   font-size: 0.9rem;
   line-height: 1.75;
+  /* Print space runs as the admin typed them — HTML collapses consecutive
+     spaces by default, and the admin editor sets the same declaration so both
+     sides show identical spacing. */
+  white-space: pre-wrap;
   /* The body is admin-authored, so it may contain a long unbroken run (a URL,
-     or prose whose spaces were lost in the CMS). Break inside such a run rather
-     than let it widen the card and raise a horizontal scrollbar. */
+     or a pasted link). Break inside such a run rather than let it widen the
+     card and raise a horizontal scrollbar. */
   overflow-wrap: anywhere;
   word-break: break-word;
 }
