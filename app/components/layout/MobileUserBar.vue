@@ -21,18 +21,25 @@
        share the trailing section as one flush-right group, so the reload stays
        at the screen edge where the thumb expects it.
        The sections are NOT equal thirds. They were, and equal thirds is the
-       right division for the worst case — the balance and the points+reload
+       right division for the worst case - the balance and the points+reload
        group need within a pixel of the same width. But most rows are not the
        worst case: a short username left a third of the bar empty while the
        balance beside it, capped at its own third, truncated to fit. So identity
-       and the points group size to their content (`fit-content(40%)` and
-       `minmax(0,auto)`) and the balance lane takes what is left
-       (`minmax(0,1fr)`). This matches the partner console — see its ADR-50.
-       The 0 minimums still let an over-long value truncate inside its own
-       section instead of pushing into a neighbour. Identity's cap is on the
-       TRACK, not a `max-w` on the span: a percentage max-width on a grid item
-       resolves against its own content-sized area and feeds back on itself,
-       which collapses every username to one character.
+       sizes to its content (`fit-content(40%)`), the balance lane takes what is
+       left (`1fr`) and the points group sizes to its content too.
+
+       BOTH number tracks carry a `max-content` MINIMUM. That is what decides
+       who gives way when the row is over-subscribed: a track cannot be squeezed
+       below its minimum, so the two figures hold their full width and the only
+       track left able to shrink is identity, which ellipsises. Without those
+       floors the balance was the thing that shortened - a 13-character username
+       beside a 9-digit balance and a 9-digit point figure rendered as
+       `100,0...` while the name sat there in full, which is backwards: a
+       clipped name is still recognisable, a clipped number misreads.
+
+       Identity's cap is on the TRACK, not a `max-w` on the span: a percentage
+       max-width on a grid item resolves against its own content-sized area and
+       feeds back on itself, which collapses every username to one character.
 
        SIZING is fluid, and it is load-bearing rather than cosmetic. The widest
        realistic value sets the type scale for the whole bar. Worst case is a
@@ -70,7 +77,7 @@
        otherwise scroll through the gap around the bar. -->
   <div v-if="authStore.isAuthenticated" class="mub-wrap lg:hidden w-full" :style="{ backgroundColor: WRAP_BG }">
     <div
-      class="mub-bar w-full h-[40px] grid grid-cols-[fit-content(40%)_minmax(0,1fr)_minmax(0,auto)] items-center overflow-hidden whitespace-nowrap rounded-[10px]"
+      class="mub-bar w-full h-[40px] grid grid-cols-[fit-content(40%)_minmax(max-content,1fr)_minmax(max-content,auto)] items-center overflow-hidden whitespace-nowrap rounded-[10px]"
       :style="{ backgroundColor: BAR_BG }">
     <!-- SECTION 1. Identity, centred in its third. `honorific` is the Korean
          "님" suffix; locales without an equivalent ship an empty string, so the
@@ -314,21 +321,38 @@ const refreshWallet = async () => {
   gap: var(--mub-gap);
 }
 
-/* Reload button. `padding-top` drops the glyph onto the values' line; it
-   replaces the optical nudge the value icons carry, so the 3px is the whole
-   offset rather than 3px fighting a -0.05em correction. */
+/* Reload button. Carries the glyph's vertical alignment, and it has to live
+   HERE rather than on the image: the button is `place-items-center`, so a
+   margin on the image only shrinks the grid area and the icon re-centres inside
+   it - a no-op, verified by sweeping it.
+
+   Measured against the point disc's drawn centre in the shipped layout: with
+   the `padding-top: 3px` this used to carry, the glyph sat 2.0px low; at
+   -0.08em it lands on the disc's centre exactly at 13.1px type and within
+   0.5px across 11.5-15px, which is the whole phone range. It drifts about a
+   pixel low at the 17px ceiling, where flex centring and the raster's own
+   rounding take over and no single multiplier fixes both ends. */
 .mub-reload-btn {
-  padding-top: 3px;
+  margin-block-start: calc(var(--mub-figure) * -0.08);
 }
 
-/* Reload glyph. Tied to the FIGURE, not to `--mub-icon`: the value icons now
-   run at the digits' ink height and this art is not a value icon. It ships on a
-   padded canvas with only ~67% ink, so a box matched to theirs would draw a
-   visibly smaller mark; 1.14em keeps the glyph level with the numerals and holds
-   the size it had before the value icons came down. */
+/* Reload glyph. The art ships on a padded canvas that is only 66.7% ink (48px
+   of mark on a 72px square, measured), where the coin and point discs are
+   full-bleed - so the box and the drawn mark are two different numbers here and
+   the multiplier looks larger than the others for the same result.
+
+   1.3em draws the mark at ~11.3px at the shipped scale, between the digits'
+   9.5px of ink and the discs' 13px. Both ends were tried against the real bar:
+   1.5em matches the discs exactly and towers over the row, 1.1em matches the
+   digits exactly and disappears next to them - a thin open arc carries far less
+   weight than bold numerals of the same height, so measuring equal and looking
+   equal part company here. This sits where it reads level.
+
+   The multiplier encodes the padding in THAT file. Replace the asset with a
+   tighter crop and this has to come down with it. */
 .mub-reload-icon {
-  width: calc(var(--mub-figure) * 1.14);
-  height: calc(var(--mub-figure) * 1.14);
+  width: calc(var(--mub-figure) * 1.3);
+  height: calc(var(--mub-figure) * 1.3);
 }
 
 /* The refresh glyph ships in #434343 (a light-theme grey). Inverting to white
