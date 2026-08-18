@@ -16,31 +16,48 @@
        rather than a flex row so each section owns the same share of the width
        and the values land in the same places whatever their length; under flex
        a long balance stole room from the username.
-       The username is CENTRED in the left third and the balance CENTRED in the
-       middle one. The point figure and the reload button share the right third
-       as one flush-right group, so the reload stays at the screen edge where the
-       thumb expects it.
-       The balance sits ~4-6px left of the bar's VISUAL centre, not on it: the
-       sections are equal, but the bar's padding box is not (0 leading, 8-12px
-       trailing to hold the reload off the edge), so the middle column's centre
-       is half the trailing padding left of the bar's. Recentring it means giving
-       that width back, and the fit below has no width to give — it would drop
-       the balance's or the point's clearance to nothing.
-       `grid-cols-3` is `repeat(3,minmax(0,1fr))`; the 0 minimum is what lets an
-       over-long value truncate inside its own third instead of pushing into a
-       neighbouring section.
+       The username sits at the leading edge and the balance is CENTRED in the
+       lane that takes the row's slack. The point figure and the reload button
+       share the trailing section as one flush-right group, so the reload stays
+       at the screen edge where the thumb expects it.
+       The sections are NOT equal thirds. They were, and equal thirds is the
+       right division for the worst case - the balance and the points+reload
+       group need within a pixel of the same width. But most rows are not the
+       worst case: a short username left a third of the bar empty while the
+       balance beside it, capped at its own third, truncated to fit. So identity
+       sizes to its content (`fit-content(40%)`), the balance lane takes what is
+       left (`1fr`) and the points group sizes to its content too.
 
-       SIZING is fluid, and it is load-bearing rather than cosmetic. Equal
-       sections give the money the same room as the much shorter username, so
-       the widest realistic value sets the type scale for the whole bar. Worst
-       case is a 억-scale balance (`999,999,999 원`, 9 digits) in the middle and
+       BOTH number tracks carry a `max-content` MINIMUM. That is what decides
+       who gives way when the row is over-subscribed: a track cannot be squeezed
+       below its minimum, so the two figures hold their full width and the only
+       track left able to shrink is identity, which ellipsises. Without those
+       floors the balance was the thing that shortened - a 13-character username
+       beside a 9-digit balance and a 9-digit point figure rendered as
+       `100,0...` while the name sat there in full, which is backwards: a
+       clipped name is still recognisable, a clipped number misreads.
+
+       Identity's cap is on the TRACK, not a `max-w` on the span: a percentage
+       max-width on a grid item resolves against its own content-sized area and
+       feeds back on itself, which collapses every username to one character.
+
+       SIZING is fluid, and it is load-bearing rather than cosmetic. The widest
+       realistic value sets the type scale for the whole bar. Worst case is a
+       억-scale balance (`999,999,999 원`, 9 digits) in the middle and
        an 8-digit point figure plus the reload button on the right; those two
        measure within a pixel of each other, so one scale satisfies both (the
        derivation is in the style block). Rather than stepping down at a
        breakpoint — either too small on the wide side of the step or still too
        big on the narrow side — every dimension scales with the viewport via
        clamp(), so the type stays as large as the width allows at any size.
-       36px tall, matching the announcement bar below it. -->
+       40px tall. It was 36px, echoing the announcement bar, then 44px; the
+       announcement bar is not adjacent (it sits below the banner and scrolls
+       away, while this is pinned under the header), so the echo was not
+       carrying its weight, and 44px left the values swimming in the pill once
+       the type came up. 40px still gives the two controls inside the bar, the
+       point figure and the reload, a usable touch box. The layout measures this
+       bar with `offsetHeight` for its spacer, so the height is not duplicated
+       anywhere. -->
   <!-- INSET. The bar used to run edge to edge; it now floats with clearance at
        the sides and below, matching the partner console's account bar. It stays
        flush against the header at the top.
@@ -60,7 +77,7 @@
        otherwise scroll through the gap around the bar. -->
   <div v-if="authStore.isAuthenticated" class="mub-wrap lg:hidden w-full" :style="{ backgroundColor: WRAP_BG }">
     <div
-      class="mub-bar w-full h-[36px] grid grid-cols-3 items-center overflow-hidden whitespace-nowrap rounded-[10px]"
+      class="mub-bar w-full h-[40px] grid grid-cols-[fit-content(40%)_minmax(max-content,1fr)_minmax(max-content,auto)] items-center overflow-hidden whitespace-nowrap rounded-[10px]"
       :style="{ backgroundColor: BAR_BG }">
     <!-- SECTION 1. Identity, centred in its third. `honorific` is the Korean
          "님" suffix; locales without an equivalent ship an empty string, so the
@@ -70,21 +87,32 @@
          item inside its column so the truncation actually engages. -->
     <span class="flex items-baseline gap-0.5 min-w-0 max-w-full justify-self-center overflow-hidden">
       <span class="mub-figure min-w-0 font-bold uppercase leading-none truncate"
+        :title="authStore.user.username"
         :style="{ color: ACCOUNT_BAR_COLORS.username }">{{ authStore.user.username }}</span>
       <span v-if="honorific" class="mub-suffix text-white leading-none shrink-0">{{ honorific }}</span>
     </span>
 
-    <!-- SECTION 2. Wallet balance, centred in the middle third — and therefore
-         on the bar's centre line, the side sections being equal. `min-w-0` on
-         the figure is what makes `truncate` work at all: a flex child defaults
-         to `min-width: auto`, so without it the span refuses to shrink below its
-         text and pushes into the neighbouring section instead of ellipsising. -->
+    <!-- SECTION 2. Wallet balance, centred in the lane that takes the row's
+         slack. `min-w-0` on the figure is what makes `truncate` work at all: a
+         flex child defaults to `min-width: auto`, so without it the span refuses
+         to shrink below its text and pushes into the neighbouring section
+         instead of ellipsising. -->
     <span class="mub-group flex items-center min-w-0 max-w-full justify-self-center overflow-hidden">
-      <!-- The wallet coin runs one pixel larger than the point disc: its artwork
-           reads a touch smaller at a matched box, so an equal size leaves the two
-           looking uneven. Matches the partner console's account bar. -->
-      <NuxtImg :src="siteConfig.assets.navIcons.walletIcon" alt="" aria-hidden="true" width="17" height="17"
-        class="mub-icon mub-icon-wallet object-contain shrink-0" />
+      <!-- Both value icons run at the figure's own size, the coin included.
+           Matches the partner console's account bar.
+
+           `width/height` state the ART's own 51px, not the ~13px it renders at:
+           the image pipeline emits a raster at the declared size, and a 51px
+           circle resampled down to 15px lost its curve - the edge went
+           polygonal and the two icons, declared 15 and 16, did not even go
+           polygonal the same way. Declaring the native size hands the browser
+           the full-resolution circle to scale, which it does smoothly at any
+           DPR. `rounded-full` then clips the box to a circle so the silhouette
+           is exact whatever the raster does; both assets are already perfect
+           inscribed circles (checked row by row against the ideal), so the clip
+           only cleans up edge antialiasing - it is not reshaping the art. -->
+      <NuxtImg :src="siteConfig.assets.navIcons.walletIcon" alt="" aria-hidden="true" width="51" height="51"
+        class="mub-icon object-contain shrink-0 rounded-full" />
       <!-- Figure and unit share a baseline (they are one phrase, at two sizes);
            the icon centres against that block. Centring all three together put
            the smaller 원 on the figure's mid-line instead of its baseline. -->
@@ -98,16 +126,16 @@
 
     <!-- SECTION 3. Point balance and wallet reload, as one group flush against
          the trailing edge of the bar. They share a section rather than owning a
-         column each so the reload stays at the screen edge (where the thumb
-         expects it) while the three value sections stay equal. -->
+         column each so the reload stays at the screen edge, where the thumb
+         expects it. -->
     <div class="mub-actions flex items-center min-w-0 max-w-full justify-self-end overflow-hidden">
       <!-- The point figure IS the conversion control, as on desktop. No separate
            CONVERT button beside it: clicking the amount opens the modal. -->
       <button type="button" :aria-label="$t('point.title')"
         class="mub-group flex items-center min-w-0 overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
         @click="openPointModal">
-        <NuxtImg :src="siteConfig.assets.navIcons.pointIcon" alt="" aria-hidden="true" width="16" height="16"
-          class="mub-icon object-contain shrink-0" />
+        <NuxtImg :src="siteConfig.assets.navIcons.pointIcon" alt="" aria-hidden="true" width="51" height="51"
+          class="mub-icon object-contain shrink-0 rounded-full" />
         <span class="mub-figure min-w-0 font-bold tabular-nums leading-none truncate"
           :style="{ color: ACCOUNT_BAR_COLORS.point }">{{
             currency.formatNumber(authStore.user.point_wallet) }}</span>
@@ -191,44 +219,27 @@ const refreshWallet = async () => {
 </script>
 
 <style scoped>
-/* FLUID SCALE. Every dimension in the bar is tied to the viewport so the type
-   is always as large as the available width allows, instead of stepping down at
-   a breakpoint and reading too small for the rest of that range.
+/* SCALE, set by parity with the desktop bar rather than by the fit.
+   AppHeader's `hidden lg:flex` account bar runs a flat 15px figure with a 13px
+   suffix, and this is its small-screen twin, so it ends at the same numbers: the
+   ceiling is 15px and the suffix ratio is 13/15 = 0.867, not a rounded 0.85.
+   Both bars are `font-bold uppercase leading-none` in the inherited LINE Seed
+   already, so size was the only thing that ever differed.
 
-   The coefficients are MEASURED in the app's own font, not picked by eye. With
-   three EQUAL sections the widest value sets the type size for the whole bar,
-   since the money gets no more room than the much shorter username. The two
-   contended sections are:
+   4.2vw reaches that 15px ceiling at 357px, which is under every current phone
+   width (360, 375, 390, 412, 428), so in practice a phone renders the desktop
+   size. The clamp still steps down below that, to a 13px floor, because the
+   narrow end cannot carry 15px without eating the username alive - see below.
 
-     middle  wallet icon + a 9-digit 억 balance + `원`
-     right   point icon + an 8-digit point figure + gap + reload button
-
-   ⚠ LINE Seed has NO tabular figures, so the `tabular-nums` below is a no-op in
-   the shipped font (it only bites in the system-ui fallback) and digit widths
-   VARY: at 15px a `0` advances 10.0px against a `1`'s 6.5px. The worst case is
-   therefore not `999,999,999` but a balance full of zeros — a realistic
-   `500,000,000` is ~11px wider than all-nines at the same size. Both sections
-   were rendered with all-zero values across 320–768px and their natural width
-   compared against the column width `(100vw - wrapper padding - bar padding -
-   column gaps) / 3`; the line below is the largest scale that clears both. The
-   money needs ~8.9px of column per 1px of type and the point group ~8.7px —
-   near enough identical, which is why equal sections are not just what was asked
-   for but also the width-optimal split: widening the middle only starves the
-   right by the same amount.
-
-   Margins at the shipped scale: the balance clears its column by 2.4px at 320px
-   (the app's enforced minimum width — see `min-width: 320px` on body in
-   main.css) and by ~3px from 360px up; the point figure by 3.2–5.2px. The
-   username is the one value allowed to ellipsise, so it is excluded from the fit
-   — an all-caps 9-character name truncates by design. If either maximum grows a
-   digit, this scale has to come down: the digit count is the input here.
-
-   The bar's own padding (was 10–16px both sides, now 0 leading) and column gaps
-   (was 6–8px) were trimmed to pay for the equal split, and it still costs the
-   figure ~1.2px against the previous four-column layout: 11.7px at 360px (was
-   12.9px), 13.4px at 412px (was 15px), with the 15px ceiling now reached at
-   ~461px. That is the price of a 억 balance never clipping, which is the
-   requirement. Dropping the leading padding bought ~2.7px of clearance per
+   WHAT PAYS FOR IT is the username, by design (see the grid comment): both
+   number tracks carry a `max-content` minimum so neither figure can be squeezed,
+   and identity is the only track left able to shrink. Measured against the worst
+   case - a 9-digit balance and an 8-digit point figure, in the zeros that are
+   LINE Seed's widest digits - the username track is left roughly 6 characters at
+   360px, 11 at 412px, and 2 at 320px, which is why the floor exists. Ordinary
+   balances leave it the whole width. That trade is deliberate: a shortened name
+   is still recognisable, and it carries the full one in its `title`, while a
+   shortened number just misreads. Dropping the leading padding bought ~2.7px of clearance per
    section rather than a bigger figure — the scale is left where it is so the
    fit keeps a margin for the font's uneven digit widths.
 
@@ -250,18 +261,18 @@ const refreshWallet = async () => {
 }
 
 .mub-bar {
-  --mub-figure: clamp(10px, 3.25vw, 15px);
-  --mub-suffix: calc(var(--mub-figure) * 0.85);
-  --mub-icon: calc(var(--mub-figure) * 1.1);
+  --mub-figure: clamp(13px, 4.2vw, 15px);
+  --mub-suffix: calc(var(--mub-figure) * 0.867);
+  --mub-icon: var(--mub-figure);
   --mub-gap: clamp(2px, 1.1vw - 1px, 4px);
 
   column-gap: clamp(4px, 1.7vw - 2.1px, 6px);
-  /* Leading padding is deliberately 0 — the username starts flush against the
-     bar's left edge (the wrapper's own inset still holds the bar off the
-     bezel). Trailing padding stays: it is what keeps the reload button clear of
-     the edge, and it is the only side with a control hard against it. The 8px
-     this frees goes straight into the three sections. */
-  padding-inline: 0 clamp(8px, 3.3vw - 3.9px, 12px);
+  /* Symmetric again. It ran 0 on the leading side for a while, so the username
+     started flush against the bar's edge; that read as the text falling out of
+     the pill rather than sitting inside it, and it pushed the balance off the
+     bar's visual centre because the padding box was lopsided. Both sides pay
+     the same now, and the balance centres on the bar's own centre line. */
+  padding-inline: clamp(8px, 3.3vw - 3.9px, 12px);
 }
 
 /* Gap between the point figure and the reload button — the same value as the
@@ -279,24 +290,22 @@ const refreshWallet = async () => {
   font-size: var(--mub-suffix);
 }
 
-/* Optical centring. `align-items: center` lines up BOXES, but a digit's ink
-   sits high in its box: with `leading-none` the box is the em square, and the
-   digits run baseline-to-cap-height, leaving the unused descender space below.
-   The ink therefore centres about 0.05em above the box centre, which reads as
-   the icon sitting low against the number. The nudge cancels exactly that, and
-   is expressed against the figure size so it tracks the fluid scale. */
+/* Value icons run at the figure's own size - the em box, not the digits' ink.
+   Matching the ink height was tried (0.76em, which is what LINE Seed Bold's
+   digits actually measure: a 100px figure inks 76px) and it is the literal
+   reading of "same size as the text", but a disc at cap height reads
+   undersized next to the numerals - the eye compares the disc's area against
+   the digits' overall block, not their ink. At 1em the two sit level and the
+   icons carry the same weight as the values they label.
+
+   `align-items: center` lines up BOXES, and the digits' ink is not centred in
+   theirs, so the icon lands 0.35px low whatever size it is. The nudge cancels
+   exactly that - measured, and it is -0.026em, not the -0.05em this carried
+   before, which over-corrected and rode the icons high. */
 .mub-icon {
   width: var(--mub-icon);
   height: var(--mub-icon);
-  margin-block-start: calc(var(--mub-figure) * -0.05);
-}
-
-/* The wallet coin, one pixel up on the same fluid scale. Expressed off
-   `--mub-icon` rather than as its own clamp() so it tracks the scale instead of
-   drifting from the point icon at the ends of the range. */
-.mub-icon-wallet {
-  width: calc(var(--mub-icon) + 1px);
-  height: calc(var(--mub-icon) + 1px);
+  margin-block-start: calc(var(--mub-figure) * -0.026);
 }
 
 /* Gap between an icon and its figure, inside a value group. */
@@ -304,18 +313,38 @@ const refreshWallet = async () => {
   gap: var(--mub-gap);
 }
 
-/* Reload button. `padding-top` drops the glyph onto the values' line; it
-   replaces the optical nudge the value icons carry, so the 3px is the whole
-   offset rather than 3px fighting a -0.05em correction. */
+/* Reload button. Carries the glyph's vertical alignment, and it has to live
+   HERE rather than on the image: the button is `place-items-center`, so a
+   margin on the image only shrinks the grid area and the icon re-centres inside
+   it - a no-op, verified by sweeping it.
+
+   Measured against the point disc's drawn centre in the shipped layout: with
+   the `padding-top: 3px` this used to carry, the glyph sat 2.0px low; at
+   -0.08em it lands on the disc's centre exactly at 13.1px type and within
+   0.5px across 11.5-15px, which is the whole phone range. It drifts about a
+   pixel low at the 17px ceiling, where flex centring and the raster's own
+   rounding take over and no single multiplier fixes both ends. */
 .mub-reload-btn {
-  padding-top: 3px;
+  margin-block-start: calc(var(--mub-figure) * -0.08);
 }
 
-/* Reload glyph. Slightly larger than the value icons (it is an action, not a
-   label) but tied to the same fluid scale. */
+/* Reload glyph. The art ships on a padded canvas that is only 66.7% ink (48px
+   of mark on a 72px square, measured), where the coin and point discs are
+   full-bleed - so the box and the drawn mark are two different numbers here and
+   the multiplier looks larger than the others for the same result.
+
+   1.3em draws the mark at ~11.3px at the shipped scale, between the digits'
+   9.5px of ink and the discs' 13px. Both ends were tried against the real bar:
+   1.5em matches the discs exactly and towers over the row, 1.1em matches the
+   digits exactly and disappears next to them - a thin open arc carries far less
+   weight than bold numerals of the same height, so measuring equal and looking
+   equal part company here. This sits where it reads level.
+
+   The multiplier encodes the padding in THAT file. Replace the asset with a
+   tighter crop and this has to come down with it. */
 .mub-reload-icon {
-  width: calc(var(--mub-icon) + 2px);
-  height: calc(var(--mub-icon) + 2px);
+  width: calc(var(--mub-figure) * 1.3);
+  height: calc(var(--mub-figure) * 1.3);
 }
 
 /* The refresh glyph ships in #434343 (a light-theme grey). Inverting to white

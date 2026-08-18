@@ -85,8 +85,15 @@ stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 <template #row="{ row }">
                     <td
 v-for="col in activeColumns" :key="col"
-                        :class="col === 'ID' ? 'break-all max-w-[180px]' : 'whitespace-nowrap'">
+                        :class="col === 'ID' ? idCellClass : 'whitespace-nowrap'">
                         <TableDateCell v-if="DATE_COLUMNS.includes(col)" :value="String(row[col] ?? '')" />
+                        <!-- Game rows carry a provider token long enough to break
+                             one character per line in this column on a phone;
+                             it shows as a stub with the value a tap away. The
+                             transaction tab's ids are short, so they stay whole. -->
+                        <TableIdCell
+                            v-else-if="col === 'ID'" :value="String(row[col] ?? '')"
+                            :truncate="isGameTab" />
                         <StatusBadge
 v-else-if="col === 'Status'" :tone="statusTone(String(row[col] ?? ''))"
                             :label="String(row[col] ?? '')" />
@@ -281,6 +288,22 @@ const formatAmount = (value: unknown): string => {
 // breaking mid-number when the ID column hits its max width.
 const formatId = (val: unknown): string =>
   val != null && val !== "" ? `#${String(val).replace(/,/g, ", ")}` : "";
+
+/**
+ * Whether the active tab lists game rounds rather than wallet transactions.
+ *
+ * The two shapes put different things in the `ID` column: game rows carry the
+ * provider's transaction token, transaction rows carry short numeric ids (and
+ * sometimes several, comma-separated). Only the first is worth shortening.
+ */
+const isGameTab = computed(
+  () => activeTab.value !== "transaction" && activeTab.value !== "all",
+);
+
+/** The ID column no longer needs to wrap once its value is a stub. */
+const idCellClass = computed(() =>
+  isGameTab.value ? "whitespace-nowrap" : "break-all max-w-[180px]",
+);
 
 const tableData = computed(() => {
   return rawData.value.map((row) => {

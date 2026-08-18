@@ -8,12 +8,13 @@
       >
         <div class="w-full max-w-[560px] mx-auto flex flex-col items-center">
           <!-- Brand logo above the card -->
-          <NuxtImg
+          <!-- Plain <img>, not <NuxtImg>: CMS-swappable logo, see AppHeader.vue -->
+          <img
             :src="siteConfig.identity.logo"
             :alt="siteConfig.identity.siteName"
             class="h-auto max-h-[44px] sm:max-h-[52px] w-auto mb-4 drop-shadow"
             loading="eager"
-          />
+          >
 
           <!-- Notice Card -->
           <div class="notice-card w-full rounded-[24px] overflow-hidden">

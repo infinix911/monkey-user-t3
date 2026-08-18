@@ -7,8 +7,10 @@
       :style="cardStyle">
       <!-- Top band: centered logo -->
       <div class="relative z-10 flex items-center justify-center px-4 pt-[18px] pb-3.5">
-        <NuxtImg :src="siteConfig.identity.logoPopup" :alt="siteConfig.identity.siteName"
-          class="h-auto max-h-[22px] lg:max-h-[26px] w-auto drop-shadow" />
+        <!-- Plain <img>, not <NuxtImg>: CMS-swappable logo, see AppHeader.vue -->
+        <img :src="siteConfig.identity.logoPopup" :alt="siteConfig.identity.siteName"
+          class="h-auto max-h-[22px] lg:max-h-[26px] w-auto drop-shadow"
+        >
       </div>
 
       <!-- Banner image — fixed 380/500 portrait box, image object-cover (cropped

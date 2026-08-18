@@ -33,9 +33,15 @@
                  means it would otherwise overflow across the account bar. `w-full`
                  binds it to the column (max-height still clamps tall marks), so
                  there is no second width to keep in sync with the layout. -->
-            <NuxtImg :src="siteConfig.identity.logo" :alt="siteConfig.identity.siteName"
+            <!-- A PLAIN `<img>`, deliberately not `<NuxtImg>`: the logo is a
+                 CMS-swappable asset, and the image pipeline serves it through a
+                 derived, separately-cached URL, so a rebrand kept showing the
+                 old mark until that cache turned over. A direct request to the
+                 configured path is the one thing that always reflects what the
+                 CMS is pointing at now. -->
+            <img :src="siteConfig.identity.logo" :alt="siteConfig.identity.siteName"
               class="h-auto w-auto cursor-pointer object-contain flex-shrink-0 ml-2 lg:ml-0 lg:w-full"
-              :style="siteConfig.theme.logoStyles.desktopHeader" />
+              :style="siteConfig.theme.logoStyles.desktopHeader">
           </NuxtLink>
         </div>
 
@@ -276,9 +282,11 @@
           </button>
           <!-- `external`: full document load, same as the desktop logo above. -->
           <NuxtLink v-show="!uiStore.showNoticeModal" to="/" external class="flex items-center">
-            <NuxtImg :src="siteConfig.identity.logoMobile || siteConfig.identity.logo"
+            <!-- Plain <img>, not <NuxtImg>: CMS-swappable logo, see AppHeader.vue -->
+            <img :src="siteConfig.identity.logoMobile || siteConfig.identity.logo"
               :alt="siteConfig.identity.siteName" class="w-auto max-w-[210px] object-contain ml-1"
-              :style="siteConfig.theme.logoStyles.mobileHeader" />
+              :style="siteConfig.theme.logoStyles.mobileHeader"
+            >
           </NuxtLink>
         </div>
         <!-- Mobile guest auth buttons — these used to live in a black strip
