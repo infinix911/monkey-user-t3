@@ -88,7 +88,7 @@ const uiStore = useUiStore();
 const nuxtLink = resolveComponent("NuxtLink");
 
 interface CasinoProvider {
-  code: any;
+  code?: string | number | null;
   id: string | number;
   name: string;
   logo?: string;

@@ -52,7 +52,7 @@ This is **monkey-user-t3**: a single bundled design template ("Template3") with 
 
 ### Nitro Proxy Layer
 
-The browser never contacts the backend directly. All `/api/*` requests hit the same-origin Nitro proxy (`server/routes/api/[...path].ts`), which forwards them to `NUXT_API_URL` (server-only env var) with `cookieDomainRewrite` so `bn.session` attaches to the frontend origin. WebSockets proxy via `server/plugins/ws-proxy.ts` (httpxy) → `NUXT_WS_API_URL`. The `/api/*` namespace is fully claimed — never add `server/api/**` routes.
+The browser never contacts the backend directly. All `/api/*` requests hit the same-origin Nitro proxy (`server/routes/api/[...path].ts`), which forwards them to `NUXT_API_URL` (server-only env var) with `cookieDomainRewrite` so `bn.session` attaches to the frontend origin. WebSockets proxy via `server/plugins/ws-proxy.ts` (httpxy) to the same API listener, deriving its `ws(s)` target from `NUXT_API_URL`. The `/api/*` namespace is fully claimed — never add `server/api/**` routes.
 
 ### SSR API Pattern
 
@@ -101,7 +101,7 @@ Live preview: `?themePreview=1` + postMessage bridge (`app/plugins/theme-preview
 | Store       | Purpose                                                                                  |
 | ----------- | ---------------------------------------------------------------------------------------- |
 | `auth`      | User identity, wallet, level, bank; verifyUser/logout                                    |
-| `websocket` | WS connect via `/auth/ws` token → `wss://<host>/ws?token=`; notification + wallet events |
+| `websocket` | Cookie-authenticated WS connect via `wss://<host>/ws`; notification + wallet events |
 | `site`      | Site settings/banks (populated during SSR)                                               |
 | `ui`        | Modal flags, device detection, notice                                                    |
 
@@ -133,7 +133,6 @@ is the source of profile-menu truth.
 | Variable                                                      | Purpose                                                       |
 | ------------------------------------------------------------- | ------------------------------------------------------------- |
 | `NUXT_API_URL`                                                | Backend REST URL (including `/api`) — server-only             |
-| `NUXT_WS_API_URL`                                            | Backend WS origin (without `/ws`) — server-only               |
 | `NUXT_PUBLIC_SITE_URL`                                        | Public URL for sitemap/robots                                 |
 | `REDIS_HOST` (+PORT/PASSWORD/DB)                              | Optional — enables shared SSR cache + anon page cache storage |
 | `NUXT_ENABLE_ANON_PAGE_CACHE` / `NUXT_ANON_PAGE_CACHE_TTL_MS` | Anonymous full-page SSR cache (default off / 60s)             |

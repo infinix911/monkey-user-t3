@@ -1,4 +1,4 @@
-import { getApiHostUrl, getWebsocketHostUrl } from "../utils/upstream-config";
+import { getApiHostUrl } from "../utils/upstream-config";
 
 /**
  * Fail during Nitro startup when a private upstream is missing or malformed.
@@ -7,5 +7,4 @@ import { getApiHostUrl, getWebsocketHostUrl } from "../utils/upstream-config";
  */
 export default defineNitroPlugin(() => {
   getApiHostUrl();
-  getWebsocketHostUrl();
 });

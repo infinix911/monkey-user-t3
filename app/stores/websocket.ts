@@ -6,7 +6,6 @@ import type {
   WalletData,
 } from "~/interfaces/socket.interface";
 import { useAuthStore } from "./auth";
-import axiosClient from "@/lib/axios-client";
 import { getWsApiUrl } from "@/lib/domain";
 
 /**
@@ -15,7 +14,7 @@ import { getWsApiUrl } from "@/lib/domain";
  *
  * Manages:
  * - WebSocket connection lifecycle (connect, disconnect, reconnect)
- * - Token-based authentication
+ * - Cookie-authenticated upgrades through the same-origin proxy
  * - Message handling (notifications, wallet updates, ping/pong)
  * - Exponential backoff reconnection strategy
  * - Connection state and error tracking
@@ -45,32 +44,19 @@ export const useWebSocketStore = defineStore("websocket", () => {
   // ============================================================================
 
   /**
-   * Get WebSocket authentication token from API
-   */
-  const getWebSocketToken = async (): Promise<string | null> => {
-    try {
-      const response = await axiosClient.get<{ token: string }>("/auth/ws");
-
-      return response.data.token || null;
-    } catch (error: unknown) {
-      console.error("🔑 Failed to get WebSocket token:", error);
-      return null;
-    }
-  };
-
-  /**
-   * Build WebSocket URL with auth token.
+   * Build the same-origin WebSocket URL. The browser includes the session
+   * cookie, and Nitro forwards that upgrade to the API listener.
    *
    * getWsApiUrl() now returns the full same-origin URL (wss://<frontend-host>);
    * the Nitro ws-proxy plugin upgrades /ws to the backend WS server, so the
    * backend host stays private.
    */
-  const buildWebSocketUrl = (token: string): string => {
+  const buildWebSocketUrl = (): string => {
     if (typeof window === "undefined") {
       return "";
     }
 
-    return `${getWsApiUrl()}/ws?token=${encodeURIComponent(token)}`;
+    return `${getWsApiUrl()}/ws`;
   };
 
   // ============================================================================
@@ -95,7 +81,6 @@ export const useWebSocketStore = defineStore("websocket", () => {
 
   /**
    * Connect to WebSocket server
-   * - Fetches authentication token
    * - Establishes WebSocket connection
    * - Sets up message handlers
    * - Implements automatic reconnection on failure
@@ -117,19 +102,8 @@ export const useWebSocketStore = defineStore("websocket", () => {
       connectionError.value = null;
 
       try {
-        // Get authentication token from API
-        const token = await getWebSocketToken();
-
-        if (!token || token.trim() === "") {
-          const errorMsg = "No WebSocket token available";
-          console.error("🔌", errorMsg);
-          connectionError.value = errorMsg;
-          isConnecting = false;
-          return;
-        }
-
         // Build WebSocket URL
-        const wsUrl = buildWebSocketUrl(token);
+        const wsUrl = buildWebSocketUrl();
 
         if (!wsUrl) {
           console.error("🔌 Failed to build WebSocket URL (not in browser)");

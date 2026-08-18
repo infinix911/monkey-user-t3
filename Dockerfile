@@ -9,13 +9,12 @@
 # Run (behind Traefik on the VPS):
 #   docker run --rm -p 3000:3000 \
 #     -e NUXT_API_URL=http://api:4000/api \
-#     -e NUXT_WS_API_URL=ws://api:4000 \
 #     -e REDIS_HOST=redis -e REDIS_PORT=6379 -e REDIS_PASSWORD= -e REDIS_DB=0 \
 #     monkey-user-t3
 #
-# NUXT_API_URL and NUXT_WS_API_URL are resolved by Nitro only at container
-# start. They are never exposed to the browser: requests remain same-origin
-# /api and /ws and are forwarded by Nuxt's server-side proxies.
+# NUXT_API_URL is resolved by Nitro only at container start. It is never
+# exposed to the browser: requests remain same-origin /api and /ws and are
+# forwarded by Nuxt's server-side proxies.
 #
 # REDIS_* are OPTIONAL and runtime-only (point at the same Redis as the backend
 # for a shared, restart-surviving SSR cache). Without them the SSR cache falls

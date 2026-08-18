@@ -77,7 +77,7 @@ export function getSiteUrl(): string {
   return window.location.origin
 }
 
-function getRequiredServerEnv(name: "NUXT_API_URL" | "NUXT_WS_API_URL"): string {
+function getRequiredServerEnv(name: "NUXT_API_URL"): string {
   const value = process.env[name]?.trim()
   if (!value) throw new Error(`${name} is not configured`)
   return value.replace(/\/$/, "")
@@ -91,13 +91,14 @@ export function getApiBase(): string {
   return getRequiredServerEnv("NUXT_API_URL")
 }
 
-// Same shape for WebSockets. Client connects to wss://<frontend-host>; the
-// ws-proxy plugin upgrades that to the backend WS server. Server side returns
-// the raw NUXT_WS_API_URL (only used by the proxy plugin itself).
+// The client connects to the same-origin Nuxt proxy. On the server, derive the
+// private WebSocket target from the shared API URL.
 export function getWsApiUrl(): string {
   if (import.meta.client) {
     const proto = window.location.protocol === 'https:' ? 'wss' : 'ws'
     return `${proto}://${window.location.host}`
   }
-  return getRequiredServerEnv("NUXT_WS_API_URL")
+  const apiUrl = new URL(getRequiredServerEnv("NUXT_API_URL"))
+  apiUrl.protocol = apiUrl.protocol === 'https:' ? 'wss:' : 'ws:'
+  return apiUrl.origin
 }
