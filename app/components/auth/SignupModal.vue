@@ -29,10 +29,12 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
-              <NuxtImg
+              <!-- Plain <img>, not <NuxtImg>: CMS-swappable logo, see AppHeader.vue -->
+              <img
                 :src="logoSrc" :alt="siteConfig.identity.siteName"
                 class="h-[40px] w-auto max-w-full object-contain drop-shadow-[0_2px_10px_rgba(255,122,0,0.45)]"
-                height="40" loading="eager" />
+                height="40" loading="eager"
+              >
             </div>
 
             <!-- Scrollable body -->

@@ -35,13 +35,14 @@
           </button>
 
           <!-- Logo -->
-          <NuxtImg
+          <!-- Plain <img>, not <NuxtImg>: CMS-swappable logo, see AppHeader.vue -->
+          <img
             :src="logoSrc"
             :alt="siteConfig.identity.siteName"
             class="login-logo w-[220px] sm:w-[300px] drop-shadow-2xl"
             :style="logoStyle"
             loading="eager"
-          />
+          >
 
           <!-- Login Card — border + panel theming come from the shared
                `.modal-gradient-border` / `.tm-modal` classes fed by

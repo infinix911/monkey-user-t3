@@ -11,8 +11,10 @@
         <!-- User Info Header -->
         <div class="pt-1.5 pb-1 border-b border-[#5C5C5C] px-2">
           <div class="flex justify-between">
-            <NuxtImg :src="siteConfig.identity.logoPopup" :alt="siteConfig.identity.siteName"
-              class="object-contain origin-left" :style="siteConfig.theme.logoStyles.profileModal" />
+            <!-- Plain <img>, not <NuxtImg>: CMS-swappable logo, see AppHeader.vue -->
+            <img :src="siteConfig.identity.logoPopup" :alt="siteConfig.identity.siteName"
+              class="object-contain origin-left" :style="siteConfig.theme.logoStyles.profileModal"
+            >
             <div class="flex items-center gap-2">
               <!-- Language selector — mobile only. -->
               <div data-lang-selector class="relative">
