@@ -5,7 +5,7 @@
         class="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 px-2 md:p-4"
         @click.self="onClose">
         <div
-          class="relative w-full h-dvh md:h-auto md:max-h-[calc(100dvh-2rem)] xl:max-h-[calc(100vh-2rem)] flex flex-col md:min-w-[480px] md:max-w-[480px]"
+          class="tm-dialog-shell relative w-full md:max-h-[calc(100dvh-2rem)] xl:max-h-[calc(100vh-2rem)] flex flex-col md:min-w-[480px] md:max-w-[480px]"
           role="dialog" :aria-label="t('deposit.title')">
           <!-- Header -->
           <DepositModalHeader @close="onClose" />
@@ -20,8 +20,13 @@
                 <!-- Bank transfer is the only deposit method. -->
                 <BankPaymentContent :bank-accounts="bankAccounts" />
 
-                <!-- Deposit History Table -->
-                <div class="hidden md:block">
+                <!-- Deposit History Table. Shown at every width: it was
+                     `hidden md:block`, so a phone had no way to check whether
+                     the deposit just submitted had been credited - the one
+                     question the form leaves you with. The withdrawal modal
+                     already showed its history on mobile, so this also puts
+                     the two money modals back in step. -->
+                <div class="block">
                   <TransactionHistory type="deposit" :method="historyMethod" />
                 </div>
               </div>
@@ -69,6 +74,7 @@ const { bankAccounts, historyMethod } = useDepositModal();
 function onClose() {
   emit("close");
 }
+
 </script>
 
 <style scoped>

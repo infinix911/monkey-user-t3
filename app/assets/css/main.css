@@ -701,6 +701,48 @@
    The Login modal is intentionally NOT part of this — it keeps its PNG frame.
 --------------------------------------------------------------------------- */
 
+/* Shell height for the deposit and withdrawal dialogs. Owned here rather than
+   as utilities on each modal so the two cannot drift apart - they are the same
+   surface to a user and were already 44px out of step once.
+
+   Below `md` the dialog fills the screen; on phones with room for it, it drops
+   to 90dvh pinned 2dvh from the top, leaving 8dvh under it - the dialog rides
+   high in the view rather than sitting centred, so its header lands under the
+   thumb and the empty backdrop collects at the bottom. The top offset is what
+   needs `align-self`; without it the backdrop's `items-center` would centre the
+   dialog and the margin would only push it further down. Doing it here beats
+   editing the flex alignment on both backdrops and keeping those in step by
+   hand.
+
+   The exception is SHORT screens - an iPhone SE class device is 667px tall,
+   where 90% leaves ~600px for a header, a form and a history table and the
+   remaining 67px of backdrop is not worth the shorter dialog, so those keep the
+   full height. Note that on those devices there is then no backdrop left to
+   tap, so the header's close button is the only way out. The switch is on
+   viewport HEIGHT, not width, because height is the thing actually running
+   out.
+
+   `dvh`, not `vh`: with a mobile browser's collapsing address bar, `vh` is the
+   tallest the viewport ever gets, so the dialog would sit taller than the
+   visible area on first paint. */
+.tm-dialog-shell {
+  height: 100dvh;
+}
+
+@media (max-width: 767.98px) and (min-height: 668px) {
+  .tm-dialog-shell {
+    height: 90dvh;
+    align-self: flex-start;
+    margin-top: 2dvh;
+  }
+}
+
+@media (min-width: 768px) {
+  .tm-dialog-shell {
+    height: auto;
+  }
+}
+
 /* Solid panel fill (padding-box layer + standalone use). */
 .modal-body-fill {
   background: var(--body-bg);

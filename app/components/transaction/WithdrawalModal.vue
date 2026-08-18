@@ -3,7 +3,7 @@
     <Transition name="modal">
       <div v-if="isOpen" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 px-2 md:p-4"
         @click.self="onClose">
-        <div class="relative w-full h-dvh md:h-auto flex flex-col md:min-w-[480px] md:max-w-[480px]"
+        <div class="tm-dialog-shell relative w-full flex flex-col md:min-w-[480px] md:max-w-[480px]"
           role="dialog" :aria-label="$t('withdrawal.title')">
           <!-- Header — min-h matches the title image height (h-11/md:h-15) so the
                header keeps its size and the close button stays centred even when
@@ -26,8 +26,16 @@
               </svg>
             </button>
           </div>
+          <!-- Below `md` the panel is `flex-1 min-h-0`, exactly as the deposit
+               modal sizes its body, so the two fill the phone screen
+               identically. It used to be a flat `h-[calc(100dvh-100px)]`, which
+               assumed a 100px header; the header actually measures 56px, so the
+               panel stopped 44px short of the bottom and this modal sat visibly
+               shorter than the deposit one on the same phone. From `md` the old
+               fixed height is kept, where the dialog is `h-auto` and flex-1
+               would collapse it to its content. -->
           <div
-            class="tm-modal modal-body-fill modal-gradient-border rounded-[18px] h-[calc(100dvh-100px)] flex flex-col overflow-hidden"
+            class="tm-modal modal-body-fill modal-gradient-border rounded-[18px] flex flex-1 min-h-0 flex-col overflow-hidden md:flex-none md:h-[calc(100dvh-100px)]"
             :style="borderStyle">
             <div class="h-full overflow-y-scroll withdrawal-modal-scrollbar">
               <WithdrawalContent :on-success="onClose" />
@@ -58,6 +66,7 @@ const emit = defineEmits<{
 function onClose() {
   emit("close");
 }
+
 </script>
 
 <style scoped>
