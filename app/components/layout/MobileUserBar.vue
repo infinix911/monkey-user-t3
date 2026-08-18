@@ -87,6 +87,7 @@
          item inside its column so the truncation actually engages. -->
     <span class="flex items-baseline gap-0.5 min-w-0 max-w-full justify-self-center overflow-hidden">
       <span class="mub-figure min-w-0 font-bold uppercase leading-none truncate"
+        :title="authStore.user.username"
         :style="{ color: ACCOUNT_BAR_COLORS.username }">{{ authStore.user.username }}</span>
       <span v-if="honorific" class="mub-suffix text-white leading-none shrink-0">{{ honorific }}</span>
     </span>
@@ -218,36 +219,27 @@ const refreshWallet = async () => {
 </script>
 
 <style scoped>
-/* FLUID SCALE. Every dimension in the bar is tied to the viewport so the type
-   is always as large as the available width allows, instead of stepping down at
-   a breakpoint and reading too small for the rest of that range.
+/* SCALE, set by parity with the desktop bar rather than by the fit.
+   AppHeader's `hidden lg:flex` account bar runs a flat 15px figure with a 13px
+   suffix, and this is its small-screen twin, so it ends at the same numbers: the
+   ceiling is 15px and the suffix ratio is 13/15 = 0.867, not a rounded 0.85.
+   Both bars are `font-bold uppercase leading-none` in the inherited LINE Seed
+   already, so size was the only thing that ever differed.
 
-   The coefficients are MEASURED in the app's own font, not picked by eye. The
-   widest value sets the type scale for the whole bar. The two contended
-   sections are the balance lane (wallet icon + a 9-digit balance + the unit)
-   and the trailing group (point icon + an 8-digit figure + the reload button);
-   they measure within ~2px of each other, so one scale serves both.
+   4.2vw reaches that 15px ceiling at 357px, which is under every current phone
+   width (360, 375, 390, 412, 428), so in practice a phone renders the desktop
+   size. The clamp still steps down below that, to a 13px floor, because the
+   narrow end cannot carry 15px without eating the username alive - see below.
 
-   LINE Seed has NO tabular figures, so `tabular-nums` is a no-op in the shipped
-   font (it only bites in the system-ui fallback) and digit widths VARY: at 15px
-   a `0` advances 10.0px against a `1`'s 6.5px. The worst case is therefore not
-   `999,999,999` but a balance full of zeros. Both sections were rendered with
-   all-zero values across 320-768px and their natural width compared against the
-   track they land in; the line below is the largest scale that clears both.
-
-   Because identity is content-sized rather than a fixed third, the budget moves
-   with the USERNAME: a 9-character name clears at 13.6px on a 360px phone, a
-   13-character one at 12.3px. The scale runs 13.1px there and 15.0px at 412px,
-   about 0.5px under the 9-character ceiling at every width - deliberately close
-   to it, because the request was for the largest type the row can hold. The
-   ceiling is 17px rather than 15px: from 467px up the row measures more than
-   that, so the old 15px cap was leaving size unused on wider phones.
-
-   The cost is at the long-name end: past ~12 characters the balance reaches its
-   ellipsis before the username does. That is the trade the content-sized
-   identity track buys - most rows read bigger, the rare long-name row gives
-   some back - and it is why the scale cannot simply be raised further without
-   either capping identity harder or letting a 억 balance shorten. Dropping the leading padding bought ~2.7px of clearance per
+   WHAT PAYS FOR IT is the username, by design (see the grid comment): both
+   number tracks carry a `max-content` minimum so neither figure can be squeezed,
+   and identity is the only track left able to shrink. Measured against the worst
+   case - a 9-digit balance and an 8-digit point figure, in the zeros that are
+   LINE Seed's widest digits - the username track is left roughly 6 characters at
+   360px, 11 at 412px, and 2 at 320px, which is why the floor exists. Ordinary
+   balances leave it the whole width. That trade is deliberate: a shortened name
+   is still recognisable, and it carries the full one in its `title`, while a
+   shortened number just misreads. Dropping the leading padding bought ~2.7px of clearance per
    section rather than a bigger figure — the scale is left where it is so the
    fit keeps a margin for the font's uneven digit widths.
 
@@ -269,8 +261,8 @@ const refreshWallet = async () => {
 }
 
 .mub-bar {
-  --mub-figure: clamp(11.5px, 3.66vw - 0.1px, 17px);
-  --mub-suffix: calc(var(--mub-figure) * 0.85);
+  --mub-figure: clamp(13px, 4.2vw, 15px);
+  --mub-suffix: calc(var(--mub-figure) * 0.867);
   --mub-icon: var(--mub-figure);
   --mub-gap: clamp(2px, 1.1vw - 1px, 4px);
 
