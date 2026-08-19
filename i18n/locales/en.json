@@ -808,8 +808,8 @@
     "referralNotFound": "Referral not found",
     "submitButton": "Sign Up",
     "copyright": "Copyright © {siteName} All rights reserved.",
-    "successTitle": "Account created",
-    "success": "Your account has been created successfully. You can now log in and start playing.",
+    "successTitle": "Registration submitted",
+    "success": "Your registration has been received. You can log in once an administrator approves it.",
     "failed": "Registration could not be completed",
     "apiMessages": {
       "SUCCESSFUL_REGISTER": "Registration successful!",
