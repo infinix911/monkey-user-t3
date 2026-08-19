@@ -93,6 +93,17 @@ describe("security boundaries", () => {
     expect(output).not.toMatch(/onclick|onerror|javascript:|<script/i);
   });
 
+  it("keeps a CMS-authored run of spaces without letting it into markup", () => {
+    // HTML collapses consecutive spaces, so an admin who aligns a line in the
+    // CMS would see it close up here. The run survives as non-breaking spaces
+    // plus one ordinary space, which keeps the line breakable.
+    const output = renderRichContent("<p>필수 입니      다.</p>");
+
+    expect(output).toContain("입니&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 다.");
+    // Tag internals must never be rewritten.
+    expect(output).not.toMatch(/<[^>]*&nbsp;[^>]*>/);
+  });
+
   it("escapes Tiptap text and rejects dangerous link and image protocols", () => {
     const document = {
       type: "doc",

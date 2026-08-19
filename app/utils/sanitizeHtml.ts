@@ -182,3 +182,37 @@ export function sanitizeHtml(raw: string): string {
   }
   return result + escapeHtml(raw.slice(offset));
 }
+
+/**
+ * Make runs of spaces in admin-authored text survive HTML rendering.
+ *
+ * HTML collapses consecutive spaces, so an operator who aligns a line in the
+ * CMS ("입니      다") sees it close up on the site. `white-space: pre-wrap`
+ * fixes that only where the stylesheet reaches — this fixes it in the markup,
+ * so every surface that renders the same string agrees.
+ *
+ * Each run of N spaces becomes N-1 non-breaking spaces plus one ordinary space:
+ * the ordinary space keeps the run a legal wrapping point, so a long padded
+ * line still breaks instead of overflowing its container.
+ *
+ * Only text between tags is touched — tag names, attributes and entities are
+ * left exactly as the sanitizer emitted them.
+ *
+ * @param html - Sanitized HTML.
+ * @returns The same markup with authored space runs preserved.
+ */
+export function preserveSpaceRuns(html: string): string {
+  let result = "";
+  let offset = 0;
+  const tagPattern = /<[^>]*>/g;
+  let match: RegExpExecArray | null;
+
+  const expand = (text: string): string =>
+    text.replace(/ {2,}/g, (run) => "&nbsp;".repeat(run.length - 1) + " ");
+
+  while ((match = tagPattern.exec(html)) !== null) {
+    result += expand(html.slice(offset, match.index)) + match[0];
+    offset = match.index + match[0].length;
+  }
+  return result + expand(html.slice(offset));
+}

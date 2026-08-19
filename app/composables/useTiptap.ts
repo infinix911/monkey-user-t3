@@ -1,4 +1,17 @@
-import { escapeHtml, sanitizeHtml } from "@/utils/sanitizeHtml";
+import {
+  escapeHtml,
+  preserveSpaceRuns,
+  sanitizeHtml,
+} from "@/utils/sanitizeHtml";
+
+/**
+ * Sanitize, then keep the author's space runs — CMS bodies are aligned by hand
+ * and HTML would otherwise collapse those runs to a single space.
+ *
+ * @param html - Raw admin-authored HTML.
+ * @returns Safe markup with authored spacing intact.
+ */
+const render = (html: string): string => preserveSpaceRuns(sanitizeHtml(html));
 
 /** A formatting mark applied to a Tiptap text node. */
 interface TiptapMark {
@@ -122,13 +135,13 @@ export const renderTiptap = (data: TiptapInput): string => {
   if (typeof data === "string") {
     try {
       const parsed = JSON.parse(data);
-      return sanitizeHtml(tiptapToHtml(parsed));
+      return render(tiptapToHtml(parsed));
     } catch {
-      return sanitizeHtml(data);
+      return render(data);
     }
   }
   if (typeof data === "object") {
-    return sanitizeHtml(tiptapToHtml(data));
+    return render(tiptapToHtml(data));
   }
   return "";
 };
@@ -194,5 +207,5 @@ export const renderRichContent = (
     }
   }
 
-  return sanitizeHtml(html);
+  return render(html);
 };
