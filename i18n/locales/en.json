@@ -828,7 +828,7 @@
     },
     "validation": {
       "usernameMinLength": "Username must be at least 4 characters",
-      "usernameMaxLength": "Username must not exceed 12 characters",
+      "usernameMaxLength": "Username must not exceed 8 characters",
       "passwordMaxLength": "Password must not exceed 20 characters",
       "withdrawalPasswordMinLength": "Withdrawal password must be at least 6 characters",
       "withdrawalPasswordMaxLength": "Withdrawal password must not exceed 20 characters",
@@ -839,7 +839,7 @@
       "currencyRequired": "Currency is required",
       "bankNameRequired": "Bank name is required",
       "accountNameRequired": "Account name is required",
-      "accountNameMinLength": "Account name must be at least 4 characters",
+      "accountNameMinLength": "Account name must be at least 2 characters",
       "accountNumberRequired": "Account number is required",
       "accountNumberDigitsOnly": "Account number must contain digits only",
       "bankNameTooLong": "Bank name must be 30 characters or fewer"
