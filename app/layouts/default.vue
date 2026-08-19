@@ -323,30 +323,9 @@ import { sanitizeHtml } from "@/utils/sanitizeHtml";
 const authStore = useAuthStore();
 const uiStore = useUiStore();
 
-// Populate `uiStore.hasUnreadInquiries` for the whole session.
-//
-// Everything that gates on unread replies — the deposit/withdraw/point/game/
-// sidebar guard (`blockedByUnreadInquiries`) and the inquiry modal's close
-// guard — reads that flag, but nothing set it until the member happened to
-// open the inquiry screen, so the guards were dead on a fresh page load.
-// Mounted here, in the layout every authenticated page renders, so the flag is
-// live from the moment the session is verified. The composable also registers
-// itself with the websocket store, so a reply arriving mid-session flips the
-// flag without a reload.
-useUnreadInquiries();
-
-// Hard block: force the inquiry modal open whenever an inquiry has unread admin
-// replies. It is a non-dismissible full-screen overlay until the member reads
-// them (InquiryModal.handleCloseClick / 전체 읽기), so this blocks every other
-// action until they do. `immediate` catches a load that starts unread; the
-// websocket flip above reopens it if a reply arrives mid-session.
-watch(
-  () => uiStore.hasUnreadInquiries,
-  (hasUnread) => {
-    if (hasUnread) void blockedByUnreadInquiries();
-  },
-  { immediate: true },
-);
+// Keeps unread inquiry replies live for the entire authenticated session and
+// opens the non-dismissible inquiry modal whenever they block the member.
+useUnreadInquiryGate();
 
 // Non-critical components — async-loaded so their JS/CSS stays out of the
 // initial bundle. `v-if` guards in the template below keep the chunks from

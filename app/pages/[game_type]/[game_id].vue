@@ -54,6 +54,7 @@ const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
+const uiStore = useUiStore();
 // Drives the global top progress bar (app.vue) while we resolve the one-time
 // launch URL — the route-nav bar already finished once this CSR page mounted,
 // so without this there's no feedback during the /games/launch round-trip.
@@ -120,8 +121,13 @@ const fetchGameUrl = async () => {
       GAME_BLOCKED: t("common.gameBlocked"),
       GAME_BLOCKED_BY_PROMOTION: t("common.gameBlockedByPromotion"),
     };
+    if (code === "INQUIRY_UNREAD") {
+      uiStore.setShowInquiryModal(true);
+    }
     error.value =
-      (code && blockMessages[code]) || t("common.gameError");
+      (code === "INQUIRY_UNREAD" && t("inquiry.mustReadMessages")) ||
+      (code && blockMessages[code]) ||
+      t("common.gameError");
     isLoading.value = false;
     loadingIndicator.finish();
   }

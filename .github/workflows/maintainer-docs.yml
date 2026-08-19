@@ -1,0 +1,30 @@
+name: Maintainer documentation
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify required documentation and change coverage
+        shell: bash
+        run: |
+          required=(docs/maintainer/README.md docs/maintainer/onboarding.md docs/maintainer/ownership.md docs/maintainer/changelog.md)
+          for document in "${required[@]}"; do test -f "$document" || { echo "Missing required documentation: $document"; exit 1; }; done
+          base="${{ github.event.pull_request.base.sha }}"
+          [ -n "$base" ] || base="${{ github.event.before }}"
+          changed="$(git diff --name-only "$base" "${{ github.sha }}")"
+          if printf '%s\n' "$changed" | grep -qv '^docs/maintainer/'; then
+            printf '%s\n' "$changed" | grep -q '^docs/maintainer/' || { echo 'Production code changed without a maintainer-docs update.'; exit 1; }
+            printf '%s\n' "$changed" | grep -q '^docs/maintainer/changelog\.md$' || { echo 'Production code changed without an unreleased changelog entry.'; exit 1; }
+          fi
