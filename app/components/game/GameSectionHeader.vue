@@ -18,7 +18,7 @@
   <div
     class="game-section-bar relative z-10 w-full h-8 md:h-[45px] flex items-center px-4 mb-2 md:mb-3 mt-[14px] first:mt-0 [.sr-only+&]:mt-0 md:mt-6 md:first:mt-0 md:[.sr-only+&]:mt-0 lg:mt-4 lg:first:mt-[9px] lg:[.sr-only+&]:mt-[9px]"
     :style="{ background: siteConfig.theme.sectionHeader.gradient }">
-    <!-- Icon + title only, matching banana-jaeisol-t3-nuxt: one bold white
+    <!-- Icon + title only, matching the banana reference build: one bold white
          label, no Latin subtitle beside it. The icon is sized to nearly fill
          the bar (38 of 45px) so the pair reads as a single strong mark. -->
     <div class="flex items-center gap-2 text-white">

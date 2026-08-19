@@ -1559,7 +1559,7 @@ export const getDefaultThemeConfig = (): SiteConfig => {
             },
             canonicalMeta: {
                 SEO_CANONICAL_META: {
-                    author: "jaeisol",
+                    author: "karma",
                     google: "notranslate",
                     rating: "general",
                     robots: "index, follow",
@@ -1567,7 +1567,7 @@ export const getDefaultThemeConfig = (): SiteConfig => {
                     language: "id-ID",
                     googlebot: "index, follow",
                     "og:locale": "id_ID",
-                    publisher: "jaeisol",
+                    publisher: "karma",
                     "geo.region": "ID-JK",
                     "geo.country": "ID",
                     distribution: "global",
