@@ -143,20 +143,23 @@
              MobileUserBar above. -->
             <div v-if="!isRtpPage" class="block lg:hidden w-full xl:w-[1152px] mx-auto">
               <div
-                class="w-full shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] h-[36px] min-h-[36px] max-h-[36px] flex justify-center"
+                class="w-full shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] max-h-[30px] min-h-[30px] md:max-h-[41px] md:min-h-[41px] md:h-[41px] flex justify-center"
                 :style="{ background: brandSiteConfig.theme.announcement.mobileBg }">
                 <div
-                  class="w-full flex items-center justify-center gap-1.5 md:gap-4 pr-2 md:pr-6 pl-2 md:pl-3 overflow-visible">
+                  class="w-full flex items-center justify-center gap-1.5 md:gap-4 pr-3 pl-2 md:pl-3 overflow-visible">
                   <NuxtImg :src="brandSiteConfig.theme.announcement.mobileIcon" alt="" aria-hidden="true"
                     class="flex-shrink-0 h-5 w-auto object-contain" />
                   <AnnouncementMarquee :text="brandSiteConfig.theme.announcement.text"
                     size-class="text-[14px] lg:text-[15px]" :text-stroke="brandSiteConfig.theme.announcement.textStroke"
                     :text-fill="brandSiteConfig.theme.announcement.textFill" />
-                  <!-- Invisible spacer mirrors the leading icon so the marquee region
-                   is symmetric and short (centered) text sits at the bar's true
-                   centre rather than being pushed right by the icon. -->
-                  <NuxtImg :src="brandSiteConfig.theme.announcement.mobileIcon" alt="" aria-hidden="true"
-                    class="flex-shrink-0 h-5 w-auto object-contain invisible" />
+                  <!-- No trailing spacer. One used to mirror the leading icon so
+                   short, centred text sat on the bar's true centre - but the icon
+                   renders 33px wide, so with the gap and `pr-3` it walled off
+                   51px of the right-hand side and the marquee visibly stopped
+                   short of the edge. The reference bar has no spacer either.
+                   Long text (the normal case) scrolls, so it never needed the
+                   symmetry; short text now sits a little left of true centre,
+                   which is the cheaper trade. -->
                 </div>
               </div>
             </div>

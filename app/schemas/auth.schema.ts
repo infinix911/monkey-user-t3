@@ -27,10 +27,24 @@ export const loginSchema = (t: TFn) =>
 const signupRawSchema = (t: TFn) =>
   z
     .object({
+      // 4-8, matching the API's registerSchema exactly (`username: t.String({
+      // minLength: 4, maxLength: 8 })`). Verified against that schema directly:
+      // a 10-character id fails with "Expected string length less or equal to
+      // 8" and the same payload passes at 8.
+      //
+      // Without this the form was the looser of the two, so a 9-12 character id
+      // passed here and was rejected by Elysia BEFORE the controller ran; the
+      // member got `{"message":"VALIDATION_ERROR"}`, which the API returns for
+      // every schema failure and which names no field. The old min of 5 also
+      // contradicted this field's own error text, which already said 4.
+      //
+      // ⚠ /auth/check/username still accepts 4-12, so it will call a 9-12
+      // character id AVAILABLE. The form no longer lets one through, but that
+      // endpoint's bound is still wrong on the API side.
       username: z
         .string()
-        .min(5, t("signup.validation.usernameMinLength"))
-        .max(12, t("signup.validation.usernameMaxLength")),
+        .min(4, t("signup.validation.usernameMinLength"))
+        .max(8, t("signup.validation.usernameMaxLength")),
       password: z
         .string()
         .min(6, t("password.validation.newPasswordMinLength"))
@@ -56,9 +70,14 @@ const signupRawSchema = (t: TFn) =>
         .string()
         .min(1, t("signup.validation.bankNameRequired"))
         .max(30, t("signup.validation.bankNameTooLong")),
+      // 2, not 4: this is a Korean account-holder name (예금주명), and Korean
+      // names are commonly two or three syllables - 김민, 이준 - so a 4 floor
+      // rejected ordinary real names. 2 is also exactly what the API enforces
+      // (`bankAccountName` minLength 2 in registerSchema), so the form and the
+      // server now agree instead of the form being the stricter of the two.
       bankAccountName: z
         .string()
-        .min(4, t("signup.validation.accountNameMinLength")),
+        .min(2, t("signup.validation.accountNameMinLength")),
       bankAccount: z
         .string()
         .min(1, t("signup.validation.accountNumberRequired"))
