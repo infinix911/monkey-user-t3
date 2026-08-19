@@ -27,21 +27,10 @@ export const loginSchema = (t: TFn) =>
 const signupRawSchema = (t: TFn) =>
   z
     .object({
-      // 4-8, matching the API's registerSchema exactly. It was 5-12, which is
-      // the mismatch behind the bare 400s on /auth/register: a 9-12 character
-      // id passed this form and was then rejected by the server's schema before
-      // the controller ran, so the member got no message at all. The old min of
-      // 5 also contradicted this field's own error text, which already said 4.
-      //
-      // ⚠ The API is not self-consistent here: /auth/check/username accepts
-      // 4-12 (checkUsernameSchema), so a 9-12 character id is reported
-      // AVAILABLE and then fails registration. Registration is the binding
-      // rule, so the form follows that one; fixing the check endpoint's bound
-      // is an API-side change.
       username: z
         .string()
-        .min(4, t("signup.validation.usernameMinLength"))
-        .max(8, t("signup.validation.usernameMaxLength")),
+        .min(5, t("signup.validation.usernameMinLength"))
+        .max(12, t("signup.validation.usernameMaxLength")),
       password: z
         .string()
         .min(6, t("password.validation.newPasswordMinLength"))
