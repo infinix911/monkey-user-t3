@@ -160,6 +160,31 @@ export const renderTiptap = (data: TiptapInput): string => {
  *
  * Shared by `NoticeSection.vue` and the homepage SEO intro in `default.vue`.
  */
+/**
+ * Reassemble a string that was serialised as a character-indexed object.
+ *
+ * `/site/notice` returned exactly that — `{"0":"<","1":"p","2":">",…}` — because
+ * the endpoint declared its TEXT column as a record type, so the HTML was
+ * validated and emitted one character per key. The API has since been corrected,
+ * but a deployment running the old build still serves the char map, and this is
+ * the safer end to be tolerant at: the alternative is a notice rendered with
+ * every space missing.
+ *
+ * @param record - Candidate object.
+ * @returns The joined string, or null when this is not a char map.
+ */
+const charMapToString = (record: Record<string, unknown>): string | null => {
+  const keys = Object.keys(record);
+  if (!keys.length) return null;
+  // Every key an index, every value a single character.
+  for (let i = 0; i < keys.length; i++) {
+    if (keys[i] !== String(i)) return null;
+    const ch = record[keys[i] as string];
+    if (typeof ch !== "string" || ch.length !== 1) return null;
+  }
+  return keys.map((k) => record[k] as string).join("");
+};
+
 export const renderRichContent = (
   data: TiptapInput | Record<string, unknown>,
 ): string => {
@@ -175,6 +200,9 @@ export const renderRichContent = (
     }
   } else if (typeof data === "object") {
     const record = data as Record<string, unknown>;
+    // A string that arrived spread across numeric keys — rejoin and re-enter.
+    const rejoined = charMapToString(record);
+    if (rejoined !== null) return renderRichContent(rejoined);
     // Tiptap JSON document
     if (record.type || Array.isArray(record.content)) {
       html = tiptapToHtml(data as TiptapNode);
@@ -183,7 +211,10 @@ export const renderRichContent = (
       const parts: string[] = [];
       for (const key of Object.keys(record)) {
         const val = record[key];
-        if (typeof val === "string" && val.trim()) {
+        // `val.trim()` as the guard silently dropped whitespace-only entries,
+        // which is what erased the spaces from the char map above. Emptiness is
+        // the thing worth skipping, not whitespace.
+        if (typeof val === "string" && val.length > 0) {
           try {
             const parsed = JSON.parse(val);
             if (parsed && typeof parsed === "object") {
