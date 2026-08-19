@@ -97,6 +97,15 @@ export function useProfileMenuItems() {
       image: profileMenu.telegram,
     },
     inquiry: { labelKey: "profile.inquiry", image: profileMenu.inquiry },
+    // Partner is the one id from the removed partner group that still leads
+    // somewhere: not a route in this app (ADR-020 deleted those) but the
+    // separate monkey-partner console, opened in a new tab like any other
+    // absolute href.
+    partner: {
+      labelKey: "profile.partner",
+      href: "https://partner.jaeisol.com/",
+      image: profileMenu.partner,
+    },
     contact: { labelKey: "profile.contact", image: profileMenu.contact },
     livechat: { labelKey: "common.liveChat", image: profileMenu.livechat },
     // RTP (slot-RTP page). The live CMS places it on page 1, so it needs a
@@ -148,7 +157,9 @@ export function useProfileMenuItems() {
   // - bonushistory / levelsystem: backed only by GET /promotions/bonuses and
   //   GET /promotions/level-rewards, which don't exist in monkey-user-api.
   // - partner group: ADR-020 — the /partner* routes, components, and partner
-  //   deposit/withdraw flows are gone.
+  //   deposit/withdraw flows are gone. The bare `partner` id is the exception:
+  //   it is no longer a route here but an outbound link to the monkey-partner
+  //   console, so it stays renderable while its sub-pages remain removed.
   const REMOVED_ITEM_IDS = new Set([
     "invoice",
     "meanang",
@@ -158,7 +169,6 @@ export function useProfileMenuItems() {
     "carabermain",
     "bonushistory",
     "levelsystem",
-    "partner",
     "partnerdashboard",
     "partnerdeposit",
     "partnerwithdraw",

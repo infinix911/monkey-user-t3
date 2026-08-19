@@ -723,6 +723,7 @@ export const PROFILE_MENU_ICON_DEFAULTS = {
     contact: "/designs/my-account/contact.webp",
     activity: "/designs/menu/activity.webp",
     livechat: "/designs/menu/livechat.webp",
+    partner: "/designs/menu/partner.webp",
 };
 
 /** PWA manifest icon assets. */

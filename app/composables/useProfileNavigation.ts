@@ -150,6 +150,13 @@ export function useProfileNavigation(options: UseProfileNavigationOptions) {
     }
 
     if (item.href) {
+      // An absolute href leaves this app (the partner console, a Telegram
+      // deep link), so it opens in a new tab. Routing it would ask the router
+      // to resolve "https://…" as an in-app path and land nowhere.
+      if (/^https?:\/\//i.test(item.href)) {
+        window.open(item.href, "_blank", "noopener,noreferrer");
+        return;
+      }
       router.push(localePath(item.href));
     }
     options.onNavigate?.();
