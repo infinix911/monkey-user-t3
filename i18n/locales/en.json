@@ -828,7 +828,7 @@
     },
     "validation": {
       "usernameMinLength": "Username must be at least 4 characters",
-      "usernameMaxLength": "Username must not exceed 12 characters",
+      "usernameMaxLength": "Username must not exceed 8 characters",
       "passwordMaxLength": "Password must not exceed 20 characters",
       "withdrawalPasswordMinLength": "Withdrawal password must be at least 6 characters",
       "withdrawalPasswordMaxLength": "Withdrawal password must not exceed 20 characters",
