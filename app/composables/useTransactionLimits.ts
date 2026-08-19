@@ -18,7 +18,22 @@
 
 import { useSiteStore } from "@/stores/site";
 
-export type TransactionKind = "deposits" | "withdrawals";
+export type TransactionKind = "deposits" | "withdrawals" | "pointconversion";
+
+/**
+ * Cooldown setting code per kind.
+ *
+ * Deposits and withdrawals spell it `:cooldown-minutes`; point conversion is
+ * just `:cooldown` (see `getPointConversionSettingCodes()` in the API, which is
+ * also what the exchange endpoint validates against). Mapped here rather than
+ * interpolated, so the odd one out is visible instead of silently resolving to
+ * `undefined` and falling back to "no cooldown".
+ */
+const COOLDOWN_CODE: Record<TransactionKind, string> = {
+  deposits: "deposits:cooldown-minutes",
+  withdrawals: "withdrawals:cooldown-minutes",
+  pointconversion: "pointconversion:cooldown",
+};
 
 export interface TransactionLimits {
   minimum: number;
@@ -35,6 +50,12 @@ export interface TransactionLimits {
  */
 const FALLBACK: Record<TransactionKind, TransactionLimits> = {
   deposits: {
+    minimum: 0,
+    maximum: Number.POSITIVE_INFINITY,
+    divisible: 0,
+    cooldownMinutes: 0,
+  },
+  pointconversion: {
     minimum: 0,
     maximum: Number.POSITIVE_INFINITY,
     divisible: 0,
@@ -58,7 +79,8 @@ function toNumber(raw: string | undefined): number | undefined {
 /**
  * Reactive limits for one transaction kind.
  *
- * @param kind - `"deposits"` or `"withdrawals"` (matches the setting prefix).
+ * @param kind - Setting prefix: `"deposits"`, `"withdrawals"` or
+ *   `"pointconversion"`.
  */
 export function useTransactionLimits(kind: TransactionKind) {
   const siteStore = useSiteStore();
@@ -71,7 +93,7 @@ export function useTransactionLimits(kind: TransactionKind) {
       maximum: toNumber(s[`${kind}:maximum`]) ?? fallback.maximum,
       divisible: toNumber(s[`${kind}:divisible`]) ?? fallback.divisible,
       cooldownMinutes:
-        toNumber(s[`${kind}:cooldown-minutes`]) ?? fallback.cooldownMinutes,
+        toNumber(s[COOLDOWN_CODE[kind]]) ?? fallback.cooldownMinutes,
     };
   });
 }
