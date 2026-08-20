@@ -84,14 +84,17 @@
     "updateButton": "Update",
     "updatingButton": "Updating...",
     "validation": {
-      "oldPasswordRequired": "Current password is required",
+      "oldPasswordRequired": "Please enter your current password",
+      "newPasswordRequired": "Please enter a new password (6-20 characters)",
       "newPasswordMinLength": "Password must be at least 6 characters",
       "newPasswordMaxLength": "Password must be at most 20 characters",
-      "confirmPasswordRequired": "Please confirm your password",
+      "confirmPasswordRequired": "Please re-enter your new password",
       "currentWithdrawalRequired": "Please enter your current withdrawal password",
       "passwordsMismatch": "Passwords don't match",
       "withdrawalMinLength": "Withdrawal password must be at least 6 characters",
       "withdrawalMaxLength": "Withdrawal password must be at most 20 characters",
+      "withdrawalNewRequired": "Please enter a new withdrawal password (6-20 characters)",
+      "withdrawalConfirmRequired": "Please re-enter your new withdrawal password",
       "oldPasswordMinLength": "Current password must be at least 6 characters"
     },
     "success": {
