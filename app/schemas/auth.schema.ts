@@ -13,7 +13,7 @@ export const loginSchema = (t: TFn) =>
         .string()
         .min(1, t("auth.validation.usernameCheck"))
         .max(12, t("auth.validation.usernameTooLong"))
-        .regex(/^[a-zA-Z0-9_-]+$/, t("auth.validation.usernameInvalidChars")),
+        .regex(/^[a-zA-Z0-9]+$/, t("auth.validation.usernameInvalidChars")),
       password: z
         .string()
         .min(6, t("auth.validation.passwordMinLength"))
@@ -44,7 +44,12 @@ const signupRawSchema = (t: TFn) =>
       username: z
         .string()
         .min(4, t("signup.validation.usernameMinLength"))
-        .max(8, t("signup.validation.usernameMaxLength")),
+        .max(8, t("signup.validation.usernameMaxLength"))
+        // Letters and digits only - same rule the login form enforces. Without
+        // it an id containing "_" or "-" could be registered here and then be
+        // rejected at login, locking the member out of the account they just
+        // made.
+        .regex(/^[a-zA-Z0-9]+$/, t("auth.validation.usernameInvalidChars")),
       password: z
         .string()
         .min(6, t("password.validation.newPasswordMinLength"))

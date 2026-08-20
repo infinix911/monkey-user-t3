@@ -11,7 +11,7 @@
     "validation": {
       "usernameCheck": "User ID is required",
       "usernameTooLong": "User ID must be 32 characters or fewer",
-      "usernameInvalidChars": "User ID may only contain letters, numbers, underscores and hyphens",
+      "usernameInvalidChars": "User ID may only contain letters and numbers",
       "passwordCheck": "Password is required",
       "passwordTooLong": "Password must be 128 characters or fewer",
       "captchaCheck": "Security code is required",
