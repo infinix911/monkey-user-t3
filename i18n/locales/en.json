@@ -11,7 +11,7 @@
     "validation": {
       "usernameCheck": "User ID is required",
       "usernameTooLong": "User ID must be 32 characters or fewer",
-      "usernameInvalidChars": "User ID may only contain letters, numbers, underscores and hyphens",
+      "usernameInvalidChars": "User ID may only contain letters and numbers",
       "passwordCheck": "Password is required",
       "passwordTooLong": "Password must be 128 characters or fewer",
       "captchaCheck": "Security code is required",
@@ -84,14 +84,17 @@
     "updateButton": "Update",
     "updatingButton": "Updating...",
     "validation": {
-      "oldPasswordRequired": "Current password is required",
+      "oldPasswordRequired": "Please enter your current password",
+      "newPasswordRequired": "Please enter a new password (6-20 characters)",
       "newPasswordMinLength": "Password must be at least 6 characters",
       "newPasswordMaxLength": "Password must be at most 20 characters",
-      "confirmPasswordRequired": "Please confirm your password",
+      "confirmPasswordRequired": "Please re-enter your new password",
       "currentWithdrawalRequired": "Please enter your current withdrawal password",
       "passwordsMismatch": "Passwords don't match",
       "withdrawalMinLength": "Withdrawal password must be at least 6 characters",
       "withdrawalMaxLength": "Withdrawal password must be at most 20 characters",
+      "withdrawalNewRequired": "Please enter a new withdrawal password (6-20 characters)",
+      "withdrawalConfirmRequired": "Please re-enter your new withdrawal password",
       "oldPasswordMinLength": "Current password must be at least 6 characters"
     },
     "success": {
@@ -808,8 +811,8 @@
     "referralNotFound": "Referral not found",
     "submitButton": "Sign Up",
     "copyright": "Copyright © {siteName} All rights reserved.",
-    "successTitle": "Account created",
-    "success": "Your account has been created successfully. You can now log in and start playing.",
+    "successTitle": "Registration submitted",
+    "success": "Your registration has been received. You can log in once an administrator approves it.",
     "failed": "Registration could not be completed",
     "apiMessages": {
       "SUCCESSFUL_REGISTER": "Registration successful!",
@@ -977,16 +980,17 @@
     "apiMessages": {
       "POINTS_EXCHANGED": "Points converted successfully.",
       "INSUFFICIENT_POINTS": "You don't have enough points.",
-      "POINT_EXCHANGE_BELOW_MINIMUM": "Amount is below the minimum conversion amount.",
-      "POINT_EXCHANGE_ABOVE_MAXIMUM": "Amount exceeds the maximum conversion amount.",
-      "POINT_EXCHANGE_NOT_DIVISIBLE": "Amount must match the configured conversion increment.",
-      "POINT_EXCHANGE_COOLDOWN_ACTIVE": "Please wait before converting points again.",
+      "POINT_EXCHANGE_BELOW_MINIMUM": "The minimum conversion amount is {n}.",
+      "POINT_EXCHANGE_ABOVE_MAXIMUM": "The maximum conversion amount is {n}.",
+      "POINT_EXCHANGE_NOT_DIVISIBLE": "Point conversion must be in units of {n}.",
+      "POINT_EXCHANGE_COOLDOWN_ACTIVE": "Point conversion is available once every {n} minutes.",
       "POINT_EXCHANGE_SETTINGS_NOT_CONFIGURED": "Point conversion is not configured. Please contact support.",
       "INVALID_POINT_EXCHANGE_SETTINGS": "Point conversion is temporarily unavailable. Please contact support.",
       "MEMBER_NOT_FOUND": "Member not found.",
       "INTERNAL_ERROR": "Something went wrong. Please try again."
     },
-    "available": "Available Points"
+    "available": "Available Points",
+    "convertFailedTitle": "Point conversion failed"
   },
   "sidebar": {
     "label": "Main menu",

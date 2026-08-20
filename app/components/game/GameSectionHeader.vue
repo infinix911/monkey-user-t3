@@ -4,21 +4,27 @@
        stacked sections and the dedicated pages identical. More space above than
        below, so the bar reads as belonging to the row it introduces rather than
        floating between two. GameCarousel's own `py-1` adds 4px on each side. -->
+  <!-- MOBILE CARRIES NO MARGIN AT ALL, matching the banana reference build,
+       where this bar is a bare `h-8 … px-4` and the only gap between a bar and
+       its row is the carousel's own `py-1`. The margins we had (8px below,
+       14px between sections) stacked on top of that and pushed every section
+       apart, so the phone layout drifted from the reference it was measured
+       against. From `md` up the rhythm below is unchanged. -->
   <!-- Top margin is rhythm BETWEEN rows, so the FIRST bar on a page drops it:
        there is no row above it, only the banner (homepage) or the navbar, and
        the full margin would read as a black gap rather than as separation.
-       Below `lg` — where the sidebar rail is hidden (`hidden lg:block` in
-       layouts/default.vue) — that first bar sits flush at 0; from `lg`, with
-       the rail in play, it takes the 9px measured off the reference design.
+       From `lg`, with the sidebar rail in play (`hidden lg:block` in
+       layouts/default.vue), it takes the 9px measured off the reference design.
        Two cases, hence the second variant: the homepage opens straight with a
        bar, while the category pages (hot/slots/casino/…) open with an sr-only
        <h1> that takes the :first-child slot without occupying any flow space.
        Every breakpoint that sets a top margin has to restate both, since a
-       later breakpoint's plain utility would otherwise win. -->
+       later breakpoint's plain utility would otherwise win — mobile needs
+       neither, having no margin to cancel. -->
   <div
-    class="game-section-bar relative z-10 w-full h-8 md:h-[45px] flex items-center px-4 mb-2 md:mb-3 mt-[14px] first:mt-0 [.sr-only+&]:mt-0 md:mt-6 md:first:mt-0 md:[.sr-only+&]:mt-0 lg:mt-4 lg:first:mt-[9px] lg:[.sr-only+&]:mt-[9px]"
+    class="game-section-bar relative z-10 w-full h-8 md:h-[45px] flex items-center px-4 md:mb-3 md:mt-6 md:first:mt-0 md:[.sr-only+&]:mt-0 lg:mt-4 lg:first:mt-[9px] lg:[.sr-only+&]:mt-[9px]"
     :style="{ background: siteConfig.theme.sectionHeader.gradient }">
-    <!-- Icon + title only, matching banana-jaeisol-t3-nuxt: one bold white
+    <!-- Icon + title only, matching the banana reference build: one bold white
          label, no Latin subtitle beside it. The icon is sized to nearly fill
          the bar (38 of 45px) so the pair reads as a single strong mark. -->
     <div class="flex items-center gap-2 text-white">

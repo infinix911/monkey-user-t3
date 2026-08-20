@@ -114,8 +114,47 @@ import { showSuccessAlert, showErrorAlert } from "~~/utils/swal-alert";
 const props = defineProps<{ isOpen: boolean }>();
 const emit = defineEmits<{ close: [] }>();
 
-const { t } = useI18n();
+const { t, te } = useI18n();
 const apiMessage = useApiMessage();
+
+// CMS limits for point conversion (`pointconversion:*` in /site/settings), the
+// same numbers the API validates against. Used to fill the {n} in a refusal so
+// the member is told the actual rule, not just that it was refused.
+const limits = useTransactionLimits("pointconversion");
+
+/** The configured number each refusal is about. */
+const REASON_LIMIT: Record<string, () => number> = {
+  POINT_EXCHANGE_COOLDOWN_ACTIVE: () => limits.value.cooldownMinutes,
+  POINT_EXCHANGE_NOT_DIVISIBLE: () => limits.value.divisible,
+  POINT_EXCHANGE_BELOW_MINIMUM: () => limits.value.minimum,
+  POINT_EXCHANGE_ABOVE_MAXIMUM: () => limits.value.maximum,
+};
+
+/**
+ * Failure text for a rejected conversion.
+ *
+ * `apiMessage()` translates the API's code but cannot interpolate, so the four
+ * limit-based refusals are resolved here with their configured value. Anything
+ * else (insufficient points, settings missing, network) falls through to
+ * `apiMessage` unchanged.
+ *
+ * A limit of 0 means the rule is disabled server-side, so the number would read
+ * as nonsense ("최소 전환 금액은 0원 입니다") - those fall back too.
+ */
+function failureMessage(err: unknown): string {
+  const code = String(
+    (err as { data?: { message?: string }; response?: { data?: { message?: string } } })
+      ?.data?.message ??
+      (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
+      "",
+  );
+  const limit = REASON_LIMIT[code]?.();
+  const key = `point.apiMessages.${code}`;
+  if (limit && Number.isFinite(limit) && te(key)) {
+    return t(key, { n: currency.formatNumber(limit) });
+  }
+  return apiMessage(err, "point", "point.convertFailed");
+}
 const siteConfig = useSiteConfig();
 const authStore = useAuthStore();
 const currency = useCurrency();
@@ -156,13 +195,49 @@ function onClose() {
 
 const isLoading = ref(false);
 
+/**
+ * The CMS rule this amount breaks, as the message the member should see.
+ *
+ * Checks the same three limits the API enforces, and deliberately reuses the
+ * API's own i18n keys - a member should not be told one thing by the form and
+ * another by the server for the same rule. The server still re-checks
+ * everything: this only saves a round trip and an error dialog that arrives
+ * after the fact.
+ *
+ * The cooldown is NOT checked here. It depends on the time of the member's last
+ * exchange, which the client does not know; that one stays a server refusal.
+ *
+ * A limit of 0 means the rule is disabled server-side, so it is skipped rather
+ * than enforced as "must be a multiple of 0".
+ *
+ * @returns The failure message, or null when the amount breaks no rule.
+ */
+function limitViolation(amount: number): string | null {
+  const { minimum, maximum, divisible } = limits.value;
+  const say = (code: string, n: number) =>
+    t(`point.apiMessages.${code}`, { n: currency.formatNumber(n) });
+
+  if (minimum > 0 && amount < minimum)
+    return say("POINT_EXCHANGE_BELOW_MINIMUM", minimum);
+  if (Number.isFinite(maximum) && maximum > 0 && amount > maximum)
+    return say("POINT_EXCHANGE_ABOVE_MAXIMUM", maximum);
+  if (divisible > 0 && amount % divisible !== 0)
+    return say("POINT_EXCHANGE_NOT_DIVISIBLE", divisible);
+  return null;
+}
+
 async function submit() {
   if (amt.value < 1) {
-    await showErrorAlert(t("point.title"), t("point.amountCheck"));
+    await showErrorAlert(t("point.convertFailedTitle"), t("point.amountCheck"));
     return;
   }
   if (amt.value > pointCurrent.value) {
-    await showErrorAlert(t("point.title"), t("point.amountGt"));
+    await showErrorAlert(t("point.convertFailedTitle"), t("point.amountGt"));
+    return;
+  }
+  const violation = limitViolation(amt.value);
+  if (violation) {
+    await showErrorAlert(t("point.convertFailedTitle"), violation);
     return;
   }
 
@@ -185,10 +260,7 @@ async function submit() {
     );
     onClose();
   } catch (err: unknown) {
-    await showErrorAlert(
-      t("point.title"),
-      apiMessage(err, "point", "point.convertFailed"),
-    );
+    await showErrorAlert(t("point.convertFailedTitle"), failureMessage(err));
   } finally {
     isLoading.value = false;
   }
