@@ -130,7 +130,7 @@ export const showLoadingAlert = async (title: string, text?: string) => {
 
 export const showConfirmationAlert = async (
   title: string,
-  text: string,
+  text?: string,
   confirmButtonText: string = "Yes",
   cancelButtonText: string = "No",
   confirmButtonColor: string = "#dc2626",
@@ -138,7 +138,7 @@ export const showConfirmationAlert = async (
 ): Promise<boolean> => {
   const result = await fireDialog({
     title,
-    text,
+    ...(text ? { text } : {}),
     icon: "warning",
     showCancelButton: true,
     confirmButtonColor,

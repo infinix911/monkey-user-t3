@@ -158,10 +158,7 @@ export const useInquiryMutations = (onRefresh?: () => Promise<void>) => {
         message: "BANK_ACCOUNT_REQUEST",
       });
 
-      await showSuccessAlert(
-        t("inquiry.success"),
-        t("inquiry.bankAccountRequestSent"),
-      );
+      await showSuccessAlert(t("inquiry.bankAccountRequestSent"));
 
       // Refresh in place when a callback exists. A router.go(0) reload would
       // tear down whatever modal the button was pressed from (this is called

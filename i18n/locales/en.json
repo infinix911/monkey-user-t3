@@ -198,7 +198,7 @@
     "passwordPlaceholder": "Enter your withdrawal password"
   },
   "inquiry": {
-    "depositAccountRequest": "Bank Account Request",
+    "depositAccountRequest": "Deposit Account Inquiry",
     "enterInquiryTitle": "Enter your inquiry title...",
     "enterInquiryBody": "Enter your inquiry body...",
     "inquiryNote": "Please provide as much detail as possible to help us assist you better",
@@ -241,8 +241,8 @@
     "markAllRead": "Mark All Read",
     "markRead": "Mark Read",
     "success": "Done",
-    "bankAccountRequestSent": "Your bank account request has been submitted. Our team will review it and update you shortly.",
-    "accountRequestConfirmation": "Would you like to request a bank account?",
+    "bankAccountRequestSent": "Request received",
+    "accountRequestConfirmation": "Would you like to inquire?",
     "markReadSuccess": "Inquiry marked as read successfully.",
     "deleteSuccess": "Inquiry deleted successfully.",
     "markAllReadSuccess": "All inquiries marked as read successfully.",

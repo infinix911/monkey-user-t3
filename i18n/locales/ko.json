@@ -198,7 +198,7 @@
     "passwordPlaceholder": "출금 비밀번호를 입력하세요"
   },
   "inquiry": {
-    "depositAccountRequest": "은행 계좌 요청",
+    "depositAccountRequest": "입금 계좌 문의",
     "enterInquiryTitle": "문의 제목을 입력하세요...",
     "enterInquiryBody": "문의 내용을 입력하세요...",
     "inquiryNote": "더 나은 지원을 위해 가능한 한 자세히 작성해주세요",
@@ -241,8 +241,8 @@
     "markAllRead": "전체 읽음 처리",
     "markRead": "읽음 처리",
     "success": "완료",
-    "bankAccountRequestSent": "은행 계좌 요청이 접수되었습니다. 저희 팀이 검토 후 곧 안내해 드리겠습니다.",
-    "accountRequestConfirmation": "계좌를 문의하시겠습니까?",
+    "bankAccountRequestSent": "접수 되었습니다",
+    "accountRequestConfirmation": "문의하시겠습니까?",
     "markReadSuccess": "문의가 읽음 처리되었습니다.",
     "deleteSuccess": "문의가 삭제되었습니다.",
     "markAllReadSuccess": "모든 문의를 읽음 처리했습니다.",

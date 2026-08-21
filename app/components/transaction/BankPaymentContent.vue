@@ -202,8 +202,8 @@ async function handleAccountRequest() {
   // Raising the inquiry opens a support ticket, so confirm first — "No" just
   // closes the dialog and leaves the deposit modal as it was.
   const confirmed = await showConfirmationAlert(
-    t("inquiry.depositAccountRequest"),
     t("inquiry.accountRequestConfirmation"),
+    undefined,
     t("common.yes"),
     t("common.no"),
     "#04c000",
