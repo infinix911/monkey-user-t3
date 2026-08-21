@@ -6,17 +6,10 @@
         <template v-if="!showForm">
           <!-- 전체 읽기 — clears every unread flag in one call, which is also
                what releases the close guard (uiStore.hasUnreadInquiries blocks
-               dismissing this modal while anything is unread). Disabled when
-               there is nothing unread, so it never looks like a no-op action.
-               Highlighted while unread exist: it is the way out of the guard. -->
+               dismissing this modal while anything is unread). Keep it available
+               on every page: unread replies may be outside this page of results. -->
           <button
-            :disabled="!hasUnread"
-            :class="[
-              'font-medium rounded-lg w-full flex items-center justify-center gap-1.5 px-4 py-2.5 transition-colors text-sm md:text-base',
-              hasUnread
-                ? 'tm-btn-ghost !text-[#FF7575] !border-[#FF7575]/60 hover:!bg-[#FF7575]/10 cursor-pointer'
-                : 'tm-btn-ghost opacity-40 cursor-not-allowed',
-            ]"
+            class="tm-btn-ghost font-medium rounded-lg w-full flex items-center justify-center gap-1.5 px-4 py-2.5 transition-colors text-sm md:text-base cursor-pointer hover:!text-[#FF7575] hover:!border-[#FF7575]/60 hover:!bg-[#FF7575]/10"
             @click="handleReadAll"
           >
             <svg
@@ -408,18 +401,6 @@ const handleToggle = async (id: string) => {
   }
 };
 
-// Auto-expand first unread inquiry on initial load
-watch(
-  () => props.inquiryData,
-  async (data) => {
-    if (data?.data && data.data.length > 0 && expandedId.value === null) {
-      const firstUnread = data.data.find((inq) => inq.member_unread > 0);
-      const targetId = firstUnread ? firstUnread.id : data.data[0]!.id;
-      await handleToggle(targetId);
-    }
-  },
-);
-
 const handleWriteInquiry = () => {
   showForm.value = true;
 };
@@ -456,11 +437,12 @@ const handleDelete = async (id: string) => {
 };
 
 const handleReadAll = async () => {
-  if (!hasUnread.value) return;
-  // status 4 = mark read (see updateAllInquiriesStatus). No confirmation:
+  // The explicit read action clears unread flags without changing ticket status.
+  // It remains available across pages because unread tickets may not be in the
+  // visible page. No confirmation:
   // marking read is non-destructive and is the action the close guard is
   // asking for, so an extra dialog would only be in the way.
-  await mutations.updateAllInquiriesStatus(4);
+  await mutations.updateAllInquiriesStatus("read");
 };
 
 const handleDeleteAll = async () => {

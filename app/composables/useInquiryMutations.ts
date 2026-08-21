@@ -109,10 +109,10 @@ export const useInquiryMutations = (onRefresh?: () => Promise<void>) => {
    * Update all inquiries status
    */
   const updateAllInquiriesStatus = async (
-    status: number | string,
+    status: "read" | "close" | "delete",
   ): Promise<void> => {
     const isDelete = status === "delete";
-    const isMarkRead = status === 4;
+    const isMarkRead = status === "read";
 
     try {
       const response = await axiosClient.patch("/inquiries/", { status });

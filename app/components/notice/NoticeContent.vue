@@ -128,9 +128,8 @@ onMounted(async () => {
         title: row.title,
         content: row.content ?? "",
       }));
-    // Open the first notice: with a short list, landing on all-collapsed rows
-    // makes the panel look empty.
-    expanded.value = notices.value.length > 0 ? 1 : null;
+    // Leave every row closed until the member chooses one.
+    expanded.value = null;
   } catch {
     // Silently fail — the panel renders its empty state.
   } finally {
