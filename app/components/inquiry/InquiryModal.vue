@@ -1,47 +1,79 @@
 <template>
   <Teleport to="body">
     <Transition name="modal">
+      <!-- Same shell the account sections get when they are opened normally:
+           the desktop rail panel (AppSidebar) on lg+, the profile modal's
+           full-screen section sheet (NewProfileModal) below it. This modal is
+           the guard's surface, so it has to be the SAME surface the member sees
+           when they open 문의 themselves - it used to render its own oversized
+           transparent header and read as a different feature. Both shells are
+           driven off one set of nodes so InquiryContent is never mounted twice
+           (it owns the expanded ticket and the write form). -->
       <div
         v-if="isOpen"
-        class="tm-modal modal-body-fill fixed inset-0 z-50 flex items-start justify-center"
+        class="tm-modal fixed inset-0 z-[100] flex flex-col overflow-hidden"
+        :class="isDesktop
+          ? 'items-center justify-center bg-black/90 px-4'
+          : 'modal-body-fill'"
         :style="modalTheme"
+        @click.self="handleCloseClick"
       >
         <div
-          class="!gap-0 bg-transparent border-0 p-0 w-full max-w-[calc(100%-2rem)] lg:max-w-4xl shadow-2xl flex flex-col lg:h-auto rounded-none lg:rounded-xl overflow-hidden m-0 lg:m-auto lg:mt-8"
+          class="relative flex flex-col min-h-0"
+          :class="isDesktop
+            ? 'modal-body-fill modal-gradient-border w-[620px] max-w-full rounded-lg shadow-2xl overflow-hidden'
+            : 'w-full flex-1'"
+          :style="isDesktop ? panelStyle : undefined"
+          role="dialog"
         >
-          <!-- Modal Header - Transparent Background -->
-          <div class="flex items-center justify-between px-5 pt-4 mb-2 lg:pt-6">
+          <!-- Header -->
+          <div
+            class="shrink-0 flex items-center justify-between"
+            :class="isDesktop
+              ? 'px-4 py-3 border-b tm-line'
+              : 'relative z-10 px-4 py-2'"
+          >
             <h2
-              class="text-[24px] lg:text-[45.933px] text-white lg:leading-[73.951px]"
+              :class="isDesktop ? 'tm-accent-text text-lg font-medium' : 'text-white'"
+              :style="isDesktop
+                ? { fontFamily: 'var(--font-line-seed)' }
+                : { fontFamily: 'var(--font-line-seed)', fontWeight: 600, marginTop: '17px', fontSize: '20px' }"
             >
-              {{ t("inquiry.title") }}
+              {{ title }}
             </h2>
             <button
-              class="tm-muted transition-colors hover:text-white cursor-pointer"
+              type="button"
+              class="tm-muted hover:text-white transition-colors cursor-pointer"
+              :class="isDesktop ? '' : 'self-start mt-1 pt-[14px]'"
               :aria-label="t('common.close')"
               @click="handleCloseClick"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                class="h-6 w-6"
+                :width="isDesktop ? 20 : 26"
+                :height="isDesktop ? 20 : 26"
+                viewBox="0 0 27 27"
                 fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
               >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M6 18L18 6M6 6l12 12"
+                <line
+                  x1="1.41421" y1="1" x2="25.627" y2="25.2127"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                />
+                <line
+                  x1="1" y1="-1" x2="35.242" y2="-1"
+                  transform="matrix(-0.707107 0.707107 0.707107 0.707107 26.6732 1)"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round"
                 />
               </svg>
             </button>
           </div>
 
-          <!-- Modal Content - With Background -->
+          <!-- Body -->
           <div
-            class="tm-card lg:!bg-transparent lg:!border-0 px-4 relative flex-1 min-h-0 rounded-xl mx-4 lg:mx-0 lg:rounded-none flex flex-col"
-            style="min-height: 500px"
+            class="tm-scroll min-h-0 overflow-y-auto"
+            :class="isDesktop
+              ? 'p-4 flex-1'
+              : 'tm-card flex-initial shrink min-w-0 max-h-full rounded-[18px] mx-2 p-4 mb-[20px]'"
           >
             <InquiryContent
               :inquiry-data="inquiryData"
@@ -57,7 +89,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { useApi } from "@/composables/useApi";
 import { getDateRangeLastNDays } from "~/lib/date";
 import { validateResponse } from "@/lib/validateResponse";
@@ -66,7 +98,6 @@ import {
   mapInquiriesResponse,
   type InquiriesResponse,
 } from "@/interfaces/inquiry.interface";
-import { showErrorAlert } from "~~/utils/swal-alert";
 
 interface Props {
   isOpen: boolean;
@@ -81,9 +112,30 @@ const emit = defineEmits<Emits>();
 
 const { t } = useI18n();
 const uiStore = useUiStore();
+const menu = useProfileMenuItems();
 
 /** Deposit/withdraw palette, inherited by InquiryContent and its cards. */
 const modalTheme = useModalTheme();
+
+/**
+ * 1024, not the 768 default: the desktop rail (and with it the panel shell this
+ * modal copies) appears at Tailwind's `lg`, so anything narrower gets the
+ * profile modal's full-screen sheet instead.
+ */
+const { isMobile } = useMobileDetect(1024);
+const isDesktop = computed(() => !isMobile.value);
+
+/** Panel bounds copied from the rail panel, so the two cannot drift apart. */
+const panelStyle = {
+  maxWidth: "calc(100vw / var(--site-zoom, 1) - 32px)",
+  maxHeight: "calc(100vh / var(--site-zoom, 1) - 120px)",
+};
+
+/**
+ * The CMS menu label, which is what both default surfaces title the section
+ * with — an operator who renames 문의 renames it here too.
+ */
+const title = computed(() => menu.labelForId("inquiry"));
 
 const INQUIRY_DATE_RANGE = 30;
 const INQUIRY_LIMIT = 10;
@@ -134,10 +186,7 @@ watch(
 
 const handleCloseClick = async () => {
   if (uiStore.hasUnreadInquiries) {
-    await showErrorAlert(
-      t("inquiry.unreadMessages"),
-      t("inquiry.mustReadMessages"),
-    );
+    await showUnreadInquiryAlert();
     return;
   }
   emit("close");

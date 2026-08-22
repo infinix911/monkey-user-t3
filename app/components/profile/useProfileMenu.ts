@@ -11,7 +11,6 @@
  */
 
 import { useApi } from "@/composables/useApi";
-import { showErrorAlert } from "~~/utils/swal-alert";
 import { useCarouselSwipe } from "@/composables/useCarouselSwipe";
 import {
   useProfileMenuItems,
@@ -126,10 +125,7 @@ export function useProfileMenu(options: UseProfileMenuOptions) {
       selectedAccountSection.value === "inquiry" &&
       uiStore.hasUnreadInquiries
     ) {
-      await showErrorAlert(
-        t("inquiry.unreadMessages"),
-        t("inquiry.mustReadMessages"),
-      );
+      await showUnreadInquiryAlert();
       return;
     }
     selectedAccountSection.value = null;

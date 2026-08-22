@@ -132,6 +132,12 @@ const handleDisagree = () => {
   uiStore.setShowNoticeModal(false);
   // Nothing to reload into — logout() clears the session and redirects.
   uiStore.setReloadAfterNoticeAgree(false);
+  // The session is ending, so unread replies are no longer this browser's
+  // business. Clearing them here also stops the unread-inquiry gate — which
+  // waits for this modal to close — from raising its warning on the way out;
+  // logout() awaits the API before it clears anything, which is long enough
+  // for the gate to have fired.
+  uiStore.setHasUnreadInquiries(false);
   authStore.logout();
 };
 </script>
