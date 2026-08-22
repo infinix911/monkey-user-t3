@@ -209,24 +209,39 @@ export function useProfileMenu(options: UseProfileMenuOptions) {
     }
   }
 
+  /**
+   * The menu sheet, a section on top of it, or a section on its own.
+   *
+   * Watched instead of `isOpen` alone because a section can now be opened
+   * WITHOUT the menu (the bottom nav's 공지사항). Keyed off `isOpen`, the
+   * immediate run would see a closed menu and wipe the very section that was
+   * just opened, and closing the menu behind a section would do the same.
+   */
+  const isAnySurfaceOpen = computed(
+    () => options.isOpen() || !!selectedAccountSection.value,
+  );
+
   watch(
-    options.isOpen,
-    (newVal) => {
-      if (newVal) {
+    isAnySurfaceOpen,
+    (open, wasOpen) => {
+      if (open) {
         if (import.meta.client) {
           document.addEventListener("mousedown", handleClickOutside);
           document.addEventListener("keydown", handleEscape);
         }
-      } else {
-        if (import.meta.client) {
-          document.removeEventListener("mousedown", handleClickOutside);
-          document.removeEventListener("keydown", handleEscape);
-        }
-        selectedAccountSection.value = null;
-        showPromotionModal.value = false;
-        showActivityModal.value = false;
-        carouselPage.value = 0;
+        return;
       }
+      if (import.meta.client) {
+        document.removeEventListener("mousedown", handleClickOutside);
+        document.removeEventListener("keydown", handleEscape);
+      }
+      // Only reset on the way DOWN from open — `immediate` fires this arm on
+      // mount too, where there is nothing to reset.
+      if (!wasOpen) return;
+      selectedAccountSection.value = null;
+      showPromotionModal.value = false;
+      showActivityModal.value = false;
+      carouselPage.value = 0;
     },
     { immediate: true },
   );

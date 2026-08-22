@@ -399,8 +399,13 @@
 
   <SignupModal v-if="signupModalMounted" :is-open="uiStore.showSignupModal" @close="handleCloseSignupModal" />
 
-  <NewProfileModal v-if="uiStore.showProfileModal" :is-open="uiStore.showProfileModal"
-    @close="uiStore.setShowProfileModal(false)" />
+  <!-- Mounted for the menu OR a section on its own: the bottom nav's 공지사항
+       opens a section without the menu, and this component renders both.
+       The section arm is breakpoint-gated because the SAME section state drives
+       the desktop rail panel (AppSidebar) — without it, opening a section there
+       would mount this mobile sheet underneath. -->
+  <NewProfileModal v-if="uiStore.showProfileModal || (isBelowRail && accountSection.section.value)"
+    :is-open="uiStore.showProfileModal" @close="uiStore.setShowProfileModal(false)" />
 
   <PointConversionModal v-if="uiStore.showPointModal" :is-open="uiStore.showPointModal"
     @close="uiStore.setShowPointModal(false)" />
@@ -410,9 +415,14 @@
 import { computed, ref, watch, onMounted, onUnmounted } from "vue";
 import { formatWallet } from "@/utils/currency";
 import { mobileHeaderScale } from "@/utils/scale";
+import { useAccountSection } from "@/composables/useAccountSections";
 
 const authStore = useAuthStore();
 const uiStore = useUiStore();
+/** Read only to decide whether the section host has to be mounted. */
+const accountSection = useAccountSection();
+/** Below `lg` the desktop rail is gone and the mobile sheet is the surface. */
+const { isMobile: isBelowRail } = useMobileDetect(1024);
 
 // The desktop account bar formats its own balances (see ACCOUNT_BAR_COLORS and
 // `walletUnit` below); UserBalancePill is no longer part of the header.

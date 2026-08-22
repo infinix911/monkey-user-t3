@@ -100,47 +100,51 @@
 
       <!-- Promotion + Activity feature modals -->
       <ProfileFeatureModals v-model:show-promotion="showPromotionModal" v-model:show-activity="showActivityModal" />
-
-      <!-- Mobile Full-Screen Modal -->
-      <Teleport to="body">
-        <Transition name="mobile-modal">
-          <div v-if="selectedAccountSection"
-            class="tm-modal modal-body-fill fixed inset-0 z-[70] flex flex-col overflow-hidden" :style="modalTheme"
-            @click.self="closeMobileModal">
-            <!-- Modal Header -->
-            <div class="relative z-10 shrink-0 flex items-center justify-between px-4 py-2">
-              <div class="flex items-center gap-0">
-                <!-- Plain white title (no icon / no yellow) — matches the
-                     Pertanyaan (Inquiry) modal header on mobile. -->
-                <h2 class="text-white"
-                  :style="{ fontFamily: 'var(--font-line-seed)', fontWeight: 600, marginTop: '17px', fontSize: '20px' }">
-                  {{ selectedAccountSectionLabel
-                  }}<template v-if="selectedAccountSection === 'referral'"> ({{ referralCount ?? 0 }})</template>
-                </h2>
-              </div>
-              <button type="button" class="self-start mt-1 hover:opacity-80 transition-opacity cursor-pointer pt-[14px]"
-                :aria-label="$t('common.close')" @click="closeMobileModal">
-                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 26 26" fill="none"
-                  class="w-[26px] h-[26px]">
-                  <line x1="1.44191" y1="1.01958" x2="24.9799" y2="24.5575" stroke="#939393" stroke-width="2.03917"
-                    stroke-linecap="round" />
-                  <line x1="1.01959" y1="-1.01959" x2="34.3073" y2="-1.01959"
-                    transform="matrix(-0.707107 0.707107 0.707107 0.707107 26 1.01959)" stroke="#939393"
-                    stroke-width="2.03917" stroke-linecap="round" />
-                </svg>
-              </button>
-            </div>
-
-            <!-- Modal Content -->
-            <div
-              class="tm-card tm-scroll flex-initial shrink min-h-0 min-w-0 max-h-full overflow-y-auto rounded-[18px] mx-2 p-4 mb-[20px]">
-              <AccountSectionPanel :section="selectedAccountSection" />
-            </div>
-          </div>
-        </Transition>
-      </Teleport>
     </div>
   </Transition>
+
+  <!-- Mobile full-screen section sheet.
+       OUTSIDE the menu's `v-if` on purpose: a section can be opened without the
+       menu (the bottom nav's 공지사항 does exactly that), and while it was
+       nested the only way to show a panel was to raise the menu behind it. -->
+  <Teleport to="body">
+    <Transition name="mobile-modal">
+      <div v-if="selectedAccountSection"
+        class="tm-modal modal-body-fill fixed inset-0 z-[70] flex flex-col overflow-hidden lg:hidden"
+        :style="modalTheme"
+        @click.self="closeMobileModal">
+        <!-- Modal Header -->
+        <div class="relative z-10 shrink-0 flex items-center justify-between px-4 py-2">
+          <div class="flex items-center gap-0">
+            <!-- Plain white title (no icon / no yellow) — matches the
+                 Pertanyaan (Inquiry) modal header on mobile. -->
+            <h2 class="text-white"
+              :style="{ fontFamily: 'var(--font-line-seed)', fontWeight: 600, marginTop: '17px', fontSize: '20px' }">
+              {{ selectedAccountSectionLabel
+              }}<template v-if="selectedAccountSection === 'referral'"> ({{ referralCount ?? 0 }})</template>
+            </h2>
+          </div>
+          <button type="button" class="self-start mt-1 hover:opacity-80 transition-opacity cursor-pointer pt-[14px]"
+            :aria-label="$t('common.close')" @click="closeMobileModal">
+            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 26 26" fill="none"
+              class="w-[26px] h-[26px]">
+              <line x1="1.44191" y1="1.01958" x2="24.9799" y2="24.5575" stroke="#939393" stroke-width="2.03917"
+                stroke-linecap="round" />
+              <line x1="1.01959" y1="-1.01959" x2="34.3073" y2="-1.01959"
+                transform="matrix(-0.707107 0.707107 0.707107 0.707107 26 1.01959)" stroke="#939393"
+                stroke-width="2.03917" stroke-linecap="round" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Modal Content -->
+        <div
+          class="tm-card tm-scroll flex-initial shrink min-h-0 min-w-0 max-h-full overflow-y-auto rounded-[18px] mx-2 p-4 mb-[20px]">
+          <AccountSectionPanel :section="selectedAccountSection" />
+        </div>
+      </div>
+    </Transition>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
