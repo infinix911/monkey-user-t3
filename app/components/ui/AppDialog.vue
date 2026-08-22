@@ -4,6 +4,7 @@
       <div
         v-if="dialog"
         class="tm-modal fixed inset-0 z-[100000] flex items-center justify-center p-4 bg-black/60"
+        data-app-dialog="true"
         :style="modalTheme"
         @click.self="onBackdrop"
       >
@@ -44,12 +45,45 @@
               viewBox="0 0 52 52"
               aria-hidden="true"
             >
-              <circle class="app-dialog-icon-ring" cx="26" cy="26" r="24" />
+              <circle
+                v-if="dialog.icon !== 'message'"
+                class="app-dialog-icon-ring"
+                cx="26"
+                cy="26"
+                r="24"
+              />
               <path
                 v-if="dialog.icon === 'success'"
                 class="app-dialog-icon-stroke app-dialog-icon-check"
                 d="M15 27 l7 7 l15 -15"
               />
+              <!-- Envelope + unread dot. No ring: this is a picture of a
+                   message, not a pass/fail badge, so it fills the box. The
+                   body draws, the flap folds in over it, then the dot pops.
+                   The badge sits clear of the envelope's top-right corner -
+                   overlapping it clipped the end of the flap, which read as a
+                   broken line. Its body-bg stroke keeps that gap honest if the
+                   stroke weight ever grows. -->
+              <template v-else-if="dialog.icon === 'message'">
+                <rect
+                  class="app-dialog-icon-stroke app-dialog-icon-envelope"
+                  x="3"
+                  y="18"
+                  width="36"
+                  height="26"
+                  rx="4.5"
+                />
+                <path
+                  class="app-dialog-icon-stroke app-dialog-icon-flap"
+                  d="M5.5 20.5 L21 33 L36.5 20.5"
+                />
+                <circle
+                  class="app-dialog-icon-dot"
+                  cx="45"
+                  cy="13"
+                  r="6.5"
+                />
+              </template>
               <template v-else-if="dialog.icon === 'error'">
                 <line
                   class="app-dialog-icon-stroke app-dialog-icon-cross1"
@@ -68,7 +102,7 @@
               </template>
             </svg>
             <span
-              v-if="dialog.icon !== 'success' && dialog.icon !== 'error'"
+              v-if="!DRAWN_ICONS.has(dialog.icon ?? '')"
               class="app-dialog-icon-glyph"
               >{{ iconGlyph }}</span
             >
@@ -151,6 +185,9 @@ const modalTheme = useModalTheme();
 const dialog = activeDialog;
 const confirmBtn = ref<HTMLButtonElement | null>(null);
 let timerId: ReturnType<typeof setTimeout> | null = null;
+
+/** Icons drawn as SVG paths; everything else falls back to a text glyph. */
+const DRAWN_ICONS = new Set(["success", "error", "message"]);
 
 const ICON_GLYPHS: Record<string, string> = {
   success: "✓",
@@ -286,6 +323,36 @@ onBeforeUnmount(() => {
   animation: app-dialog-stroke-draw 0.25s 0.45s ease-out forwards;
 }
 
+/* Envelope. Thinner than the check/cross - it draws a shape rather than a
+   symbol, and 4 would close up the flap's corners at this size. */
+.app-dialog-icon-envelope,
+.app-dialog-icon-flap {
+  stroke-width: 3.2;
+}
+
+.app-dialog-icon-envelope {
+  stroke-dasharray: 124;
+  stroke-dashoffset: 124;
+  animation: app-dialog-stroke-draw 0.45s 0.05s ease-out forwards;
+}
+
+.app-dialog-icon-flap {
+  stroke-dasharray: 40;
+  stroke-dashoffset: 40;
+  animation: app-dialog-stroke-draw 0.3s 0.4s ease-out forwards;
+}
+
+/* Unread dot — solid accent, ringed in the panel fill so the envelope corner
+   stays readable behind it. */
+.app-dialog-icon-dot {
+  fill: currentColor;
+  stroke: var(--body-bg);
+  stroke-width: 3;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: app-dialog-glyph-pop 0.35s 0.6s both;
+}
+
 .app-dialog-icon-glyph {
   position: absolute;
   inset: 0;
@@ -340,6 +407,11 @@ onBeforeUnmount(() => {
 .app-dialog-icon--question {
   color: #a78bfa;
 }
+/* Themed, not a fixed hue: an unread reply is a site-accent notice, so it
+   follows the CMS palette like the rest of the dialog chrome. */
+.app-dialog-icon--message {
+  color: var(--tm-accent);
+}
 
 .app-dialog-timerbar {
   width: 100%;
@@ -391,13 +463,16 @@ onBeforeUnmount(() => {
    plain fade and render icons in their final state. Mirrors main.css. */
 @media (prefers-reduced-motion: reduce) {
   .animate-scale-in,
-  .app-dialog-icon-glyph {
+  .app-dialog-icon-glyph,
+  .app-dialog-icon-dot {
     animation: none;
   }
   .app-dialog-icon-ring,
   .app-dialog-icon-check,
   .app-dialog-icon-cross1,
-  .app-dialog-icon-cross2 {
+  .app-dialog-icon-cross2,
+  .app-dialog-icon-envelope,
+  .app-dialog-icon-flap {
     animation: none;
     stroke-dashoffset: 0;
   }

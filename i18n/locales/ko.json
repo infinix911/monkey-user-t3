@@ -264,7 +264,7 @@
     "loadingReplies": "답변을 로드 중입니다...",
     "noReplies": "아직 답변이 없습니다",
     "you": "당신",
-    "unreadMessages": "읽지 않은 메시지가 있습니다",
+    "unreadMessages": "새 메시지가 있습니다",
     "mustReadMessages": "계속하려면 읽지 않은 문의 답변을 먼저 확인해 주세요.",
     "apiMessages": {
       "INQUIRY_NEW": "문의가 성공적으로 생성되었습니다.",
@@ -856,7 +856,6 @@
     "userIconAlt": "사용자 아이콘",
     "menu": "메뉴",
     "honorific": "님",
-    "walletUnit": "원",
     "convert": "전환"
   },
   "profileMenu": {

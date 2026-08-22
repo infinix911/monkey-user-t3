@@ -1,6 +1,5 @@
 <template>
-  <template v-if="!isTruncated">{{ display }}</template>
-  <template v-else>
+  <template v-if="display">
     <button
       ref="trigger"
       type="button"
@@ -8,7 +7,7 @@
       :aria-expanded="open"
       :aria-label="t('activity.columns.id')"
       :title="display"
-      @click.stop="toggle">{{ short }}</button>
+      @click.stop="toggle">{{ label }}</button>
 
     <!-- Teleported and `fixed`: the table sits inside two nested overflow
          containers (AppTable's `overflow-hidden` shell and its `overflow-auto`
@@ -53,6 +52,12 @@
  * Truncation is opt-in via `truncate`, not a length heuristic: the transaction
  * tab shows short numeric ids, and several comma-separated at that, where a
  * stub would hide more than it saves.
+ *
+ * The tap, however, is NOT opt-in — every id is a trigger, truncated or not.
+ * A short id still wraps across lines in a narrow column, and a transaction row
+ * can hold several comma-separated ids, so "show me the whole thing on one
+ * line" is worth having wherever an id is rendered. The dotted underline is
+ * what advertises it.
  */
 import { computed, onBeforeUnmount, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
@@ -83,6 +88,9 @@ const short = computed(() => {
 const isTruncated = computed(
   () => props.truncate && display.value.length > short.value.length,
 );
+
+/** Stub when there is one to show, otherwise the id as the table built it. */
+const label = computed(() => (isTruncated.value ? short.value : display.value));
 
 const open = ref(false);
 const trigger = ref<HTMLElement | null>(null);

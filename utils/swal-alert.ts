@@ -15,7 +15,7 @@ interface SwalAlertOptions {
   title: string;
   text?: string;
   html?: string;
-  icon?: "success" | "error" | "warning" | "info" | "question";
+  icon?: "success" | "error" | "warning" | "info" | "question" | "message";
   confirmButtonText?: string;
   confirmButtonColor?: string;
   showConfirmButton?: boolean;

@@ -264,7 +264,7 @@
     "loadingReplies": "Loading replies...",
     "noReplies": "No replies yet",
     "you": "You",
-    "unreadMessages": "There are unread messages",
+    "unreadMessages": "You have a new message",
     "mustReadMessages": "Please read your unread inquiry replies before continuing.",
     "apiMessages": {
       "INQUIRY_NEW": "Your inquiry has been created successfully.",
@@ -856,7 +856,6 @@
     "userIconAlt": "User icon",
     "menu": "Menu",
     "honorific": "",
-    "walletUnit": "",
     "convert": "CONVERT"
   },
   "profileMenu": {

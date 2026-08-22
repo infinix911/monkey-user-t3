@@ -285,12 +285,14 @@ const handleNavClick = async (item: NavItem) => {
     return;
   }
 
-  // 공지사항 — open the account panel in the profile modal, which is where a
-  // section is rendered on mobile (NewProfileModal hosts AccountSectionPanel).
-  // `faq` is the CMS id for that slot; only its label changed to 공지사항.
+  // 공지사항 — open the section sheet ALONE. It used to raise the profile menu
+  // as well, purely because that modal was the only thing that rendered a
+  // section on mobile; the member tapped one bar item and got the menu behind
+  // the panel, and closing the panel dropped them into a menu they never asked
+  // for. NewProfileModal now renders the sheet whether or not its own menu is
+  // open. `faq` is the CMS id for that slot; only its label changed to 공지사항.
   if (item.id === "notice") {
     accountSection.open("faq");
-    uiStore.setShowProfileModal(true);
   } else if (item.id === "deposit" || item.id === "withdraw") {
     // Unread inquiry replies block transacting — see `blockedByUnreadInquiries`.
     if (await blockedByUnreadInquiries()) return;

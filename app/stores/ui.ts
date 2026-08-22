@@ -25,6 +25,10 @@ export const useUiStore = defineStore("ui", () => {
   /** Total unread inquiry replies, for the sidebar badge. */
   const unreadInquiryCount = ref(0);
   const showNoticeModal = ref(false);
+  /** True while `fetchNotice()` is deciding whether a notice is due. */
+  const noticeFetching = ref(false);
+  /** True once `fetchNotice()` has run — the notice question is settled. */
+  const noticeResolved = ref(false);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const noticeContent = ref<any>(null);
 
@@ -149,6 +153,7 @@ export const useUiStore = defineStore("ui", () => {
    * Fetch site notice and show modal if notice exists
    */
   const fetchNotice = async () => {
+    noticeFetching.value = true;
     try {
       // Master CMS switch (theme.noticeModal.enabled): when the admin turns the
       // notice modal off, never fetch or show it, whatever content is published.
@@ -183,7 +188,42 @@ export const useUiStore = defineStore("ui", () => {
       showNoticeModal.value = true;
     } catch {
       // swallow — notice is non-critical
+    } finally {
+      // Every path lands here, including the early returns above (disabled in
+      // the CMS, already agreed, empty content) — a stuck-pending state would
+      // mute the unread-inquiry warning for the rest of the session.
+      noticeFetching.value = false;
+      noticeResolved.value = true;
     }
+  };
+
+  /**
+   * Whether a consent notice is on screen, being decided, or still to come.
+   *
+   * The unread-inquiry gate waits on this: its warning must not cover the
+   * notice's agree/disagree buttons. "Not showing" is not the same as "not
+   * coming" — `fetchNotice()` runs from an idle callback after mount, so the
+   * unread check can easily resolve first.
+   *
+   * Answering the "still to come" part cheaply is why this reads the same two
+   * conditions `fetchNotice` opens with instead of waiting for it to run: after
+   * the member agrees and the page reloads, the session flag is already set, so
+   * the gate knows immediately that nothing is coming and fires without waiting
+   * on an idle callback. Keep the checks below in step with fetchNotice's.
+   */
+  const isNoticePending = (): boolean => {
+    if (showNoticeModal.value || noticeFetching.value) return true;
+    if (noticeResolved.value) return false;
+    // Session flag first: it is the path taken right after agreeing (the case
+    // that has to be fast) and it needs no Nuxt context to read.
+    if (
+      typeof window !== "undefined" &&
+      sessionStorage.getItem("noticeAgreed") === "1"
+    )
+      return false;
+    if (useSiteConfig().theme.noticeModal.enabled === false) return false;
+    // Not settled and not ruled out — a notice may still appear.
+    return true;
   };
 
   return {
@@ -200,6 +240,8 @@ export const useUiStore = defineStore("ui", () => {
     hasUnreadInquiries,
     unreadInquiryCount,
     showNoticeModal,
+    noticeFetching,
+    noticeResolved,
     noticeContent,
     isIOS,
     isMobile,
@@ -220,6 +262,7 @@ export const useUiStore = defineStore("ui", () => {
     setHasUnreadInquiries,
     setShowNoticeModal,
     markNoticeAgreed,
+    isNoticePending,
     reloadAfterNoticeAgree,
     setReloadAfterNoticeAgree,
     fetchNotice,

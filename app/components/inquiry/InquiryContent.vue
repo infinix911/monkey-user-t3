@@ -4,64 +4,33 @@
     <div class="flex-shrink-0 px-0 py-6">
       <div class="flex gap-2 md:gap-3">
         <template v-if="!showForm">
+          <!-- Label only, no icons, and no wrapping. Three buttons share one
+               row inside a ~340px panel, and with a glyph and a gap in front of
+               each label the Korean text broke mid-word ("전체 읽 / 기"). The
+               icons were decoration - the labels say the same thing - so they
+               go rather than the row. -->
           <!-- 전체 읽기 — clears every unread flag in one call, which is also
                what releases the close guard (uiStore.hasUnreadInquiries blocks
                dismissing this modal while anything is unread). Keep it available
                on every page: unread replies may be outside this page of results. -->
           <button
-            class="tm-btn-ghost font-medium rounded-lg w-full flex items-center justify-center gap-1.5 px-4 py-2.5 transition-colors text-sm md:text-base cursor-pointer hover:!text-[#FF7575] hover:!border-[#FF7575]/60 hover:!bg-[#FF7575]/10"
+            class="tm-btn-ghost font-medium rounded-lg w-full flex items-center justify-center whitespace-nowrap px-2 py-2.5 md:px-4 transition-colors text-sm md:text-base cursor-pointer hover:!text-[#FF7575] hover:!border-[#FF7575]/60 hover:!bg-[#FF7575]/10"
             @click="handleReadAll"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-4 h-4"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="m1.5 12.5 4 4 8-8" />
-              <path d="m10.5 12.5 4 4 8-8" />
-            </svg>
             <span>{{ t("inquiry.readAll") }}</span>
           </button>
           <!-- Destructive action: an outline button, so the yellow "write"
                button next to it stays the one primary call to action. -->
           <button
-            class="tm-btn-ghost font-medium rounded-lg w-full flex items-center justify-center gap-1.5 px-4 py-2.5 hover:!text-[#FF7575] hover:!border-[#FF7575]/60 hover:!bg-[#FF7575]/10 transition-colors text-sm md:text-base cursor-pointer"
+            class="tm-btn-ghost font-medium rounded-lg w-full flex items-center justify-center whitespace-nowrap px-2 py-2.5 md:px-4 hover:!text-[#FF7575] hover:!border-[#FF7575]/60 hover:!bg-[#FF7575]/10 transition-colors text-sm md:text-base cursor-pointer"
             @click="handleDeleteAll"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 18 24"
-              fill="currentColor"
-            >
-              <path
-                d="M1.28571 21.3333C1.28571 22.8 2.44286 24 3.85714 24H14.1429C15.5571 24 16.7143 22.8 16.7143 21.3333V5.33333H1.28571V21.3333ZM3.85714 8H14.1429V21.3333H3.85714V8ZM13.5 1.33333L12.2143 0H5.78571L4.5 1.33333H0V4H18V1.33333H13.5Z"
-              />
-            </svg>
             <span>{{ t("inquiry.deleteAll") }}</span>
           </button>
           <button
-            class="tm-btn font-medium w-full flex items-center justify-center gap-1 px-4 py-2.5 rounded-lg transition-opacity font-semibold text-sm md:text-base shadow-sm cursor-pointer"
+            class="tm-btn font-medium w-full flex items-center justify-center whitespace-nowrap px-2 py-2.5 md:px-4 rounded-lg transition-opacity font-semibold text-sm md:text-base shadow-sm cursor-pointer"
             @click="handleWriteInquiry"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="18"
-              viewBox="0 0 20 20"
-              fill="none"
-            >
-              <path
-                d="M0 15.8339V20H4.16609L16.4533 7.71282L12.2872 3.54673L0 15.8339ZM19.675 4.49104C20.1083 4.05777 20.1083 3.35787 19.675 2.92459L17.0754 0.324955C16.6421 -0.108318 15.9422 -0.108318 15.509 0.324955L13.4759 2.35801L17.642 6.52409L19.675 4.49104Z"
-                fill="currentColor"
-              />
-            </svg>
             <span>{{ t("inquiry.writeInquiry") }}</span>
           </button>
         </template>

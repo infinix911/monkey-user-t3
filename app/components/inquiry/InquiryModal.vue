@@ -1,48 +1,62 @@
 <template>
   <Teleport to="body">
     <Transition name="modal">
+      <!-- The rail panel's shell (AppSidebar), at EVERY width - a bordered card
+           on a dimmed backdrop, not a full-screen sheet. It briefly mirrored
+           the profile modal's mobile sheet below `lg`, which made the same
+           feature look like two different ones depending on the device.
+
+           Opens 10% down the viewport rather than centred: the list grows
+           downward as tickets expand, so a centred panel shifts under the
+           reader on every tap. Same reasoning as `.tm-dialog-shell` (main.css)
+           for deposit/withdraw, which also ride high rather than centre. -->
       <div
         v-if="isOpen"
-        class="tm-modal modal-body-fill fixed inset-0 z-50 flex items-start justify-center"
+        class="tm-modal fixed inset-0 z-[100] flex items-start justify-center overflow-hidden bg-black/90 px-4 pt-[10dvh] pb-6"
         :style="modalTheme"
+        @click.self="handleCloseClick"
       >
         <div
-          class="!gap-0 bg-transparent border-0 p-0 w-full max-w-[calc(100%-2rem)] lg:max-w-4xl shadow-2xl flex flex-col lg:h-auto rounded-none lg:rounded-xl overflow-hidden m-0 lg:m-auto lg:mt-8"
+          class="modal-body-fill modal-gradient-border relative flex min-h-0 w-[620px] max-w-full flex-col overflow-hidden rounded-lg shadow-2xl"
+          :style="panelStyle"
+          role="dialog"
         >
-          <!-- Modal Header - Transparent Background -->
-          <div class="flex items-center justify-between px-5 pt-4 mb-2 lg:pt-6">
+          <!-- Header -->
+          <div class="shrink-0 flex items-center justify-between px-4 py-3 border-b tm-line">
             <h2
-              class="text-[24px] lg:text-[45.933px] text-white lg:leading-[73.951px]"
+              class="tm-accent-text text-lg font-medium"
+              style="font-family: var(--font-line-seed)"
             >
-              {{ t("inquiry.title") }}
+              {{ title }}
             </h2>
             <button
-              class="tm-muted transition-colors hover:text-white cursor-pointer"
+              type="button"
+              class="tm-muted hover:text-white transition-colors cursor-pointer"
               :aria-label="t('common.close')"
               @click="handleCloseClick"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                class="h-6 w-6"
+                width="20"
+                height="20"
+                viewBox="0 0 27 27"
                 fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
               >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M6 18L18 6M6 6l12 12"
+                <line
+                  x1="1.41421" y1="1" x2="25.627" y2="25.2127"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                />
+                <line
+                  x1="1" y1="-1" x2="35.242" y2="-1"
+                  transform="matrix(-0.707107 0.707107 0.707107 0.707107 26.6732 1)"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round"
                 />
               </svg>
             </button>
           </div>
 
-          <!-- Modal Content - With Background -->
-          <div
-            class="tm-card lg:!bg-transparent lg:!border-0 px-4 relative flex-1 min-h-0 rounded-xl mx-4 lg:mx-0 lg:rounded-none flex flex-col"
-            style="min-height: 500px"
-          >
+          <!-- Body -->
+          <div class="tm-scroll min-h-0 flex-1 overflow-y-auto p-4">
             <InquiryContent
               :inquiry-data="inquiryData"
               :on-refresh="handleRefresh"
@@ -57,7 +71,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { useApi } from "@/composables/useApi";
 import { getDateRangeLastNDays } from "~/lib/date";
 import { validateResponse } from "@/lib/validateResponse";
@@ -66,7 +80,6 @@ import {
   mapInquiriesResponse,
   type InquiriesResponse,
 } from "@/interfaces/inquiry.interface";
-import { showErrorAlert } from "~~/utils/swal-alert";
 
 interface Props {
   isOpen: boolean;
@@ -81,9 +94,30 @@ const emit = defineEmits<Emits>();
 
 const { t } = useI18n();
 const uiStore = useUiStore();
+const menu = useProfileMenuItems();
 
 /** Deposit/withdraw palette, inherited by InquiryContent and its cards. */
 const modalTheme = useModalTheme();
+
+/**
+ * Panel bounds. Width follows the rail panel; the height allows for the 10%
+ * the overlay's `pt-[10dvh]` leaves above and the 24px below, so the panel can
+ * grow into what is left of the viewport instead of running past it.
+ *
+ * `dvh`, not `vh`: with a mobile browser's collapsing address bar `vh` is the
+ * tallest the viewport ever gets, so a panel sized off it hangs past the
+ * visible area on first paint (same reason `.tm-dialog-shell` uses dvh).
+ */
+const panelStyle = {
+  maxWidth: "calc(100vw / var(--site-zoom, 1) - 32px)",
+  maxHeight: "calc(90dvh / var(--site-zoom, 1) - 24px)",
+};
+
+/**
+ * The CMS menu label, which is what both default surfaces title the section
+ * with — an operator who renames 문의 renames it here too.
+ */
+const title = computed(() => menu.labelForId("inquiry"));
 
 const INQUIRY_DATE_RANGE = 30;
 const INQUIRY_LIMIT = 10;
@@ -134,10 +168,7 @@ watch(
 
 const handleCloseClick = async () => {
   if (uiStore.hasUnreadInquiries) {
-    await showErrorAlert(
-      t("inquiry.unreadMessages"),
-      t("inquiry.mustReadMessages"),
-    );
+    await showUnreadInquiryAlert();
     return;
   }
   emit("close");

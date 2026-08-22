@@ -9,7 +9,18 @@ import { ref } from "vue";
  * `await Swal.fire(...)` so existing call sites keep working unchanged.
  */
 
-export type DialogIcon = "success" | "error" | "warning" | "info" | "question";
+/**
+ * `message` is the envelope — used where the dialog is telling the member about
+ * an inquiry/message rather than reporting a failure, which the red `error`
+ * cross wrongly implied.
+ */
+export type DialogIcon =
+  | "success"
+  | "error"
+  | "warning"
+  | "info"
+  | "question"
+  | "message";
 
 export interface DialogOptions {
   title: string;
