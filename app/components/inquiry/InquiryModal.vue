@@ -1,57 +1,44 @@
 <template>
   <Teleport to="body">
     <Transition name="modal">
-      <!-- Same shell the account sections get when they are opened normally:
-           the desktop rail panel (AppSidebar) on lg+, the profile modal's
-           full-screen section sheet (NewProfileModal) below it. This modal is
-           the guard's surface, so it has to be the SAME surface the member sees
-           when they open 문의 themselves - it used to render its own oversized
-           transparent header and read as a different feature. Both shells are
-           driven off one set of nodes so InquiryContent is never mounted twice
-           (it owns the expanded ticket and the write form). -->
+      <!-- The rail panel's shell (AppSidebar), at EVERY width - a bordered card
+           on a dimmed backdrop, not a full-screen sheet. It briefly mirrored
+           the profile modal's mobile sheet below `lg`, which made the same
+           feature look like two different ones depending on the device.
+
+           Opens 10% down the viewport rather than centred: the list grows
+           downward as tickets expand, so a centred panel shifts under the
+           reader on every tap. Same reasoning as `.tm-dialog-shell` (main.css)
+           for deposit/withdraw, which also ride high rather than centre. -->
       <div
         v-if="isOpen"
-        class="tm-modal fixed inset-0 z-[100] flex flex-col overflow-hidden"
-        :class="isDesktop
-          ? 'items-center justify-center bg-black/90 px-4'
-          : 'modal-body-fill'"
+        class="tm-modal fixed inset-0 z-[100] flex items-start justify-center overflow-hidden bg-black/90 px-4 pt-[10dvh] pb-6"
         :style="modalTheme"
         @click.self="handleCloseClick"
       >
         <div
-          class="relative flex flex-col min-h-0"
-          :class="isDesktop
-            ? 'modal-body-fill modal-gradient-border w-[620px] max-w-full rounded-lg shadow-2xl overflow-hidden'
-            : 'w-full flex-1'"
-          :style="isDesktop ? panelStyle : undefined"
+          class="modal-body-fill modal-gradient-border relative flex min-h-0 w-[620px] max-w-full flex-col overflow-hidden rounded-lg shadow-2xl"
+          :style="panelStyle"
           role="dialog"
         >
           <!-- Header -->
-          <div
-            class="shrink-0 flex items-center justify-between"
-            :class="isDesktop
-              ? 'px-4 py-3 border-b tm-line'
-              : 'relative z-10 px-4 py-2'"
-          >
+          <div class="shrink-0 flex items-center justify-between px-4 py-3 border-b tm-line">
             <h2
-              :class="isDesktop ? 'tm-accent-text text-lg font-medium' : 'text-white'"
-              :style="isDesktop
-                ? { fontFamily: 'var(--font-line-seed)' }
-                : { fontFamily: 'var(--font-line-seed)', fontWeight: 600, marginTop: '17px', fontSize: '20px' }"
+              class="tm-accent-text text-lg font-medium"
+              style="font-family: var(--font-line-seed)"
             >
               {{ title }}
             </h2>
             <button
               type="button"
               class="tm-muted hover:text-white transition-colors cursor-pointer"
-              :class="isDesktop ? '' : 'self-start mt-1 pt-[14px]'"
               :aria-label="t('common.close')"
               @click="handleCloseClick"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                :width="isDesktop ? 20 : 26"
-                :height="isDesktop ? 20 : 26"
+                width="20"
+                height="20"
                 viewBox="0 0 27 27"
                 fill="none"
               >
@@ -69,12 +56,7 @@
           </div>
 
           <!-- Body -->
-          <div
-            class="tm-scroll min-h-0 overflow-y-auto"
-            :class="isDesktop
-              ? 'p-4 flex-1'
-              : 'tm-card flex-initial shrink min-w-0 max-h-full rounded-[18px] mx-2 p-4 mb-[20px]'"
-          >
+          <div class="tm-scroll min-h-0 flex-1 overflow-y-auto p-4">
             <InquiryContent
               :inquiry-data="inquiryData"
               :on-refresh="handleRefresh"
@@ -118,17 +100,17 @@ const menu = useProfileMenuItems();
 const modalTheme = useModalTheme();
 
 /**
- * 1024, not the 768 default: the desktop rail (and with it the panel shell this
- * modal copies) appears at Tailwind's `lg`, so anything narrower gets the
- * profile modal's full-screen sheet instead.
+ * Panel bounds. Width follows the rail panel; the height allows for the 10%
+ * the overlay's `pt-[10dvh]` leaves above and the 24px below, so the panel can
+ * grow into what is left of the viewport instead of running past it.
+ *
+ * `dvh`, not `vh`: with a mobile browser's collapsing address bar `vh` is the
+ * tallest the viewport ever gets, so a panel sized off it hangs past the
+ * visible area on first paint (same reason `.tm-dialog-shell` uses dvh).
  */
-const { isMobile } = useMobileDetect(1024);
-const isDesktop = computed(() => !isMobile.value);
-
-/** Panel bounds copied from the rail panel, so the two cannot drift apart. */
 const panelStyle = {
   maxWidth: "calc(100vw / var(--site-zoom, 1) - 32px)",
-  maxHeight: "calc(100vh / var(--site-zoom, 1) - 120px)",
+  maxHeight: "calc(90dvh / var(--site-zoom, 1) - 24px)",
 };
 
 /**
