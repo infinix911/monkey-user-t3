@@ -90,7 +90,10 @@ v-for="col in activeColumns" :key="col"
                         <!-- Game rows carry a provider token long enough to break
                              one character per line in this column on a phone;
                              it shows as a stub with the value a tap away. The
-                             transaction tab's ids are short, so they stay whole. -->
+                             transaction tab's ids are short, so they stay whole
+                             — but they are still tappable, since a narrow
+                             column wraps even a short id and a row can hold
+                             several comma-separated ones. -->
                         <TableIdCell
                             v-else-if="col === 'ID'" :value="String(row[col] ?? '')"
                             :truncate="isGameTab" />
@@ -300,9 +303,17 @@ const isGameTab = computed(
   () => activeTab.value !== "transaction" && activeTab.value !== "all",
 );
 
-/** The ID column no longer needs to wrap once its value is a stub. */
+/**
+ * The ID column no longer needs to wrap once its value is a stub.
+ *
+ * `break-words`, never `break-all`: on a phone this column collapses to a few
+ * characters, and `break-all` split a four-digit id one digit per line ("#5 7
+ * 3" stacked vertically). `break-words` leaves a single id unbreakable, so the
+ * column is sized to hold it whole, while a multi-id value still wraps at the
+ * ", " separators formatId inserts rather than mid-number.
+ */
 const idCellClass = computed(() =>
-  isGameTab.value ? "whitespace-nowrap" : "break-all max-w-[180px]",
+  isGameTab.value ? "whitespace-nowrap" : "break-words max-w-[180px]",
 );
 
 const tableData = computed(() => {
