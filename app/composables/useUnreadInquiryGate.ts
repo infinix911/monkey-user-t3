@@ -4,12 +4,11 @@ import { watch } from "vue";
  * Keeps unread inquiry replies authoritative and tells the member when replies
  * are waiting.
  *
- * It only WARNS. Arriving on the site no longer opens the inquiry modal on its
- * own — a member who lands on the page gets the notice, then the warning, and
- * the site underneath stays usable. The modal is still forced on them by
- * `blockedByUnreadInquiries` the moment they try to deposit, withdraw, convert
- * points, launch a game or open another account panel, which is where an unread
- * reply actually has to be dealt with.
+ * The modal never appears on its own: the warning comes first, and pressing OK
+ * on it is what opens the list. `blockedByUnreadInquiries` does exactly that
+ * pair, which is why the gate calls it rather than the bare alert — dismissing
+ * the warning and being left on a page with nothing opened read as a broken
+ * button.
  *
  * The warning WAITS for the site notice. On a refresh both land at once, and
  * the alert used to pop over the "이 공지사항은 접속 시 동의가 필수입니다"
@@ -45,7 +44,7 @@ export function useUnreadInquiryGate(): void {
       if (uiStore.isNoticePending()) return;
       // Nothing to announce over an open list — they are already reading them.
       if (uiStore.showInquiryModal) return;
-      void showUnreadInquiryAlert();
+      void blockedByUnreadInquiries();
     },
     { immediate: true },
   );

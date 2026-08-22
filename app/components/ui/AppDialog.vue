@@ -4,6 +4,7 @@
       <div
         v-if="dialog"
         class="tm-modal fixed inset-0 z-[100000] flex items-center justify-center p-4 bg-black/60"
+        data-app-dialog="true"
         :style="modalTheme"
         @click.self="onBackdrop"
       >

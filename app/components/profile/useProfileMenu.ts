@@ -183,8 +183,12 @@ export function useProfileMenu(options: UseProfileMenuOptions) {
       showLangProfileDropdown.value = false;
     }
     if (target.closest('[data-hamburger-menu="true"]')) return;
-    // SweetAlert2 dialogs are teleported to <body>; ignore clicks inside them.
-    if (target.closest(".swal2-container")) return;
+    // Dialogs are teleported to <body>; ignore clicks inside them. The
+    // selector was `.swal2-container`, which stopped matching anything when
+    // sweetalert2 was replaced by the in-house AppDialog (ADR-009) - so
+    // pressing OK on a dialog raised from this menu counted as a click outside
+    // and closed the menu underneath it.
+    if (target.closest("[data-app-dialog]")) return;
     if (!menuRef.value?.contains(target)) {
       onClose();
     }
