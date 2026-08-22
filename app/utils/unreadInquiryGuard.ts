@@ -13,11 +13,13 @@
  * pending inquiry) and then opens the standalone `InquiryModal`
  * (`uiStore.setShowInquiryModal`). That modal is a full-screen overlay that
  * cannot be dismissed until every unread reply is read
- * (InquiryModal.handleCloseClick), so it blocks the attempted action — and
- * everything else — until the member deals with the message. The layout also
- * calls this whenever the flag flips (see default.vue), so the block is not
- * limited to explicitly-guarded actions. The alert is suppressed when the modal
- * is already open, so the two paths never stack two warnings.
+ * (InquiryModal.handleCloseClick), so it blocks the attempted action until the
+ * member deals with the message.
+ *
+ * ONLY guarded actions reach here. `useUnreadInquiryGate` — which runs on every
+ * page — raises `showUnreadInquiryAlert()` alone when replies arrive, so simply
+ * being on the site no longer forces the modal open; the member is interrupted
+ * where money or a game launch is at stake, not on arrival.
  *
  * @see app/components/inquiry/InquiryContent.vue — 전체 읽기 clears the flag
  */
