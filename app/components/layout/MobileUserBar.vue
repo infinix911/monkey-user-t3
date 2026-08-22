@@ -419,17 +419,17 @@ const refreshWallet = async () => {
 }
 
 .mub-bar {
-  /* THE PARTNER CONSOLE'S NUMBERS. Its phone bar runs a 16px figure with a 14px
-     suffix (0.875) and icons at the figure's own size, and the two bars are
-     meant to read alike — so the base is 16px here too, up from the 15px
-     ceiling this carried for parity with the desktop bar.
+  /* 15.7px, by request — and the partner console's phone bar is set to the
+     same number, so the two still read alike. It was 16px. Icons follow the
+     figure and the suffix stays 0.875 of it, so both move with this one
+     number.
 
-     The viewport clamp that used to set this is gone with it. It existed to fit
-     narrow screens, which is the job `--mub-scale` now does from measurement
-     rather than from a width guess: a 320px phone showing short balances no
-     longer pays the narrow-screen size, and a 412px one showing long balances
-     no longer overruns because its width suggested it would not. */
-  --mub-figure: calc(16px * var(--mub-scale, 1));
+     The viewport clamp that used to set this is gone. It existed to fit narrow
+     screens, which is the job `--mub-scale` now does from measurement rather
+     than from a width guess: a 320px phone showing short balances no longer
+     pays the narrow-screen size, and a 412px one showing long balances no
+     longer overruns because its width suggested it would not. */
+  --mub-figure: calc(15.7px * var(--mub-scale, 1));
   --mub-suffix: calc(var(--mub-figure) * 0.875);
   --mub-icon: var(--mub-figure);
   --mub-gap: 4px;
