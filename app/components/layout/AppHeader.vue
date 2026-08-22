@@ -158,7 +158,6 @@
                 <span class="font-bold text-[15px] tabular-nums leading-none"
                   :style="{ color: ACCOUNT_BAR_COLORS.wallet }">{{
                     currency.formatNumber(authStore.user.wallet) }}</span>
-                <span class="text-white/90 text-[13px] leading-none">{{ walletUnit }}</span>
               </span>
 
               <!-- Point balance — the figure IS the conversion control. There is
@@ -424,8 +423,8 @@ const accountSection = useAccountSection();
 /** Below `lg` the desktop rail is gone and the mobile sheet is the surface. */
 const { isMobile: isBelowRail } = useMobileDetect(1024);
 
-// The desktop account bar formats its own balances (see ACCOUNT_BAR_COLORS and
-// `walletUnit` below); UserBalancePill is no longer part of the header.
+// The desktop account bar formats its own balances (see ACCOUNT_BAR_COLORS);
+// UserBalancePill is no longer part of the header.
 const LoginModal = defineAsyncComponent(
   () => import("@/components/auth/LoginModal.vue"),
 );
@@ -507,15 +506,9 @@ const refreshWallet = async () => {
 };
 
 const currency = useCurrency();
-const walletSymbol = computed(() => {
-  const s = currency.symbolFor(authStore.user.currency);
-  return s === "Rp" ? "IDR" : s;
-});
-
-// The unit printed after the desktop balance. Korean spells the won out as
-// "원", so the locale wins where it supplies one; every other deployment falls
-// back to the currency's own symbol.
-const walletUnit = computed(() => t("header.walletUnit") || walletSymbol.value);
+// No unit is printed after the balance — the figure stands alone. It used to
+// carry "원" (or the currency's symbol where a locale supplied none), which was
+// dropped by request.
 
 // Mobile scaling — the scale factor itself lives in the `--mh-scale` CSS var
 // (set pre-paint by app.vue's inline script). `isMobile` is still needed by

@@ -76,17 +76,34 @@
        transparent: while pinned it is `position: fixed`, so page content would
        otherwise scroll through the gap around the bar. -->
   <div v-if="authStore.isAuthenticated" class="mub-wrap lg:hidden w-full" :style="{ backgroundColor: WRAP_BG }">
+    <!-- SCALING. The bar sizes itself to its CONTENTS, not only to the viewport.
+         The clamp() below sets what the width affords; `--mub-scale` then takes
+         away whatever the values still do not fit in, and every dimension here
+         derives from `--mub-figure`, so the bar shrinks as one system.
+
+         Without it the `max-content` floors on both number tracks hand the whole
+         shortfall to the username, which is measured at roughly 6 characters at
+         360px and 2 at 320px — `USERTESTING1` rendered as `U…` identifies
+         nobody. Scaling spends a little type size to keep the name whole, and
+         only once the values genuinely do not fit; ordinary rows never scale and
+         look exactly as they did.
+
+         Ported from the partner console's `AccountBar.vue`, which carries the
+         same test — the two bars are meant to read alike. -->
     <div
+      ref="barEl"
       class="mub-bar w-full h-[40px] grid grid-cols-[fit-content(40%)_minmax(max-content,1fr)_minmax(max-content,auto)] items-center overflow-hidden whitespace-nowrap rounded-[10px]"
-      :style="{ backgroundColor: BAR_BG }">
+      :style="{ backgroundColor: BAR_BG, '--mub-scale': String(scale) }">
     <!-- SECTION 1. Identity, centred in its third. `honorific` is the Korean
          "님" suffix; locales without an equivalent ship an empty string, so the
          element is dropped entirely rather than rendering a stray space. The
          username is the only part allowed to truncate — every other value is a
          figure that must stay readable in full. `max-w-full` keeps the centred
          item inside its column so the truncation actually engages. -->
-    <span class="flex items-baseline gap-0.5 min-w-0 max-w-full justify-self-center overflow-hidden">
-      <span class="mub-figure min-w-0 font-bold uppercase leading-none truncate"
+    <span
+      ref="identityEl"
+      class="flex items-baseline gap-0.5 min-w-0 max-w-full justify-self-center overflow-hidden">
+      <span ref="nameEl" class="mub-figure min-w-0 font-bold uppercase leading-none truncate"
         :title="authStore.user.username"
         :style="{ color: ACCOUNT_BAR_COLORS.username }">{{ authStore.user.username }}</span>
       <span v-if="honorific" class="mub-suffix text-white leading-none shrink-0">{{ honorific }}</span>
@@ -97,7 +114,7 @@
          flex child defaults to `min-width: auto`, so without it the span refuses
          to shrink below its text and pushes into the neighbouring section
          instead of ellipsising. -->
-    <span class="mub-group flex items-center min-w-0 max-w-full justify-self-center overflow-hidden">
+    <span ref="walletEl" class="mub-group flex items-center min-w-0 max-w-full justify-self-center overflow-hidden">
       <!-- Both value icons run at the figure's own size, the coin included.
            Matches the partner console's account bar.
 
@@ -113,14 +130,12 @@
            only cleans up edge antialiasing - it is not reshaping the art. -->
       <NuxtImg :src="siteConfig.assets.navIcons.walletIcon" alt="" aria-hidden="true" width="51" height="51"
         class="mub-icon object-contain shrink-0 rounded-full" />
-      <!-- Figure and unit share a baseline (they are one phrase, at two sizes);
-           the icon centres against that block. Centring all three together put
-           the smaller 원 on the figure's mid-line instead of its baseline. -->
+      <!-- Figure alone: the "원" that used to follow it was dropped by
+           request, so there is no second size to align a baseline against. -->
       <span class="mub-group flex items-baseline min-w-0 overflow-hidden">
-        <span class="mub-figure min-w-0 font-bold tabular-nums leading-none truncate"
+        <span ref="walletFigureEl" class="mub-figure min-w-0 font-bold tabular-nums leading-none truncate"
           :style="{ color: ACCOUNT_BAR_COLORS.wallet }">{{
             currency.formatNumber(authStore.user.wallet) }}</span>
-        <span class="mub-suffix text-white/90 leading-none shrink-0">{{ walletUnit }}</span>
       </span>
     </span>
 
@@ -128,7 +143,7 @@
          the trailing edge of the bar. They share a section rather than owning a
          column each so the reload stays at the screen edge, where the thumb
          expects it. -->
-    <div class="mub-actions flex items-center min-w-0 max-w-full justify-self-end overflow-hidden">
+    <div ref="actionsEl" class="mub-actions flex items-center min-w-0 max-w-full justify-self-end overflow-hidden">
       <!-- The point figure IS the conversion control, as on desktop. No separate
            CONVERT button beside it: clicking the amount opens the modal. -->
       <button type="button" :aria-label="$t('point.title')"
@@ -136,7 +151,7 @@
         @click="openPointModal">
         <NuxtImg :src="siteConfig.assets.navIcons.pointIcon" alt="" aria-hidden="true" width="51" height="51"
           class="mub-icon object-contain shrink-0 rounded-full" />
-        <span class="mub-figure min-w-0 font-bold tabular-nums leading-none truncate"
+        <span ref="pointFigureEl" class="mub-figure min-w-0 font-bold tabular-nums leading-none truncate"
           :style="{ color: ACCOUNT_BAR_COLORS.point }">{{
             currency.formatNumber(authStore.user.point_wallet) }}</span>
       </button>
@@ -159,7 +174,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 
 const authStore = useAuthStore();
 const uiStore = useUiStore();
@@ -192,14 +207,152 @@ const openPointModal = async () => {
   uiStore.setShowPointModal(true);
 };
 
-// The unit printed after the balance. Korean spells the won out as "원", so the
-// locale wins where it supplies one; other deployments fall back to the
-// currency's own symbol (IDR's "Rp" shown as the "IDR" code).
-const walletSymbol = computed(() => {
-  const s = currency.symbolFor(authStore.user.currency);
-  return s === "Rp" ? "IDR" : s;
+// No unit is printed after the balance — the figure stands alone. It used to
+// carry "원" (or the currency's symbol where a locale supplied none), which was
+// dropped by request.
+
+/**
+ * The smallest the bar may render, as a fraction of the size the width affords.
+ *
+ * 0.7 of the 13-15px clamp is 9-10.5px. Below that a balance stops being
+ * readable, and shrinking further to keep a username whole trades the value
+ * being read for the one that merely labels it — past the floor the username
+ * truncates instead, which is what the `max-content` floors on the number
+ * tracks already arrange.
+ */
+const MIN_SCALE = 0.7;
+
+/** How much of the afforded size the row is rendering at, as `--mub-scale`. */
+const scale = ref(1);
+
+const barEl = ref<HTMLElement | null>(null);
+const identityEl = ref<HTMLElement | null>(null);
+const nameEl = ref<HTMLElement | null>(null);
+const walletEl = ref<HTMLElement | null>(null);
+const walletFigureEl = ref<HTMLElement | null>(null);
+const actionsEl = ref<HTMLElement | null>(null);
+const pointFigureEl = ref<HTMLElement | null>(null);
+
+/**
+ * What a section needs, as opposed to what it was given.
+ *
+ * Each section holds one truncating figure and is `overflow: hidden`, which
+ * makes it a scroll container — so its own `scrollWidth` reports the width it
+ * was squeezed to, never the width it wants, and asking it directly would say
+ * everything fits at the exact moment it stopped fitting. The clipped figure is
+ * the one element that still knows: `scrollWidth` on a truncated span is its
+ * full text width. Swapping the figure's rendered width for its intrinsic one
+ * turns the section's laid-out width back into its natural one, since every
+ * other part of a section is `shrink-0`.
+ */
+const sectionNeed = (section: HTMLElement | null, figure: HTMLElement | null): number => {
+  if (!section || !figure) return 0;
+  return section.scrollWidth - figure.clientWidth + figure.scrollWidth;
+};
+
+/**
+ * How much of the afforded size fits, between {@link MIN_SCALE} and 1.
+ *
+ * Padding and the column gap are read from the computed style rather than
+ * mirrored as constants, so the clamp()s in the style block stay the single
+ * definition of the bar's spacing. The gaps are netted off both sides first:
+ * they are fixed pixels that do not shrink with the type, so a ratio taken over
+ * the whole row would ask the text to cover width no amount of scaling reclaims.
+ */
+const fitScale = (): { scale: number; scalable: number } => {
+  const bar = barEl.value;
+  if (!bar) return { scale: 1, scalable: 0 };
+
+  const styles = getComputedStyle(bar);
+  const available =
+    bar.clientWidth -
+    parseFloat(styles.paddingInlineStart || "0") -
+    parseFloat(styles.paddingInlineEnd || "0");
+  const gap = parseFloat(styles.columnGap || "0") || 0;
+
+  const need =
+    sectionNeed(identityEl.value, nameEl.value) +
+    sectionNeed(walletEl.value, walletFigureEl.value) +
+    sectionNeed(actionsEl.value, pointFigureEl.value);
+
+  const room = available - gap * 2;
+  if (need <= room) return { scale: 1, scalable: need };
+  if (room <= 0) return { scale: MIN_SCALE, scalable: need };
+  return { scale: Math.max(MIN_SCALE, room / need), scalable: need };
+};
+
+/**
+ * Re-size the row: measure at full size, apply, then check the result.
+ *
+ * Always measures from scale 1 — the ratio is "how much of what we want fits",
+ * so asking it of text already reduced would compound on every pass. Fonts are
+ * awaited first: measuring against a fallback face sizes the row for metrics it
+ * will never render with.
+ */
+const measureScale = async () => {
+  if (typeof window === "undefined") return;
+  if (document.fonts?.status !== "loaded") await document.fonts?.ready;
+
+  scale.value = 1;
+  await nextTick();
+
+  const fit = fitScale();
+  scale.value = fit.scale;
+  await nextTick();
+
+  // The forecast is built from measurements taken before the layout it
+  // describes existed, and sub-pixel rounding and non-linear glyph advances
+  // land where they land. The username absorbs whatever is left over, so if it
+  // is still clipped the forecast was short by exactly that width — a measured
+  // number, not another estimate. One pass: the residue after it is a fraction
+  // of a pixel, and iterating on a value that re-renders the text is how a bar
+  // starts to flicker.
+  const name = nameEl.value;
+  if (name && fit.scalable > 0 && scale.value > MIN_SCALE) {
+    const clipped = name.scrollWidth - name.clientWidth;
+    if (clipped > 0.5) {
+      scale.value = Math.max(MIN_SCALE, scale.value - clipped / fit.scalable);
+    }
+  }
+};
+
+let barObserver: ResizeObserver | null = null;
+
+onMounted(() => {
+  void measureScale();
+
+  // Rotation and the `lg` reflow change the row's width without firing anything
+  // the watcher below would see. Width only: the bar's height is a flat 40px
+  // that the scale never touches, and the layout measures that height for its
+  // pin spacer, so height must not become a trigger here.
+  if (barEl.value) {
+    let lastWidth = barEl.value.clientWidth;
+    barObserver = new ResizeObserver((entries) => {
+      const width = entries[0]?.contentRect.width ?? lastWidth;
+      if (width === lastWidth) return;
+      lastWidth = width;
+      void measureScale();
+    });
+    barObserver.observe(barEl.value);
+  }
 });
-const walletUnit = computed(() => t("header.walletUnit") || walletSymbol.value);
+
+onBeforeUnmount(() => {
+  barObserver?.disconnect();
+  barObserver = null;
+});
+
+// Everything that changes how wide the row's contents are: the balances, the
+// name, and the locale-dependent honorific and unit.
+watch(
+  [
+    () => authStore.user.username,
+    () => authStore.user.wallet,
+    () => authStore.user.point_wallet,
+    honorific,
+  ],
+  () => void measureScale(),
+);
 
 const isRefreshingWallet = ref(false);
 const refreshWallet = async () => {
@@ -256,30 +409,45 @@ const refreshWallet = async () => {
    as one piece of chrome, with the gap only below it separating the pair from
    the content that follows. */
 .mub-wrap {
-  padding-inline: clamp(6px, 2.2vw - 1px, 12px);
+  /* 4px flat, which is what the partner console's header holds its bar off the
+     screen edge by (`px-1`). It was a clamp up to 12px; the figures inside are
+     competing for that width and the widest phone has no more slack than the
+     narrowest once a long username is in play. The vertical clearance below
+     keeps its clamp — nothing competes for it. */
+  padding-inline: 4px;
   padding-block: 0 clamp(6px, 2.2vw - 1px, 12px);
 }
 
 .mub-bar {
-  --mub-figure: clamp(13px, 4.2vw, 15px);
-  --mub-suffix: calc(var(--mub-figure) * 0.867);
-  --mub-icon: var(--mub-figure);
-  --mub-gap: clamp(2px, 1.1vw - 1px, 4px);
+  /* THE PARTNER CONSOLE'S NUMBERS. Its phone bar runs a 16px figure with a 14px
+     suffix (0.875) and icons at the figure's own size, and the two bars are
+     meant to read alike — so the base is 16px here too, up from the 15px
+     ceiling this carried for parity with the desktop bar.
 
-  column-gap: clamp(4px, 1.7vw - 2.1px, 6px);
+     The viewport clamp that used to set this is gone with it. It existed to fit
+     narrow screens, which is the job `--mub-scale` now does from measurement
+     rather than from a width guess: a 320px phone showing short balances no
+     longer pays the narrow-screen size, and a 412px one showing long balances
+     no longer overruns because its width suggested it would not. */
+  --mub-figure: calc(16px * var(--mub-scale, 1));
+  --mub-suffix: calc(var(--mub-figure) * 0.875);
+  --mub-icon: var(--mub-figure);
+  --mub-gap: 4px;
+
+  column-gap: 4px;
   /* Symmetric again. It ran 0 on the leading side for a while, so the username
      started flush against the bar's edge; that read as the text falling out of
      the pill rather than sitting inside it, and it pushed the balance off the
      bar's visual centre because the padding box was lopsided. Both sides pay
      the same now, and the balance centres on the bar's own centre line. */
-  padding-inline: clamp(8px, 3.3vw - 3.9px, 12px);
+  padding-inline: 8px;
 }
 
-/* Gap between the point figure and the reload button — the same value as the
-   gap between sections, so the right group reads as part of the same rhythm
-   rather than a tighter cluster. */
+/* Gap between the point figure and the reload button. The partner console runs
+   this pair tighter than its section gap (2px against 4px) so the two read as
+   one trailing group rather than a third section, and this follows it. */
 .mub-actions {
-  gap: clamp(4px, 1.7vw - 2.1px, 6px);
+  gap: 2px;
 }
 
 .mub-figure {
@@ -333,18 +501,19 @@ const refreshWallet = async () => {
    full-bleed - so the box and the drawn mark are two different numbers here and
    the multiplier looks larger than the others for the same result.
 
-   1.3em draws the mark at ~11.3px at the shipped scale, between the digits'
-   9.5px of ink and the discs' 13px. Both ends were tried against the real bar:
-   1.5em matches the discs exactly and towers over the row, 1.1em matches the
-   digits exactly and disappears next to them - a thin open arc carries far less
-   weight than bold numerals of the same height, so measuring equal and looking
-   equal part company here. This sits where it reads level.
+   1.5em (1 / 0.667) cancels that padding exactly, drawing the mark at the same
+   height as the discs. This file previously ran 1.3em, splitting the difference
+   between the discs' height and the digits' ink because a thin open arc carries
+   less weight than bold numerals of the same height. The partner console was
+   asked for the full 1.5 and now runs it, and these two bars are meant to
+   match — so if the arc reads heavy here, 1.3 is the number to come back to,
+   and the partner bar should come back with it.
 
    The multiplier encodes the padding in THAT file. Replace the asset with a
    tighter crop and this has to come down with it. */
 .mub-reload-icon {
-  width: calc(var(--mub-figure) * 1.3);
-  height: calc(var(--mub-figure) * 1.3);
+  width: calc(var(--mub-figure) * 1.5);
+  height: calc(var(--mub-figure) * 1.5);
 }
 
 /* The refresh glyph ships in #434343 (a light-theme grey). Inverting to white
