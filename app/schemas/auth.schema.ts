@@ -66,11 +66,12 @@ const signupRawSchema = (t: TFn) =>
       mobile: z
         .string()
         .min(1, t("signup.validation.mobileRequired"))
-        .regex(/^\+?\d+$/, t("signup.validation.mobileInvalid"))
-        .refine(
-          (v) => v.replace(/\D/g, "").length >= 8,
-          t("signup.validation.mobileMinLength"),
-        ),
+        // Digits only: the leading + this used to allow was never accepted
+        // anywhere downstream, and the number is stored as typed.
+        .regex(/^\d+$/, t("signup.validation.mobileInvalid"))
+        // Exactly 10 or 11 digits, the two real Korean mobile lengths. The
+        // old floor of 8 with no ceiling let obviously wrong numbers through.
+        .regex(/^\d{10,11}$/, t("signup.validation.mobileMinLength")),
       bankName: z
         .string()
         .min(1, t("signup.validation.bankNameRequired"))
@@ -82,6 +83,9 @@ const signupRawSchema = (t: TFn) =>
       // server now agree instead of the form being the stricter of the two.
       bankAccountName: z
         .string()
+        // An empty field is "required", not "too short" - the message for it
+        // already shipped, it just had no rule pointing at it.
+        .min(1, t("signup.validation.accountNameRequired"))
         .min(2, t("signup.validation.accountNameMinLength"))
         .max(100, t("signup.validation.accountNameMaxLength")),
       bankAccount: z
