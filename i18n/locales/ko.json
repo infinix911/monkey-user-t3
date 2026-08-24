@@ -842,9 +842,12 @@
       "currencyRequired": "통화를 선택해 주세요",
       "bankNameRequired": "은행을 선택해 주세요",
       "accountNameRequired": "예금주명을 입력해 주세요",
-      "accountNameMinLength": "예금주명은 최소 2자 이상이어야 합니다",
+      "accountNameMinLength": "예금주명은 최소 2자 이상이어야 합니다",
+      "accountNameMaxLength": "예금주명은 100자 이하여야 합니다",
       "accountNumberRequired": "계좌번호를 입력해 주세요",
-      "accountNumberDigitsOnly": "계좌번호는 숫자만 입력할 수 있습니다",
+      "accountNumberDigitsOnly": "계좌번호는 숫자만 입력할 수 있습니다",
+      "accountNumberMinLength": "계좌번호는 최소 2자리 이상이어야 합니다",
+      "accountNumberMaxLength": "계좌번호는 30자리 이하여야 합니다",
       "bankNameTooLong": "은행 이름은 30자 이하여야 합니다"
     }
   },

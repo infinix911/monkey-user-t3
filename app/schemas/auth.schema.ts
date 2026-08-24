@@ -82,14 +82,25 @@ const signupRawSchema = (t: TFn) =>
       // server now agree instead of the form being the stricter of the two.
       bankAccountName: z
         .string()
-        .min(2, t("signup.validation.accountNameMinLength")),
+        .min(2, t("signup.validation.accountNameMinLength"))
+        .max(100, t("signup.validation.accountNameMaxLength")),
       bankAccount: z
         .string()
         .min(1, t("signup.validation.accountNumberRequired"))
         // Bank account numbers are digits only. The submit handler trims the
         // value (see SignupModal.vue), so allow surrounding whitespace here
         // and rely on the trim before sending to the API.
-        .regex(/^\s*\d+\s*$/, t("signup.validation.accountNumberDigitsOnly")),
+        .regex(/^\s*\d+\s*$/, t("signup.validation.accountNumberDigitsOnly"))
+        // 2-30 is what registerSchema accepts. Without these the form let a
+        // longer number through and the member got a bare 400 back.
+        .refine(
+          (v) => v.trim().length >= 2,
+          t("signup.validation.accountNumberMinLength"),
+        )
+        .refine(
+          (v) => v.trim().length <= 30,
+          t("signup.validation.accountNumberMaxLength"),
+        ),
       referral: z.string().optional(),
     })
     .refine((data) => data.password === data.confirmPassword, {
