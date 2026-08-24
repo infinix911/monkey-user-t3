@@ -842,9 +842,12 @@
       "currencyRequired": "Currency is required",
       "bankNameRequired": "Bank name is required",
       "accountNameRequired": "Account name is required",
-      "accountNameMinLength": "Account name must be at least 2 characters",
+      "accountNameMinLength": "Account name must be at least 2 characters",
+      "accountNameMaxLength": "Account name must be 100 characters or fewer",
       "accountNumberRequired": "Account number is required",
-      "accountNumberDigitsOnly": "Account number must contain digits only",
+      "accountNumberDigitsOnly": "Account number must contain digits only",
+      "accountNumberMinLength": "Account number must be at least 2 digits",
+      "accountNumberMaxLength": "Account number must be 30 digits or fewer",
       "bankNameTooLong": "Bank name must be 30 characters or fewer"
     }
   },
