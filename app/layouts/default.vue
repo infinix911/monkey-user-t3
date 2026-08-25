@@ -60,7 +60,7 @@
              the header, which would latch the state on. -->
         <div ref="userBarSentinel" aria-hidden="true" />
         <div ref="userBarAnchor" :class="isUserBarPinned ? 'fixed left-0 right-0 z-40' : ''"
-          :style="isUserBarPinned ? { top: headerHeight + 'px' } : {}">
+          :style="isUserBarPinned ? { top: (headerHeight - 1) + 'px' } : {}">
           <MobileUserBar />
         </div>
         <!-- Spacer keeps the bar's flow space while it's fixed on scroll. -->
