@@ -3,7 +3,7 @@
     <Transition name="app-dialog">
       <div
         v-if="dialog"
-        class="tm-modal fixed inset-0 z-[100000] flex items-center justify-center p-4 bg-black/60"
+        class="tm-modal app-dialog-overlay fixed inset-0 z-[100000] flex items-center justify-center p-4 bg-black/60"
         data-app-dialog="true"
         :style="modalTheme"
         @click.self="onBackdrop"
@@ -238,20 +238,58 @@ const clearTimer = () => {
   }
 };
 
+/**
+ * Freeze the page behind the dialog — the one piece of sweetalert2's behaviour
+ * the in-house port dropped.
+ *
+ * Without it the document keeps scrolling under the overlay on touch, and iOS
+ * Safari repaints `position: fixed` elements late during that scroll: the fixed
+ * AppHeader can be left off-screen ("the sticky header is missing") until the
+ * next scroll event nudges it back.
+ *
+ * Only `overflow-y` is touched, and only after recording what was there: below
+ * 1024px `main.css` makes BODY the scroll container (`overflow-x: auto`), above
+ * it the document scrolls, so both elements are pinned. The previous inline
+ * values are restored verbatim on unlock so a modal that locked scroll first
+ * (LoginModal, SignupModal) keeps its own lock when an alert closes over it.
+ */
+let previousOverflow: { root: string; body: string } | null = null;
+
+const lockScroll = () => {
+  if (!import.meta.client || previousOverflow) return;
+  const root = document.documentElement;
+  previousOverflow = { root: root.style.overflowY, body: document.body.style.overflowY };
+  root.style.overflowY = "hidden";
+  document.body.style.overflowY = "hidden";
+};
+
+const unlockScroll = () => {
+  if (!import.meta.client || !previousOverflow) return;
+  document.documentElement.style.overflowY = previousOverflow.root;
+  document.body.style.overflowY = previousOverflow.body;
+  previousOverflow = null;
+};
+
 watch(
   dialog,
   (d) => {
     clearTimer();
     if (!d) {
-      if (import.meta.client)
+      if (import.meta.client) {
         window.removeEventListener("keydown", onKeydown);
+        unlockScroll();
+      }
       return;
     }
 
     if (import.meta.client) {
       window.addEventListener("keydown", onKeydown);
-      // Focus the confirm button so Enter/space works immediately.
-      nextTick(() => confirmBtn.value?.focus());
+      lockScroll();
+      /* Focus the confirm button so Enter/space works immediately.
+         `preventScroll`: focusing an element inside a fixed overlay makes iOS
+         Safari scroll the layout viewport to "reveal" it, which is the other
+         way the fixed header ends up displaced. */
+      nextTick(() => confirmBtn.value?.focus({ preventScroll: true }));
     }
 
     if (d.timer) {
@@ -263,11 +301,20 @@ watch(
 
 onBeforeUnmount(() => {
   clearTimer();
-  if (import.meta.client) window.removeEventListener("keydown", onKeydown);
+  if (import.meta.client) {
+    window.removeEventListener("keydown", onKeydown);
+    unlockScroll();
+  }
 });
 </script>
 
 <style scoped>
+/* A drag that starts on the overlay must not chain through to the document —
+   that scroll is what leaves iOS repainting the fixed header late. */
+.app-dialog-overlay {
+  overscroll-behavior: contain;
+}
+
 .app-dialog-card {
   position: relative;
   font-family: "LINE Seed", system-ui, sans-serif;
