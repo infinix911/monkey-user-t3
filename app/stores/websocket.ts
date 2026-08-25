@@ -80,6 +80,35 @@ export const useWebSocketStore = defineStore("websocket", () => {
   };
 
   /**
+   * End this browser's session because the server no longer has one.
+   *
+   * Two things reach here: the `kickout` event, sent when an operator ends the
+   * session from the admin console, and the periodic session check, which
+   * catches every other invalidation (expiry, a login elsewhere). Both mean the
+   * same thing to the member, so both leave through the same door.
+   *
+   * Order matters. `disconnect()` closes with code 1000, which is what stops
+   * the reconnect ladder from immediately dialling back with a cookie the
+   * server has already thrown away. Then the store's own `logout()` clears the
+   * in-memory user and the auth-related storage keys, so nothing is left for a
+   * later render to pick up. The final hard navigation is deliberate: a fresh
+   * document load re-renders the page as a guest, where a client-side route
+   * change would keep the kicked member's page state alive.
+   */
+  const handleSessionRevoked = async (): Promise<void> => {
+    disconnect();
+    try {
+      await useAuthStore().logout();
+    } catch (error) {
+      console.error("🔌 Logout after session revocation failed:", error);
+    }
+    if (typeof window === "undefined") return;
+    const path = window.location.pathname;
+    if (path === "/" || /^\/(id|ko|th)\/?$/.test(path)) window.location.reload();
+    else window.location.href = "/";
+  };
+
+  /**
    * Connect to WebSocket server
    * - Establishes WebSocket connection
    * - Sets up message handlers
@@ -188,6 +217,15 @@ export const useWebSocketStore = defineStore("websocket", () => {
                 break;
               }
 
+              /* An operator ended this member's session from the admin
+                 console. The session row is already gone server-side; this is
+                 only how the browser finds out without waiting for the 30s
+                 session check below. */
+              case "kickout": {
+                void handleSessionRevoked();
+                break;
+              }
+
               case "inquiry_updated":
               case "reloaduser": {
                 inquiryCheckCallback?.();
@@ -263,12 +301,7 @@ export const useWebSocketStore = defineStore("websocket", () => {
           try {
             await useAuthStore().verifyUser();
           } catch {
-            disconnect();
-            const path = window.location.pathname;
-            const alreadyAtHome =
-              path === "/" || /^\/(id|ko|th)\/?$/.test(path);
-            if (alreadyAtHome) window.location.reload();
-            else window.location.href = "/";
+            await handleSessionRevoked();
           }
         }, 30_000);
       } catch (error) {
