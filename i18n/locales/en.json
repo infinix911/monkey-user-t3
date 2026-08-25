@@ -837,7 +837,7 @@
       "withdrawalPasswordMaxLength": "Withdrawal password must not exceed 20 characters",
       "mobileRequired": "Mobile number is required",
       "mobileInvalid": "Mobile number must contain only digits",
-      "mobileMinLength": "Mobile number must be at least 8 digits",
+      "mobileMinLength": "Mobile number must be 10 or 11 digits",
       "emailInvalid": "Please enter a valid email address",
       "currencyRequired": "Currency is required",
       "bankNameRequired": "Bank name is required",

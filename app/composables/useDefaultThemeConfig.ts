@@ -1068,8 +1068,12 @@ const SLOT_CHARACTER_OVERRIDES: Record<string, string> = Object.fromEntries(
     ]),
 );
 
-/** PWA app icons - use the Jae brand logo (matches favicon/logo) */
-const JAE_ICON = "/designs/logo/ocean.webp";
+/**
+ * PWA app icons. Every entry below declares a SQUARE size, so this is the
+ * square mark cropped from the brand wordmark rather than the wordmark
+ * itself, which runs 5.6:1 and would be squashed at each of them.
+ */
+const JAE_ICON = "/designs/logo/ocean-icon.png";
 const PWA_ICONS = {
     "72x72": JAE_ICON,
     "96x96": JAE_ICON,
@@ -1099,7 +1103,7 @@ export const getDefaultThemeConfig = (): SiteConfig => {
             logoMobile: "/designs/logo/ocean.webp",
             logoPopup: "/designs/logo/ocean.webp",
             description: `Experience the best online gaming experience with ${siteName}`,
-            favicon: "/designs/logo/ocean.webp",
+            favicon: "/designs/logo/ocean-icon.png",
         },
 
         // ───────────────────────────────────────────────────────────────────
@@ -1519,7 +1523,7 @@ export const getDefaultThemeConfig = (): SiteConfig => {
                 authorName: "",
                 organizationName: "",
                 organizationType: "Company",
-                favicon: "/designs/logo/ocean.webp",
+                favicon: "/designs/logo/ocean-icon.png",
             },
             customSeo: {
                 // Default footer left empty — the copyright now lives in

@@ -837,7 +837,7 @@
       "withdrawalPasswordMaxLength": "출금 비밀번호는 20자를 초과할 수 없습니다",
       "mobileRequired": "전화번호를 입력해 주세요",
       "mobileInvalid": "전화번호는 숫자만 입력 가능합니다",
-      "mobileMinLength": "전화번호는 최소 8자리 이상이어야 합니다",
+      "mobileMinLength": "전화번호는 10자리 또는 11자리여야 합니다",
       "emailInvalid": "올바른 이메일 주소를 입력해 주세요",
       "currencyRequired": "통화를 선택해 주세요",
       "bankNameRequired": "은행을 선택해 주세요",
