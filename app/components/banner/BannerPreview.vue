@@ -125,8 +125,15 @@ const syncIsMobile = () => {
   if (mobileMql) isMobile.value = mobileMql.matches;
 };
 
+// The CMS accepts any video container the operator uploads, so the test is by
+// extension rather than by an MP4/WebM pair. A creative in a container this
+// browser cannot decode still renders as <video> — an empty box rather than a
+// broken <img>, and the same thing the operator saw in the admin preview.
+const VIDEO_EXTENSIONS =
+  /\.(3gp|avi|flv|m2ts|m4v|mkv|mov|mp4|mpeg|mpg|mts|ogv|qt|ts|webm|wmv)(\?.*)?$/i;
+
 const isVideo = (url: string): boolean => {
-  return url?.endsWith(".mp4") || url?.endsWith(".webm");
+  return VIDEO_EXTENSIONS.test(url ?? "");
 };
 
 // `blob:` (admin theme-preview object URLs) and `data:` sources exist only in
