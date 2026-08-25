@@ -211,7 +211,7 @@
               <!-- Navbar — hidden on the RTP page (own provider tabs). -->
               <div v-if="!isRtpPage" ref="navbarAnchor" class="relative z-20">
                 <div :class="effectiveNavFixed ? 'fixed left-0 right-0 z-40' : ''"
-                  :style="effectiveNavFixed ? { top: (headerHeight + (isUserBarPinned ? userBarHeight : 0)) + 'px' } : {}">
+                  :style="effectiveNavFixed ? { top: ((headerHeight - 2) + (isUserBarPinned ? userBarHeight : 0)) + 'px' } : {}">
                   <Navbar :desktop="false" />
                 </div>
                 <div v-if="effectiveNavFixed" :style="{ height: navbarHeight + 'px' }" />
