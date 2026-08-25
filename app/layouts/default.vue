@@ -60,7 +60,7 @@
              the header, which would latch the state on. -->
         <div ref="userBarSentinel" aria-hidden="true" />
         <div ref="userBarAnchor" :class="isUserBarPinned ? 'fixed left-0 right-0 z-40' : ''"
-          :style="isUserBarPinned ? { top: headerHeight + 'px' } : {}">
+          :style="isUserBarPinned ? { top: (headerHeight - 1) + 'px' } : {}">
           <MobileUserBar />
         </div>
         <!-- Spacer keeps the bar's flow space while it's fixed on scroll. -->
@@ -211,7 +211,7 @@
               <!-- Navbar — hidden on the RTP page (own provider tabs). -->
               <div v-if="!isRtpPage" ref="navbarAnchor" class="relative z-20">
                 <div :class="effectiveNavFixed ? 'fixed left-0 right-0 z-40' : ''"
-                  :style="effectiveNavFixed ? { top: (headerHeight + (isUserBarPinned ? userBarHeight : 0)) + 'px' } : {}">
+                  :style="effectiveNavFixed ? { top: ((headerHeight - 2) + (isUserBarPinned ? userBarHeight : 0)) + 'px' } : {}">
                   <Navbar :desktop="false" />
                 </div>
                 <div v-if="effectiveNavFixed" :style="{ height: navbarHeight + 'px' }" />

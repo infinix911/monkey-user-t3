@@ -66,11 +66,14 @@
                      rule it beats a `w-*` utility. -->
                 <div class="flex items-stretch gap-1.5">
                   <div class="relative min-w-0 flex-1">
-                    <input :value="amount" inputmode="numeric" placeholder="0"
+                    <input :value="displayAmount" inputmode="numeric" placeholder="0"
+                      :aria-invalid="Boolean(amountError)"
                       class="h-11 px-4 py-2 pr-9 rounded w-full text-right font-bold tabular-nums outline-none" :style="{
                         backgroundColor: dep.inputBgColor,
                         color: dep.inputTextColor,
-                        border: `1px solid ${dep.inputBorderColor}`,
+                        border: amountError
+                          ? '2px solid #ef4444'
+                          : `1px solid ${dep.inputBorderColor}`,
                       }" @input="onAmountInput">
                     <span
                       class="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 text-sm font-bold pointer-events-none">P</span>
@@ -84,7 +87,10 @@
                     {{ t('point.clear') }}
                   </button>
                 </div>
-                <p class="text-white/40 text-xs mt-2 leading-snug">{{ t('point.notes') }}</p>
+                <!-- The refusal takes the notes line rather than adding a row,
+                     so nothing below it shifts as the member types. -->
+                <p v-if="amountError" class="text-xs text-red-500 mt-2 leading-snug" role="alert">{{ amountError }}</p>
+                <p v-else class="text-white/40 text-xs mt-2 leading-snug">{{ t('point.notes') }}</p>
               </div>
 
               <!-- Submit (same sizing as deposit) -->
@@ -106,7 +112,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, nextTick, ref, watch } from "vue";
 import { useCurrency } from "@/composables/useCurrency";
 import { useApi } from "@/composables/useApi";
 import { showSuccessAlert, showErrorAlert } from "~~/utils/swal-alert";
@@ -175,10 +181,59 @@ const amt = computed(() => Number(amount.value) || 0);
 // quick-amount ladder were removed — MAX and RESET are the only shortcuts.
 const canSubmit = computed(() => amt.value >= 1 && amt.value <= pointCurrent.value);
 
+/**
+ * Inline refusal for an amount larger than the points on hand.
+ *
+ * `canSubmit` already blocks it, but a greyed-out button does not say WHY —
+ * the member had to press it and read a dialog to find out. This says it under
+ * the field as they type, reusing the key that dialog uses so the form and the
+ * server never word the same rule differently.
+ */
+const amountError = computed(() =>
+  amt.value > pointCurrent.value ? t("point.amountGt") : "",
+);
+
 const fmt = (v: number) => currency.formatNumber(v);
 
+/**
+ * The field's visible text: the same grouped figure the balance above it uses,
+ * so a five-digit amount reads as 29,900 rather than 29900. `amount` itself
+ * stays bare digits — every consumer (`amt`, the limit checks, the POST body)
+ * reads the raw value, never the display one.
+ */
+const displayAmount = computed(() =>
+  amount.value ? fmt(Number(amount.value)) : "",
+);
+
+/**
+ * Accept digits only, then re-render the grouped text.
+ *
+ * The DOM value has to be written back by hand: when a keystroke changes
+ * nothing about `amount` (a rejected letter, or a separator the member typed
+ * themselves) Vue re-renders nothing, and the raw character would sit in the
+ * field. Writing it back would also drop the caret to the end, so it is
+ * restored by digit count — the separators shift as the number grows, the
+ * member's position within the digits does not.
+ */
 function onAmountInput(e: Event) {
-  amount.value = (e.target as HTMLInputElement).value.replace(/[^0-9]/g, "");
+  const input = e.target as HTMLInputElement;
+  const typed = input.value;
+  const caret = input.selectionStart ?? typed.length;
+  const digitsBeforeCaret = typed.slice(0, caret).replace(/\D/g, "").length;
+
+  amount.value = typed.replace(/\D/g, "").replace(/^0+(?=\d)/, "");
+  const formatted = displayAmount.value;
+
+  void nextTick(() => {
+    input.value = formatted;
+    let position = 0;
+    let digitsSeen = 0;
+    while (position < formatted.length && digitsSeen < digitsBeforeCaret) {
+      if (/\d/.test(formatted[position] as string)) digitsSeen++;
+      position++;
+    }
+    input.setSelectionRange(position, position);
+  });
 }
 
 function setMax() {

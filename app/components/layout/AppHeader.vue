@@ -686,6 +686,20 @@ const _formatCurrency = formatWallet;
    `--mh-scale` is written pre-paint by app.vue's inline script (and kept in
    sync on resize by updateMobileScale below), so the SSR HTML is already
    correct and there is no hydration resize. */
+/* iOS Safari drops `position: fixed` elements out of the repaint when a
+   full-screen overlay (AppDialog) opens or closes over a scrolled page — the
+   header goes missing until the next scroll nudges it back. Promoting the bar
+   to its own compositor layer is the standard workaround.
+
+   Safe here specifically because the header has NO `position: fixed`
+   descendant to re-anchor: the one that exists (the mobile language dropdown)
+   is teleported to <body>. Absolutely-positioned children already resolve
+   against this element, which is positioned. Re-check that if a fixed child is
+   ever added inside the header. */
+header {
+  transform: translateZ(0);
+}
+
 .mh-scale-row {
   width: calc(100% / var(--mh-scale, 1));
   height: calc(100% / var(--mh-scale, 1));
