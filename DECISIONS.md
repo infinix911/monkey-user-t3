@@ -393,3 +393,69 @@ and burying prose in `theme.transactionmodal.*` would misrepresent that group.
 **Alternatives rejected.** Own table + endpoint mirroring Notices (backend cost,
 plus a second source of truth given the site-config requirement); a slot under
 `theme.transactionmodal.*` (misplaces prose among styling tokens).
+
+## ADR-025 — A 401 about a credential is not a 401 about the session
+
+**Status:** Accepted
+
+**Context.** Both HTTP clients treat any 401 as session expiry: they set the
+one-shot `session_logged_out` latch, `resetUser()`, and force-navigate — reload
+when already at home (`/`, `/ko`, `/id`, `/th`), otherwise `location.href = "/"`.
+The only exemption was `/auth/sign-in/username`.
+
+That is right for the auth macro's bare `status(401)`, which is what an expired
+or revoked `bn.session` earns on any protected route. It is wrong for the
+endpoints that verify a credential carried in the request **body**, which answer
+401 while the session behind the request is perfectly valid:
+
+| Endpoint                           | Token (monkey-user-api)                        |
+| ---------------------------------- | ---------------------------------------------- |
+| `/transactions/withdrawal`         | `INVALID_WITHDRAWAL_PASSWORD` (`transactions.controller.ts`) |
+| `/auth/change-withdrawal-password` | `INVALID_WITHDRAWAL_PASSWORD` (`auth.controller.ts`) |
+| `/auth/change-password`            | `INVALID_CURRENT_PASSWORD` (`auth.controller.ts`) |
+
+So one mistyped withdrawal password reloaded the page (or bounced the member
+home) and destroyed `showErrorAlert`'s dialog before it could be read — the
+member never learned the password was wrong. It presented as a *random* reload
+because the latch fires only once per tab: the first mistake reloaded, every
+mistake after it showed the dialog normally. The session cookie is never
+actually invalidated on this path, so the member stayed logged in after the
+reload, which is why it read as a reload rather than a logout.
+
+**Decision.** Discriminate on the **response token**, not the URL, in a single
+shared module `app/lib/session-401.ts` consumed by both clients:
+
+- `isCredentialFailure(body)` returns true for `INVALID_WITHDRAWAL_PASSWORD`,
+  `INVALID_CURRENT_PASSWORD`, `INVALID_CREDENTIALS`. Both clients consult it and
+  return **before** the latch is set, so a genuine expiry later in the same tab
+  still logs out.
+- It resolves either response shape, the same split `resolveApiToken()` handles
+  in `useApiMessage.ts`: `responseHandler` controllers send `{ message: TOKEN }`;
+  Better Auth sends `{ code: TOKEN, message: prose }`. A numeric `code` is an
+  HTTP status, never a token.
+- Deliberately excluded, because they do mean the session is unusable: a bare
+  `status(401)` (no token in the body), `INVALID_AUTH` (`/auth/get-session`
+  resolved a user with no member row), `INVALID_USER` (the session's member row
+  has gone).
+
+Token-matching rather than URL-matching keeps this route-independent — a new
+credential-checking endpoint only has to answer with a listed token — and an
+unrecognised 401 still falls through to the logout path. Fails safe.
+
+**Consequences.** `CREDENTIAL_FAILURE_TOKENS` is a cross-repo contract with
+monkey-user-api: renaming a token there without updating it here brings the
+reload back. `tests/component/credential-401-no-logout.spec.ts` pins the token
+list, both response shapes, the negative cases, and the guard's position ahead of
+the latch in **both** clients (the `useApi.ts` ↔ `axios-client.ts` parity mandate
+— a guard added to one only would leave half the app still reloading).
+
+**Alternatives rejected.** Changing the API to `403` — accurate, since a wrong
+withdrawal password is not a failure of the *session's* authentication, but it is
+a cross-repo contract change that also affects the Telegram withdraw flow
+(`src/telegram/flows/withdraw.ts`), so it is worth doing separately and is not
+required to fix the user-visible bug. A URL allowlist in each client — needs
+updating for every new credential endpoint, and duplicates the list across the
+two files that this ADR exists to keep in sync.
+
+**Related:** ADR-006 (mutations are never retried — same money-safety reasoning
+about not repeating a request the server already judged).

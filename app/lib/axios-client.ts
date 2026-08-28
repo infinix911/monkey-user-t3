@@ -34,6 +34,7 @@ import type {
 } from "axios";
 import { getApiBase } from "@/lib/domain";
 import { getCsrfHeaders } from "@/lib/csrf";
+import { isCredentialFailure } from "@/lib/session-401";
 
 const MUTATING_METHODS = new Set(["post", "put", "patch", "delete"]);
 
@@ -153,7 +154,12 @@ const createAxiosInstance = (baseURL: string): AxiosInstance => {
         const path = window.location.pathname;
         const alreadyAtHome = path === "/" || /^\/(id|ko|th)\/?$/.test(path);
 
-        if (!isLoginAttempt) {
+        // A mistyped withdrawal/current password also answers 401 while the
+        // session stays valid — logging out on it destroyed the error dialog
+        // before it could be read. See lib/session-401.ts.
+        const isBadCredential = isCredentialFailure(error.response?.data);
+
+        if (!isLoginAttempt && !isBadCredential) {
           // Only auto-logout once per session (prevent infinite reload loop)
           const alreadyLoggedOut = sessionStorage.getItem("session_logged_out");
           if (alreadyLoggedOut) return Promise.reject(error);
