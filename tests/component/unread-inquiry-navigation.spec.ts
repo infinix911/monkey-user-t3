@@ -16,6 +16,7 @@ import { mountSuspended } from "@nuxt/test-utils/runtime";
 import { flushPromises } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useUnreadInquiryGate } from "@/composables/useUnreadInquiryGate";
+import BottomNav from "@/components/layout/BottomNav.vue";
 import { useUiStore } from "~/stores/ui";
 import { useAuthStore } from "~/stores/auth";
 
@@ -111,6 +112,46 @@ describe("unread-inquiry warning across navigation", () => {
 
     expect(showSwalAlert).not.toHaveBeenCalled();
     expect(ui.showInquiryModal).toBe(false);
+    wrapper.unmount();
+  });
+});
+
+/*
+  The mobile bar is the case the route watcher cannot reach: most of its items
+  open an overlay in place rather than navigating, so `route.path` never moves
+  and the gate never runs. The guard has to sit on the tap itself.
+*/
+describe("mobile bottom nav with a reply waiting", () => {
+  beforeEach(() => {
+    checkUnreadInquiries.mockReset().mockResolvedValue(undefined);
+    showSwalAlert.mockReset().mockResolvedValue(undefined);
+  });
+
+  it("warns instead of opening any overlay", async () => {
+    const wrapper = await mountSuspended(BottomNav);
+    const ui = useUiStore();
+    const auth = useAuthStore();
+
+    auth.user.id = "member-1";
+    ui.noticeResolved = true;
+    ui.setHasUnreadInquiries(true, 1);
+    ui.setShowInquiryModal(false);
+    await flushPromises();
+    showSwalAlert.mockClear();
+
+    for (const button of wrapper.findAll("button")) {
+      await button.trigger("click");
+      await flushPromises();
+      // The guard short-circuits on an open list; clear it so each tap is
+      // judged on its own rather than on the previous tap's leftovers.
+      ui.setShowInquiryModal(false);
+    }
+
+    expect(showSwalAlert).toHaveBeenCalled();
+    expect(ui.showDepositModal).toBe(false);
+    expect(ui.showWithdrawalModal).toBe(false);
+    expect(ui.showPromotionModal).toBe(false);
+    expect(ui.showProfileModal).toBe(false);
     wrapper.unmount();
   });
 });

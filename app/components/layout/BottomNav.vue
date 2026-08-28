@@ -274,6 +274,10 @@ const handleNavClick = async (item: NavItem) => {
     return;
   }
   if (item.id === "promotion") {
+    // Opens an overlay without changing the route, so the gate's navigation
+    // watcher never sees it — see the block below. Inert for guests, who have
+    // no inquiries and so never trip the guard.
+    if (await blockedByUnreadInquiries()) return;
     uiStore.setShowPromotionModal(true);
     return;
   }
@@ -285,6 +289,19 @@ const handleNavClick = async (item: NavItem) => {
     return;
   }
 
+  /*
+    Every remaining item opens an overlay in place instead of navigating, so
+    `useUnreadInquiryGate`'s route watcher never fires for them and a member
+    tapping around the bottom bar was never told a reply was waiting. One check
+    here covers all of them, and replaces the deposit/withdraw-only guard that
+    used to sit inside the branch below.
+
+    `home` and `rtp` are deliberately NOT guarded: they navigate, so the gate
+    warns straight after, and blocking them would leave a member with an unread
+    reply unable to reach even the home page.
+  */
+  if (await blockedByUnreadInquiries()) return;
+
   // 공지사항 — open the section sheet ALONE. It used to raise the profile menu
   // as well, purely because that modal was the only thing that rendered a
   // section on mobile; the member tapped one bar item and got the menu behind
@@ -294,8 +311,6 @@ const handleNavClick = async (item: NavItem) => {
   if (item.id === "notice") {
     accountSection.open("faq");
   } else if (item.id === "deposit" || item.id === "withdraw") {
-    // Unread inquiry replies block transacting — see `blockedByUnreadInquiries`.
-    if (await blockedByUnreadInquiries()) return;
     if (item.id === "deposit") uiStore.setShowDepositModal(true);
     else uiStore.setShowWithdrawalModal(true);
   } else if (item.id === "menu") {
