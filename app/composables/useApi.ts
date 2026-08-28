@@ -26,6 +26,7 @@ import type { $Fetch } from "ofetch";
 import type { ZodIssue, ZodType } from "zod";
 import { getApiBase, forwardHostHeaders } from "@/lib/domain";
 import { getCsrfHeaders } from "@/lib/csrf";
+import { isCredentialFailure } from "@/lib/session-401";
 
 /**
  * Mutating methods get a CSRF double-submit header (parity with axios-client).
@@ -126,6 +127,10 @@ export const useApi = (): ValidatingFetch => {
       if (!import.meta.client || response?.status !== 401) return;
       const reqUrl = String(request);
       if (reqUrl.includes("/auth/sign-in/username")) return;
+      // A mistyped withdrawal/current password also answers 401 while the
+      // session stays valid — logging out on it destroyed the error dialog
+      // before it could be read. See lib/session-401.ts.
+      if (isCredentialFailure(response?._data)) return;
       if (sessionStorage.getItem("session_logged_out")) return;
       sessionStorage.setItem("session_logged_out", "1");
       try {

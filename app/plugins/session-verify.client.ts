@@ -30,6 +30,14 @@ export default defineNuxtPlugin(() => {
       uiStore.fetchNotice();
     }
 
+    /*
+      A hidden tab has no socket — it is disconnected below for bfcache — so it
+      cannot hear the `kickout` event, and its session check is stopped with it.
+      Coming back is therefore the first chance to notice a session that ended
+      while the tab was away: confirm it before reconnecting, so a kicked member
+      lands on a logged-out page instead of a signed-in one that only corrects
+      itself on the next poll.
+    */
     document.addEventListener("visibilitychange", () => {
       if (document.visibilityState === "hidden") {
         ws.disconnect();
@@ -37,7 +45,9 @@ export default defineNuxtPlugin(() => {
         document.visibilityState === "visible" &&
         authStore.isAuthenticated
       ) {
-        ws.connect();
+        void ws.confirmSession().then((valid) => {
+          if (valid) ws.connect();
+        });
       }
     });
 
@@ -52,7 +62,11 @@ export default defineNuxtPlugin(() => {
     });
     window.addEventListener("pageshow", (event) => {
       if (event.persisted && authStore.isAuthenticated) {
-        ws.connect();
+        // Restored from bfcache: the same stale-session risk as a tab regaining
+        // visibility, and the page may have been frozen for far longer.
+        void ws.confirmSession().then((valid) => {
+          if (valid) ws.connect();
+        });
       }
     });
   });

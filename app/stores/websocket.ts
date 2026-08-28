@@ -80,6 +80,27 @@ export const useWebSocketStore = defineStore("websocket", () => {
   };
 
   /**
+   * Confirm the session still exists, and end it here when it does not.
+   *
+   * The kickout event only helps a tab that is awake with a live socket. A
+   * backgrounded tab has neither — the plugin disconnects on hide — so the
+   * member would keep seeing a signed-in page until something else asked the
+   * server. This is that ask, for the two moments when the browser has reason
+   * to doubt: the server refused the socket, or the tab just came back.
+   *
+   * @returns True when the session is still valid.
+   */
+  const confirmSession = async (): Promise<boolean> => {
+    try {
+      await useAuthStore().verifyUser();
+      return true;
+    } catch {
+      await handleSessionRevoked();
+      return false;
+    }
+  };
+
+  /**
    * End this browser's session because the server no longer has one.
    *
    * Two things reach here: the `kickout` event, sent when an operator ends the
@@ -266,6 +287,25 @@ export const useWebSocketStore = defineStore("websocket", () => {
 
           console.log("🔌 WebSocket closed:", event.code, event.reason);
 
+          /* 1008 is what the API closes with when it will not accept this
+             socket — UNAUTHENTICATED, or SESSION_EXPIRED once a kicked
+             member's token stops resolving. Redialling with the same cookie
+             only repeats the refusal, so ask whether the session still exists
+             first; `confirmSession` ends it here when it does not, and
+             reconnects on the ladder when the refusal was about something else
+             (a rejected origin, say). */
+          if (event.code === 1008) {
+            void confirmSession().then((valid) => {
+              if (!valid) return;
+              const attempts = reconnectAttempts.value;
+              setTimeout(() => {
+                reconnectAttempts.value = attempts + 1;
+                connect();
+              }, Math.min(30_000, 1000 * 2 ** attempts));
+            });
+            return;
+          }
+
           // Attempt reconnection if it wasn't a manual close (code 1000)
           if (event.code !== 1000) {
             const currentAttempts = reconnectAttempts.value;
@@ -297,12 +337,8 @@ export const useWebSocketStore = defineStore("websocket", () => {
         // Start periodic session validation (every 30 seconds)
         // Detects if session was invalidated by another login
         if (sessionCheckInterval) clearInterval(sessionCheckInterval);
-        sessionCheckInterval = setInterval(async () => {
-          try {
-            await useAuthStore().verifyUser();
-          } catch {
-            await handleSessionRevoked();
-          }
+        sessionCheckInterval = setInterval(() => {
+          void confirmSession();
         }, 30_000);
       } catch (error) {
         console.error("🔌 WebSocket connection failed:", error);
@@ -349,6 +385,7 @@ export const useWebSocketStore = defineStore("websocket", () => {
 
     // Actions
     connect,
+    confirmSession,
     disconnect,
     setRouterRefresh,
     setInquiryCheckCallback,

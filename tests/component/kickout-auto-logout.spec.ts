@@ -19,6 +19,10 @@ const store = readFileSync(
   resolve(__dirname, "../../app/stores/websocket.ts"),
   "utf8",
 );
+const sessionPlugin = readFileSync(
+  resolve(__dirname, "../../app/plugins/session-verify.client.ts"),
+  "utf8",
+);
 
 describe("kickout auto-logout", () => {
   it("handles the `kickout` event the admin API emits", () => {
@@ -55,5 +59,22 @@ describe("kickout auto-logout", () => {
     expect(store.match(/handleSessionRevoked/g)?.length).toBeGreaterThanOrEqual(
       3,
     );
+  });
+
+  it("re-checks the session when a hidden tab comes back", () => {
+    // A hidden tab has no socket — the plugin disconnects it for bfcache — so
+    // it cannot hear `kickout`, and its 30s check is stopped with it. Coming
+    // back is the first chance to notice, and it must not simply reconnect.
+    expect(sessionPlugin).toContain("ws.confirmSession()");
+    expect(sessionPlugin.match(/confirmSession\(\)/g)?.length).toBe(2);
+    expect(sessionPlugin).toContain("if (valid) ws.connect()");
+  });
+
+  it("asks whether the session survived when the API refuses the socket", () => {
+    // 1008 is UNAUTHENTICATED / SESSION_EXPIRED: redialling with the same
+    // cookie only repeats the refusal.
+    expect(store).toContain("if (event.code === 1008)");
+    expect(store).toContain("const confirmSession = async (): Promise<boolean>");
+    expect(store).toContain("confirmSession,");
   });
 });
