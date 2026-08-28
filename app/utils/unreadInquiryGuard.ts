@@ -16,10 +16,11 @@
  * (InquiryModal.handleCloseClick), so it blocks the attempted action until the
  * member deals with the message.
  *
- * ONLY guarded actions reach here. `useUnreadInquiryGate` — which runs on every
- * page — raises `showUnreadInquiryAlert()` alone when replies arrive, so simply
- * being on the site no longer forces the modal open; the member is interrupted
- * where money or a game launch is at stake, not on arrival.
+ * Guarded actions are not the only way in. `useUnreadInquiryGate` — which runs
+ * in the layout, so on every page — calls this too, on arrival and on each
+ * navigation while anything is unread, which is how a member who is only
+ * browsing still learns a reply is waiting. The guarded actions are the ones
+ * that must not proceed regardless; the gate is the ambient reminder.
  *
  * @see app/components/inquiry/InquiryContent.vue — 전체 읽기 clears the flag
  */
