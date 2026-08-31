@@ -39,13 +39,40 @@ export function getProviderName(
 }
 
 /**
+ * Evolution ships two lobbies behind ONE provider code, so the code -> name
+ * lookup alone gives both cards the same logo. These two assets carry the
+ * stakes distinction in the artwork itself (the pill above the wordmark),
+ * replacing the corner badge that used to mark them apart.
+ */
+const EVOLUTION_PROVIDER_NAME = "Evolution";
+const EVOLUTION_HIGH_STAKES_LOBBY_ID = "8f02de81-9fdd-44b0-9115-1e8e96268a41";
+const EVOLUTION_HIGH_STAKES_LOGO = "Evolution10"; // 고액배팅 (1:10)
+const EVOLUTION_LOW_STAKES_LOGO = "Evolution1"; // 소액배팅 (1:1)
+
+/**
  * Logo URL for a provider code — e.g. `allbet_casino` -> `AllBet.webp`.
+ * `lobbyId` is only consulted for Evolution, which needs a per-lobby variant.
  *
  * Returns `""` for unknown codes so callers can fall back (the game cards render
  * the provider name as text when the logo URL is empty or fails to load).
  * The name is URL-encoded because several display names contain spaces or `&`.
  */
-export function getLogoImages(providerCode?: string | number | null): string {
+export function getLogoImages(
+    providerCode?: string | number | null,
+    lobbyId?: string | number | null,
+): string {
     const name = getProviderName(providerCode);
-    return name ? `${GAME_LOGO_BASE}/${encodeURIComponent(name)}.webp` : "";
+    if (!name) return "";
+
+    // Scoped to Evolution on purpose: every other provider keeps the plain
+    // display-name asset, so an unrecognised lobby id changes nothing.
+    if (name === EVOLUTION_PROVIDER_NAME) {
+        const variant =
+            String(lobbyId) === EVOLUTION_HIGH_STAKES_LOBBY_ID
+                ? EVOLUTION_HIGH_STAKES_LOGO
+                : EVOLUTION_LOW_STAKES_LOGO;
+        return `${GAME_LOGO_BASE}/${variant}.webp`;
+    }
+
+    return `${GAME_LOGO_BASE}/${encodeURIComponent(name)}.webp`;
 }
