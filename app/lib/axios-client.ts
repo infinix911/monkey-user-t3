@@ -98,22 +98,9 @@ const createAxiosInstance = (baseURL: string): AxiosInstance => {
   });
 
   /**
-   * Request Interceptor:
-   * - On SSR: forward the incoming request's Cookie header so the backend sees
-   *   the same session as the browser would.
-   * - On client: attach CSRF token for mutating requests via double-submit cookie.
+   * Request interceptor: attach the browser-readable CSRF token to mutations.
    */
   instance.interceptors.request.use((config) => {
-    if (import.meta.server) {
-      try {
-        const headers = useRequestHeaders(["cookie"]);
-        if (headers.cookie) {
-          config.headers["cookie"] = headers.cookie;
-        }
-      } catch {
-        // useRequestHeaders may not be available outside a request context
-      }
-    }
     if (
       import.meta.client &&
       config.method &&

@@ -10,7 +10,7 @@
       <div v-for="board in boards" :key="board.id" class="tm-card rounded-lg overflow-hidden"
         style="box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.5)">
         <div class="w-full aspect-[690/200] cursor-pointer" @click="toggle(board.id)">
-          <NuxtImg :src="board.thumbnail" :alt="board.description"
+          <img :src="board.thumbnail" :alt="board.description"
             class="w-full h-full object-cover block !rounded-lg" />
         </div>
         <Transition name="accordion">

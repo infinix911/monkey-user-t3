@@ -33,7 +33,7 @@
                  means it would otherwise overflow across the account bar. `w-full`
                  binds it to the column (max-height still clamps tall marks), so
                  there is no second width to keep in sync with the layout. -->
-            <!-- A PLAIN `<img>`, deliberately not `<NuxtImg>`: the logo is a
+            <!-- A PLAIN `<img>`: the logo is a
                  CMS-swappable asset, and the image pipeline serves it through a
                  derived, separately-cached URL, so a rebrand kept showing the
                  old mark until that cache turned over. A direct request to the
@@ -153,7 +153,7 @@
 
               <!-- Wallet balance -->
               <span class="flex items-center gap-1.5 ms-10">
-                <NuxtImg :src="siteConfig.assets.navIcons.walletIcon" alt="" aria-hidden="true" width="18" height="18"
+                <img :src="siteConfig.assets.navIcons.walletIcon" alt="" aria-hidden="true" width="18" height="18"
                   class="w-[18px] h-[18px] object-contain shrink-0" />
                 <span class="font-bold text-[15px] tabular-nums leading-none"
                   :style="{ color: ACCOUNT_BAR_COLORS.wallet }">{{
@@ -166,7 +166,7 @@
                    competing button, so clicking the amount opens the modal. -->
               <button type="button" class="flex items-center gap-1.5 ms-10 cursor-pointer hover:opacity-80 transition-opacity"
                 :aria-label="$t('point.title')" @click="openPointModal">
-                <NuxtImg :src="siteConfig.assets.navIcons.pointIcon" alt="" aria-hidden="true" width="18" height="18"
+                <img :src="siteConfig.assets.navIcons.pointIcon" alt="" aria-hidden="true" width="18" height="18"
                   class="w-[18px] h-[18px] object-contain shrink-0" />
                 <span class="font-bold text-[15px] tabular-nums leading-none"
                   :style="{ color: ACCOUNT_BAR_COLORS.point }">{{
@@ -183,13 +183,13 @@
                 <button type="button" :aria-label="$t('common.refreshBalance')" :disabled="isRefreshingWallet"
                   class="shrink-0 cursor-pointer opacity-90 hover:opacity-100 transition-opacity disabled:opacity-60"
                   :class="{ 'spin-once': isRefreshingWallet }" @click="refreshWallet">
-                  <NuxtImg :src="siteConfig.assets.navIcons.refreshIcon" alt="" aria-hidden="true" width="24"
+                  <img :src="siteConfig.assets.navIcons.refreshIcon" alt="" aria-hidden="true" width="24"
                     height="24" class="account-bar-icon-light w-[24px] h-[24px] object-contain" />
                 </button>
                 <NotificationDropdown :notifications="notifications" @marked-all-read="markNotificationsRead">
                   <div class="relative cursor-pointer opacity-90 hover:opacity-100 transition-opacity"
                     aria-haspopup="dialog">
-                    <NuxtImg :src="siteConfig.assets.navIcons.bellIcon" alt="" aria-hidden="true" width="24" height="24"
+                    <img :src="siteConfig.assets.navIcons.bellIcon" alt="" aria-hidden="true" width="24" height="24"
                       class="w-[24px] h-[24px] object-contain" />
                     <div v-if="unreadNotificationCount > 0"
                       class="absolute -top-1.5 -right-1.5 min-w-4 h-4 px-1 bg-red-500 rounded-full flex items-center justify-center">
@@ -281,7 +281,7 @@
           </button>
           <!-- `external`: full document load, same as the desktop logo above. -->
           <NuxtLink v-show="!uiStore.showNoticeModal" to="/" external class="flex items-center">
-            <!-- Plain <img>, not <NuxtImg>: CMS-swappable logo, see AppHeader.vue -->
+            <!-- Plain <img>: CMS-swappable logo, see AppHeader.vue -->
             <img :src="siteConfig.identity.logoMobile || siteConfig.identity.logo"
               :alt="siteConfig.identity.siteName" class="w-auto max-w-[210px] object-contain ml-1"
               :style="siteConfig.theme.logoStyles.mobileHeader"

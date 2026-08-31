@@ -136,19 +136,6 @@ const isVideo = (url: string): boolean => {
   return VIDEO_EXTENSIONS.test(url ?? "");
 };
 
-// `blob:` (admin theme-preview object URLs) and `data:` sources exist only in
-// the visitor's browser, so IPX cannot fetch them — it would emit an /_ipx/
-// URL that 404s. They are already local and need no optimizing, so they are
-// handed to the <img> untouched.
-const isLocalObjectUrl = (url: string): boolean =>
-  url.startsWith("blob:") || url.startsWith("data:");
-
-// Route banner stills through @nuxt/image (IPX) so the LCP banner ships as a
-// sized WebP instead of a raw full-size Linode JPG. We generate the optimized
-// URL ourselves (rather than <NuxtImg>) so the `<link rel=preload>` below can
-// point at the EXACT same URL the <img> requests — a mismatch would double-
-// download the LCP image. Videos and empty slots pass through untouched.
-const img = useImage();
 const BANNER_W = { desktop: 1280, mobile: 800 } as const;
 
 // Both banners use a fixed *aspect ratio* (not a fixed pixel height) so the box
@@ -173,12 +160,10 @@ const THEME_AR_DESKTOP =
 const THEME_AR_MOBILE = siteConfig.theme.mobileBannerAspectRatio || "375 / 190";
 
 const optimize = (url: string | null | undefined, width: number): string => {
-  if (!url || isVideo(url) || isLocalObjectUrl(url)) return url ?? "";
-  try {
-    return img(url, { format: "webp", width });
-  } catch {
-    return url; // unknown domain / IPX hiccup — fall back to the raw URL.
-  }
+  // Responsive variants must be supplied by the image CDN. A static SPA has no
+  // same-origin IPX endpoint to transform arbitrary CMS URLs at runtime.
+  void width;
+  return url ?? "";
 };
 
 const selectedIndex = ref(0);

@@ -35,7 +35,7 @@
           </button>
 
           <!-- Logo -->
-          <!-- Plain <img>, not <NuxtImg>: CMS-swappable logo, see AppHeader.vue -->
+          <!-- Plain <img>: CMS-swappable logo, see AppHeader.vue -->
           <img
             :src="logoSrc"
             :alt="siteConfig.identity.siteName"

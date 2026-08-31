@@ -11,7 +11,7 @@
         <!-- User Info Header -->
         <div class="pt-1.5 pb-1 border-b border-[#5C5C5C] px-2">
           <div class="flex justify-between">
-            <!-- Plain <img>, not <NuxtImg>: CMS-swappable logo, see AppHeader.vue -->
+            <!-- Plain <img>: CMS-swappable logo, see AppHeader.vue -->
             <img :src="siteConfig.identity.logoPopup" :alt="siteConfig.identity.siteName"
               class="object-contain origin-left" :style="siteConfig.theme.logoStyles.profileModal"
             >
@@ -63,7 +63,7 @@
                   <a v-if="item.id === 'telegram'" :href="telegramHref" target="_blank" rel="noopener noreferrer"
                     class="w-full text-center flex flex-col items-center gap-1.5 px-2 py-1.5 rounded-md hover:scale-105 transition-all"
                     @click="onClose">
-                    <NuxtImg :src="item.image" :alt="tLabel(item.labelKey)" width="50" height="50" fit="inside"
+                    <img :src="item.image" :alt="tLabel(item.labelKey)" width="50" height="50"
                       class="w-9 h-9 object-contain" />
                     <div class="w-full h-[22px] flex items-center justify-center">
                       <span class="text-white text-[12px] lg:text-[11px]" style="font-family: var(--font-line-seed)">
@@ -74,7 +74,7 @@
                   <button v-else
                     class="group w-full flex flex-col items-center gap-1.5 px-2 py-1.5 rounded-md hover:scale-105 transition-all cursor-pointer outline-none focus:outline-none focus-visible:outline-none"
                     @click="handleItemClick(item)">
-                    <NuxtImg :src="item.image" :alt="tLabel(item.labelKey)" width="50" height="50" fit="inside"
+                    <img :src="item.image" :alt="tLabel(item.labelKey)" width="50" height="50"
                       class="w-9 h-9 object-contain transition-all"
                       :class="{ 'menu-icon-active': selectedAccountSection && selectedAccountSection === getAccountSection(item.id) }" />
                     <div class="w-full h-[22px] flex items-center justify-center">

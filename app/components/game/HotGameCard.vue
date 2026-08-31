@@ -25,7 +25,7 @@
               d="M2 15.5V8a4 4 0 0 1 4-4h12a4 4 0 0 1 4 4v7.5a2.5 2.5 0 0 1-2.5 2.5h-2.06a2 2 0 0 1-1.66-.88L14.2 14.5H9.8l-1.58 2.62A2 2 0 0 1 6.56 18H4.5A2.5 2.5 0 0 1 2 15.5Z" />
           </svg>
         </div>
-        <!-- Plain <img> (no @nuxt/image / IPX): thumbnails come from the game
+        <!-- Plain <img>: thumbnails come from the game
            provider CDN (e.g. slots.ps9launcher.com), which isn't whitelisted
            for IPX and shouldn't be re-encoded server-side. Opacity (not
            v-show) reveals it on load so a lazy image keeps a layout box and

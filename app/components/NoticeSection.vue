@@ -8,7 +8,7 @@
       >
         <div class="w-full max-w-[560px] mx-auto flex flex-col items-center">
           <!-- Brand logo above the card -->
-          <!-- Plain <img>, not <NuxtImg>: CMS-swappable logo, see AppHeader.vue -->
+          <!-- Plain <img>: CMS-swappable logo, see AppHeader.vue -->
           <img
             :src="siteConfig.identity.logo"
             :alt="siteConfig.identity.siteName"

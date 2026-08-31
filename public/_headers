@@ -1,4 +1,17 @@
+/*
+  Content-Security-Policy: default-src 'self'; img-src 'self' data: blob: https:; font-src 'self' data: https:; script-src 'self' 'unsafe-inline' https://embed.tawk.to https://va.tawk.to https://static.cloudflareinsights.com https://cdn.livechatinc.com https://*.livechatinc.com; worker-src 'self' blob:; connect-src 'self' https: wss:; frame-ancestors 'self'; base-uri 'self'; object-src 'none'
+  Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+  Cross-Origin-Opener-Policy: same-origin-allow-popups
+  Cross-Origin-Resource-Policy: cross-origin
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()
+  X-Robots-Tag: noindex, nofollow
+
 /_nuxt/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/_fonts/*
   Cache-Control: public, max-age=31536000, immutable
 
 /fonts/*

@@ -84,11 +84,9 @@ useBreadcrumbSchema([
 ]);
 
 
-// SSR fetch via useApi: pulls all mini-game lobbies + their games on the
-// server so the initial HTML already includes the grid. Awaited so the
-// setup suspends until the data is ready — keeps the lobbies call on the
-// server boundary during client-side navigation too.
-const { data: miniGames, pending } = await useAsyncData<GameRow[]>(
+// Start the mini-game bundle without suspending page setup. The existing
+// loading/empty branches keep the route usable while it resolves.
+const { data: miniGames, pending } = useAsyncData<GameRow[]>(
   "mini-games-bundle",
   async () => {
     // Best-effort (SSR-awaited): normalize the camelCase wire shapes via the
@@ -120,7 +118,7 @@ const { data: miniGames, pending } = await useAsyncData<GameRow[]>(
     }
     return flat;
   },
-  { default: () => [] },
+  { default: () => [], server: false },
 );
 
 const isLoading = computed(() => pending.value);

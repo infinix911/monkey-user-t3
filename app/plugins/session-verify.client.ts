@@ -16,7 +16,23 @@ export default defineNuxtPlugin(() => {
   const uiStore = useUiStore();
   const ws = useWebSocketStore();
 
+  const waitForBootstrap = () => {
+    const ready = useState<boolean>("siteConfigBootstrapReady", () => false);
+    if (ready.value) return Promise.resolve();
+    return new Promise<void>((resolve) => {
+      const stop = watch(ready, (isReady) => {
+        if (isReady) {
+          stop();
+          resolve();
+        }
+      });
+    });
+  };
+
   onNuxtReady(async () => {
+    // Currency is supplied by tenant config. Wait only for its bounded
+    // foreground attempt; fallback config releases this immediately on errors.
+    await waitForBootstrap();
     if (!authStore.isAuthenticated) {
       try {
         await authStore.verifyUser();
@@ -28,6 +44,7 @@ export default defineNuxtPlugin(() => {
     if (authStore.isAuthenticated) {
       ws.connect();
       uiStore.fetchNotice();
+      void useNotifications().fetchNotifications();
     }
 
     /*

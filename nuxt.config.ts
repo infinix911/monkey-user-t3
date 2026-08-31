@@ -19,11 +19,44 @@ function configuredPreviewOrigins(): string[] {
     .filter((origin): origin is string => origin !== null);
 }
 
+function configuredPublicApiBase(): string {
+  const value = process.env.NUXT_PUBLIC_API_BASE?.trim() || "";
+  const isProductionBuild =
+    process.env.NODE_ENV === "production" ||
+    process.argv.some((arg) => arg === "build" || arg === "generate");
+  if (!value) {
+    if (isProductionBuild)
+      throw new Error("NUXT_PUBLIC_API_BASE is required for a static production build");
+    return "";
+  }
+
+  let url: URL;
+  try {
+    url = new URL(value);
+  } catch {
+    throw new Error("NUXT_PUBLIC_API_BASE must be an absolute HTTP(S) URL ending in /api");
+  }
+  const local = url.hostname === "localhost" || url.hostname === "127.0.0.1";
+  if (
+    (url.protocol !== "https:" && !(local && url.protocol === "http:")) ||
+    url.pathname !== "/api" ||
+    url.search ||
+    url.hash ||
+    url.username ||
+    url.password
+  ) {
+    throw new Error("NUXT_PUBLIC_API_BASE must be an absolute HTTP(S) URL ending in /api");
+  }
+  return value;
+}
+
+const publicApiBase = configuredPublicApiBase();
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
   devtools: { enabled: process.env.NODE_ENV !== "production" },
-  ssr: true,
+  ssr: false,
   // appManifest disabled: the per-build manifest at /_nuxt/builds/meta/<buildId>.json
   // 404s under deploy/cache skew (stale HTML referencing an old buildId), which
   // breaks client bootstrap. We don't rely on client-side payload revalidation or
@@ -74,26 +107,6 @@ export default defineNuxtConfig({
       headers: { "cache-control": "public, max-age=31536000, immutable" },
     },
 
-    // IPX image optimization routes — exempt from the per-user rate limiter
-    // (a single page can trigger 50+ concurrent transforms; the global
-    // 150 req/5 min limit is too tight for asset requests), and cache the
-    // transformed output long-term — the source URL is content-addressed.
-    "/_ipx/**": {
-      headers: { "cache-control": "public, max-age=31536000, immutable" },
-      security: { rateLimiter: false },
-    },
-  },
-
-  image: {
-    // Allowlist the CDN hosts so IPX can proxy/optimize them same-origin.
-    // `banana.sg-sin-1.linodeobjects.com` serves the nav icons — proxying it
-    // through /_ipx makes CSS mask-image (png-mode nav icons) work, since
-    // cross-origin mask images without CORS are dropped by the browser.
-    domains: [
-      "sg-sin-1.linodeobjects.com",
-      "banana.sg-sin-1.linodeobjects.com",
-    ],
-    format: ["webp", "avif"],
   },
 
   // Inter is self-hosted by @nuxt/fonts (downloaded + subset at build time and
@@ -108,7 +121,6 @@ export default defineNuxtConfig({
 
   modules: [
     "@nuxt/eslint",
-    "@nuxt/image",
     // "@vite-pwa/nuxt", // temporarily disabled
     "@vee-validate/nuxt",
     "vue-sonner/nuxt",
@@ -195,7 +207,7 @@ export default defineNuxtConfig({
   vite: {
     plugins: [tailwindcss()],
     optimizeDeps: {
-      include: ["axios", "@vue/devtools-core", "@vue/devtools-kit", "ioredis"],
+      include: ["axios", "@vue/devtools-core", "@vue/devtools-kit"],
     },
     // OXC handles minification (see build.minify below). Its compressor strips
     // all console.* calls and `debugger` statements in production builds —
@@ -250,6 +262,9 @@ export default defineNuxtConfig({
     // rejected before SSR/cache/API proxy work. Example: example.com,www.example.com.
     allowedHosts: process.env.NUXT_ALLOWED_HOSTS || "",
     public: {
+      // Static SPA builds bake this browser API endpoint into the bundle.
+      // app/lib/domain.ts validates it before issuing requests.
+      apiBase: publicApiBase,
       siteUrl: process.env.NUXT_PUBLIC_SITE_URL,
       // Sentry DSN is intentionally public — it is meant to ship to the browser.
       // Sentry stays disabled (init no-ops) when this is empty.
@@ -398,14 +413,6 @@ export default defineNuxtConfig({
           "https://static.cloudflareinsights.com",
           "https://cdn.livechatinc.com",
           "https://*.livechatinc.com",
-        ],
-        // @nuxt/image renders a raw inline `onerror="this.setAttribute(...)"`
-        // on every SSR <img> (NuxtImg.vue). 'unsafe-hashes' + the handler's
-        // sha256 whitelists exactly that one handler while keeping every other
-        // inline event handler blocked.
-        "script-src-attr": [
-          "'unsafe-hashes'",
-          "'sha256-bwK6T5wZVTANitXbrTsel7kl/PyCjCd/Dq5Qoz3imjM='",
         ],
         // blob: is required by Sentry Session Replay, which runs its
         // compression in a web worker spawned from a blob URL.

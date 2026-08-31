@@ -5,7 +5,7 @@
       class="group relative w-[68px] h-[68px] md:w-16 md:h-16 flex items-center justify-center transition-all duration-300 cursor-pointer"
       :aria-label="$t('common.liveChat')" :title="$t('common.chatWithUs')" @click="openChat">
       <!-- Custom live-chat mascot (mobile + desktop) -->
-      <NuxtImg
+      <img
         :src="cdn('/designs/template-3/m-livechat.png')" :alt="$t('common.liveChat')"
         class="w-full h-full object-contain drop-shadow-lg group-hover:scale-110 transition-transform duration-300 mb-[5px]"/>
 

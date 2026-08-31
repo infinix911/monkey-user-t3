@@ -8,12 +8,13 @@
  * 1. On mount, check URL for `chatId`, `token`, and optional `offline` params
  * 2. Strip sensitive params from the URL IMMEDIATELY (before any async work or GA fires)
  * 3. If `chatId` present, mark session as opened via Telegram in sessionStorage
- * 4. If both `chatId` and `token` are present, POST the same-origin one-time
+ * 4. If both `chatId` and `token` are present, POST the one-time API exchange
  *    exchange endpoint. The API sets the session cookie and returns a safe
  *    relative redirect path.
  */
 
 import { getCsrfHeaders } from "@/lib/csrf";
+import { getApiBase } from "@/lib/domain";
 
 const TELEGRAM_CHAT_ID_PATTERN = /^-?\d{1,19}$/;
 
@@ -83,7 +84,8 @@ export const useLoginTokenHandler = () => {
       const response = await $fetch<{
         redirectPath?: string;
         data?: { redirectPath?: string };
-      }>("/api/telegram/login-token", {
+      }>("/telegram/login-token", {
+        baseURL: getApiBase(),
         method: "POST",
         credentials: "include",
         headers: getCsrfHeaders(),

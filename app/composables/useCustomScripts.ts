@@ -18,13 +18,10 @@
  *   - Plain JS with no tag wrapper. We inject it as innerHTML directly.
  *
  * Lives on its own endpoint (not bundled with /config/userpage) so the
- * payload caches and invalidates independently. Called from app.vue
- * alongside the userpage fetch with useAsyncData so the SSR HTML carries
- * the validated tags on first paint.
+ * payload caches and invalidates independently.
  */
 
-import { getApiBase, getHostname, forwardHostHeaders } from "@/lib/domain";
-import { withServerCache } from "@/lib/serverCache";
+import { getApiBase } from "@/lib/domain";
 import { escapeInlineScript } from "~~/shared/utils/secure-serialization";
 import type { ResolvableScript } from "@unhead/vue";
 
@@ -67,28 +64,14 @@ export async function fetchCustomScripts(): Promise<CustomScriptEntry[]> {
   if (cached.value && cached.value.length) return cached.value;
 
   const apiBase = getApiBase();
-  // Forward the visitor's host so the multi-tenant backend returns THIS site's
-  // scripts on SSR (direct fetch bypasses the host-setting Nitro proxy).
-  const hostHeaders = forwardHostHeaders();
   try {
-    // Per-isolate cache (60 s) — see PLAN-PER-ISOLATE-SSR-CACHE.md.
-    // Raw $fetch (no cookie forwarded) so the cached response is independent
-    // of any user context; this endpoint is public CMS data.
-    const list = await withServerCache(
-      `custom-scripts:${getHostname()}`,
-      60 * 1000,
-      async () => {
-        const res = await $fetch<
-          CustomScriptEntry[] | { data: CustomScriptEntry[] }
-        >(`${apiBase}/site/custom-scripts`, {
-          timeout: import.meta.server ? 3000 : 10000,
-          headers: hostHeaders,
-        });
-        return Array.isArray(res)
-          ? res
-          : ((res as { data?: CustomScriptEntry[] })?.data ?? []);
-      },
+    const res = await $fetch<CustomScriptEntry[] | { data: CustomScriptEntry[] }>(
+      `${apiBase}/site/custom-scripts`,
+      { timeout: 10000 },
     );
+    const list = Array.isArray(res)
+      ? res
+      : ((res as { data?: CustomScriptEntry[] })?.data ?? []);
     cached.value = Array.isArray(list) ? list : [];
     return cached.value;
   } catch (err) {
