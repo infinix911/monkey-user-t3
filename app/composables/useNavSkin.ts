@@ -69,8 +69,8 @@ const NAV_SKINS: Record<NavSkin["key"], NavSkin> = {
       mobile: {
         bar: "h-[90px] pb-[7px]",
         button:
-          "w-[calc((100vw-8px)/6)] max-w-[131px] h-[78px] md:w-[78px] md:h-[76px] pt-1.5 gap-2 hover:scale-105",
-        box: { w: "56px", h: "56px" },
+          "w-[calc((100vw-8px)/5)] max-w-[131px] h-[78px] md:w-[78px] md:h-[76px] px-1 pt-2 gap-2 hover:scale-105",
+        box: { w: "68px", h: "44px" },
       },
       desktop: {
         outer: "lg:h-[129px]",
@@ -78,7 +78,7 @@ const NAV_SKINS: Record<NavSkin["key"], NavSkin> = {
         area: "h-[100px] mt-[-8px]",
         innerGap: "gap-[30px]",
         button: "w-12 md:w-[74px] pt-1 md:pt-0 hover:scale-105",
-        box: { w: "72px", h: "76px" },
+        box: { w: "72px", h: "47px" },
       },
     },
     transaction: NavTransactionDefault,

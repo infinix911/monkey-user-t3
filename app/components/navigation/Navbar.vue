@@ -6,8 +6,7 @@
              portrait uses the mobile category nav). -->
         <!-- Lucky-only: dim to black on scroll even though it has its own
              navbar-bg.png. Other brands keep their existing behavior. -->
-        <div class="block lg:hidden relative w-full overflow-hidden"
-          :class="navSkin.layout.mobile.bar"
+        <div class="block lg:hidden relative w-full overflow-hidden" :class="navSkin.layout.mobile.bar"
           :style="{ backgroundColor: uiStore.isNavSticky ? siteConfig.theme.nav.stickyBg : siteConfig.theme.nav.defaultBg }">
           <!-- Nav background image (same asset the desktop nav uses); sits behind
                the z-10 icon row. Oversized + top-anchored inside overflow-hidden
@@ -40,12 +39,11 @@
                 :style="{ color: isActive(item.path) ? siteConfig.theme.nav.activeItemColor : '#fff' }"
                 @click="handleNavClick(item.path)">
                 <NavGlyph :type="navSkin.glyph.type" :src="item.icon" :menu-bg="nav.gifBg" :menu-border="nav.gifBorder"
-                  :active-src="item.activeIcon" :active-menu-bg="nav.activeGifBg" :active-menu-border="nav.activeGifBorder"
-                  :active="isActive(item.path)"
-                  :label="$t(item.labelKey)" :mask-size-percent="item.maskSizePercent"
-                  :box="navSkin.layout.mobile.box" />
+                  :active-src="item.activeIcon" :active-menu-bg="nav.activeGifBg"
+                  :active-menu-border="nav.activeGifBorder" :active="isActive(item.path)" :label="$t(item.labelKey)"
+                  :mask-size-percent="item.maskSizePercent" :box="navSkin.layout.mobile.box" />
                 <span v-if="navSkin.glyph.showLabel"
-                  class="-mt-1 text-[11px] font-bold uppercase leading-none tracking-tight">{{
+                  class="font-inter -mt-1.5 text-[12px] font-bold uppercase leading-none tracking-tight">{{
                     $t(item.labelKey) }}</span>
               </button>
             </div>
@@ -97,12 +95,10 @@ class="w-full h-[6px]" :style="{
           <div class="relative z-10 w-full flex h-full items-center justify-center pl-2 pr-5"
             :class="navSkin.layout.desktop.rowGap">
             <!-- Scrollable nav items -->
-            <div class="max-w-[892px] min-w-0 relative overflow-hidden"
-              :class="navSkin.layout.desktop.area">
+            <div class="max-w-[892px] min-w-0 relative overflow-hidden" :class="navSkin.layout.desktop.area">
               <div ref="desktopNavScrollRef" class="overflow-x-auto overflow-y-hidden h-full scroll-smooth"
                 style="scrollbar-width: none; -ms-overflow-style: none">
-                <div class="flex items-center justify-start min-w-max h-full"
-                  :class="navSkin.layout.desktop.innerGap">
+                <div class="flex items-center justify-start min-w-max h-full" :class="navSkin.layout.desktop.innerGap">
                   <button v-for="item in navItems" :key="item.path" type="button"
                     class="group cursor-pointer flex flex-col items-center justify-center transition flex-shrink-0"
                     :class="navSkin.layout.desktop.button" :style="{
@@ -111,13 +107,11 @@ class="w-full h-[6px]" :style="{
                       color: isActive(item.path) ? siteConfig.theme.nav.activeItemColor : '#fff',
                     }" @click="handleNavClick(item.path)">
                     <NavGlyph :type="navSkin.glyph.type" :src="item.icon" :menu-bg="nav.gifBg"
-                      :menu-border="nav.gifBorder" :active-src="item.activeIcon"
-                      :active-menu-bg="nav.activeGifBg" :active-menu-border="nav.activeGifBorder"
-                      :active="isActive(item.path)" :label="$t(item.labelKey)"
-                      :mask-size-percent="item.maskSizePercent"
-                      :box="navSkin.layout.desktop.box" />
+                      :menu-border="nav.gifBorder" :active-src="item.activeIcon" :active-menu-bg="nav.activeGifBg"
+                      :active-menu-border="nav.activeGifBorder" :active="isActive(item.path)" :label="$t(item.labelKey)"
+                      :mask-size-percent="item.maskSizePercent" :box="navSkin.layout.desktop.box" />
                     <span v-if="navSkin.glyph.showLabel"
-                      class="text-[15px] font-bold uppercase leading-none tracking-tight">{{
+                      class="font-inter text-[15px] font-bold uppercase leading-none tracking-tight">{{
                         $t(item.labelKey) }}</span>
                   </button>
                 </div>

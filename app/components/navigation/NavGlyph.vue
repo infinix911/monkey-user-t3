@@ -5,7 +5,7 @@
     v-if="type !== 'gif'"
     :src="src"
     :alt="label"
-    class="block flex-shrink-0 object-contain"
+    class="block flex-shrink-0 object-contain p-0.5"
     :style="{ width: box.w, height: box.h }"
     loading="lazy"
     decoding="async"
