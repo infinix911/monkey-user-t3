@@ -52,6 +52,13 @@ export function getRootDomain(): string {
   return parts.length > 2 ? parts.slice(1).join('.') : getHostname();
 }
 
+/** Build the partner console URL from a deployed hostname. */
+export function getPartnerUrl(hostname = getHostname()): string {
+  const labels = hostname.split('.');
+  const rootDomain = labels.length > 2 ? labels.slice(1).join('.') : hostname;
+  return `https://partner.${rootDomain}/`;
+}
+
 export function getSiteUrl(): string {
   if (typeof window === 'undefined') return 'http://localhost:3000';
   return window.location.origin;

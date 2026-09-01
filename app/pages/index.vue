@@ -280,25 +280,19 @@ const { data: sportsLobbiesData, pending: sportsLobbiesPending } =
   sportsLobbiesAsync;
 const { data: slotLobbiesData, pending: slotLobbiesPending } = slotLobbiesAsync;
 
-// Mini games — unlike the lobby-card rows above, the mini row shows individual
-// games: each mini lobby is expanded into its games and flattened (mirrors the
-// /mini page). Rendered in a single horizontal scroll row like the HOT section.
+// Mini games — fetch one filtered catalogue page rather than one request per
+// provider lobby. Rendered in a single horizontal scroll row like HOT.
 const miniGamesAsync = useAsyncData<AnyList>(
   "home-mini-games",
   async () => {
-    const lobbies = await catalog.loadLobbies("mini").catch(() => []);
-    if (lobbies.length === 0) return [];
-    const gamesResults = await Promise.all(
-      lobbies.map((lobby) =>
-        catalog.loadGames({ lobby: lobby.game_name ?? "", page: 1, limit: 50 })
-          .catch(() => ({ games: [] })),
-      ),
-    );
-    const flat: AnyList = [];
-    for (const res of gamesResults) flat.push(...res.games);
+    const { games } = await catalog.loadGames({
+      gameType: "mini",
+      page: 1,
+      limit: 50,
+    });
     // Drop fields the UI never reads (e.g. game_name_ko) before they're baked
     // into the SSR payload. See utils/strip-game-payload.ts.
-    return stripGamePayload(flat);
+    return stripGamePayload(games);
   },
   { default: (): AnyList => [], server: false },
 );

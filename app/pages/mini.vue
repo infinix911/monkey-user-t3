@@ -72,23 +72,18 @@ useBreadcrumbSchema([
 ]);
 
 
-// Start the mini-game bundle without suspending page setup. The existing
-// loading/empty branches keep the route usable while it resolves.
+// Fetch the mini catalogue as one filtered page rather than expanding every
+// provider lobby into a separate request. The existing loading/empty branches
+// keep the route usable while it resolves.
 const { data: miniGames, pending } = useAsyncData<GameRow[]>(
   "mini-games-bundle",
   async () => {
-    const lobbies = await catalog.loadLobbies("mini");
-    if (lobbies.length === 0) return [];
-
-    const gamesResults = await Promise.all(
-      lobbies.map((lobby) =>
-        catalog.loadGames({ lobby: lobby.game_name ?? "", page: 1, limit: 50 }),
-      ),
-    );
-
-    const flat: GameRow[] = [];
-    for (const res of gamesResults) flat.push(...res.games);
-    return flat;
+    const { games } = await catalog.loadGames({
+      gameType: "mini",
+      page: 1,
+      limit: 50,
+    });
+    return games;
   },
   { default: () => [], server: false },
 );
