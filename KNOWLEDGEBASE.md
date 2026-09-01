@@ -223,7 +223,7 @@ Money logic never lives in stores — mutations go through `useApi`/`axios-clien
 | Deposit/withdraw UI               | `transaction/DepositModal.vue`, `useDepositModal.ts`, `useBankPayment.ts`, `WithdrawalContent.vue`, `schemas/transaction.schema.ts`        | —                            |
 | Caching (SSR/page)                | `lib/serverCache.ts`, `server/utils/anonPageCache.ts`, both `anon-page-cache.*`, `cache-bypass-authenticated.ts`                           | app code                     |
 | WebSocket / live wallet           | `stores/websocket.ts`, `plugins/session-verify.client.ts`, `server/plugins/ws-proxy.ts`                                                    | rest                         |
-| Document head / admin footer      | `useCustomSeoMatch.ts` (per-path footer row), app.vue head block (title, favicon, custom scripts)                                          | components                   |
+| Document head / admin footer      | `layouts/default.vue` (renders `content.footer`), app.vue head block (title, favicon, custom scripts)                                          | components                   |
 | i18n                              | `i18n/locales/*.json`, nuxt.config i18n block, app.vue locale resolution                                                                   | —                            |
 | Build/deploy                      | `Dockerfile`, `nuxt.config.ts`, `.env.example`                                                                                             | src                          |
 | Banners (carousel)                | `composables/useBanners.ts`, `stores/banner.ts`, `utils/pageBanner.ts`, `banner/BannerPreview.vue`                                          | popup banner files           |
