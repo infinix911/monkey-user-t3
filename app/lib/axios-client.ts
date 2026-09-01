@@ -6,7 +6,7 @@
  *
  * **Features**:
  * - Cookie credentials sent with every request (`withCredentials: true`)
- * - CSRF token header on all mutating requests (requires server to set XSRF-TOKEN cookie)
+ * - CSRF token header on all mutating requests (requires server to set XSRF-TOKEN-V2 cookie)
  * - 401 error handling with auto-redirect to home (loop-safe)
  * - TypeScript typed axios instance
  * - Configurable base URL from runtime config (NUXT_PUBLIC_API_BASE)

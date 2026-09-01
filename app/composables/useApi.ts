@@ -83,7 +83,7 @@ export const useApi = (): ValidatingFetch => {
     retry: 0,
     timeout: 10000,
     // CSRF double-submit on mutating requests (parity with axios-client):
-    // read the XSRF-TOKEN cookie and echo it as a header. Client-only — the
+    // read the XSRF-TOKEN-V2 cookie and echo it as a header. Client-only — the
     // cookie only exists in the browser.
     onRequest({ options }) {
       if (!import.meta.client) return;
