@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getPartnerUrl } from "@/lib/domain";
+import { getPartnerUrl, getProductionApiBase } from "@/lib/domain";
 
 describe("getPartnerUrl", () => {
   it("uses the current hostname's root domain", () => {
@@ -11,6 +11,20 @@ describe("getPartnerUrl", () => {
   it("preserves a two-label hostname", () => {
     expect(getPartnerUrl("localhost.test")).toBe(
       "https://partner.localhost.test/",
+    );
+  });
+});
+
+describe("getProductionApiBase", () => {
+  it("uses the parent domain API for a nested userpage host", () => {
+    expect(getProductionApiBase("krw-demo1.jaeisol.com")).toBe(
+      "https://uapi.jaeisol.com/api",
+    );
+  });
+
+  it("keeps two-label userpage hosts working", () => {
+    expect(getProductionApiBase("ka-700.com")).toBe(
+      "https://uapi.ka-700.com/api",
     );
   });
 });
