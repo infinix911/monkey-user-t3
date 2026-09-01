@@ -387,6 +387,12 @@ export default defineNuxtConfig({
 
   security: {
     hidePoweredBy: true,
+    // CMS custom scripts are added after hydration, so they cannot receive a
+    // build-time CSP hash. Keep inline scripts enabled as documented above;
+    // otherwise the generated hash list makes 'unsafe-inline' ineffective.
+    ssg: {
+      hashScripts: false,
+    },
     headers: {
       // Replaced by CSP frame-ancestors below, which supports multiple origins.
       xFrameOptions: false,
