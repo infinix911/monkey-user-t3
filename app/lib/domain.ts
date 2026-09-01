@@ -1,9 +1,9 @@
 /**
  * Browser-facing domain helpers.
  *
- * The generated SPA talks to the API origin directly. Keep the API origin in
- * public runtime config so every browser transport uses the same explicit
- * target instead of relying on a removed Nitro `/api` or `/ws` proxy.
+ * The generated SPA talks to the API origin directly. Local development uses
+ * public runtime config; deployed sites resolve the sibling uapi service from
+ * the browser's root domain.
  */
 
 type PublicRuntimeConfig = { public?: { apiBase?: unknown } };
@@ -48,8 +48,8 @@ export function getHostname(): string {
 }
 
 export function getRootDomain(): string {
-  const parts = getHostname().split('.').reverse();
-  return parts.slice(0, 2).reverse().join('.');
+  const parts = getHostname().split('.');
+  return parts.length > 2 ? parts.slice(1).join('.') : getHostname();
 }
 
 export function getSiteUrl(): string {
@@ -57,8 +57,23 @@ export function getSiteUrl(): string {
   return window.location.origin;
 }
 
-/** Return the validated, absolute browser-facing API base URL. */
+function isLocalDevelopment(): boolean {
+  const hostname = getHostname();
+  return hostname === 'localhost' || hostname === '127.0.0.1';
+}
+
+/** Build the deployed API base URL from the current browser hostname. */
+export function getProductionApiBase(hostname: string): string {
+  const labels = hostname.split('.');
+  const rootDomain = labels.length > 2 ? labels.slice(1).join('.') : hostname;
+  return `https://uapi.${rootDomain}/api`;
+}
+
+/** Return the browser-facing API base URL. */
 export function getApiBase(): string {
+  if (!isLocalDevelopment() && typeof window !== 'undefined') {
+    return getProductionApiBase(window.location.hostname);
+  }
   return configuredApiBase();
 }
 

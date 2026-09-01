@@ -21,13 +21,10 @@ function configuredPreviewOrigins(): string[] {
 
 function configuredPublicApiBase(): string {
   const value = process.env.NUXT_PUBLIC_API_BASE?.trim() || "";
-  const isProductionBuild =
-    process.env.NODE_ENV === "production" ||
-    process.argv.some((arg) => arg === "build" || arg === "generate");
   if (!value) {
-    if (isProductionBuild)
-      throw new Error("NUXT_PUBLIC_API_BASE is required for a static production build");
-    return "";
+    // Production requests derive their public API host from the browser's
+    // domain at runtime. This value is only the local-development fallback.
+    return "http://localhost:5003/api";
   }
 
   let url: URL;
