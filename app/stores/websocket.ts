@@ -14,7 +14,7 @@ import { getWsApiUrl } from "@/lib/domain";
  *
  * Manages:
  * - WebSocket connection lifecycle (connect, disconnect, reconnect)
- * - Cookie-authenticated upgrades through the same-origin proxy
+ * - Cookie-authenticated upgrades to the API origin
  * - Message handling (notifications, wallet updates, ping/pong)
  * - Exponential backoff reconnection strategy
  * - Connection state and error tracking
@@ -43,14 +43,7 @@ export const useWebSocketStore = defineStore("websocket", () => {
   // HELPER FUNCTIONS
   // ============================================================================
 
-  /**
-   * Build the same-origin WebSocket URL. The browser includes the session
-   * cookie, and Nitro forwards that upgrade to the API listener.
-   *
-   * getWsApiUrl() now returns the full same-origin URL (wss://<frontend-host>);
-   * the Nitro ws-proxy plugin upgrades /ws to the backend WS server, so the
-   * backend host stays private.
-   */
+  /** Build the direct API WebSocket URL. */
   const buildWebSocketUrl = (): string => {
     if (typeof window === "undefined") {
       return "";

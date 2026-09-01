@@ -7,7 +7,7 @@
       :style="cardStyle">
       <!-- Top band: centered logo -->
       <div class="relative z-10 flex items-center justify-center px-4 pt-[18px] pb-3.5">
-        <!-- Plain <img>, not <NuxtImg>: CMS-swappable logo, see AppHeader.vue -->
+        <!-- Plain <img>: CMS-swappable logo, see AppHeader.vue -->
         <img :src="siteConfig.identity.logoPopup" :alt="siteConfig.identity.siteName"
           class="h-auto max-h-[22px] lg:max-h-[26px] w-auto drop-shadow"
         >
@@ -18,14 +18,9 @@
            this box, so the modal auto-sizes to the 380/500 image ratio. -->
       <div class="relative z-10 flex flex-col items-center justify-center px-1.5 pt-0">
         <div class="relative w-full mx-auto rounded-[6px] overflow-hidden" :style="imageBoxStyle">
-          <!-- `blob:`/`data:` sources (admin theme-preview object URLs) exist
-               only in this browser, so IPX cannot fetch them — they bypass
-               <NuxtImg> and go straight to a plain <img>. -->
-          <img v-if="isLocalObjectUrl(banner.image)" :src="banner.image"
-            :alt="banner.title || $t('common.banner')" width="380" height="500"
-            class="block w-full h-full object-cover object-top" @error="onImageError">
-          <NuxtImg v-else :src="banner.image" :alt="banner.title || $t('common.banner')" :width="380" :height="500"
-            fit="cover" class="block w-full h-full object-cover object-top" @error="onImageError" />
+          <img :src="banner.image" :alt="banner.title || $t('common.banner')"
+            width="380" height="500" class="block w-full h-full object-cover object-top"
+            @error="onImageError">
         </div>
       </div>
 
@@ -99,9 +94,6 @@ const imageBoxStyle = computed(() => ({
   aspectRatio: "380 / 500",
   border: `0.5px solid ${pb.value.borderColor}`,
 }));
-
-const isLocalObjectUrl = (url: string): boolean =>
-  !!url && (url.startsWith("blob:") || url.startsWith("data:"));
 
 const onImageError = (e: Event | string) => {
   if (typeof e === "string") return;

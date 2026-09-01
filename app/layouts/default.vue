@@ -147,7 +147,7 @@
                 :style="{ background: brandSiteConfig.theme.announcement.mobileBg }">
                 <div
                   class="w-full flex items-center justify-center gap-1.5 md:gap-4 pr-3 pl-2 md:pl-3 overflow-visible">
-                  <NuxtImg :src="brandSiteConfig.theme.announcement.mobileIcon" alt="" aria-hidden="true"
+                  <img :src="brandSiteConfig.theme.announcement.mobileIcon" alt="" aria-hidden="true"
                     class="flex-shrink-0 h-5 w-auto object-contain" />
                   <AnnouncementMarquee :text="brandSiteConfig.theme.announcement.text"
                     size-class="text-[14px] lg:text-[15px]" :text-stroke="brandSiteConfig.theme.announcement.textStroke"
@@ -285,7 +285,7 @@
       'z-0 pointer-events-none hidden md:block bottom-[-0%] right-0 md:right-[-10%] xl:right-[-11%]',
       isImagesFixed ? 'fixed' : 'absolute',
     ]">
-      <NuxtImg :src="siteConfig.assets.images.girlGif" :alt="$t('common.decorativeImage')" width="1200" height="798"
+      <img :src="siteConfig.assets.images.girlGif" :alt="$t('common.decorativeImage')" width="1200" height="798"
         class="object-contain w-[600px] h-auto lg:w-[700px] 2xl:w-[800px]" />
     </div>
 
@@ -318,8 +318,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onMounted, onUnmounted, defineAsyncComponent } from "vue";
-import { getApiBase, getHostname, forwardHostHeaders } from "@/lib/domain";
-import { withServerCache } from "@/lib/serverCache";
+import { getApiBase } from "@/lib/domain";
 import { cdn } from "@/utils/assetUrl";
 import { sanitizeHtml } from "@/utils/sanitizeHtml";
 
@@ -359,11 +358,8 @@ const InquiryModal = defineAsyncComponent(() => import("@/components/inquiry/Inq
 const FaqModal = defineAsyncComponent(() => import("@/components/faq/FaqModal.vue"));
 const ContactModal = defineAsyncComponent(() => import("@/components/contact/ContactModal.vue"));
 
-// Fetched here (layout setup) instead of inside BannerPopup.vue so the call
-// runs on the Worker during SSR. BannerPopup itself is loaded post-hydration
-// via defineAsyncComponent above — putting useAsyncData inside it would mean
-// the request always fired client-side. Hoisting up means /site/banners/popup
-// lands in the SSR payload and never appears in the browser network tab.
+// Fetched at the layout level so one client request serves the shared popup.
+// It is deliberately not awaited: promotional content never delays app paint.
 interface IPopupBanner {
   id: number;
   title: string;
@@ -371,43 +367,23 @@ interface IPopupBanner {
   sort: number;
   updated_at: string;
 }
-// Resolve the API base + cache key SYNCHRONOUSLY here in setup, where the Nuxt
-// context is available. getApiBase()/getHostname() call useRuntimeConfig()/
-// useRequestURL(), which THROW once we're past an `await` (e.g. inside the
-// withServerCache fetcher, which awaits Redis first). Resolving them lazily in
-// the fetcher made getApiBase() silently fall back to its hardcoded
-// `localhost:4000`, so the popup fetch always hit a dead host and returned [].
 const popupApiBase = getApiBase();
-const popupCacheKey = `banners-popup:${getHostname()}`;
-// Forward the visitor's host so the multi-tenant backend returns THIS site's
-// popup banners on SSR. This raw $fetch hits NUXT_API_URL directly (bypassing
-// the Nitro proxy that normally sets x-forwarded-host), so without this the
-// backend resolves the default tenant. Resolved synchronously in setup —
-// forwardHostHeaders/useRequestHeaders need the request context, lost past an await.
-const popupHeaders = forwardHostHeaders();
-const { data: popupBanners } = await useAsyncData<IPopupBanner[]>(
+const { data: popupBanners } = useAsyncData<IPopupBanner[]>(
   "site-banners-popup",
-  () =>
-    withServerCache<IPopupBanner[]>(
-      popupCacheKey,
-      60 * 1000,
-      async () => {
-        // Per-isolate cache (60 s) — see PLAN-PER-ISOLATE-SSR-CACHE.md.
-        // Raw $fetch (no cookie) — popup banners are public CMS content.
-        try {
-          const res = await $fetch<
-            { data?: IPopupBanner[] } | IPopupBanner[]
-          >(`${popupApiBase}/site/banners/popup`, { headers: popupHeaders });
-          if (Array.isArray(res)) return res;
-          if (res && typeof res === "object" && Array.isArray(res.data))
-            return res.data;
-          return [];
-        } catch {
-          return [];
-        }
-      },
-    ),
-  { default: () => [] },
+  async () => {
+    try {
+      const res = await $fetch<{ data?: IPopupBanner[] } | IPopupBanner[]>(
+        `${popupApiBase}/site/banners/popup`,
+      );
+      if (Array.isArray(res)) return res;
+      if (res && typeof res === "object" && Array.isArray(res.data))
+        return res.data;
+      return [];
+    } catch {
+      return [];
+    }
+  },
+  { default: () => [], server: false },
 );
 
 const brandSiteConfig = useSiteConfig();

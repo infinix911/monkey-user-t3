@@ -13,7 +13,7 @@
                so any transparent/light band baked into the bottom of the asset
                (e.g. rabbit/dragon navbar-bg.png) is cropped off the bottom edge
                instead of showing as a seam. Mirrors the desktop nav's approach. -->
-          <NuxtImg v-if="siteConfig.assets.navIcons.background" :src="siteConfig.assets.navIcons.background"
+          <img v-if="siteConfig.assets.navIcons.background" :src="siteConfig.assets.navIcons.background"
             :alt="altFromSrc(siteConfig.assets.navIcons.background)"
             class="absolute top-0 left-1/2 -translate-x-1/2 w-[calc(100%+12px)] h-[calc(100%+20px)] object-cover"
             width="1200" height="129" />
@@ -82,7 +82,7 @@ class="w-full h-[6px]" :style="{
         <div v-if="desktop" class="hidden lg:block relative w-full xl:w-[1152px] mx-auto h-[65px] overflow-hidden"
           :class="navSkin.layout.desktop.outer"
           :style="{ backgroundColor: uiStore.isNavSticky ? siteConfig.theme.nav.stickyBg : siteConfig.theme.nav.defaultBg }">
-          <NuxtImg v-if="siteConfig.assets.navIcons.background" :src="siteConfig.assets.navIcons.background"
+          <img v-if="siteConfig.assets.navIcons.background" :src="siteConfig.assets.navIcons.background"
             :alt="altFromSrc(siteConfig.assets.navIcons.background)"
             class="absolute w-[calc(100%+12px)] h-[calc(100%+12px)] object-cover" width="1200" height="129" />
           <!-- Scroll dimmer over the nav-background image -->
@@ -122,7 +122,7 @@ class="w-full h-[6px]" :style="{
                 class="block xl:hidden absolute flex items-center justify-center z-50 cursor-pointer"
                 style="width: 100px; height: 100%; right: 0; top: 0; padding: 0 10px; background-image: linear-gradient(to left, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.75) 25%, rgba(0,0,0,0.45) 50%, rgba(0,0,0,0.15) 70%, rgba(0,0,0,0) 100%); border: none; outline: none;"
                 @click.stop="scrollNavRight">
-                <NuxtImg :alt="altFromSrc(siteConfig.assets.navIcons.arrowRight)"
+                <img :alt="altFromSrc(siteConfig.assets.navIcons.arrowRight)"
                   :src="siteConfig.assets.navIcons.arrowRight" width="20" height="20"
                   class="w-7 h-7 object-contain transition-transform duration-300"
                   :class="{ 'rotate-180': isScrolledRight }" />

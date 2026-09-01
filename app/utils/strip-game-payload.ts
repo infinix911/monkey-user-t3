@@ -19,7 +19,7 @@
 // reads it, so the trim stays provably safe.
 const UNUSED_GAME_FIELDS: ReadonlySet<string> = new Set(["game_name_ko"]);
 
-export function stripGamePayload<T extends Record<string, unknown>>(
+export function stripGamePayload<T extends object>(
   games: readonly T[],
 ): T[] {
   return games.map((game) => {

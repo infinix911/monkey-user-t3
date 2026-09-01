@@ -51,7 +51,7 @@
                   <div class="w-full md:w-[400.53px] h-[60px] flex items-center flex-shrink-0 rounded-[16px] relative"
                     :style="`background-image: url(${siteConfig.assets.transaction.bankAccountNoImage}); background-size: contain; background-position: center; background-repeat: no-repeat`">
                     <div class="w-1/2 flex items-center justify-center px-4">
-                      <NuxtImg
+                      <img
                         :src="`${siteConfig.assets.transaction.bankAccountListPath}/${account.bank?.replace(/\s+/g, '')}.png`"
                         :alt="account.bank" style="
                           max-width: 85%;

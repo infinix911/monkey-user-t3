@@ -104,7 +104,7 @@ const unwrap = (res: ApiResponse): TopTransactionRow[] => {
 const api = useApi();
 const currency = useCurrency();
 
-const { data: apiRows, refresh } = await useAsyncData<TopTransactionRow[]>(
+const { data: apiRows, pending, refresh } = useAsyncData<TopTransactionRow[]>(
   props.cacheKey,
   async () => {
     const res = await api<ApiResponse>(props.endpoint).catch(
@@ -112,10 +112,10 @@ const { data: apiRows, refresh } = await useAsyncData<TopTransactionRow[]>(
     );
     return unwrap(res);
   },
-  { default: (): TopTransactionRow[] => [] },
+  { default: (): TopTransactionRow[] => [], server: false },
 );
 
-const isLoading = computed(() => apiRows.value == null);
+const isLoading = computed(() => pending.value);
 
 const displayRows = computed<TopTransactionRow[]>(() => {
   return apiRows.value ?? [];

@@ -128,7 +128,7 @@
            is exact whatever the raster does; both assets are already perfect
            inscribed circles (checked row by row against the ideal), so the clip
            only cleans up edge antialiasing - it is not reshaping the art. -->
-      <NuxtImg :src="siteConfig.assets.navIcons.walletIcon" alt="" aria-hidden="true" width="51" height="51"
+      <img :src="siteConfig.assets.navIcons.walletIcon" alt="" aria-hidden="true" width="51" height="51"
         class="mub-icon object-contain shrink-0 rounded-full" />
       <!-- Figure alone: the "원" that used to follow it was dropped by
            request, so there is no second size to align a baseline against. -->
@@ -149,7 +149,7 @@
       <button type="button" :aria-label="$t('point.title')"
         class="mub-group flex items-center min-w-0 overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
         @click="openPointModal">
-        <NuxtImg :src="siteConfig.assets.navIcons.pointIcon" alt="" aria-hidden="true" width="51" height="51"
+        <img :src="siteConfig.assets.navIcons.pointIcon" alt="" aria-hidden="true" width="51" height="51"
           class="mub-icon object-contain shrink-0 rounded-full" />
         <span ref="pointFigureEl" class="mub-figure min-w-0 font-bold tabular-nums leading-none truncate"
           :style="{ color: ACCOUNT_BAR_COLORS.point }">{{
@@ -165,7 +165,7 @@
       <button type="button" :aria-label="$t('common.refreshBalance')" :disabled="isRefreshingWallet"
         class="mub-reload-btn grid place-items-center text-center shrink-0 cursor-pointer opacity-90 hover:opacity-100 transition-opacity disabled:opacity-60"
         :class="{ 'spin-once': isRefreshingWallet }" @click="refreshWallet">
-        <NuxtImg :src="siteConfig.assets.navIcons.refreshIcon" alt="" aria-hidden="true" width="18" height="18"
+        <img :src="siteConfig.assets.navIcons.refreshIcon" alt="" aria-hidden="true" width="18" height="18"
           class="mub-reload-icon mobile-user-bar-icon-light object-contain" />
       </button>
     </div>

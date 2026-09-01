@@ -133,11 +133,7 @@
 <script setup lang="ts">
 import { computed, ref, watch, onMounted, onBeforeUnmount } from "vue";
 import { openGame } from "~~/utils/game-navigation";
-import {
-  mapGameListItem,
-  type GameListItemWire,
-  type NormalizedGame,
-} from "@/interfaces/game.interface";
+import type { NormalizedGame } from "@/interfaces/game.interface";
 
 definePageMeta({
   layout: "default",
@@ -146,26 +142,9 @@ definePageMeta({
 const authStore = useAuthStore();
 const uiStore = useUiStore();
 
-interface Game {
-  id: string | number;
-  game_name_en: string;
-  game_img?: string;
-  lobby?: string;
-}
-type RemoteResponse =
-  | Game[]
-  | {
-    data?: Game[];
-    games?: Game[];
-    rows?: number;
-    total?: number;
-    meta?: { total?: number };
-  }
-  | null;
-
 const { t } = useI18n();
 const siteConfig = useSiteConfig();
-const api = useApi();
+const catalog = useGameCatalogStore();
 
 // Slot providers (lobbies) feed the tab row; a lobby_id is required to list
 // games, so the first provider is auto-selected.
@@ -356,15 +335,13 @@ async function loadGames() {
   }
   gamesLoading.value = true;
   try {
-    const res = await api<RemoteResponse>("/games", {
-      query: { lobbyId: selectedLobby.value, page: currentPage.value, limit: GAMES_PER_PAGE },
+    const result = await catalog.loadGames({
+      lobbyId: selectedLobby.value,
+      page: currentPage.value,
+      limit: GAMES_PER_PAGE,
     });
-    const raw = Array.isArray(res) ? res : res?.data || res?.games || [];
-    // Normalize each row's camelCase wire shape to the snake_case the cards read.
-    games.value = raw.map((g) => mapGameListItem(g as unknown as GameListItemWire));
-    totalGames.value = Array.isArray(res)
-      ? raw.length
-      : Number(res?.meta?.total) || Number(res?.rows) || Number(res?.total) || raw.length;
+    games.value = result.games;
+    totalGames.value = result.total;
   } catch {
     games.value = [];
     totalGames.value = 0;

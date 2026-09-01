@@ -39,6 +39,12 @@ export const useAuthStore = defineStore("auth", () => {
   // User & Authentication
   const user = ref<UserState>({ ...defaultUserState });
   const isAuthenticated = computed(() => user.value.id !== "");
+  // Resolves after the client bootstrap session probe, including anonymous and
+  // failed probes. Member-aware shared reads wait for this before loading.
+  const sessionReady = ref(import.meta.server);
+  const setSessionReady = (ready = true) => {
+    sessionReady.value = ready;
+  };
 
   // Referral
   const referralCode = ref<string | null>(null);
@@ -176,10 +182,12 @@ export const useAuthStore = defineStore("auth", () => {
   return {
     user,
     isAuthenticated,
+    sessionReady,
     referralCode,
     currentGame,
     isNavigating,
     setUser,
+    setSessionReady,
     updateUser,
     resetUser,
     setReferralCode,

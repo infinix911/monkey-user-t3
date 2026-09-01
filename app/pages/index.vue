@@ -9,8 +9,8 @@
            category is dropped entirely rather than shown empty. -->
       <!-- HOT section -->
       <template v-if="hotGames.length > 0">
-      <GameSectionHeader name="hot" :label="$t('navbar.hot')" />
-      <!-- All HOT cards render directly; the first row loads eagerly and the
+        <GameSectionHeader name="hot" :label="$t('navbar.hot')" />
+        <!-- All HOT cards render directly; the first row loads eagerly and the
          rest defer via native `loading="lazy"` on the card image. Native lazy
          reliably loads on horizontal carousel scroll AND pagination, unlike the
          previous IntersectionObserver mount-gating which left off-screen cards
@@ -35,61 +35,105 @@
          210px + the 28px gap — the five cards divide the narrower content
          column, not the viewport. That is the point of the container query. -->
 
-      <GameCarousel :step="201" :per-page="6">
-        <div v-for="(game, idx) in hotGames" :key="game.id"
-          class="flex-shrink-0 w-[calc((100cqw_-_12px)/3)] md:w-[calc((100cqw_-_24px)/5)] xl:w-[195px]">
-          <HotGameCard :game="game" :eager="idx < FIRST_ROW_COUNT" :priority="idx < 3" fluid aspect="240 / 313.04"
-            @click="handleGameClick(game)" />
-        </div>
-      </GameCarousel>
+        <GameCarousel :step="201" :per-page="6">
+          <div
+            v-for="(game, idx) in hotGames"
+            :key="game.id"
+            class="flex-shrink-0 w-[calc((100cqw_-_12px)/3)] md:w-[calc((100cqw_-_24px)/5)] xl:w-[195px]"
+          >
+            <HotGameCard
+              :game="game"
+              :eager="idx < FIRST_ROW_COUNT"
+              :priority="idx < 3"
+              fluid
+              aspect="240 / 313.04"
+              @click="handleGameClick(game)"
+            />
+          </div>
+        </GameCarousel>
       </template>
 
       <!-- Slot section -->
       <template v-if="slotProviders.length > 0">
-      <GameSectionHeader name="slots" :label="$t('navbar.slot')" />
-      <GameCarousel :step="201" :per-page="6">
-        <div v-for="provider in slotProviders" :key="`slot-${provider.id}`"
-          class="flex-shrink-0 w-[calc((100cqw_-_12px)/3)] md:w-[calc((100cqw_-_24px)/5)] xl:w-[195px]">
-          <HomeGameCard :game="provider" game-type="slot" fluid aspect="240 / 313.04" />
-        </div>
-      </GameCarousel>
+        <GameSectionHeader name="slots" :label="$t('navbar.slot')" />
+        <GameCarousel :step="201" :per-page="6">
+          <div
+            v-for="provider in slotProviders"
+            :key="`slot-${provider.id}`"
+            class="flex-shrink-0 w-[calc((100cqw_-_12px)/3)] md:w-[calc((100cqw_-_24px)/5)] xl:w-[195px]"
+          >
+            <HomeGameCard
+              :game="provider"
+              game-type="slot"
+              fluid
+              aspect="240 / 313.04"
+            />
+          </div>
+        </GameCarousel>
       </template>
 
       <!-- Casino section -->
       <template v-if="casinoProviders.length > 0">
-      <GameSectionHeader name="casino" :label="$t('navbar.casino')" />
-      <GameCarousel :step="201" :per-page="6">
-        <div v-for="provider in casinoProviders" :key="`casino-${provider.id}`"
-          class="flex-shrink-0 w-[calc((100cqw_-_12px)/3)] md:w-[calc((100cqw_-_24px)/5)] xl:w-[195px]">
-          <HomeGameCard :game="provider" game-type="casino" fluid aspect="240 / 313.04" />
-        </div>
-      </GameCarousel>
+        <GameSectionHeader name="casino" :label="$t('navbar.casino')" />
+        <GameCarousel :step="201" :per-page="6">
+          <div
+            v-for="provider in casinoProviders"
+            :key="`casino-${provider.id}`"
+            class="flex-shrink-0 w-[calc((100cqw_-_12px)/3)] md:w-[calc((100cqw_-_24px)/5)] xl:w-[195px]"
+          >
+            <HomeGameCard
+              :game="provider"
+              game-type="casino"
+              fluid
+              aspect="240 / 313.04"
+            />
+          </div>
+        </GameCarousel>
       </template>
 
       <!-- Sports section -->
       <template v-if="sportsProviders.length > 0">
-      <GameSectionHeader name="sports" :label="$t('navbar.sports')" />
-      <GameCarousel :step="201" :per-page="6">
-        <div v-for="provider in sportsProviders" :key="`sports-${provider.id}`"
-          class="flex-shrink-0 w-[calc((100cqw_-_12px)/3)] md:w-[calc((100cqw_-_24px)/5)] xl:w-[195px]">
-          <HomeGameCard :game="provider" game-type="sports" fluid aspect="240 / 313.04" />
-        </div>
-      </GameCarousel>
+        <GameSectionHeader name="sports" :label="$t('navbar.sports')" />
+        <GameCarousel :step="201" :per-page="6">
+          <div
+            v-for="provider in sportsProviders"
+            :key="`sports-${provider.id}`"
+            class="flex-shrink-0 w-[calc((100cqw_-_12px)/3)] md:w-[calc((100cqw_-_24px)/5)] xl:w-[195px]"
+          >
+            <HomeGameCard
+              :game="provider"
+              game-type="sports"
+              fluid
+              aspect="240 / 313.04"
+            />
+          </div>
+        </GameCarousel>
       </template>
 
       <!-- Mini Games section -->
       <template v-if="miniGames.length > 0">
-      <GameSectionHeader name="mini" :label="$t('navbar.mini')" />
-      <GameCarousel :step="201" :per-page="6">
-        <div v-for="game in miniGames" :key="`mini-${game.id}`"
-          class="flex-shrink-0 w-[calc((100cqw_-_12px)/3)] md:w-[calc((100cqw_-_24px)/5)] xl:w-[195px]">
-          <HotGameCard :game="game" fluid aspect="240 / 313.04" @click="handleGameClick(game)" />
-        </div>
-      </GameCarousel>
+        <GameSectionHeader name="mini" :label="$t('navbar.mini')" />
+        <GameCarousel :step="201" :per-page="6">
+          <div
+            v-for="game in miniGames"
+            :key="`mini-${game.id}`"
+            class="flex-shrink-0 w-[calc((100cqw_-_12px)/3)] md:w-[calc((100cqw_-_24px)/5)] xl:w-[195px]"
+          >
+            <HotGameCard
+              :game="game"
+              fluid
+              aspect="240 / 313.04"
+              @click="handleGameClick(game)"
+            />
+          </div>
+        </GameCarousel>
       </template>
 
       <!-- Loading State -->
-      <div v-if="isLoading" class="w-full py-8 text-white text-center relative z-10">
+      <div
+        v-if="isLoading"
+        class="w-full py-8 text-white text-center relative z-10"
+      >
         <p class="text-lg text-gray-400">{{ $t("home.loading") }}</p>
       </div>
     </GamePageLayout>
@@ -108,8 +152,7 @@
         cache-key="top-deposits" :fallback="fallbackTopDeposits" />
     </section>
   </div>
-  -->
-  </div>
+  --></div>
 </template>
 
 <script setup lang="ts">
@@ -124,13 +167,7 @@ import { openGame } from "~~/utils/game-navigation";
 // } from "~~/utils/top-transactions-fallback";
 // import TopTransactionsTicker from "~/components/site/TopTransactionsTicker.vue";
 import { stripGamePayload } from "~/utils/strip-game-payload";
-import {
-  mapGameLobby,
-  mapGameListItem,
-  type GameLobbyWire,
-  type GameListItemWire,
-  type NormalizedLobby,
-} from "@/interfaces/game.interface";
+import type { NormalizedLobby } from "@/interfaces/game.interface";
 
 const authStore = useAuthStore();
 const uiStore = useUiStore();
@@ -186,24 +223,10 @@ const handleGameClick = (game: any) => {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyList = any[];
-type RemoteResponse = AnyList | { data?: AnyList } | null | undefined;
-
-// The homepage is best-effort (fetches use `.catch(() => null)`), so we
-// normalize defensively via the mappers rather than validateResponse — a
-// malformed/absent payload degrades to an empty row instead of throwing.
-const unwrap = (res: RemoteResponse): AnyList => {
-  const arr = Array.isArray(res)
-    ? res
-    : res && typeof res === "object" && Array.isArray((res as { data?: AnyList }).data)
-      ? (res as { data: AnyList }).data
-      : [];
-  return arr.map((it) => mapGameListItem(it as GameListItemWire));
-};
-
 // Single SSR backend call for the only section the homepage renders (hot
 // games). Baked into the HTML payload so SPA navigations back to `/` rehydrate
 // without a refetch.
-const api = useApi();
+const catalog = useGameCatalogStore();
 
 // Fetches are kicked off WITHOUT await here so they run concurrently; a single
 // `await Promise.all([...])` after the mini-games block (below) blocks SSR until
@@ -211,20 +234,16 @@ const api = useApi();
 const hotGamesAsync = useAsyncData<AnyList>(
   "home-hot-games",
   async () => {
-    const res = await api<RemoteResponse>("/games", {
-      query: { gameType: "slot", category: "hot", page: 1, limit: 48 },
-    }).catch(() => null as unknown as RemoteResponse);
+    const res = await catalog.loadGames({
+      gameType: "slot", category: "hot", page: 1, limit: 48,
+    }).catch(() => ({ games: [] }));
     // Drop fields the UI never reads (e.g. game_name_ko) before they're baked
     // into the SSR payload. See utils/strip-game-payload.ts.
-    return stripGamePayload(unwrap(res));
+    return stripGamePayload(res.games);
   },
-  { default: (): AnyList => [] },
+  { default: (): AnyList => [], server: false },
 );
-const { data: hotGamesData, error: fetchError } = hotGamesAsync;
-
-const isLoading = computed(
-  () => hotGamesData.value == null && !fetchError.value,
-);
+const { data: hotGamesData, pending: hotGamesPending } = hotGamesAsync;
 
 const hotGames = computed<AnyList>(() => hotGamesData.value ?? []);
 
@@ -241,32 +260,12 @@ interface LobbyCard {
   bgImage: string;
   frameImage?: string;
 }
-type LobbyApiResponse =
-  | GameLobbyWire[]
-  | { data?: GameLobbyWire[] }
-  | null
-  | undefined;
-
-const unwrapLobbies = (res: LobbyApiResponse): NormalizedLobby[] => {
-  const arr = Array.isArray(res)
-    ? res
-    : res && typeof res === "object" && Array.isArray(res.data)
-      ? res.data
-      : [];
-  return arr.map((it) => mapGameLobby(it as GameLobbyWire));
-};
-
 // One fetcher for the three identical lobby reads (only `game_type` differs).
 const fetchLobbies = (key: string, gameType: string) =>
   useAsyncData<NormalizedLobby[]>(
     key,
-    async () => {
-      const res = await api<LobbyApiResponse>("/games/lobbies", {
-        query: { gameType },
-      }).catch(() => null);
-      return unwrapLobbies(res);
-    },
-    { default: () => [] as NormalizedLobby[] },
+    () => catalog.loadLobbies(gameType).catch(() => []),
+    { default: () => [] as NormalizedLobby[], server: false },
   );
 
 // Keys match the dedicated /casino, /sports, /slots pages (useLobbyPage.ts uses
@@ -275,49 +274,43 @@ const fetchLobbies = (key: string, gameType: string) =>
 const casinoLobbiesAsync = fetchLobbies("lobbies-casino", "casino");
 const sportsLobbiesAsync = fetchLobbies("lobbies-sport", "sport");
 const slotLobbiesAsync = fetchLobbies("lobbies-slot", "slot");
-const { data: casinoLobbiesData } = casinoLobbiesAsync;
-const { data: sportsLobbiesData } = sportsLobbiesAsync;
-const { data: slotLobbiesData } = slotLobbiesAsync;
+const { data: casinoLobbiesData, pending: casinoLobbiesPending } =
+  casinoLobbiesAsync;
+const { data: sportsLobbiesData, pending: sportsLobbiesPending } =
+  sportsLobbiesAsync;
+const { data: slotLobbiesData, pending: slotLobbiesPending } = slotLobbiesAsync;
 
-// Mini games — unlike the lobby-card rows above, the mini row shows individual
-// games: each mini lobby is expanded into its games and flattened (mirrors the
-// /mini page). Rendered in a single horizontal scroll row like the HOT section.
+// Mini games — fetch one filtered catalogue page rather than one request per
+// provider lobby. Rendered in a single horizontal scroll row like HOT.
 const miniGamesAsync = useAsyncData<AnyList>(
   "home-mini-games",
   async () => {
-    const lobbies = unwrapLobbies(
-      await api<LobbyApiResponse>("/games/lobbies", {
-        query: { gameType: "mini" },
-      }).catch(() => null),
-    );
-    if (lobbies.length === 0) return [];
-    const gamesResults = await Promise.all(
-      lobbies.map((lobby) =>
-        api<RemoteResponse>("/games", {
-          query: { lobby: lobby.game_name, page: 1, limit: 50 },
-        }).catch(() => null as unknown as RemoteResponse),
-      ),
-    );
-    const flat: AnyList = [];
-    for (const res of gamesResults) flat.push(...unwrap(res));
+    const { games } = await catalog.loadGames({
+      gameType: "mini",
+      page: 1,
+      limit: 50,
+    });
     // Drop fields the UI never reads (e.g. game_name_ko) before they're baked
     // into the SSR payload. See utils/strip-game-payload.ts.
-    return stripGamePayload(flat);
+    return stripGamePayload(games);
   },
-  { default: (): AnyList => [] },
+  { default: (): AnyList => [], server: false },
 );
-const { data: miniGamesData } = miniGamesAsync;
+const { data: miniGamesData, pending: miniGamesPending } = miniGamesAsync;
 
-// Single SSR-blocking await: all six homepage reads resolve concurrently.
-await Promise.all([
-  hotGamesAsync,
-  casinoLobbiesAsync,
-  sportsLobbiesAsync,
-  slotLobbiesAsync,
-  miniGamesAsync,
-]);
+// These requests begin during setup but are intentionally not awaited: the SPA
+// renders its section-level loading state while each response arrives.
 
 const miniGames = computed<AnyList>(() => miniGamesData.value ?? []);
+
+const isLoading = computed(
+  () =>
+    hotGamesPending.value ||
+    casinoLobbiesPending.value ||
+    sportsLobbiesPending.value ||
+    slotLobbiesPending.value ||
+    miniGamesPending.value,
+);
 
 /**
  * Sections whose logo files have been renamed from the lobby UUID to the
@@ -366,7 +359,8 @@ const toCard = (
 const casinoProviders = computed<LobbyCard[]>(() => {
   const logoBase = siteConfig.assets.homepage.gameLogos.casino;
   const charBase = siteConfig.assets.homepage.gameCharacters.casino;
-  const charOverrides = siteConfig.assets.homepage.gameCharacterOverrides.casino;
+  const charOverrides =
+    siteConfig.assets.homepage.gameCharacterOverrides.casino;
   const bg = siteConfig.assets.homepage.gameBg.casino;
   const frame = siteConfig.assets.homepage.gameFrame.casino;
   return (casinoLobbiesData.value ?? []).map((l, i) =>
@@ -376,7 +370,8 @@ const casinoProviders = computed<LobbyCard[]>(() => {
 const sportsProviders = computed<LobbyCard[]>(() => {
   const logoBase = siteConfig.assets.homepage.gameLogos.sports;
   const charBase = siteConfig.assets.homepage.gameCharacters.sports;
-  const charOverrides = siteConfig.assets.homepage.gameCharacterOverrides.sports;
+  const charOverrides =
+    siteConfig.assets.homepage.gameCharacterOverrides.sports;
   const bgDefault = siteConfig.assets.homepage.gameBg.sport;
   const bgRatio = siteConfig.assets.homepage.gameBg.sportRatio;
   const frame = siteConfig.assets.homepage.gameFrame.sport;

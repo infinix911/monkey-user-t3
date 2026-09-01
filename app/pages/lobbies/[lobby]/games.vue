@@ -37,10 +37,6 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import {
-  mapGameListItem,
-  type GameListItemWire,
-} from "@/interfaces/game.interface";
 
 definePageMeta({
   layout: "default",
@@ -72,23 +68,12 @@ const currentPage = computed(() => Number(route.query.page) || 1);
 // shareable and survives refresh/SSR.
 const searchQuery = computed(() => (route.query.q as string) || "");
 
-type RemoteResponse =
-  | GameRow[]
-  | {
-      data?: GameRow[];
-      games?: GameRow[];
-      rows?: number;
-      total?: number;
-      meta?: { total?: number };
-    }
-  | null;
-
 // Fetched via useAsyncData so the backend `/games?lobby_id=...` call runs on
 // the Worker during SSR and the result is embedded in the HTML payload. On
 // SPA navigation the client refires the fetch (watch: [lobbyId, currentPage]).
 // `lazy: true` prevents the route transition from suspending — the page
 // renders immediately with the loading state instead of blocking.
-const api = useApi();
+const catalog = useGameCatalogStore();
 const { data, error: fetchError, pending, refresh: fetchGames } = useAsyncData<LobbyGamesResponse>(
   // Unique per lobby + page so different lobbies don't share one SSR payload
   // (the old generic "lobby-games" key let one lobby's data hydrate another).
@@ -96,24 +81,12 @@ const { data, error: fetchError, pending, refresh: fetchGames } = useAsyncData<L
   async () => {
     const lobby = lobbyId.value;
     if (!lobby) return { games: [], total: 0 };
-    const res = await api<RemoteResponse>("/games", {
-      query: {
-        lobbyId: lobby,
-        page: currentPage.value,
-        limit: GAMES_PER_PAGE,
-        // Only send when non-empty — an empty string would still be a valid
-        // (match-all) filter but needlessly fragments the backend cache key.
-        ...(searchQuery.value ? { gameName: searchQuery.value } : {}),
-      },
-    }).catch(() => null);
-
-    if (Array.isArray(res)) {
-      return { games: res.map((it) => mapGameListItem(it as GameListItemWire)), total: res.length };
-    }
-    const raw = res?.data || res?.games || [];
-    const list = raw.map((it) => mapGameListItem(it as GameListItemWire));
-    const total = Number(res?.meta?.total) || Number(res?.rows) || Number(res?.total) || list.length;
-    return { games: list, total };
+    return catalog.loadGames({
+      lobbyId: lobby,
+      page: currentPage.value,
+      limit: GAMES_PER_PAGE,
+      ...(searchQuery.value ? { gameName: searchQuery.value } : {}),
+    });
   },
   {
     watch: [lobbyId, currentPage, searchQuery],

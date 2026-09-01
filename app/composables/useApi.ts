@@ -1,12 +1,9 @@
 /**
- * useApi — isomorphic $fetch wrapper for SSR-safe API calls.
+ * useApi — browser API wrapper.
  *
- * - On server: targets the private NUXT_API_URL environment variable and
- *   forwards the incoming request's Cookie header so authenticated SSR data
- *   renders for the visitor's session.
- * - On client: targets the same-origin /api prefix, which is forwarded by
- *   the Nitro proxy (server/routes/api/[...path].ts) to the real backend.
- *   credentials: "include" keeps bn.session attached.
+ * Targets the validated public API origin directly. `credentials: "include"`
+ * keeps the API-host session cookie attached; the API derives tenant identity
+ * from the browser Origin rather than frontend-supplied forwarding headers.
  *
  * The returned value is the familiar callable `$Fetch` instance, so existing
  * call sites that pass NO schema keep working unchanged:
@@ -24,7 +21,7 @@
 
 import type { $Fetch } from "ofetch";
 import type { ZodIssue, ZodType } from "zod";
-import { getApiBase, forwardHostHeaders } from "@/lib/domain";
+import { getApiBase } from "@/lib/domain";
 import { getCsrfHeaders } from "@/lib/csrf";
 import { isCredentialFailure } from "@/lib/session-401";
 
@@ -80,27 +77,13 @@ export interface ValidatingFetch extends $Fetch {
 export const useApi = (): ValidatingFetch => {
   const base = getApiBase();
 
-  // Forward the visitor's host so the multi-tenant backend resolves the right
-  // tenant on direct SSR fetches (see forwardHostHeaders). Client is same-origin
-  // (proxy sets it), so this is a server-only no-op there.
-  const headers: Record<string, string> = { ...forwardHostHeaders() };
-  if (import.meta.server) {
-    try {
-      const forwarded = useRequestHeaders(["cookie"]);
-      if (forwarded.cookie) headers.cookie = forwarded.cookie;
-    } catch {
-      // no request context
-    }
-  }
-
   const fetcher = $fetch.create({
     baseURL: base,
     credentials: "include",
-    headers,
     retry: 0,
     timeout: 10000,
     // CSRF double-submit on mutating requests (parity with axios-client):
-    // read the XSRF-TOKEN cookie and echo it as a header. Client-only — the
+    // read the XSRF-TOKEN-V2 cookie and echo it as a header. Client-only — the
     // cookie only exists in the browser.
     onRequest({ options }) {
       if (!import.meta.client) return;

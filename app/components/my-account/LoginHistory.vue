@@ -22,7 +22,7 @@
           {{ t("myAccount.loginHistory.title") }}
         </h3>
       </div>
-      <AppTable :columns="columns" :rows="loginHistories" :empty-text="'—'">
+      <AppTable :columns="columns" :rows="loginHistories as unknown as Record<string, unknown>[]" :empty-text="'—'">
         <template #row="{ row }">
           <td><TableDateCell :value="String(row.created_at ?? '')" /></td>
           <td>
@@ -45,21 +45,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
-import { useApi } from "@/composables/useApi";
 import { formatDeviceInfo } from "~/lib/user-agent";
-import { validateResponse } from "@/lib/validateResponse";
-import {
-  loginHistoriesResponseSchema,
-  mapLoginHistory,
-  type LoginLog as ILoginLog,
-} from "@/interfaces/auth.interface";
 
 const { t } = useI18n();
 
-const loginHistories = ref<ILoginLog[]>([]);
-const loading = ref(true);
+const recordsStore = useMemberRecordsStore();
+const dateRange = calculateDateRange();
+const loginKey = `login:endDate=${encodeURIComponent(dateRange.end_date)}&startDate=${encodeURIComponent(dateRange.start_date)}`;
+const loginEntry = computed(() => recordsStore.loginHistories[loginKey]);
+const loginHistories = computed(() => loginEntry.value?.data ?? []);
+const loading = computed(() => !loginEntry.value || loginEntry.value.status === "loading");
 
 /** Header labels, in column order — the `row` slot emits cells to match. */
 const columns = computed(() => [
@@ -103,22 +100,5 @@ function calculateDateRange() {
   return { start_date: formatDate(sevenDaysAgo), end_date: formatDate(today) };
 }
 
-onMounted(async () => {
-  try {
-    const { start_date, end_date } = calculateDateRange();
-    const api = useApi();
-    const raw = await api(
-      `/auth/login-histories?startDate=${start_date}&endDate=${end_date}`,
-    );
-    loginHistories.value = validateResponse(
-      loginHistoriesResponseSchema,
-      raw,
-      "/auth/login-histories",
-    ).map(mapLoginHistory);
-  } catch (err) {
-    console.error("Failed to fetch login history:", err);
-  } finally {
-    loading.value = false;
-  }
-});
+onMounted(() => recordsStore.loadLoginHistories({ startDate: dateRange.start_date, endDate: dateRange.end_date }));
 </script>

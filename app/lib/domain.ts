@@ -1,104 +1,92 @@
-import { useRequestURL, useRequestHeaders } from 'nuxt/app'
-import { resolveCanonicalAuthority } from '~~/shared/utils/request-security'
+/**
+ * Browser-facing domain helpers.
+ *
+ * The generated SPA talks to the API origin directly. Local development uses
+ * public runtime config; deployed sites resolve the sibling uapi service from
+ * the browser's root domain.
+ */
 
-function configuredHosts(): string[] {
-  try {
-    const config = useRuntimeConfig()
-    return [
-      String((config as { allowedHosts?: string }).allowedHosts ?? ''),
-      String(config.public.siteUrl ?? ''),
-    ].filter(Boolean)
-  } catch {
-    return []
+type PublicRuntimeConfig = { public?: { apiBase?: unknown } };
+
+function normalizeApiBase(value: unknown): string {
+  if (typeof value !== 'string' || !value.trim()) {
+    throw new Error('NUXT_PUBLIC_API_BASE is not configured');
   }
+
+  let url: URL;
+  try {
+    url = new URL(value.trim());
+  } catch {
+    throw new Error('NUXT_PUBLIC_API_BASE must be an absolute HTTP(S) URL');
+  }
+
+  if (url.protocol !== 'https:' && url.protocol !== 'http:') {
+    throw new Error('NUXT_PUBLIC_API_BASE must use HTTP or HTTPS');
+  }
+  if (url.username || url.password || url.search || url.hash) {
+    throw new Error(
+      'NUXT_PUBLIC_API_BASE must not include credentials, query, or fragment',
+    );
+  }
+
+  return url.toString().replace(/\/$/, '');
 }
 
-function serverAuthority(): string | null {
+function configuredApiBase(): string {
   try {
-    const { host } = useRequestHeaders(['host'])
-    return resolveCanonicalAuthority(
-      host,
-      configuredHosts(),
-      process.env.NODE_ENV === 'production',
-    )?.authority ?? null
-  } catch {
-    return null
+    const config = useRuntimeConfig() as PublicRuntimeConfig;
+    return normalizeApiBase(config.public?.apiBase);
+  } catch (error) {
+    if (error instanceof Error) throw error;
+    throw new Error('NUXT_PUBLIC_API_BASE is not configured');
   }
 }
 
 export function getHostname(): string {
-  if (import.meta.server) {
-    const authority = serverAuthority()
-    return authority ? new URL(`http://${authority}`).hostname : '_invalid-host'
-  }
-  if (typeof window === 'undefined') return 'localhost'
-  return window.location.hostname
-}
-
-/**
- * Server-only headers that carry the visitor's host to the backend so a
- * multi-tenant backend resolves the right tenant on DIRECT SSR fetches. Those
- * bypass the Nitro proxy (server/routes/api/[...path].ts) that normally sets
- * `x-forwarded-host`, so without this every SSR render gets the backend's
- * default tenant config/data. Empty on the client (same-origin → proxy).
- *
- * Call it in the request/setup context (synchronously, before any `await`) —
- * useRequestHeaders needs the request context, which is lost past an await.
- */
-export function forwardHostHeaders(): Record<string, string> {
-  if (!import.meta.server) return {}
-  try {
-    const authority = serverAuthority()
-    const headers: Record<string, string> = {}
-    if (authority) headers['x-forwarded-host'] = authority
-    if (authority)
-      headers['x-forwarded-proto'] = process.env.NODE_ENV === 'production' ? 'https' : useRequestURL().protocol.replace(':', '')
-    return headers
-  } catch {
-    return {}
-  }
+  if (typeof window === 'undefined') return 'localhost';
+  return window.location.hostname;
 }
 
 export function getRootDomain(): string {
-  const hostname = getHostname()
-  const parts = hostname.split('.').reverse()
-  return parts.slice(0, 2).reverse().join('.')
+  const parts = getHostname().split('.');
+  return parts.length > 2 ? parts.slice(1).join('.') : getHostname();
+}
+
+/** Build the partner console URL from a deployed hostname. */
+export function getPartnerUrl(hostname = getHostname()): string {
+  const labels = hostname.split('.');
+  const rootDomain = labels.length > 2 ? labels.slice(1).join('.') : hostname;
+  return `https://partner.${rootDomain}/`;
 }
 
 export function getSiteUrl(): string {
-  if (import.meta.server) {
-    try {
-      return useRequestURL().origin
-    } catch {
-      return 'http://localhost:3000'
-    }
-  }
-  if (typeof window === 'undefined') return 'http://localhost:3000'
-  return window.location.origin
+  if (typeof window === 'undefined') return 'http://localhost:3000';
+  return window.location.origin;
 }
 
-function getRequiredServerEnv(name: "NUXT_API_URL"): string {
-  const value = process.env[name]?.trim()
-  if (!value) throw new Error(`${name} is not configured`)
-  return value.replace(/\/$/, "")
+function isLocalDevelopment(): boolean {
+  const hostname = getHostname();
+  return hostname === 'localhost' || hostname === '127.0.0.1';
 }
 
-// Client always talks to its own origin — the Nitro proxy at /api forwards
-// to the real backend. Server reads the private NUXT_API_URL process
-// environment variable for direct SSR fetches.
+/** Build the deployed API base URL from the current browser hostname. */
+export function getProductionApiBase(hostname: string): string {
+  const labels = hostname.split('.');
+  const rootDomain = labels.length > 2 ? labels.slice(1).join('.') : hostname;
+  return `https://uapi.${rootDomain}/api`;
+}
+
+/** Return the browser-facing API base URL. */
 export function getApiBase(): string {
-  if (import.meta.client) return '/api'
-  return getRequiredServerEnv("NUXT_API_URL")
+  if (!isLocalDevelopment() && typeof window !== 'undefined') {
+    return getProductionApiBase(window.location.hostname);
+  }
+  return configuredApiBase();
 }
 
-// The client connects to the same-origin Nuxt proxy. On the server, derive the
-// private WebSocket target from the shared API URL.
+/** Return the API origin with an HTTP(S)-appropriate WebSocket scheme. */
 export function getWsApiUrl(): string {
-  if (import.meta.client) {
-    const proto = window.location.protocol === 'https:' ? 'wss' : 'ws'
-    return `${proto}://${window.location.host}`
-  }
-  const apiUrl = new URL(getRequiredServerEnv("NUXT_API_URL"))
-  apiUrl.protocol = apiUrl.protocol === 'https:' ? 'wss:' : 'ws:'
-  return apiUrl.origin
+  const apiUrl = new URL(getApiBase());
+  apiUrl.protocol = apiUrl.protocol === 'https:' ? 'wss:' : 'ws:';
+  return apiUrl.origin;
 }

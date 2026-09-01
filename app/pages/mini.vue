@@ -47,27 +47,15 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
-import {
-  mapGameLobby,
-  mapGameListItem,
-  type GameLobbyWire,
-  type GameListItemWire,
-} from "@/interfaces/game.interface";
 
 const { t } = useI18n();
 const authStore = useAuthStore();
 const uiStore = useUiStore();
 
-interface MiniLobby {
-  game_name: string;
-  [key: string]: unknown;
-}
-type LobbiesResponse = MiniLobby[] | { data?: MiniLobby[] };
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type GameRow = any;
-type GamesResponse = GameRow[] | { data?: GameRow[] };
 
-const api = useApi();
+const catalog = useGameCatalogStore();
 const siteConfig = useSiteConfig();
 
 definePageMeta({
@@ -84,43 +72,20 @@ useBreadcrumbSchema([
 ]);
 
 
-// SSR fetch via useApi: pulls all mini-game lobbies + their games on the
-// server so the initial HTML already includes the grid. Awaited so the
-// setup suspends until the data is ready — keeps the lobbies call on the
-// server boundary during client-side navigation too.
-const { data: miniGames, pending } = await useAsyncData<GameRow[]>(
+// Fetch the mini catalogue as one filtered page rather than expanding every
+// provider lobby into a separate request. The existing loading/empty branches
+// keep the route usable while it resolves.
+const { data: miniGames, pending } = useAsyncData<GameRow[]>(
   "mini-games-bundle",
   async () => {
-    // Best-effort (SSR-awaited): normalize the camelCase wire shapes via the
-    // mappers rather than validateResponse, so a hiccup degrades to an empty
-    // grid instead of a 500.
-    const lobbiesRes = await api<LobbiesResponse>("/games/lobbies", {
-      query: { gameType: "mini" },
+    const { games } = await catalog.loadGames({
+      gameType: "mini",
+      page: 1,
+      limit: 50,
     });
-    const lobbiesRaw = Array.isArray(lobbiesRes)
-      ? lobbiesRes
-      : (lobbiesRes?.data ?? []);
-    const lobbies = lobbiesRaw.map((l) => mapGameLobby(l as unknown as GameLobbyWire));
-    if (lobbies.length === 0) return [];
-
-    const gamesResults = await Promise.all(
-      lobbies.map((lobby) =>
-        api<GamesResponse>("/games", {
-          query: { lobby: lobby.game_name, page: 1, limit: 50 },
-        }),
-      ),
-    );
-
-    const flat: GameRow[] = [];
-    for (const res of gamesResults) {
-      const raw = Array.isArray(res) ? res : (res?.data ?? []);
-      if (Array.isArray(raw)) {
-        flat.push(...raw.map((g) => mapGameListItem(g as GameListItemWire)));
-      }
-    }
-    return flat;
+    return games;
   },
-  { default: () => [] },
+  { default: () => [], server: false },
 );
 
 const isLoading = computed(() => pending.value);

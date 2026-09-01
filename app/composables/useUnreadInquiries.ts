@@ -1,101 +1,45 @@
-/**
- * Unread inquiries composable
- * Ported from banana-lucky-next/lib/hooks/useUnreadInquiries.ts
- *
- * Converts:
- * - useAppStore (Zustand) → useAuthStore/useUiStore (Pinia)
- * - useWebSocketStore (Zustand) → useWebSocketStore (Pinia) from ~/stores/websocket
- * - useEffect → onMounted + watch
- * - useCallback → plain function
- * - axiosInstance → axiosClient from ~/lib/axios-client
- */
-
-import axiosClient from "~/lib/axios-client";
-import { getDateRangeLastNDays } from "~/lib/date";
+import { storeToRefs } from "pinia";
 import { useWebSocketStore } from "~/stores/websocket";
-import { validateResponse } from "@/lib/validateResponse";
-import {
-  inquiriesResponseWireSchema,
-  mapInquiriesResponse,
-  type InquiryItem,
-} from "~/interfaces/inquiry.interface";
+import { useMemberInboxStore } from "~/stores/member-inbox";
 
-const INQUIRY_DATE_RANGE = 30;
-const INQUIRY_LIMIT = 10;
-
+/** Bridges websocket/auth lifecycle events to the shared member inbox store. */
 export function useUnreadInquiries() {
   const authStore = useAuthStore();
   const uiStore = useUiStore();
   const wsStore = useWebSocketStore();
+  const inbox = useMemberInboxStore();
+  const { hasUnreadInquiries, unreadInquiryCount } = storeToRefs(inbox);
+
+  const syncUnread = () =>
+    uiStore.setHasUnreadInquiries(hasUnreadInquiries.value, unreadInquiryCount.value);
 
   const checkUnreadInquiries = async () => {
-    // Client only. `axiosClient` is the browser mutation client — it carries no
-    // cookie jar on the server, so an SSR call reaches /inquiries unauthenticated
-    // and logs a 401 on every render. The watcher below is `immediate`, which
-    // runs during setup, and setup also runs on the server; this is the guard
-    // that keeps it out of SSR.
     if (import.meta.server) return;
-
     if (!authStore.isAuthenticated) {
+      inbox.clear();
       uiStore.setHasUnreadInquiries(false);
       return;
     }
-
-    try {
-      const { startDate, endDate } = getDateRangeLastNDays(INQUIRY_DATE_RANGE);
-      const apiUrl = `/inquiries?page=1&limit=${INQUIRY_LIMIT}&startDate=${startDate}&endDate=${endDate}`;
-      const raw = (await axiosClient.get(apiUrl)).data;
-      const response = mapInquiriesResponse(
-        validateResponse(inquiriesResponseWireSchema, raw, "/inquiries"),
-      );
-
-      // Total unread REPLIES, not the number of tickets holding them: the
-      // sidebar badge counts messages the member has not read.
-      const unreadCount = response.data.reduce(
-        (sum: number, inquiry: InquiryItem) =>
-          sum + Math.max(0, inquiry.member_unread ?? 0),
-        0,
-      );
-      const hasUnread = unreadCount > 0;
-
-      // Record the flag only. This composable deliberately does NOT open the
-      // inquiry modal — not on load, not on a websocket reply. The member is
-      // interrupted when they try to act (deposit, withdraw, point transfer,
-      // launch a game, or open another account panel), where
-      // `blockedByUnreadInquiries` shows the warning and takes them to the
-      // thread. Popping it unbidden meant every page load began with a modal
-      // they could not dismiss, since the close guard holds it open while
-      // anything is unread.
-      uiStore.setHasUnreadInquiries(hasUnread, unreadCount);
-    } catch (error) {
-      console.error("Error checking unread inquiries:", error);
-      uiStore.setHasUnreadInquiries(false);
-    }
+    // A websocket summary refresh must not yank an open inquiry panel back to
+    // page one merely to recompute its badge.
+    const selectedPage = inbox.currentPage;
+    await inbox.loadInquiries(1, true);
+    inbox.currentPage = selectedPage;
+    syncUnread();
   };
 
-  // Register callback with WebSocket store
-  onMounted(() => {
-    wsStore.setInquiryCheckCallback(checkUnreadInquiries);
-  });
-
-  // Check for unread inquiries when the user becomes authenticated.
-  //
-  // `immediate` matters: the session plugin verifies before the layout mounts,
-  // so on a reload `isAuthenticated` is ALREADY true here and a lazy watcher
-  // would never fire — leaving `hasUnreadInquiries` false and every guard that
-  // reads it dead until the member happened to log in again in the same tab.
-  // `checkUnreadInquiries` no-ops for guests, so running it eagerly is safe.
+  onMounted(() => wsStore.setInquiryCheckCallback(checkUnreadInquiries));
   watch(
     () => authStore.isAuthenticated,
     (isAuthenticated) => {
-      if (isAuthenticated) {
-        checkUnreadInquiries();
+      if (isAuthenticated) void checkUnreadInquiries();
+      else {
+        inbox.clear();
+        uiStore.setHasUnreadInquiries(false);
       }
     },
     { immediate: true },
   );
 
-  return {
-    checkUnreadInquiries,
-  };
+  return { checkUnreadInquiries };
 }

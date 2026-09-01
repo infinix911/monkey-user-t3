@@ -10,24 +10,47 @@
  * WS on tab hide for bfcache friendliness.
  */
 import { useWebSocketStore } from "@/stores/websocket";
+import { useMemberInboxStore } from "@/stores/member-inbox";
 
-export default defineNuxtPlugin(() => {
+export default defineNuxtPlugin((nuxtApp) => {
   const authStore = useAuthStore();
   const uiStore = useUiStore();
   const ws = useWebSocketStore();
+  const inbox = useMemberInboxStore();
+
+  const waitForBootstrap = () => {
+    const ready = useState<boolean>("siteConfigBootstrapReady", () => false);
+    if (ready.value) return Promise.resolve();
+    return new Promise<void>((resolve) => {
+      const stop = watch(ready, (isReady) => {
+        if (isReady) {
+          stop();
+          resolve();
+        }
+      });
+    });
+  };
 
   onNuxtReady(async () => {
-    if (!authStore.isAuthenticated) {
-      try {
-        await authStore.verifyUser();
-      } catch {
-        // No valid session — stay anonymous
-      }
+    // Currency is supplied by tenant config. Wait only for its bounded
+    // foreground attempt; fallback config releases this immediately on errors.
+    await waitForBootstrap();
+    try {
+      if (!authStore.isAuthenticated) await authStore.verifyUser();
+    } catch {
+      // No valid session — stay anonymous
+    } finally {
+      // Release member-aware shared fetches even when the probe fails.
+      authStore.setSessionReady();
     }
 
     if (authStore.isAuthenticated) {
       ws.connect();
       uiStore.fetchNotice();
+      // `useNotifications()` calls `useI18n()`, which can only run while a
+      // component is setting up. This plugin runs after hydration, so read the
+      // already-initialized Nuxt I18n instance and use the shared store directly.
+      void inbox.loadNotifications(nuxtApp.$i18n.locale.value);
     }
 
     /*

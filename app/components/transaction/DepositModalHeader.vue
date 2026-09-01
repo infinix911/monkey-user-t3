@@ -5,7 +5,7 @@
   <div class="flex-shrink-0 px-4 md:px-6 pt-3 min-h-11 md:min-h-15 flex items-center justify-center relative bg-transparent">
     <!-- Title wordmark image (shown when the brand opts in via
          deposit.showDepositImageTitle). -->
-    <NuxtImg v-if="dep.showDepositImageTitle" :src="siteConfig.assets.transaction.depositIcon" alt="Deposit"
+    <img v-if="dep.showDepositImageTitle" :src="siteConfig.assets.transaction.depositIcon" alt="Deposit"
       class="h-11 md:h-15 w-auto object-contain select-none pointer-events-none" />
     <button type="button" class="absolute right-4 md:right-6 top-1/2 -translate-y-1/2 transition-colors cursor-pointer"
       :aria-label="$t('common.close')" @click="emit('close')">

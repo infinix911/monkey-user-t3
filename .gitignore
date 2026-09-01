@@ -39,6 +39,7 @@ workbox-*.js.map
 # Build-generated SEO files (created by build:before hook in nuxt.config.ts)
 public/sitemap.xml
 public/robots.txt
+!public/robots.txt
 
 # Playwright
 test-results/

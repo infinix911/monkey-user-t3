@@ -12,14 +12,14 @@
           style="width: 72px; height: 72px"
           @click="handleContactClick(method)"
         >
-          <NuxtImg
+          <img
             :src="method.icon"
             :alt="method.name"
             width="60"
             height="60"
             loading="lazy"
             class="mt-6 lg:mt-4 object-contain"
-          />
+          >
         </div>
 
         <!-- Right side - Label and Contact Button -->

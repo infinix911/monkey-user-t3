@@ -15,6 +15,7 @@ import {
   type MenuSetting,
 } from "@/composables/useMenuSettings";
 import { PROFILE_MENU_ICON_DEFAULTS } from "@/composables/useDefaultThemeConfig";
+import { getPartnerUrl } from "@/lib/domain";
 
 /** One entry in the profile menu. */
 export interface MenuItem {
@@ -103,7 +104,7 @@ export function useProfileMenuItems() {
     // absolute href.
     partner: {
       labelKey: "profile.partner",
-      href: "https://partner.jaeisol.com/",
+      href: getPartnerUrl(),
       image: profileMenu.partner,
     },
     contact: { labelKey: "profile.contact", image: profileMenu.contact },

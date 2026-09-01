@@ -18,21 +18,13 @@
  *   - Plain JS with no tag wrapper. We inject it as innerHTML directly.
  *
  * Lives on its own endpoint (not bundled with /config/userpage) so the
- * payload caches and invalidates independently. Called from app.vue
- * alongside the userpage fetch with useAsyncData so the SSR HTML carries
- * the validated tags on first paint.
+ * payload caches and invalidates independently.
  */
 
-import { getApiBase, getHostname, forwardHostHeaders } from "@/lib/domain";
-import { withServerCache } from "@/lib/serverCache";
+import { getApiBase } from "@/lib/domain";
+import { useSiteStore, type CustomScriptEntry } from "@/stores/site";
 import { escapeInlineScript } from "~~/shared/utils/secure-serialization";
 import type { ResolvableScript } from "@unhead/vue";
-
-export interface CustomScriptEntry {
-  id: number;
-  title: string;
-  script: string;
-}
 
 /**
  * Splits a raw HTML payload into the JS that should run. Pulls inner JS out
@@ -63,49 +55,38 @@ function extractScriptBodies(raw: string): string[] {
 
 /** Fetches the raw payload — call from useAsyncData in app.vue. */
 export async function fetchCustomScripts(): Promise<CustomScriptEntry[]> {
-  const cached = useState<CustomScriptEntry[]>("customScripts", () => []);
-  if (cached.value && cached.value.length) return cached.value;
+  const siteStore = useSiteStore();
+  if (siteStore.customScriptsLoaded) return siteStore.customScripts;
 
   const apiBase = getApiBase();
-  // Forward the visitor's host so the multi-tenant backend returns THIS site's
-  // scripts on SSR (direct fetch bypasses the host-setting Nitro proxy).
-  const hostHeaders = forwardHostHeaders();
   try {
-    // Per-isolate cache (60 s) — see PLAN-PER-ISOLATE-SSR-CACHE.md.
-    // Raw $fetch (no cookie forwarded) so the cached response is independent
-    // of any user context; this endpoint is public CMS data.
-    const list = await withServerCache(
-      `custom-scripts:${getHostname()}`,
-      60 * 1000,
-      async () => {
-        const res = await $fetch<
-          CustomScriptEntry[] | { data: CustomScriptEntry[] }
-        >(`${apiBase}/site/custom-scripts`, {
-          timeout: import.meta.server ? 3000 : 10000,
-          headers: hostHeaders,
-        });
-        return Array.isArray(res)
-          ? res
-          : ((res as { data?: CustomScriptEntry[] })?.data ?? []);
-      },
+    const res = await $fetch<CustomScriptEntry[] | { data: CustomScriptEntry[] }>(
+      `${apiBase}/site/custom-scripts`,
+      { timeout: 10000 },
     );
-    cached.value = Array.isArray(list) ? list : [];
-    return cached.value;
+    const list = Array.isArray(res)
+      ? res
+      : ((res as { data?: CustomScriptEntry[] })?.data ?? []);
+    siteStore.setCustomScripts(Array.isArray(list) ? list : []);
+    return siteStore.customScripts;
   } catch (err) {
     console.error("[customScripts] fetch failed:", err);
+    // A failed CMS request is still settled; without this app navigation would
+    // retry indefinitely and duplicate error noise.
+    siteStore.setCustomScripts([]);
     return [];
   }
 }
 
 /** Reactive consumer — returns Unhead-ready script entries. */
 export function useCustomScripts() {
-  const cached = useState<CustomScriptEntry[]>("customScripts", () => []);
+  const siteStore = useSiteStore();
 
   const tags = computed<{ script: ResolvableScript[] }>(() => {
     const out: { script: ResolvableScript[] } = { script: [] };
-    if (!Array.isArray(cached.value)) return out;
+    if (!Array.isArray(siteStore.customScripts)) return out;
 
-    for (const entry of cached.value) {
+    for (const entry of siteStore.customScripts) {
       if (!entry || !entry.script) continue;
       const bodies = extractScriptBodies(entry.script);
       for (const body of bodies) {

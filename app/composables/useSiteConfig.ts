@@ -28,6 +28,7 @@ type Plain = Record<string, unknown>;
  */
 export const USER_PAGE_CONFIG_KEY = "userPageConfig";
 export const SITE_CONFIG_ERROR_KEY = "siteConfigError";
+const EFFECTIVE_SITE_CONFIG_KEY = "effectiveSiteConfig";
 
 /**
  * Returns the SAME shared `useState` refs that every caller already binds to —
@@ -68,7 +69,7 @@ export const useSiteConfigData = () => {
  * collision). Undefined/null in override falls back to base, so the CMS can't
  * accidentally blank out a bundled field by omitting it.
  */
-function deepMerge<T>(base: T, override: unknown): T {
+export function mergeSiteConfig<T>(base: T, override: unknown): T {
   if (override === undefined || override === null) return base;
   const baseIsPlainObject =
     typeof base === "object" && base !== null && !Array.isArray(base);
@@ -79,7 +80,7 @@ function deepMerge<T>(base: T, override: unknown): T {
   }
   const out: Plain = { ...(base as Plain) };
   for (const key of Object.keys(override as Plain)) {
-    out[key] = deepMerge((base as Plain)[key], (override as Plain)[key]);
+    out[key] = mergeSiteConfig((base as Plain)[key], (override as Plain)[key]);
   }
   return out as T;
 }
@@ -90,10 +91,25 @@ function deepMerge<T>(base: T, override: unknown): T {
  * bundled config when the API payload has not loaded.
  */
 export const useSiteConfig = () => {
-  const bundled = getDefaultThemeConfig();
-
-  const apiState = useState<unknown>(USER_PAGE_CONFIG_KEY, () => null);
-  if (!apiState.value) return bundled;
-
-  return deepMerge(bundled, apiState.value);
+  // Keep one stable reactive object. Most consumers access config fields
+  // directly (rather than through a Ref), so replacing this value would leave
+  // already-mounted consumers holding the old fallback snapshot.
+  return useState<SiteConfig>(
+    EFFECTIVE_SITE_CONFIG_KEY,
+    getDefaultThemeConfig,
+  ).value;
 };
+
+/**
+ * Applies the latest CMS payload to the stable effective-config object.
+ * Called by the root bootstrap coordinator whenever userPageConfig changes.
+ */
+export function syncSiteConfig(raw: unknown): SiteConfig {
+  const effective = useState<SiteConfig>(
+    EFFECTIVE_SITE_CONFIG_KEY,
+    getDefaultThemeConfig,
+  );
+  const next = mergeSiteConfig(getDefaultThemeConfig(), raw);
+  Object.assign(effective.value, next);
+  return effective.value;
+}

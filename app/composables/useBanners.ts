@@ -1,17 +1,11 @@
 /**
  * Carousel banners (admin CMS — /site/banners-new/carousel)
  *
- * One request for EVERY active banner (`?page=all`), pre-fetched server-side
- * from app.vue via useAsyncData so it lands in the SSR payload and the Pinia
- * `banner` store is populated before hydration. Pages then filter the hydrated
- * list by their own page key — see [[useBannerStore]] `bannersByPage`.
- *
- * Mirrors `fetchSiteSettings`: same server cache, same host forwarding, same
- * "resolve everything synchronously in setup" constraint.
+ * Loads every active banner (`?page=all`) once per client session. Pages then
+ * filter the shared Pinia list by their own page key.
  */
 
-import { getApiBase, getHostname, forwardHostHeaders } from "@/lib/domain";
-import { withServerCache } from "@/lib/serverCache";
+import { getApiBase } from "@/lib/domain";
 import { validateResponse } from "@/lib/validateResponse";
 import {
   bannersCarouselResponseSchema,
@@ -27,25 +21,10 @@ export async function fetchBanners(): Promise<BannerCarouselItem[]> {
   if (store.loaded) return store.banners;
 
   const apiBase = getApiBase();
-  // Forward the visitor's host so the multi-tenant backend returns THIS site's
-  // banners on SSR (this raw $fetch bypasses the host-setting Nitro proxy).
-  const hostHeaders = forwardHostHeaders();
   try {
-    // Public CMS data with no per-user filtering, so a raw $fetch (no cookie)
-    // is safe to share through the server cache.
-    const raw = await withServerCache<unknown>(
-      `banners-carousel-all:${getHostname()}`,
-      60 * 1000,
-      // The response type is given explicitly (rather than inferred) for the
-      // same reason the other loaders do it: an untyped $fetch on a template
-      // -literal URL sends Nitro's route-matching types into an "excessive
-      // stack depth" error. The shape is validated by zod below regardless.
-      () =>
-        $fetch<unknown>(`${apiBase}/site/banners-new/carousel`, {
-          query: { page: "all" },
-          headers: hostHeaders,
-        }),
-    );
+    const raw = await $fetch<unknown>(`${apiBase}/site/banners-new/carousel`, {
+      query: { page: "all" },
+    });
 
     const list = mapBannersCarouselResponse(
       validateResponse(bannersCarouselResponseSchema, raw, "/site/banners-new"),

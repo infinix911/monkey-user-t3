@@ -1,9 +1,5 @@
 <template>
-  <!-- Render immediately with the bundled config (always available). The API
-       config (userPageConfig) merges in reactively once it resolves, so we
-       never block the whole app on the network — no full-screen loader. -->
-  <template v-if="localConfig">
-    <NuxtRouteAnnouncer />
+  <NuxtRouteAnnouncer />
     <!-- Brand-gold top progress bar; auto-shows on every route navigation
          (lobby->lobby, game launches). Also driven manually by the game-launch
          page via useLoadingIndicator() while it resolves the one-time URL. -->
@@ -14,15 +10,6 @@
     <Toaster position="top-right" :visible-toasts="5" />
     <AppDialog />
     <EvolutionOneToTenConsentModal />
-  </template>
-  <div v-else-if="configError" class="fixed inset-0 flex items-center justify-center bg-black text-white z-[9999]">
-    <div class="text-center p-8">
-      <p class="text-xl mb-4">{{ configError }}</p>
-      <button class="px-6 py-2 bg-yellow-500 text-black rounded hover:bg-yellow-600 cursor-pointer" @click="reload">
-        Reload
-      </button>
-    </div>
-  </div>
 </template>
 
 <script setup lang="ts">
@@ -30,134 +17,18 @@ import { fetchSiteConfig } from "@/lib/siteConfig";
 import { fetchCustomScripts } from "@/composables/useCustomScripts";
 import { fetchSiteSettings } from "@/composables/useSiteSettings";
 import { fetchBanners } from "@/composables/useBanners";
-import { fetchSession } from "@/composables/useSession";
-import { fetchNotificationsSsr } from "@/composables/useNotifications";
-import { fetchNoticeSsr } from "@/composables/useNoticePrefetch";
 import { LOCALE_META, type SupportedLocale } from "@/lib/locale-meta";
 import { useSiteCurrency } from "@/composables/useSiteCurrency";
 import { currencyToLocale, isAppLocale } from "@/utils/locale-from-currency";
 import { MOBILE_HEADER_DESIGN_WIDTH } from "@/utils/scale";
-import type { SiteConfig } from "@/composables/useDefaultThemeConfig";
+import { syncSiteConfig } from "@/composables/useSiteConfig";
 import { useOfflineTelegramRegisterHandler } from "./composables/useOfflineTelegramRegisterHandler";
 
-// Fetches site config + custom scripts on both server and client. Both must
-// resolve before the head renders so SEO meta and admin-managed <script>
-// tags ship in the initial HTML (not added post-hydration). Run in parallel
-// via Promise.all so SSR latency tracks max(siteConfig, customScripts).
-//
-// fetchSiteConfig itself chains the /custom-seo call and merges any matching
-// row into the config object before writing to useState, so every useHead
-// consumer sees the overrides.
-//
-// Custom scripts live on a separate endpoint so they cache + invalidate
-// independently of the larger userpage payload. fetchCustomScripts catches
-// network errors and returns [], so a backend hiccup degrades to "no admin
-// scripts" rather than failing the whole render.
-await Promise.all([
-  useAsyncData("siteConfig", fetchSiteConfig, {
-    getCachedData: (key, nuxtApp) => {
-      const cached = nuxtApp.payload.data[key] ?? nuxtApp.static.data[key];
-      return cached ?? undefined;
-    },
-  }),
-  // NOTE: the separate "themeDoc" fetch was removed — it hit the SAME
-  // /site/config/theme endpoint that fetchSiteConfig already loads (the config
-  // endpoint was renamed from /config/userpage to /config/theme), so it was a
-  // duplicate request that deep-merged the payload over itself. The admin theme
-  // overlay now arrives via fetchSiteConfig. If the theme doc ever splits back
-  // onto its own endpoint, restore fetchThemeDoc (composables/useThemeDoc.ts).
-  useAsyncData("customScripts", fetchCustomScripts, {
-    getCachedData: (key, nuxtApp) => {
-      const cached = nuxtApp.payload.data[key] ?? nuxtApp.static.data[key];
-      return cached ?? undefined;
-    },
-  }),
-  // NOTE: the separate "menuSettings" fetch was removed — the profile-menu
-  // config now lives in `theme.sidebar.menus` inside the theme doc that
-  // fetchSiteConfig already loads. useMenuSettings() derives it from the
-  // resolved site config, so NewProfileModal opens with no extra request.
-  // Public site settings (key/value, e.g. `site:livechat`). Pre-fetched here so
-  // the live-chat button — present on every page — can read the link from the
-  // site store synchronously on click (window.open must run in the click).
-  useAsyncData("siteSettings", fetchSiteSettings, {
-    getCachedData: (key, nuxtApp) => {
-      const cached = nuxtApp.payload.data[key] ?? nuxtApp.static.data[key];
-      return cached ?? undefined;
-    },
-  }),
-  // Every active carousel banner, for every page, in ONE request. Fetched here
-  // rather than inside BannerPreview so it runs during SSR and lands in the
-  // payload: the component used to fetch its own page's banners and refetch on
-  // each navigation, which cost a request per page visited. Pages now filter
-  // the hydrated Pinia list — see useBannerStore.bannersByPage.
-  useAsyncData("banners", fetchBanners, {
-    getCachedData: (key, nuxtApp) => {
-      const cached = nuxtApp.payload.data[key] ?? nuxtApp.static.data[key];
-      return cached ?? undefined;
-    },
-  }),
-]);
-
-// ---------------------------------------------------------------------------
-// UI language — decided by the deployment's API currency, NOT the browser.
-// Runs after fetchSiteConfig above, so useState("userPageConfig").currency is
-// populated. A manual choice (the `ui_locale` cookie written by the language
-// switcher) wins; otherwise the currency default applies (THB->th, IDR->id,
-// KRW->ko, else->id). Awaited before render so the SSR HTML is already in the
-// right language — no redirect, no hydration flash. See PLAN-PAGE-LOADS-TWICE.md.
-// ---------------------------------------------------------------------------
-{
-  const { locale: activeLocale, setLocale } = useI18n();
-  const uiLocaleCookie = useCookie<string | null>("ui_locale", {
-    maxAge: 60 * 60 * 24 * 365,
-    sameSite: "lax",
-    path: "/",
-  });
-  const targetLocale = isAppLocale(uiLocaleCookie.value)
-    ? uiLocaleCookie.value
-    : currencyToLocale(useSiteCurrency());
-  if (activeLocale.value !== targetLocale) {
-    await setLocale(targetLocale);
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Member-scoped reads, resolved DURING SSR.
-//
-// After the block above, not in a plugin: the session stamps the currency from
-// the site config, and notifications send the resolved `lang`. Plugins run
-// before app.vue, so both would read defaults there.
-//
-// The session is the prerequisite for the other two AND for the lobbies: with
-// an empty auth store the server renders anonymous, then hydration flips
-// `isAuthenticated` false -> true and every watcher on it refires —
-// /auth/get-session, /notifications, and /games/lobbies from BOTH
-// useGameCategoryAvailability and useLobbyPage (the duplicate pair). Resolving
-// it here means no flip, so the lobbies need no change of their own.
-//
-// Each loader no-ops for anonymous visitors, so anonymous SSR (the cacheable
-// kind) makes no extra upstream calls.
-// ---------------------------------------------------------------------------
-await useAsyncData("session", fetchSession, {
-  getCachedData: (key, nuxtApp) => {
-    const cached = nuxtApp.payload.data[key] ?? nuxtApp.static.data[key];
-    return cached ?? undefined;
-  },
-});
-await Promise.all([
-  useAsyncData("notifications", fetchNotificationsSsr, {
-    getCachedData: (key, nuxtApp) => {
-      const cached = nuxtApp.payload.data[key] ?? nuxtApp.static.data[key];
-      return cached ?? undefined;
-    },
-  }),
-  useAsyncData("notice", fetchNoticeSsr, {
-    getCachedData: (key, nuxtApp) => {
-      const cached = nuxtApp.payload.data[key] ?? nuxtApp.static.data[key];
-      return cached ?? undefined;
-    },
-  }),
-]);
+// SPA bootstrap deliberately starts after the bundled fallback layout has
+// mounted. No API request is allowed to gate first paint.
+const rawConfig = useState<unknown>("userPageConfig", () => null);
+const bootstrapReady = useState("siteConfigBootstrapReady", () => false);
+watch(rawConfig, (value) => syncSiteConfig(value), { deep: true, immediate: true });
 
 // Global URL parameter handlers — these composables already guard themselves
 // with import.meta.client so they're safe to call unconditionally.
@@ -168,19 +39,23 @@ useReferralHandler();
 // Session verification + WebSocket runs in plugins/session-verify.client.ts
 // after hydration — no need to trigger it here.
 
-const reload = () => {
-  if (import.meta.client) window.location.reload();
-};
-
-// Reactive site config — updates when async data resolves
-const _configState = useState<SiteConfig | null>("userPageConfig", () => null);
-const siteConfig = computed(() => _configState.value);
-const configError = useState<string | null>("siteConfigError", () => null);
+// Reactive effective config — seeded with bundled defaults and updated in
+// place by the raw-config watcher above, so existing consumers never retain a
+// stale fallback snapshot.
+const siteConfig = useSiteConfig();
 
 // Dynamic <html lang> from i18n locale — use BCP-47 (e.g. "en-US") so it
 // matches the `<meta name="language">` tag below. Mismatched formats
 // ("en" vs "en-US") trip "conflicting language markup" SEO audits.
-const { locale } = useI18n();
+// `useI18n()` must be invoked synchronously while this component's setup is
+// active. Keep its refs/functions and use them later from the async bootstrap
+// work rather than calling the composable after an `await`.
+const { locale, setLocale } = useI18n();
+const uiLocaleCookie = useCookie<string | null>("ui_locale", {
+  maxAge: 60 * 60 * 24 * 365,
+  sameSite: "lax",
+  path: "/",
+});
 useHead(() => {
   const meta = LOCALE_META[locale.value as SupportedLocale] ?? LOCALE_META.en;
   return { htmlAttrs: { lang: meta.bcp47 } };
@@ -189,13 +64,58 @@ useHead(() => {
 // Domain-based local config as fallback for SEO. Derived at component setup
 // time on both server and client so SSR and CSR produce matching markup
 // (useSiteConfig() reads hostname via useRequestURL on server).
-const localConfig = useSiteConfig();
+const localConfig = siteConfig;
 
-// Remove Nuxt's pre-hydration loading template once the app mounts. This used
-// to live in PageLoader (now removed); without it the fixed black overlay
-// (z-9999) would stay on top and leave the page blank.
+async function applyPreferredLocale() {
+  const targetLocale = isAppLocale(uiLocaleCookie.value)
+    ? uiLocaleCookie.value
+    : currencyToLocale(useSiteCurrency());
+  if (locale.value !== targetLocale) await setLocale(targetLocale);
+}
+
+async function bootstrapSite() {
+  // One bounded foreground request establishes the tenant theme/currency. On
+  // failure the compiled config remains fully usable and the longer retry runs
+  // in the background.
+  try {
+    await fetchSiteConfig({ maxRetries: 1, timeout: 8000 });
+  } finally {
+    try {
+      await applyPreferredLocale();
+    } catch (error) {
+      console.warn("[bootstrap] unable to apply preferred locale", error);
+    } finally {
+      bootstrapReady.value = true;
+    }
+  }
+
+  // Non-critical public data must never hold up initial navigation.
+  void Promise.allSettled([
+    fetchCustomScripts(),
+    fetchSiteSettings(),
+    fetchBanners(),
+  ]);
+
+  if (!rawConfig.value) {
+    // Retry with the normal bounded backoff budget, without blocking auth or
+    // the rendered fallback UI. A successful write updates every config
+    // consumer through the watcher above.
+    void fetchSiteConfig();
+  }
+}
+
+// Let Vue paint the fallback layout first, then remove the static document
+// shell on the next animation frame so the visitor never sees a blank page.
 onMounted(() => {
-  document.getElementById("spa-loading-template")?.remove();
+  void nextTick(() => {
+    requestAnimationFrame(() => {
+      const shell = document.getElementById("spa-loading-template");
+      if (!shell) return;
+      shell.style.opacity = "0";
+      window.setTimeout(() => shell.remove(), 180);
+    });
+  });
+  void bootstrapSite();
 });
 
 // CMS-driven inline scripts loaded from /api/site/custom-scripts. Each row
@@ -212,7 +132,7 @@ const { tags: customTags } = useCustomScripts();
 // size off those vars, so the SSR HTML is already correct.
 // See PLAN-HEADER-INITIAL-SIZE-FLASH.md.
 const mobileHeaderDesignHeight = computed(() => {
-  const apiCfg = siteConfig.value as
+  const apiCfg = siteConfig as
     | { theme?: { mobileHeaderHeight?: number } }
     | null;
   const brandCfg = localConfig as
@@ -242,14 +162,14 @@ useHead(() => ({
 
 // Reactive head — updates when siteConfig loads
 useHead(() => {
-  const seo = siteConfig.value?.seo || localConfig?.seo;
+  const seo = siteConfig.seo || localConfig?.seo;
   const localIdentity = localConfig?.identity;
 
   // Favicon — prefer the dedicated CMS asset at `identity.favicon`
   // over the SEO/meta favicon fields. Falls back to the SEO general favicon
   // and the bundled local identity favicon when the asset isn't configured.
   const faviconUrl =
-    siteConfig.value?.identity?.favicon ||
+    siteConfig.identity?.favicon ||
     localConfig?.identity?.favicon ||
     seo?.general?.favicon ||
     localIdentity?.favicon;
@@ -272,7 +192,7 @@ useHead(() => {
   // Resolves the block from any of the common paths used by the backend
   // (top-level, under `seo`, or under `data`) so a future schema tweak
   // doesn't silently drop the tags.
-  const cfgAny = siteConfig.value as unknown as Record<string, unknown> | null;
+  const cfgAny = siteConfig as unknown as Record<string, unknown> | null;
   const canonicalBlock =
     (cfgAny?.canonicalMeta as { SEO_CANONICAL_META?: Record<string, string> } | undefined) ??
     ((cfgAny?.seo as { canonicalMeta?: { SEO_CANONICAL_META?: Record<string, string> } } | undefined)?.canonicalMeta) ??
