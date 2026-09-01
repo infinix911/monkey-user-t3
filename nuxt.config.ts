@@ -403,6 +403,9 @@ export default defineNuxtConfig({
         // empty. Object URLs are same-origin and revocable, so this does not
         // widen the surface the way a remote host would.
         "img-src": ["'self'", "data:", "blob:", "https:"],
+        // The tenant-aware PWA plugin generates a same-origin blob manifest.
+        // Without this explicit directive, `default-src 'self'` blocks it.
+        "manifest-src": ["'self'", "blob:"],
         // Banner videos are served from the same HTTPS asset CDN as images.
         "media-src": ["'self'", "https:"],
         "font-src": ["'self'", "https:", "data:"],
