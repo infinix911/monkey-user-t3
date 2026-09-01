@@ -47,7 +47,15 @@ const siteConfig = useSiteConfig();
 // Dynamic <html lang> from i18n locale — use BCP-47 (e.g. "en-US") so it
 // matches the `<meta name="language">` tag below. Mismatched formats
 // ("en" vs "en-US") trip "conflicting language markup" SEO audits.
-const { locale } = useI18n();
+// `useI18n()` must be invoked synchronously while this component's setup is
+// active. Keep its refs/functions and use them later from the async bootstrap
+// work rather than calling the composable after an `await`.
+const { locale, setLocale } = useI18n();
+const uiLocaleCookie = useCookie<string | null>("ui_locale", {
+  maxAge: 60 * 60 * 24 * 365,
+  sameSite: "lax",
+  path: "/",
+});
 useHead(() => {
   const meta = LOCALE_META[locale.value as SupportedLocale] ?? LOCALE_META.en;
   return { htmlAttrs: { lang: meta.bcp47 } };
@@ -59,16 +67,10 @@ useHead(() => {
 const localConfig = siteConfig;
 
 async function applyPreferredLocale() {
-  const { locale: activeLocale, setLocale } = useI18n();
-  const uiLocaleCookie = useCookie<string | null>("ui_locale", {
-    maxAge: 60 * 60 * 24 * 365,
-    sameSite: "lax",
-    path: "/",
-  });
   const targetLocale = isAppLocale(uiLocaleCookie.value)
     ? uiLocaleCookie.value
     : currencyToLocale(useSiteCurrency());
-  if (activeLocale.value !== targetLocale) await setLocale(targetLocale);
+  if (locale.value !== targetLocale) await setLocale(targetLocale);
 }
 
 async function bootstrapSite() {

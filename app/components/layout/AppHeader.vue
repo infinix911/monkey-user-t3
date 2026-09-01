@@ -186,7 +186,7 @@
                   <img :src="siteConfig.assets.navIcons.refreshIcon" alt="" aria-hidden="true" width="24"
                     height="24" class="account-bar-icon-light w-[24px] h-[24px] object-contain" />
                 </button>
-                <NotificationDropdown :notifications="notifications" @marked-all-read="markNotificationsRead">
+                <NotificationDropdown :notifications="notifications">
                   <div class="relative cursor-pointer opacity-90 hover:opacity-100 transition-opacity"
                     aria-haspopup="dialog">
                     <img :src="siteConfig.assets.navIcons.bellIcon" alt="" aria-hidden="true" width="24" height="24"
@@ -337,7 +337,7 @@
           <div class="contents">
             <!-- Notification bell — hidden on the mobile header. -->
             <div class="absolute top-[-25px] right-2 z-10 hidden">
-              <NotificationDropdown :notifications="notifications" @marked-all-read="markNotificationsRead">
+              <NotificationDropdown :notifications="notifications">
                 <div class="relative cursor-pointer" aria-haspopup="dialog">
                   <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
                     stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"
@@ -556,7 +556,7 @@ watch(
   () => authStore.isAuthenticated,
   (isAuth) => {
     if (isAuth) fetchNotifications();
-    else notifications.value = [];
+    else clearInbox();
   },
 );
 
@@ -580,7 +580,7 @@ const {
   loaded: notificationsLoaded,
   unreadCount: unreadNotificationCount,
   fetchNotifications,
-  markNotificationsRead,
+  clear: clearInbox,
 } = useNotifications();
 
 const showLangDropdown = ref(false);

@@ -95,7 +95,7 @@
     <!-- The shared table shell. flex-1 + min-h-0 keeps it the ONLY scroll
          region, so the modal panel never needs a second scrollbar. -->
     <AppTable
-      :columns="columns" :rows="betHistories" :loading="loading" :error="error"
+      :columns="columns" :rows="betHistories as unknown as Record<string, unknown>[]" :loading="loading" :error="error"
       :loading-text="t('bettingReport.loading')" :empty-text="t('bettingReport.noData')"
       class="mb-6">
       <template #row="{ row }">
@@ -137,17 +137,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from "vue";
-import { validateResponse } from "@/lib/validateResponse";
-import {
-  gameLobbiesResponseSchema,
-  mapGameLobby,
-  betHistoriesResponseWireSchema,
-  mapBetHistoriesResponse,
-  type NormalizedLobby,
-  type BetHistoryRow as IBetHistoryRow,
-} from "@/interfaces/game.interface";
 import { useI18n } from "vue-i18n";
-import { useApi } from "@/composables/useApi";
 import { formatDateAsISO } from "~/lib/date";
 import { formatNumber } from "~/lib/formatter";
 
@@ -203,25 +193,25 @@ watch([timeFrom, timeTo], () => {
 });
 
 // Data state
-const betHistories = ref<IBetHistoryRow[]>([]);
-const totalPages = ref(0);
-const totalRows = ref(0);
-const loading = ref(true);
-const error = ref<string | null>(null);
-const summary = ref<{
-  bet_amount: string;
-  win_amount: string;
-  roll_amount: string;
-  net_amount: string;
-} | null>(null);
 const currentPage = ref(1);
 const gameType = ref("casino");
+const provider = ref("");
 // Tracks the game type the currently displayed rows were fetched with, so the
 // Type column shows/hides in sync with the data (not the live dropdown, which
 // may change before the next search).
-const loadedGameType = ref(gameType.value);
+const recordsStore = useMemberRecordsStore();
+const reportKey = computed(() => {
+  const params = { startDate: `${dateFrom.value} ${timeFrom.value}`, endDate: `${dateTo.value} ${timeTo.value}`, gameType: gameType.value, provider: provider.value, page: currentPage.value, limit: 25 };
+  return `betting:${Object.entries(params).filter(([, value]) => value !== undefined && value !== "").sort(([a], [b]) => a.localeCompare(b)).map(([name, value]) => `${name}=${encodeURIComponent(String(value))}`).join("&")}`;
+});
+const reportEntry = computed(() => recordsStore.bettingReports[reportKey.value]);
+const betHistories = computed(() => reportEntry.value?.data?.data ?? []);
+const totalPages = computed(() => reportEntry.value?.data?.pages ?? 0);
+const loading = computed(() => !reportEntry.value || reportEntry.value.status === "loading");
+const error = computed(() => reportEntry.value?.status === "error" ? t("bettingReport.error") : null);
+const summary = computed(() => reportEntry.value?.data?.summary ?? null);
+const loadedGameType = computed(() => reportEntry.value?.data?.loadedGameType ?? gameType.value);
 const showTypeColumn = computed(() => loadedGameType.value === "all");
-const provider = ref("");
 
 /**
  * Header labels in column order. Game Type only appears in the aggregated `all`
@@ -246,9 +236,10 @@ function typeLabel(type?: string): string {
   const label = t(key);
   return label === key ? type : label;
 }
-const providers = ref<NormalizedLobby[]>([]);
-const loadingProviders = ref(false);
-const supportedGameTypes = ["casino", "slot", "sport", "mini"] as const;
+const providerKey = computed(() => `providers:gameType=${encodeURIComponent(gameType.value)}`);
+const providerEntry = computed(() => recordsStore.providerLobbies[providerKey.value]);
+const providers = computed(() => providerEntry.value?.data ?? []);
+const loadingProviders = computed(() => providerEntry.value?.status === "loading");
 
 // Green for a net win (positive), red for a net loss (negative), neutral at zero.
 function winLossClass(value: number): string {
@@ -271,93 +262,22 @@ const totals = computed(() => {
 
 // Fetch providers
 async function fetchProviders(type: string) {
-  try {
-    loadingProviders.value = true;
-    const api = useApi();
-    const raw = await api("/games/lobbies", { query: { gameType: type } });
-    providers.value = validateResponse(
-      gameLobbiesResponseSchema,
-      raw,
-      "/games/lobbies",
-    ).map(mapGameLobby);
-    provider.value = "";
-  } catch (err) {
-    console.error("Failed to fetch providers:", err);
-    providers.value = [];
-  } finally {
-    loadingProviders.value = false;
-  }
-}
-
-function sumAmounts(values: string[]): string {
-  return String(values.reduce((total, value) => total + Number(value), 0));
+  provider.value = "";
+  await recordsStore.loadProviderLobbies(type);
 }
 
 // Fetch bet histories. The API only accepts a concrete game type, so the
 // aggregate UI view combines the three supported endpoint responses locally.
 async function fetchBetHistories(page: number = 1) {
-  try {
-    loading.value = true;
-    error.value = null;
-
-    const params = new URLSearchParams({
-      startDate: `${dateFrom.value} ${timeFrom.value}`,
-      endDate: `${dateTo.value} ${timeTo.value}`,
-      page: String(page),
-      limit: "25",
-    });
-
-    if (provider.value) {
-      params.append("gameName", provider.value);
-    }
-
-    const api = useApi();
-    const typeForRequest = gameType.value;
-    const types =
-      typeForRequest === "all" ? supportedGameTypes : [typeForRequest];
-    const responses = await Promise.all(
-      types.map(async (type) => {
-        const raw = await api(`/games/bet-histories/${type}?${params.toString()}`);
-        const data = mapBetHistoriesResponse(
-          validateResponse(
-            betHistoriesResponseWireSchema,
-            raw,
-            "/games/bet-histories",
-          ),
-        );
-        return {
-          ...data,
-          data: data.data.map((row) => ({ ...row, game_type: type })),
-        };
-      }),
-    );
-    // Merge every game type's page into one list ordered by the date column the
-    // table shows (created_at, newest first). Without this the rows come out
-    // grouped by game type (each type's response concatenated) for the "all" tab.
-    betHistories.value = responses
-      .flatMap((response) => response.data)
-      .sort(
-        (a, b) =>
-          new Date(String(b.created_at)).getTime() -
-          new Date(String(a.created_at)).getTime(),
-      );
-    totalPages.value = Math.max(...responses.map((response) => response.pages));
-    totalRows.value = responses.reduce((total, response) => total + response.rows, 0);
-    summary.value = {
-      bet_amount: sumAmounts(responses.map((response) => response.summary?.bet_amount ?? "0")),
-      win_amount: sumAmounts(responses.map((response) => response.summary?.win_amount ?? "0")),
-      roll_amount: sumAmounts(responses.map((response) => response.summary?.roll_amount ?? "0")),
-      net_amount: sumAmounts(responses.map((response) => response.summary?.net_amount ?? "0")),
-    };
-    currentPage.value = page;
-    loadedGameType.value = typeForRequest;
-  } catch (err) {
-    console.error("Failed to fetch bet histories:", err);
-    error.value = t("bettingReport.error");
-    betHistories.value = [];
-  } finally {
-    loading.value = false;
-  }
+  currentPage.value = page;
+  await recordsStore.loadBettingReport({
+    startDate: `${dateFrom.value} ${timeFrom.value}`,
+    endDate: `${dateTo.value} ${timeTo.value}`,
+    gameType: gameType.value,
+    provider: provider.value,
+    page,
+    limit: 25,
+  });
 }
 
 function handleSearch() {
@@ -373,7 +293,6 @@ function handlePageChange(page: number) {
 // so clear the dropdown instead of querying lobbies for a non-existent type.
 watch(gameType, (newType) => {
   if (newType === "all") {
-    providers.value = [];
     provider.value = "";
     return;
   }

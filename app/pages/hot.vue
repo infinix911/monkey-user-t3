@@ -72,10 +72,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
-import {
-  mapGameListItem,
-  type GameListItemWire,
-} from "@/interfaces/game.interface";
 
 definePageMeta({
   layout: "default",
@@ -93,7 +89,7 @@ const { t } = useI18n();
 const apiMessage = useApiMessage();
 const route = useRoute();
 const router = useRouter();
-const api = useApi();
+const catalog = useGameCatalogStore();
 const siteConfig = useSiteConfig();
 
 useSeoHead({
@@ -109,39 +105,18 @@ const GAMES_PER_PAGE = 24;
 
 const currentPage = computed(() => Number(route.query.page) || 1);
 
-type RemoteResponse =
-  | GameRow[]
-  | {
-      data?: GameRow[];
-      games?: GameRow[];
-      rows?: number;
-      total?: number;
-      meta?: { total?: number };
-    }
-  | null;
-
 // SSR fetch via useApi: pulls a single page of hot games on the server so the
 // initial HTML already includes the grid. Page-number pagination (same UX as the
 // slot games list) drives subsequent pages off the `page` route query.
 const { data, error: fetchError, pending, refresh: fetchGames } = useAsyncData<HotGamesResponse>(
   "hot-games",
   async () => {
-    const res = await api<RemoteResponse>("/games", {
-      query: {
-        gameType: "slot",
-        category: "hot",
-        page: currentPage.value,
-        limit: GAMES_PER_PAGE,
-      },
-    }).catch(() => null);
-
-    if (Array.isArray(res)) {
-      return { games: res.map((it) => mapGameListItem(it as GameListItemWire)), total: res.length };
-    }
-    const raw = res?.data || res?.games || [];
-    const list = raw.map((it) => mapGameListItem(it as GameListItemWire));
-    const total = Number(res?.meta?.total) || Number(res?.rows) || Number(res?.total) || list.length;
-    return { games: list, total };
+    return catalog.loadGames({
+      gameType: "slot",
+      category: "hot",
+      page: currentPage.value,
+      limit: GAMES_PER_PAGE,
+    });
   },
   {
     watch: [currentPage],

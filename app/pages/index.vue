@@ -167,13 +167,7 @@ import { openGame } from "~~/utils/game-navigation";
 // } from "~~/utils/top-transactions-fallback";
 // import TopTransactionsTicker from "~/components/site/TopTransactionsTicker.vue";
 import { stripGamePayload } from "~/utils/strip-game-payload";
-import {
-  mapGameLobby,
-  mapGameListItem,
-  type GameLobbyWire,
-  type GameListItemWire,
-  type NormalizedLobby,
-} from "@/interfaces/game.interface";
+import type { NormalizedLobby } from "@/interfaces/game.interface";
 
 const authStore = useAuthStore();
 const uiStore = useUiStore();
@@ -229,26 +223,10 @@ const handleGameClick = (game: any) => {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyList = any[];
-type RemoteResponse = AnyList | { data?: AnyList } | null | undefined;
-
-// The homepage is best-effort (fetches use `.catch(() => null)`), so we
-// normalize defensively via the mappers rather than validateResponse — a
-// malformed/absent payload degrades to an empty row instead of throwing.
-const unwrap = (res: RemoteResponse): AnyList => {
-  const arr = Array.isArray(res)
-    ? res
-    : res &&
-        typeof res === "object" &&
-        Array.isArray((res as { data?: AnyList }).data)
-      ? (res as { data: AnyList }).data
-      : [];
-  return arr.map((it) => mapGameListItem(it as GameListItemWire));
-};
-
 // Single SSR backend call for the only section the homepage renders (hot
 // games). Baked into the HTML payload so SPA navigations back to `/` rehydrate
 // without a refetch.
-const api = useApi();
+const catalog = useGameCatalogStore();
 
 // Fetches are kicked off WITHOUT await here so they run concurrently; a single
 // `await Promise.all([...])` after the mini-games block (below) blocks SSR until
@@ -256,12 +234,12 @@ const api = useApi();
 const hotGamesAsync = useAsyncData<AnyList>(
   "home-hot-games",
   async () => {
-    const res = await api<RemoteResponse>("/games", {
-      query: { gameType: "slot", category: "hot", page: 1, limit: 48 },
-    }).catch(() => null as unknown as RemoteResponse);
+    const res = await catalog.loadGames({
+      gameType: "slot", category: "hot", page: 1, limit: 48,
+    }).catch(() => ({ games: [] }));
     // Drop fields the UI never reads (e.g. game_name_ko) before they're baked
     // into the SSR payload. See utils/strip-game-payload.ts.
-    return stripGamePayload(unwrap(res));
+    return stripGamePayload(res.games);
   },
   { default: (): AnyList => [], server: false },
 );
@@ -282,28 +260,11 @@ interface LobbyCard {
   bgImage: string;
   frameImage?: string;
 }
-type LobbyApiResponse =
-  GameLobbyWire[] | { data?: GameLobbyWire[] } | null | undefined;
-
-const unwrapLobbies = (res: LobbyApiResponse): NormalizedLobby[] => {
-  const arr = Array.isArray(res)
-    ? res
-    : res && typeof res === "object" && Array.isArray(res.data)
-      ? res.data
-      : [];
-  return arr.map((it) => mapGameLobby(it as GameLobbyWire));
-};
-
 // One fetcher for the three identical lobby reads (only `game_type` differs).
 const fetchLobbies = (key: string, gameType: string) =>
   useAsyncData<NormalizedLobby[]>(
     key,
-    async () => {
-      const res = await api<LobbyApiResponse>("/games/lobbies", {
-        query: { gameType },
-      }).catch(() => null);
-      return unwrapLobbies(res);
-    },
+    () => catalog.loadLobbies(gameType).catch(() => []),
     { default: () => [] as NormalizedLobby[], server: false },
   );
 
@@ -325,21 +286,16 @@ const { data: slotLobbiesData, pending: slotLobbiesPending } = slotLobbiesAsync;
 const miniGamesAsync = useAsyncData<AnyList>(
   "home-mini-games",
   async () => {
-    const lobbies = unwrapLobbies(
-      await api<LobbyApiResponse>("/games/lobbies", {
-        query: { gameType: "mini" },
-      }).catch(() => null),
-    );
+    const lobbies = await catalog.loadLobbies("mini").catch(() => []);
     if (lobbies.length === 0) return [];
     const gamesResults = await Promise.all(
       lobbies.map((lobby) =>
-        api<RemoteResponse>("/games", {
-          query: { lobby: lobby.game_name, page: 1, limit: 50 },
-        }).catch(() => null as unknown as RemoteResponse),
+        catalog.loadGames({ lobby: lobby.game_name ?? "", page: 1, limit: 50 })
+          .catch(() => ({ games: [] })),
       ),
     );
     const flat: AnyList = [];
-    for (const res of gamesResults) flat.push(...unwrap(res));
+    for (const res of gamesResults) flat.push(...res.games);
     // Drop fields the UI never reads (e.g. game_name_ko) before they're baked
     // into the SSR payload. See utils/strip-game-payload.ts.
     return stripGamePayload(flat);

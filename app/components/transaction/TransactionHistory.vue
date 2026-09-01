@@ -27,7 +27,7 @@
     </div>
 
     <!-- Table -->
-    <AppTable :columns="columns" :rows="transactions" :empty-text="t(`${type}.history.noData`)">
+    <AppTable :columns="columns" :rows="transactions as unknown as Record<string, unknown>[]" :empty-text="t(`${type}.history.noData`)">
       <template #row="{ row }">
         <td><TableDateCell :value="String(row.updated_at ?? '')" /></td>
         <td>{{ formatNumber(parseFloat(String(row.amount ?? '0'))) }}</td>
@@ -42,15 +42,8 @@
 </template>
 
 <script setup lang="ts">
-import { useApi } from "@/composables/useApi";
 import type { StatusTone } from "~/components/StatusBadge.vue";
 import { formatNumberID as formatNumber } from "~/lib/formatter";
-import { validateResponse } from "@/lib/validateResponse";
-import {
-  walletTransactionsResponseSchema,
-  mapWalletTransaction,
-  type WalletTransaction as ITransactionHistory,
-} from "@/interfaces/transaction.interface";
 
 const props = defineProps<{
   type: "deposit" | "withdrawal";
@@ -62,7 +55,7 @@ const { t } = useI18n();
 const siteConfig = useSiteConfig();
 const accentColor = computed(() => siteConfig.theme.transactionmodal.accentColor);
 
-const transactions = ref<ITransactionHistory[]>([]);
+const recordsStore = useMemberRecordsStore();
 
 /** Header labels, in column order — the `row` slot emits cells to match. */
 const columns = computed(() => [
@@ -133,30 +126,15 @@ function calculateDateRange(): { start_date: string; end_date: string } {
 
 async function fetchTransactions() {
   const { start_date, end_date } = calculateDateRange();
-
-  try {
-    const params = new URLSearchParams({
-      startDate: start_date,
-      endDate: end_date,
-    });
-    if (props.method) {
-      params.append("method", props.method);
-    }
-
-    const api = useApi();
-    const raw = await api(
-      `/transactions/wallet/${props.type}?${params.toString()}`,
-    );
-    transactions.value = validateResponse(
-      walletTransactionsResponseSchema,
-      raw,
-      "/transactions/wallet",
-    ).map(mapWalletTransaction);
-  } catch (error) {
-    console.error(`Failed to fetch ${props.type} history:`, error);
-    transactions.value = [];
-  }
+  await recordsStore.loadWalletTransactions({ type: props.type, startDate: start_date, endDate: end_date, method: props.method });
 }
+
+const transactionKey = computed(() => {
+  const { start_date, end_date } = calculateDateRange();
+  const params = { type: props.type, startDate: start_date, endDate: end_date, method: props.method };
+  return `wallet:${Object.entries(params).filter(([, value]) => value !== undefined && value !== "").sort(([a], [b]) => a.localeCompare(b)).map(([name, value]) => `${name}=${encodeURIComponent(String(value))}`).join("&")}`;
+});
+const transactions = computed(() => recordsStore.walletTransactions[transactionKey.value]?.data ?? []);
 
 onMounted(() => {
   fetchTransactions();

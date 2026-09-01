@@ -21,6 +21,7 @@ export const useUiStore = defineStore("ui", () => {
   const showWithdrawalModal = ref(false);
   // Point-conversion modal (opened from the header point icon).
   const showPointModal = ref(false);
+  const accountSection = ref<string | null>(null);
   const hasUnreadInquiries = ref(false);
   /** Total unread inquiry replies, for the sidebar badge. */
   const unreadInquiryCount = ref(0);
@@ -105,6 +106,7 @@ export const useUiStore = defineStore("ui", () => {
   const setShowPointModal = (open: boolean) => {
     showPointModal.value = open;
   };
+  const setAccountSection = (section: string | null) => { accountSection.value = section; };
 
   const setHasUnreadInquiries = (hasUnread: boolean, count = 0) => {
     hasUnreadInquiries.value = hasUnread;
@@ -237,6 +239,7 @@ export const useUiStore = defineStore("ui", () => {
     showDepositModal,
     showWithdrawalModal,
     showPointModal,
+    accountSection,
     hasUnreadInquiries,
     unreadInquiryCount,
     showNoticeModal,
@@ -259,6 +262,7 @@ export const useUiStore = defineStore("ui", () => {
     setShowDepositModal,
     setShowWithdrawalModal,
     setShowPointModal,
+    setAccountSection,
     setHasUnreadInquiries,
     setShowNoticeModal,
     markNoticeAgreed,

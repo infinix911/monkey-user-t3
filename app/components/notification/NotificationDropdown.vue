@@ -152,7 +152,6 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from "vue";
-import { useApi } from "@/composables/useApi";
 
 export interface Notification {
   id: number;
@@ -179,9 +178,7 @@ const props = withDefaults(defineProps<Props>(), {
   notifications: () => [],
   triggerClass: "",
 });
-const emit = defineEmits<{
-  markedAllRead: [];
-}>();
+const { markNotificationsRead } = useNotifications();
 
 const { t } = useI18n();
 
@@ -299,9 +296,7 @@ const handleMarkAllAsRead = async () => {
     return;
   isMarkingAllRead.value = true;
   try {
-    const api = useApi();
-    await api("/notifications/read-all", { method: "PATCH" });
-    emit("markedAllRead");
+    await markNotificationsRead();
   } catch (error) {
     console.error("Failed to mark all as read:", error);
   } finally {

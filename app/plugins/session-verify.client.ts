@@ -33,12 +33,13 @@ export default defineNuxtPlugin(() => {
     // Currency is supplied by tenant config. Wait only for its bounded
     // foreground attempt; fallback config releases this immediately on errors.
     await waitForBootstrap();
-    if (!authStore.isAuthenticated) {
-      try {
-        await authStore.verifyUser();
-      } catch {
-        // No valid session — stay anonymous
-      }
+    try {
+      if (!authStore.isAuthenticated) await authStore.verifyUser();
+    } catch {
+      // No valid session — stay anonymous
+    } finally {
+      // Release member-aware shared fetches even when the probe fails.
+      authStore.setSessionReady();
     }
 
     if (authStore.isAuthenticated) {

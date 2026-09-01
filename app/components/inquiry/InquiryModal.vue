@@ -58,10 +58,10 @@
           <!-- Body -->
           <div class="tm-scroll min-h-0 flex-1 overflow-y-auto p-4">
             <InquiryContent
-              :inquiry-data="inquiryData"
+              :inquiry-data="inquiry.data.value"
               :on-refresh="handleRefresh"
               :on-page-change="handlePageChange"
-              :current-page="currentPage"
+              :current-page="inquiry.page.value"
             />
           </div>
         </div>
@@ -71,15 +71,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
-import { useApi } from "@/composables/useApi";
-import { getDateRangeLastNDays } from "~/lib/date";
-import { validateResponse } from "@/lib/validateResponse";
-import {
-  inquiriesResponseWireSchema,
-  mapInquiriesResponse,
-  type InquiriesResponse,
-} from "@/interfaces/inquiry.interface";
+import { computed, watch } from "vue";
+import { useInquiryFeed } from "@/composables/useInquiryFeed";
 
 interface Props {
   isOpen: boolean;
@@ -119,35 +112,7 @@ const panelStyle = {
  */
 const title = computed(() => menu.labelForId("inquiry"));
 
-const INQUIRY_DATE_RANGE = 30;
-const INQUIRY_LIMIT = 10;
-
-const inquiryData = ref<InquiriesResponse | null>(null);
-const currentPage = ref(1);
-
-const fetchInquiryData = async (page: number = 1) => {
-  try {
-    const { startDate, endDate } = getDateRangeLastNDays(INQUIRY_DATE_RANGE);
-    const api = useApi();
-    const raw = await api("/inquiries", {
-      query: { page, limit: INQUIRY_LIMIT, startDate, endDate },
-    });
-    const data = mapInquiriesResponse(
-      validateResponse(inquiriesResponseWireSchema, raw, "/inquiries"),
-    );
-
-    inquiryData.value = data;
-    currentPage.value = page;
-
-    // Update unread status
-    const hasUnread = data.data.some(
-      (inquiry) => inquiry.member_unread > 0,
-    );
-    uiStore.setHasUnreadInquiries(hasUnread);
-  } catch (error) {
-    console.error("Error fetching inquiries:", error);
-  }
-};
+const inquiry = useInquiryFeed();
 
 // Fetch data when the modal opens.
 //
@@ -159,8 +124,8 @@ const fetchInquiryData = async (page: number = 1) => {
 watch(
   () => props.isOpen,
   async (open) => {
-    if (open && !inquiryData.value) {
-      await fetchInquiryData(1);
+    if (open && !inquiry.data.value) {
+      await inquiry.load(1);
     }
   },
   { immediate: true },
@@ -172,16 +137,15 @@ const handleCloseClick = async () => {
     return;
   }
   emit("close");
-  inquiryData.value = null;
-  currentPage.value = 1;
+  inquiry.reset();
 };
 
 const handlePageChange = async (page: number) => {
-  await fetchInquiryData(page);
+  await inquiry.load(page);
 };
 
 const handleRefresh = async () => {
-  await fetchInquiryData(currentPage.value);
+  await inquiry.refresh();
 };
 </script>
 

@@ -13,12 +13,8 @@
 
 import axiosClient from "~/lib/axios-client";
 import { showSuccessAlert, showErrorAlert } from "~~/utils/swal-alert";
-import { validateResponse } from "@/lib/validateResponse";
-import {
-  inquiryRepliesResponseWireSchema,
-  mapRepliesResponse,
-  type RepliesResponse,
-} from "~/interfaces/inquiry.interface";
+import type { RepliesResponse } from "~/interfaces/inquiry.interface";
+import { useMemberInboxStore } from "~/stores/member-inbox";
 
 
 // The per-operation TRANSLATABLE_ERRORS allowlists were removed: apiMessage()
@@ -31,7 +27,18 @@ import {
 export const useInquiryMutations = (onRefresh?: () => Promise<void>) => {
   const { t } = useI18n();
   const apiMessage = useApiMessage();
-  const router = useRouter();
+  const inbox = useMemberInboxStore();
+
+  /** Invalidate every derived inbox view before reloading the active feed. */
+  const refreshInbox = async () => {
+    inbox.invalidateInquiries(false);
+    if (onRefresh) await onRefresh();
+    else await inbox.loadInquiries(1);
+    useUiStore().setHasUnreadInquiries(
+      inbox.hasUnreadInquiries,
+      inbox.unreadInquiryCount,
+    );
+  };
 
   /**
    * Create a new inquiry
@@ -53,12 +60,7 @@ export const useInquiryMutations = (onRefresh?: () => Promise<void>) => {
         apiMessage(token, "inquiry", "inquiry.inquirySent"),
       );
 
-      // Refresh inquiry data
-      if (onRefresh) {
-        await onRefresh();
-      } else {
-        router.go(0);
-      }
+      await refreshInbox();
     } catch (error: unknown) {
       const translatedMessage = apiMessage(error, "inquiry");
 
@@ -88,12 +90,7 @@ export const useInquiryMutations = (onRefresh?: () => Promise<void>) => {
 
       await showSuccessAlert(t("inquiry.success"), successMessage);
 
-      // Refresh inquiry data
-      if (onRefresh) {
-        await onRefresh();
-      } else {
-        router.go(0);
-      }
+      await refreshInbox();
     } catch (error: unknown) {
       const translatedMessage = apiMessage(error, "inquiry");
 
@@ -125,14 +122,7 @@ export const useInquiryMutations = (onRefresh?: () => Promise<void>) => {
 
       await showSuccessAlert(t("inquiry.success"), successMessage);
 
-      // Refresh inquiry data in-place when a refresh callback is available
-      // (e.g. inside NewProfileModal) — a full router.go(0) reload would
-      // close the modal. Fall back to a reload only when no callback exists.
-      if (onRefresh) {
-        await onRefresh();
-      } else {
-        router.go(0);
-      }
+      await refreshInbox();
     } catch (error: unknown) {
       const translatedMessage = apiMessage(error, "inquiry");
 
@@ -164,7 +154,7 @@ export const useInquiryMutations = (onRefresh?: () => Promise<void>) => {
       // tear down whatever modal the button was pressed from (this is called
       // from the deposit modal), so only fall back to it when there's nothing
       // to refresh.
-      if (onRefresh) await onRefresh();
+      await refreshInbox();
     } catch (error: unknown) {
       const translatedMessage = apiMessage(error, "inquiry");
 
@@ -189,12 +179,7 @@ export const useInquiryMutations = (onRefresh?: () => Promise<void>) => {
 
       await showSuccessAlert(t("inquiry.success"), successMessage);
 
-      // Refresh inquiry data
-      if (onRefresh) {
-        await onRefresh();
-      } else {
-        router.go(0);
-      }
+      await refreshInbox();
     } catch (error: unknown) {
       const translatedMessage = apiMessage(error, "inquiry");
 
@@ -216,21 +201,8 @@ export const useInquiryMutations = (onRefresh?: () => Promise<void>) => {
 
     try {
       await axiosClient.post(`/inquiries/${inquiryId}/reply`, { message });
-
-      // Reload replies to show the new one
-      const params = new URLSearchParams({ limit: "20" });
-      const raw = (
-        await axiosClient.get(
-          `/inquiries/${inquiryId}/replies?${params.toString()}`,
-        )
-      ).data;
-      return mapRepliesResponse(
-        validateResponse(
-          inquiryRepliesResponseWireSchema,
-          raw,
-          "/inquiries/replies",
-        ),
-      );
+      await refreshInbox();
+      return inbox.loadReplies(inquiryId, true);
     } catch (error: unknown) {
       const translatedMessage = apiMessage(error, "inquiry");
 
@@ -246,19 +218,7 @@ export const useInquiryMutations = (onRefresh?: () => Promise<void>) => {
     inquiryId: string,
   ): Promise<RepliesResponse | null> => {
     try {
-      const params = new URLSearchParams({ limit: "20" });
-      const raw = (
-        await axiosClient.get(
-        `/inquiries/${inquiryId}/replies?${params.toString()}`,
-        )
-      ).data;
-      return mapRepliesResponse(
-        validateResponse(
-          inquiryRepliesResponseWireSchema,
-          raw,
-          "/inquiries/replies",
-        ),
-      );
+      return await inbox.loadReplies(inquiryId);
     } catch (error: unknown) {
       // Was apiErrorMessageOr(), which returns the RAW backend message and a
       // hardcoded English fallback. Every other path in this file already
@@ -276,12 +236,7 @@ export const useInquiryMutations = (onRefresh?: () => Promise<void>) => {
     try {
       await axiosClient.patch(`/inquiries/${inquiryId}/read`, {});
 
-      // Refresh inquiry data silently
-      if (onRefresh) {
-        await onRefresh();
-      } else {
-        router.go(0);
-      }
+      await refreshInbox();
     } catch (error: unknown) {
       // Silent fail — just log the error
       console.error("Failed to mark inquiry as read:", error);

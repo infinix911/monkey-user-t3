@@ -1,6 +1,12 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 
+export interface CustomScriptEntry {
+  id: number;
+  title: string;
+  script: string;
+}
+
 /**
  * Site-data store — bank accounts, site settings and pool status fetched from
  * the backend. Split out of the former monolithic `app` store. Cleared on
@@ -40,6 +46,10 @@ export const useSiteStore = defineStore("site", () => {
   const bankAccounts = ref<BankAccount[]>([]);
   const siteSettings = ref<SiteSettings | null>(null);
   const poolData = ref<PoolStatus[]>([]);
+  /** Public CMS scripts, fetched once per app session. `loaded` distinguishes
+   * an empty successful response from a not-yet-fetched one. */
+  const customScripts = ref<CustomScriptEntry[]>([]);
+  const customScriptsLoaded = ref(false);
 
   const setBankAccounts = (accounts: BankAccount[]) => {
     bankAccounts.value = accounts;
@@ -53,6 +63,11 @@ export const useSiteStore = defineStore("site", () => {
     poolData.value = data;
   };
 
+  const setCustomScripts = (scripts: CustomScriptEntry[]) => {
+    customScripts.value = scripts;
+    customScriptsLoaded.value = true;
+  };
+
   /** Reset all site data — called from useAuthStore.logout(). */
   const clear = () => {
     bankAccounts.value = [];
@@ -63,9 +78,12 @@ export const useSiteStore = defineStore("site", () => {
     bankAccounts,
     siteSettings,
     poolData,
+    customScripts,
+    customScriptsLoaded,
     setBankAccounts,
     setSiteSettings,
     setPoolData,
+    setCustomScripts,
     clear,
   };
 });

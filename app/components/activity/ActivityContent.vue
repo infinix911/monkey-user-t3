@@ -157,14 +157,7 @@ xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 2
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
-import { useApi } from "@/composables/useApi";
 import type { StatusTone } from "~/components/StatusBadge.vue";
-import { validateResponse } from "@/lib/validateResponse";
-import {
-  activityResponseWireSchema,
-  mapActivityResponse,
-  type ActivityRow,
-} from "@/interfaces/transaction.interface";
 import { useSiteConfig } from "~/composables/useSiteConfig";
 
 defineOptions({
@@ -241,11 +234,14 @@ function transactionLabel(value: unknown): string {
   return te(key) ? t(key) : raw;
 }
 const activeTab = ref<ActivityCategory>("all");
-const loading = ref(false);
-const rawData = ref<ActivityRow[]>([]);
 const currentPage = ref(1);
-const totalPages = ref(0);
-const totalRows = ref(0);
+const recordsStore = useMemberRecordsStore();
+const activityKey = computed(() => `activity:category=${activeTab.value}&limit=${PAGE_SIZE}&page=${currentPage.value}`);
+const activityEntry = computed(() => recordsStore.activities[activityKey.value]);
+const loading = computed(() => !activityEntry.value || activityEntry.value.status === "loading");
+const rawData = computed(() => activityEntry.value?.data?.data ?? []);
+const totalPages = computed(() => activityEntry.value?.data?.pages ?? 0);
+const totalRows = computed(() => activityEntry.value?.data?.rows ?? 0);
 
 const activeColumns = computed(() =>
   activeTab.value === "transaction" || activeTab.value === "all"
@@ -348,31 +344,9 @@ const tableData = computed(() => {
 });
 
 const fetchActivity = async (category: ActivityCategory, page: number) => {
-  loading.value = true;
-  try {
-    const api = useApi();
-    const raw = await api(`/transactions/activity/${category}`, {
-      query: { page, limit: PAGE_SIZE },
-    });
-    const payload = mapActivityResponse(
-      validateResponse(
-        activityResponseWireSchema,
-        raw,
-        "/transactions/activity",
-      ),
-    );
-    rawData.value = payload.data;
-    totalPages.value = payload.pages;
-    totalRows.value = payload.rows;
-    currentPage.value = page;
-  } catch (err) {
-    console.error(`Failed to fetch activity for ${category}:`, err);
-    rawData.value = [];
-    totalPages.value = 0;
-    totalRows.value = 0;
-  } finally {
-    loading.value = false;
-  }
+  activeTab.value = category;
+  currentPage.value = page;
+  await recordsStore.loadActivity({ category, page, limit: PAGE_SIZE });
 };
 
 const setTab = (id: ActivityCategory) => {

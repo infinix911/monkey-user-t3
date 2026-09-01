@@ -6,7 +6,7 @@
   <div class="pt-2 h-full flex flex-col min-h-0">
     <!-- Table Section: flex-1 + min-h-0 makes this the single scroll region. -->
     <AppTable
-      :columns="columns" :rows="ledgerData" :loading="loading"
+      :columns="columns" :rows="ledgerData as unknown as Record<string, unknown>[]" :loading="loading"
       :loading-text="$t('common.loadingTransactions')" :empty-text="$t('common.noTransactionsFound')"
       class="mb-4">
       <template #row="{ row }">
@@ -40,13 +40,6 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
-import { useApi } from "@/composables/useApi";
-import { validateResponse } from "@/lib/validateResponse";
-import {
-  logsResponseWireSchema,
-  mapLogsResponse,
-  type ILedgerItem,
-} from "@/interfaces/ledger";
 
 const { t, te } = useI18n();
 
@@ -78,10 +71,13 @@ const columns = computed(() => [
 ]);
 
 const PAGE_SIZE = 50;
-const loading = ref(false);
 const currentPage = ref(1);
-const totalPages = ref(0);
-const ledgerData = ref<ILedgerItem[]>([]);
+const recordsStore = useMemberRecordsStore();
+const ledgerKey = computed(() => `logs:limit=${PAGE_SIZE}&page=${currentPage.value}`);
+const ledgerEntry = computed(() => recordsStore.transactionLogs[ledgerKey.value]);
+const loading = computed(() => ledgerEntry.value?.status === "loading");
+const totalPages = computed(() => ledgerEntry.value?.data?.pages ?? 0);
+const ledgerData = computed(() => ledgerEntry.value?.data?.data ?? []);
 
 function formatAmount(value: string | null | undefined): string {
   if (value == null) return "0";
@@ -91,26 +87,8 @@ function formatAmount(value: string | null | undefined): string {
 }
 
 async function fetchLedger(page: number) {
-  loading.value = true;
-  try {
-    const api = useApi();
-    // useApi prepends the base (`/api` on the client) → /api/transactions/logs.
-    // Backend returns { data, meta } (camelCase); normalize to { pages, rows, data }.
-    const raw = await api("/transactions/logs", {
-      query: { page, limit: PAGE_SIZE },
-    });
-    const result = mapLogsResponse(
-      validateResponse(logsResponseWireSchema, raw, "/transactions/logs"),
-    );
-    ledgerData.value = result.data;
-    totalPages.value = result.pages;
-    currentPage.value = page;
-  } catch (err) {
-    console.error("Failed to fetch ledger:", err);
-    ledgerData.value = [];
-  } finally {
-    loading.value = false;
-  }
+  currentPage.value = page;
+  await recordsStore.loadTransactionLogs({ page, limit: PAGE_SIZE });
 }
 
 function goToPage(page: number) {

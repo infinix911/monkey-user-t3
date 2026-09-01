@@ -55,22 +55,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
-import { useApi } from "@/composables/useApi";
 import { showAutoAlert } from "~~/utils/swal-alert";
-import { validateResponse } from "@/lib/validateResponse";
-import {
-  referralsResponseSchema,
-  mapReferral,
-  type Referral as IReferral,
-} from "@/interfaces/auth.interface";
 
 const { t } = useI18n();
 const authStore = useAuthStore();
 
-const referrals = ref<IReferral[]>([]);
-const loading = ref(true);
+const recordsStore = useMemberRecordsStore();
+const referrals = computed(() => recordsStore.referrals.data ?? []);
+const loading = computed(() => recordsStore.referrals.status === "idle" || recordsStore.referrals.status === "loading");
 
 /** Header labels, in column order — the `row` slot emits cells to match. */
 const columns = computed(() => [
@@ -93,19 +87,5 @@ function handleCopy() {
   }
 }
 
-onMounted(async () => {
-  try {
-    const api = useApi();
-    const raw = await api("/auth/referrals");
-    referrals.value = validateResponse(
-      referralsResponseSchema,
-      raw,
-      "/auth/referrals",
-    ).map(mapReferral);
-  } catch (err) {
-    console.error("Failed to fetch referrals:", err);
-  } finally {
-    loading.value = false;
-  }
-});
+onMounted(() => recordsStore.loadReferrals());
 </script>

@@ -14,6 +14,7 @@
  */
 
 import type { Component } from "vue";
+import { storeToRefs } from "pinia";
 import Referral from "~/components/my-account/Referral.vue";
 import BettingReport from "~/components/my-account/BettingReport.vue";
 import LoginHistory from "~/components/my-account/LoginHistory.vue";
@@ -66,7 +67,8 @@ export function isAccountSection(id: string): boolean {
  * @returns {object} The current section, its component, and open/close actions.
  */
 export function useAccountSection() {
-  const section = useState<AccountSection>("account-section", () => null);
+  const uiStore = useUiStore();
+  const { accountSection: section } = storeToRefs(uiStore);
 
   /** The panel component for the current section, or `null` when none/unknown. */
   const component = computed<Component | null>(() => {
@@ -85,7 +87,7 @@ export function useAccountSection() {
    * @returns {void}
    */
   function open(id: string): void {
-    if (isAccountSection(id)) section.value = id;
+    if (isAccountSection(id)) uiStore.setAccountSection(id);
   }
 
   /**
@@ -94,7 +96,7 @@ export function useAccountSection() {
    * @returns {void}
    */
   function close(): void {
-    section.value = null;
+    uiStore.setAccountSection(null);
   }
 
   return { section, component, open, close };

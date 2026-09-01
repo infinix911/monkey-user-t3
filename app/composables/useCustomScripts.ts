@@ -22,14 +22,9 @@
  */
 
 import { getApiBase } from "@/lib/domain";
+import { useSiteStore, type CustomScriptEntry } from "@/stores/site";
 import { escapeInlineScript } from "~~/shared/utils/secure-serialization";
 import type { ResolvableScript } from "@unhead/vue";
-
-export interface CustomScriptEntry {
-  id: number;
-  title: string;
-  script: string;
-}
 
 /**
  * Splits a raw HTML payload into the JS that should run. Pulls inner JS out
@@ -60,8 +55,8 @@ function extractScriptBodies(raw: string): string[] {
 
 /** Fetches the raw payload — call from useAsyncData in app.vue. */
 export async function fetchCustomScripts(): Promise<CustomScriptEntry[]> {
-  const cached = useState<CustomScriptEntry[]>("customScripts", () => []);
-  if (cached.value && cached.value.length) return cached.value;
+  const siteStore = useSiteStore();
+  if (siteStore.customScriptsLoaded) return siteStore.customScripts;
 
   const apiBase = getApiBase();
   try {
@@ -72,23 +67,26 @@ export async function fetchCustomScripts(): Promise<CustomScriptEntry[]> {
     const list = Array.isArray(res)
       ? res
       : ((res as { data?: CustomScriptEntry[] })?.data ?? []);
-    cached.value = Array.isArray(list) ? list : [];
-    return cached.value;
+    siteStore.setCustomScripts(Array.isArray(list) ? list : []);
+    return siteStore.customScripts;
   } catch (err) {
     console.error("[customScripts] fetch failed:", err);
+    // A failed CMS request is still settled; without this app navigation would
+    // retry indefinitely and duplicate error noise.
+    siteStore.setCustomScripts([]);
     return [];
   }
 }
 
 /** Reactive consumer — returns Unhead-ready script entries. */
 export function useCustomScripts() {
-  const cached = useState<CustomScriptEntry[]>("customScripts", () => []);
+  const siteStore = useSiteStore();
 
   const tags = computed<{ script: ResolvableScript[] }>(() => {
     const out: { script: ResolvableScript[] } = { script: [] };
-    if (!Array.isArray(cached.value)) return out;
+    if (!Array.isArray(siteStore.customScripts)) return out;
 
-    for (const entry of cached.value) {
+    for (const entry of siteStore.customScripts) {
       if (!entry || !entry.script) continue;
       const bodies = extractScriptBodies(entry.script);
       for (const body of bodies) {
