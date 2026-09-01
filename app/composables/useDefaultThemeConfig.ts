@@ -7,12 +7,11 @@
  * controls, where it appears in the UI, and the value format. The 6 top-level
  * groups map 1:1 to CMS tabs:
  *
- *   identity     → "Identity"     site name, slug, logos, favicon, description
+ *   identity     → "Identity"     site name, document title, slug, logos, favicon, description
  *   theme        → "Theme"        colors / gradients / layout tokens
  *   assets       → "Assets"       images, nav icons, homepage art, transaction, pwa
  *   contact      → "Contact"      channel icons + handles
  *   integrations → "Integrations" tawk.to (+ future widgets)
- *   seo          → "SEO"          general / social / robot / meta / canonical / pageTitles
  */
 
 /** A CSS inline-style map (camelCase or kebab-case keys → CSS value strings). */
@@ -24,8 +23,13 @@ type CssStyleMap = Record<string, string>;
 
 /** Brand identity: name, slug, logos, favicon, and description. */
 export interface IdentityConfig {
-    /** Brand display name. Used in headers, titles, og/twitter tags, SEO. Plain text. */
+    /** Brand display name. Used in headers and as the document-title fallback. Plain text. */
     siteName: string;
+    /**
+     * Document `<title>` — browser tab, bookmarks, task switcher. Falls back to
+     * `siteName` when empty. Plain text.
+     */
+    documentTitle: string;
     /** Internal brand slug (e.g. "ocean"). Selects backend asset buckets/paths. Lowercase string. */
     slug: string;
     /** Primary brand logo. Header, modals, share image fallback. Public asset path or absolute URL. */
@@ -34,9 +38,9 @@ export interface IdentityConfig {
     logoMobile: string;
     /** Logo shown inside popups/announcement modals. Public asset path or absolute URL. */
     logoPopup: string;
-    /** Marketing description. Feeds default meta/SEO description text. Plain text. */
+    /** Marketing description. CMS copy; no reader in the app today. Plain text. */
     description: string;
-    /** Canonical favicon (browser tab icon). Mirrored into seo.general.favicon. Public asset path or absolute URL. */
+    /** Favicon (browser tab icon). Public asset path or absolute URL. */
     favicon: string;
 }
 
@@ -843,114 +847,6 @@ export interface IntegrationsConfig {
 }
 
 // ───────────────────────────────────────────────────────────────────────────
-// seo
-// ───────────────────────────────────────────────────────────────────────────
-
-/** General SEO/organization metadata. */
-export interface SeoGeneralConfig {
-    /** Canonical site URL. Absolute URL (may be empty until configured). */
-    siteUrl: string;
-    /** Site name for structured data / titles. Plain text. */
-    siteName: string;
-    /** Author name for structured data. Plain text. */
-    authorName: string;
-    /** Organization name for structured data. Plain text. */
-    organizationName: string;
-    /** schema.org organization type. String (e.g. "Company"). */
-    organizationType: string;
-    /** Favicon (mirrors identity.favicon). Public asset path or absolute URL. */
-    favicon: string;
-}
-
-/** Custom per-page SEO snippets. */
-export interface SeoCustomSeoConfig {
-    /** Default SEO footer HTML/text. Empty = none. HTML/plain text string. */
-    footer: string;
-}
-
-/** Social (Open Graph / Twitter) share metadata. */
-export interface SeoSocialConfig {
-    /** Default Open Graph title. Plain text. */
-    defaultOgTitle: string;
-    /** Twitter card type. String (e.g. "summary_large_image"). */
-    twitterCardType: string;
-    /** Default Twitter title. Plain text. */
-    defaultTwitterTitle: string;
-    /** Default Open Graph share image. Public asset path or absolute URL. */
-    defaultOgImage: string;
-    /** Default Open Graph description. Plain text. */
-    defaultOgDescription: string;
-    /** Default Twitter description. Plain text. */
-    defaultTwitterDescription: string;
-    /** Default Twitter share image. Public asset path or absolute URL. */
-    defaultTwitterImage: string;
-    /** Open Graph image width. px number. */
-    defaultOgImageWidth: number;
-    /** Open Graph image height. px number. */
-    defaultOgImageHeight: number;
-    /** Open Graph image type. String (e.g. "WEBP"). */
-    defaultOgImageType: string;
-    /** Twitter image width. px number. */
-    defaultTwitterImageWidth: number;
-    /** Twitter image height. px number. */
-    defaultTwitterImageHeight: number;
-    /** Twitter image type. String (e.g. "WEBP"). */
-    defaultTwitterImageType: string;
-}
-
-/** Robots crawl directives. */
-export interface SeoRobotConfig {
-    /** Default index directive. Boolean. */
-    defaultIndex: boolean;
-    /** Default follow directive. Boolean. */
-    defaultFollow: boolean;
-    /** noimageindex directive. Boolean. */
-    noimageindex: boolean;
-    /** nosnippet directive. Boolean. */
-    nosnippet: boolean;
-    /** max-snippet value. String (empty = unset). */
-    maxSnippet: string;
-}
-
-/** Default meta tags. */
-export interface SeoMetaConfig {
-    /** Default meta keywords. Comma-separated string. */
-    defaultMetaKeywords: string;
-    /** Default meta title. Plain text. */
-    defaultMetaTitle: string;
-    /** Default meta description. Plain text. */
-    defaultMetaDescription: string;
-}
-
-/** Canonical meta block injected on every page. */
-export interface SeoCanonicalMetaConfig {
-    /** Fixed canonical meta name→content map. Record of string→string. */
-    SEO_CANONICAL_META: Record<string, string>;
-}
-
-/** SEO configuration (the "SEO" CMS tab). */
-export interface SeoConfig {
-    /** General SEO/organization metadata. */
-    general: SeoGeneralConfig;
-    /** Custom per-page SEO snippets. */
-    customSeo: SeoCustomSeoConfig;
-    /**
-     * Custom per-page SEO rows written by `lib/siteConfig.ts`.
-     * Populated by the admin CMS — empty by default.
-     * Array of API-defined row objects.
-     */
-    customSeoRows: Record<string, unknown>[];
-    /** Social (OG/Twitter) share metadata. */
-    social: SeoSocialConfig;
-    /** Robots crawl directives. */
-    robot: SeoRobotConfig;
-    /** Default meta tags. */
-    meta: SeoMetaConfig;
-    /** Canonical meta block. */
-    canonicalMeta: SeoCanonicalMetaConfig;
-}
-
-// ───────────────────────────────────────────────────────────────────────────
 // SiteConfig (root)
 // ───────────────────────────────────────────────────────────────────────────
 
@@ -976,6 +872,12 @@ export interface ContentConfig {
      * boundary, never here. Empty string means "render nothing".
      */
     depositRule: string;
+    /**
+     * Admin-authored footer HTML rendered at the bottom of every page by
+     * `layouts/default.vue`. Untrusted — sanitize at the render boundary.
+     * Empty string means "render nothing".
+     */
+    footer: string;
 }
 
 /** The full bundled site-config contract (7 CMS-tab-aligned groups). */
@@ -990,8 +892,6 @@ export interface SiteConfig {
     contact: ContactConfig;
     /** Third-party widget integrations. */
     integrations: IntegrationsConfig;
-    /** SEO configuration. */
-    seo: SeoConfig;
     /** CMS-authored copy (deposit rule). */
     content: ContentConfig;
 }
@@ -1098,6 +998,7 @@ export const getDefaultThemeConfig = (): SiteConfig => {
         // ───────────────────────────────────────────────────────────────────
         identity: {
             siteName,
+            documentTitle: `Play Online Casino Games, Slots & Live Dealer | ${siteName}`,
             slug: "ocean",
             logo: "/designs/logo/ocean.webp",
             logoMobile: "/designs/logo/ocean.webp",
@@ -1514,80 +1415,15 @@ export const getDefaultThemeConfig = (): SiteConfig => {
         },
 
         // ───────────────────────────────────────────────────────────────────
-        // seo — general / social / robot / meta / canonical / pageTitles
-        // ───────────────────────────────────────────────────────────────────
-        seo: {
-            general: {
-                siteUrl: "",
-                siteName,
-                authorName: "",
-                organizationName: "",
-                organizationType: "Company",
-                favicon: "/designs/logo/ocean-icon.png",
-            },
-            customSeo: {
-                // Default footer left empty — the copyright now lives in
-                // AppFooter. Per-page admin SEO footers (from the API) still
-                // render via the layout's customSeoFooter block when present.
-                footer: "",
-            },
-            // Populated by the admin CMS (via lib/siteConfig.ts) — empty by default.
-            customSeoRows: [] as Record<string, unknown>[],
-            social: {
-                defaultOgTitle: `${siteName} – Play Online Slots, Live Casino & Win Big Today`,
-                twitterCardType: "summary_large_image",
-                defaultTwitterTitle: `${siteName} – Play Online Slots, Live Casino & Win Big Today`,
-                defaultOgImage: "/designs/screenshots/ocean.webp",
-                defaultOgDescription: `Play top online casino games like slots and live dealers. Enjoy big jackpots, fast payouts, and secure gaming at ${siteName}.`,
-                defaultTwitterDescription: `Play top online casino games like slots and live dealers. Enjoy big jackpots, fast payouts, and secure gaming at ${siteName}.`,
-                defaultTwitterImage: "/designs/screenshots/ocean.webp",
-                defaultOgImageWidth: 1099,
-                defaultOgImageHeight: 535,
-                defaultOgImageType: "WEBP",
-                defaultTwitterImageWidth: 1099,
-                defaultTwitterImageHeight: 535,
-                defaultTwitterImageType: "WEBP",
-            },
-            robot: {
-                defaultIndex: true,
-                defaultFollow: true,
-                noimageindex: false,
-                nosnippet: false,
-                maxSnippet: "",
-            },
-            meta: {
-                defaultMetaKeywords:
-                    "online casino, ocean casino, online slots, live casino, casino jackpots, real money casino",
-                defaultMetaTitle: `Play Online Casino Games, Slots & Live Dealer | ${siteName}`,
-                defaultMetaDescription: `Play top online casino games like slots and live dealers. Enjoy big jackpots, fast payouts, and secure gaming at ${siteName}.`,
-            },
-            canonicalMeta: {
-                SEO_CANONICAL_META: {
-                    author: "karma",
-                    google: "notranslate",
-                    rating: "general",
-                    robots: "index, follow",
-                    "og:type": "website",
-                    language: "id-ID",
-                    googlebot: "index, follow",
-                    "og:locale": "id_ID",
-                    publisher: "karma",
-                    "geo.region": "ID-JK",
-                    "geo.country": "ID",
-                    distribution: "global",
-                    "geo.placename": "Jakarta",
-                    "og:locale:alternate": "en_US",
-                },
-            },
-        },
-
-        // ───────────────────────────────────────────────────────────────────
-        // content — CMS-authored copy (deposit rule)
+        // content — CMS-authored copy (deposit rule, footer)
         // ───────────────────────────────────────────────────────────────────
         content: {
             // Empty by default: the deposit modal renders nothing until an
             // admin publishes a rule on the CMS "Deposit Rule" page.
             depositRule: "",
+            // Empty by default — the copyright lives in AppFooter. A CMS-authored
+            // footer renders above it when the admin publishes one.
+            footer: "",
         },
     };
 };

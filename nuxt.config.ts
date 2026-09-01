@@ -295,10 +295,6 @@ export default defineNuxtConfig({
       meta: [
         { charset: "utf-8" },
         {
-          name: "description",
-          content: ``,
-        },
-        {
           name: "viewport",
           // maximum-scale=1 + user-scalable=no disables browser zoom, which also
           // stops iOS Safari's auto-zoom when focusing a <16px form input (the

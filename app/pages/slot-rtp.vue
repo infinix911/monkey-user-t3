@@ -379,8 +379,8 @@ const isLoading = computed(
   () => !gamesLoaded.value || gamesLoading.value || !providers.value.length,
 );
 
-useSeoHead({
-  title: t("navbar.rtp"),
+useHead({
+  title: () => `${t("navbar.rtp")} — ${siteConfig.identity.siteName}`,
 });
 </script>
 

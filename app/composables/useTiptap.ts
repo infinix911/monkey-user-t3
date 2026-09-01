@@ -158,7 +158,7 @@ export const renderTiptap = (data: TiptapInput): string => {
  * The deterministic sanitizer has no DOM dependency, so SSR and hydration
  * produce the same safe markup.
  *
- * Shared by `NoticeSection.vue` and the homepage SEO intro in `default.vue`.
+ * Shared by `NoticeSection.vue` and the CMS-authored copy in `default.vue`.
  */
 /**
  * Reassemble a string that was serialised as a character-indexed object.

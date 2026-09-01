@@ -15,12 +15,8 @@ definePageMeta({
   layout: "default",
 });
 
-useSeoHead({
-  title: t("home.seo.pageTitles.virtual"),
-  description: t("home.seo.pageDescriptions.virtual"),
+useHead({
+  title: () =>
+    `${t("home.seo.pageTitles.virtual")} — ${siteConfig.identity.siteName}`,
 });
-useBreadcrumbSchema([
-  { name: "Home", path: "/" },
-  { name: "Virtual", path: "/virtual" },
-]);
 </script>

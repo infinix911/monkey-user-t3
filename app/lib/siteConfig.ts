@@ -10,21 +10,6 @@
 
 import { useApi } from "@/composables/useApi";
 
-// Retained for client-side SEO helpers that consume CMS rows when supplied by
-// another source. SPA bootstrap intentionally does not fetch this endpoint.
-export interface CustomSeoEntry {
-  id: number;
-  domainName: string;
-  canonical: string;
-  googleVerificationSite?: string | null;
-  ampTag?: string | null;
-  ampPageRedirect?: string | null;
-  metaTitle?: string | null;
-  metaKeyword?: string | null;
-  metaDescription?: string | null;
-  footer?: unknown | null;
-}
-
 const CLIENT_CACHE_KEY_PREFIX = "themeConfig.v2";
 
 /**

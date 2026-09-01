@@ -54,7 +54,7 @@ monkey-user-t3/
 ├── Dockerfile                # ★ bun deps → bun build → node:22-alpine runtime
 ├── app/
 │   ├── app.vue               # ★★ SSR boot: awaits siteConfig+customScripts+siteSettings, locale=f(currency),
-│   │                         #   URL param handlers (telegram login/register, referral), SEO head, AppDialog mount
+│   │                         #   URL param handlers (telegram login/register, referral), document head, AppDialog mount
 │   ├── pages/                # 26 pages: index, hot, casino, slots, sports, fishing, virtual, mini, slot-rtp,
 │   │   │                     #   lobbies/[lobby]/games, [game_type]/[game_id] (CSR game launch), promotions,
 │   │   │                     #   activity, togel/{index,[id],history,invoice,aturan,hadiah,normor,meanang}
@@ -79,7 +79,7 @@ monkey-user-t3/
 ├── server/
 │   ├── routes/api/[...path].ts   # ★★ THE proxy: proxyRequest → NUXT_API_URL, cookieDomainRewrite "*"→"",
 │   │                             #   x-forwarded-host/proto, streams. /api/* namespace fully claimed
-│   ├── routes/{robots.txt,sitemap.xml}.ts  # dynamic; sitemap ALL_PAGES list is HAND-MAINTAINED
+│   ├── (robots.txt is a static public/ file; no sitemap — the SPA emits no crawler metadata)
 │   ├── middleware/           # alphabetical order MATTERS: anon-page-cache (serve) → auth-spa (bn.session ⇒
 │   │                         #   noSSR/SPA mode) → guard (GAME_ cookie gate + togel 404 on non-IDR) → locale-redirect
 │   ├── plugins/              # anon-page-cache (store), cache-bypass-authenticated (no-store for authed +
@@ -115,7 +115,7 @@ Browser ──HTTP──▶ Nitro (:3000)
 
 **Two render modes** (ADR-003): anonymous = full SSR (SEO); authenticated = SPA shell + client fetch. Never rely on SSR-only behavior for logged-in flows.
 
-**SSR boot (app.vue):** `Promise.all` of `useAsyncData("siteConfig")` (→ `fetchSiteConfig()` in `app/lib/siteConfig.ts`: `/site/config/theme` + `/site/custom-seo` in parallel, enforceHttps, hostname-filtered SEO rows, writes `useState('userPageConfig')`; failure ⇒ bundled fallback + **503** so edge caches never store degraded HTML), `"customScripts"` (raw admin `<script>` injection — trusted-admin model), `"siteSettings"` (→ Pinia site store), `"banners"` (→ `fetchBanners()` in `app/composables/useBanners.ts`: **every** active carousel banner in ONE call, `/site/banners-new/carousel?page=all` → Pinia `banner` store). Then locale = `ui_locale` cookie || `currencyToLocale(currency)` (THB→th, IDR→id, KRW→ko). Then URL param handlers (Telegram login/register, referral).
+**SSR boot (app.vue):** `Promise.all` of `useAsyncData("siteConfig")` (→ `fetchSiteConfig()` in `app/lib/siteConfig.ts`: `/site/config/theme` + `/site/custom-seo` in parallel, enforceHttps, hostname-filtered custom-seo footer rows, writes `useState('userPageConfig')`; failure ⇒ bundled fallback + **503** so edge caches never store degraded HTML), `"customScripts"` (raw admin `<script>` injection — trusted-admin model), `"siteSettings"` (→ Pinia site store), `"banners"` (→ `fetchBanners()` in `app/composables/useBanners.ts`: **every** active carousel banner in ONE call, `/site/banners-new/carousel?page=all` → Pinia `banner` store). Then locale = `ui_locale` cookie || `currencyToLocale(currency)` (THB→th, IDR→id, KRW→ko). Then URL param handlers (Telegram login/register, referral).
 
 ---
 
@@ -150,7 +150,7 @@ Browser ──HTTP──▶ Nitro (:3000)
 
 Resolution chain (verified, replaces the stale CLAUDE.md story):
 
-1. **Bundled base:** `getDefaultThemeConfig()` in `app/composables/useDefaultThemeConfig.ts` (1477L) — the full typed `SiteConfig` tree: `identity, theme, assets, contact, integrations, seo, content` (7 CMS tabs, ~45 sub-interfaces). `content` is CMS-authored *copy* rather than tokens/assets — currently `content.depositRule` (HTML, rendered in the deposit modal's bank card). See ADR-024.
+1. **Bundled base:** `getDefaultThemeConfig()` in `app/composables/useDefaultThemeConfig.ts` (1477L) — the full typed `SiteConfig` tree: `identity, theme, assets, contact, integrations, content` (6 CMS tabs, ~40 sub-interfaces). There is no `seo` group — see SEO-REMOVAL-PLAN.md. `content` is CMS-authored *copy* rather than tokens/assets — `content.depositRule` and `content.footer` (HTML, rendered in the deposit modal's bank card). See ADR-024.
 2. **CMS override:** `/site/config/theme` payload (hostname-scoped) in `useState('userPageConfig')`.
 3. **Merge:** `useSiteConfig()` = `deepMerge(base, override)` — exact-path override wins; `null`/`undefined` falls back to bundled (CMS cannot blank a field); wrong path = silently ignored. **NOT reactive** — returns a snapshot per call.
 4. Extra cache layers in `app/lib/siteConfig.ts`: server module-memo per hostname 5s TTL; client localStorage warm-start `themeConfig.v1`. Preview mode `?themePreview=1` bypasses all caches + live-updates via `theme-preview.client.ts` postMessage bridge (origin-allowlisted to `NUXT_PUBLIC_ADMIN_PREVIEW_ORIGIN`).
@@ -198,7 +198,7 @@ Money logic never lives in stores — mutations go through `useApi`/`axios-clien
 
 ## 10. Common Implementation Recipes
 
-**Add a public page:** `app/pages/<name>.vue` → `useApi()` + `useAsyncData("<unique-key>", …)` (dynamic key fn if params vary) → `useSeoHead({title, description})` → add to `ALL_PAGES` in `server/routes/sitemap.xml.ts` if indexable (hand-maintained!) or `noindex` → strings in all 4 locale JSONs.
+**Add a public page:** `app/pages/<name>.vue` → `useApi()` + `useAsyncData("<unique-key>", …)` (dynamic key fn if params vary) → `useHead({ title: () => `${t("…")} — ${siteConfig.identity.siteName}` })` for the browser-tab title → strings in BOTH locale JSONs. No crawler metadata: the app is `ssr: false` and `robots.txt` disallows everything (see SEO-REMOVAL-PLAN.md).
 
 **Add a protected page:** add path to `PROTECTED_PREFIXES` (`server/middleware/guard.ts`) AND `PROTECTED_PATHS` (`app/middleware/auth.global.ts`); `noindex`; remember authed requests render as SPA.
 
@@ -223,7 +223,7 @@ Money logic never lives in stores — mutations go through `useApi`/`axios-clien
 | Deposit/withdraw UI               | `transaction/DepositModal.vue`, `useDepositModal.ts`, `useBankPayment.ts`, `WithdrawalContent.vue`, `schemas/transaction.schema.ts`        | —                            |
 | Caching (SSR/page)                | `lib/serverCache.ts`, `server/utils/anonPageCache.ts`, both `anon-page-cache.*`, `cache-bypass-authenticated.ts`                           | app code                     |
 | WebSocket / live wallet           | `stores/websocket.ts`, `plugins/session-verify.client.ts`, `server/plugins/ws-proxy.ts`                                                    | rest                         |
-| SEO / sitemap                     | `composables/useSeoHead.ts`, `useCustomSeoMatch.ts`, `server/routes/sitemap.xml.ts`, app.vue head block                                    | components                   |
+| Document head / admin footer      | `useCustomSeoMatch.ts` (per-path footer row), app.vue head block (title, favicon, custom scripts)                                          | components                   |
 | i18n                              | `i18n/locales/*.json`, nuxt.config i18n block, app.vue locale resolution                                                                   | —                            |
 | Build/deploy                      | `Dockerfile`, `nuxt.config.ts`, `.env.example`                                                                                             | src                          |
 | Banners (carousel)                | `composables/useBanners.ts`, `stores/banner.ts`, `utils/pageBanner.ts`, `banner/BannerPreview.vue`                                          | popup banner files           |
@@ -232,7 +232,7 @@ Money logic never lives in stores — mutations go through `useApi`/`axios-clien
 
 ## 12. AI Edit Map (features → edit / avoid)
 
-- **New page:** edit `app/pages/`, sitemap, locales. Avoid server/middleware unless protected.
+- **New page:** edit `app/pages/`, locales. Avoid server/middleware unless protected.
 - **Theme/config field:** edit `useDefaultThemeConfig.ts` + consumer. Avoid hardcoding hex (check for an existing token first).
 - **Provider logo on a game card:** `getLogoImages(providerCode)` (`app/utils/gameProviderLogo.ts`) resolves `public/designs/game-logo/<Display Name>.webp` via the code→name table in `app/data/gameProviderLogos.json`. One asset serves every code a provider has (slug per game type + numeric ids). To add a provider: add the entry to the JSON **and** drop in a `.webp` named exactly like `name` (case-sensitive — prod serves from Linux). Returns `""` for unmapped codes; `HomeGameCard` then falls back to the lobby-UUID-named `game.logo` (`lobbyLogoUrl`, the older `/designs/{casino,slot,sport}-logo` scheme still used by /sports), then to the provider name as text.
 - **Modal/nav shell:** edit AppHeader/Navbar/BottomNav + uiStore. Watch outside-click attribute conventions (`data-hamburger-menu`, `[data-lang-selector]`) and Teleport-to-body for anything inside overflow-hidden shells.

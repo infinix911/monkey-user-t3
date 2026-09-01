@@ -11,7 +11,6 @@ import {
   escapeInlineScript,
   serializeJsonForHtml,
 } from "../../shared/utils/secure-serialization";
-import { normalizeFaqSchemaItems } from "@/composables/useStructuredData";
 
 describe("security boundaries", () => {
   it("issues a fresh UUID idempotency key for each financial submission", () => {
@@ -60,20 +59,6 @@ describe("security boundaries", () => {
         "/_i18n/8e737cb1/ko/other.json",
       ),
     ).toBe(false);
-  });
-
-  it("normalizes FAQ messages without trusting the tm() return type", () => {
-    expect(normalizeFaqSchemaItems("home.faq.items", String)).toEqual([]);
-    expect(
-      normalizeFaqSchemaItems(
-        [
-          { q: "Question", a: "Answer" },
-          { q: "Missing answer" },
-          null,
-        ],
-        String,
-      ),
-    ).toEqual([{ question: "Question", answer: "Answer" }]);
   });
 
   it("normalizes a single IP but rejects spoofed address chains", () => {

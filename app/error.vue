@@ -33,7 +33,6 @@ const isNotFound = computed(() => props.error?.statusCode === 404);
 
 useHead({
   title: `${props.error?.statusCode || "Error"} - ${siteConfig.identity.siteName}`,
-  meta: [{ name: "robots", content: "noindex, nofollow" }],
 });
 
 const handleError = () => clearError({ redirect: "/" });

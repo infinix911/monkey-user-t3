@@ -92,14 +92,10 @@ const router = useRouter();
 const catalog = useGameCatalogStore();
 const siteConfig = useSiteConfig();
 
-useSeoHead({
-  title: t("home.seo.pageTitles.hot"),
-  description: t("home.seo.pageDescriptions.hot"),
+useHead({
+  title: () =>
+    `${t("home.seo.pageTitles.hot")} — ${siteConfig.identity.siteName}`,
 });
-useBreadcrumbSchema([
-  { name: "Home", path: "/" },
-  { name: "Hot Games", path: "/hot" },
-]);
 
 const GAMES_PER_PAGE = 24;
 
@@ -128,11 +124,6 @@ const { data, error: fetchError, pending, refresh: fetchGames } = useAsyncData<H
 const games = computed<GameRow[]>(() => data.value?.games ?? []);
 const totalGames = computed(() => data.value?.total ?? 0);
 
-useItemListSchema(() =>
-  games.value.map((g: GameRow) => ({
-    name: g.game_name_en || g.game_name || g.name || "",
-  })),
-);
 const isLoading = computed(() => pending.value);
 // Was `err.data?.message` — the raw backend token as the page's inline error.
 const error = computed<string | null>(() =>
