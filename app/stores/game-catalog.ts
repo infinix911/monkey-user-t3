@@ -116,6 +116,26 @@ export const useGameCatalogStore = defineStore("gameCatalog", () => {
     const key = lobbyKey(gameType);
     const current = lobbyEntry(gameType);
     if (!force && current.status === "success") return current.data;
+
+    // The layout always needs the unfiltered member-scoped response to decide
+    // which categories exist. That response already carries every lobby's
+    // gameType, so category pages and homepage rows can filter it locally
+    // instead of repeating `/games/lobbies?gameType=...` for each type.
+    if (gameType != null) {
+      const targetType = normalizeGameType(gameType);
+      const all = await loadLobbies(null, force);
+      const data = all.filter(
+        (lobby) => normalizeGameType(lobby.gameType) === targetType,
+      );
+      Object.assign(current, {
+        data,
+        status: "success" as const,
+        error: null,
+        fetchedAt: lobbyEntry(null).fetchedAt,
+      });
+      return data;
+    }
+
     const active = lobbyRequests.get(key);
     if (active) return active;
 
