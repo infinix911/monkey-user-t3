@@ -32,13 +32,21 @@ export default defineNuxtPlugin((nuxtApp) => {
   };
 
   onNuxtReady(async () => {
-    // Currency is supplied by tenant config. Wait only for its bounded
-    // foreground attempt; fallback config releases this immediately on errors.
-    await waitForBootstrap();
+    // Start the network probe immediately, in parallel with theme loading.
+    // Applying a member still waits for the config because its mapped wallet
+    // currency is config-derived.
+    const sessionProbe = authStore.isAuthenticated
+      ? Promise.resolve(null)
+      : authStore.fetchVerifiedUser();
     try {
-      if (!authStore.isAuthenticated) await authStore.verifyUser();
+      const [, verifiedUser] = await Promise.all([
+        waitForBootstrap(),
+        sessionProbe,
+      ]);
+      if (verifiedUser) authStore.applyVerifiedUser(verifiedUser);
     } catch {
       // No valid session — stay anonymous
+      authStore.resetUser();
     } finally {
       // Release member-aware shared fetches even when the probe fails.
       authStore.setSessionReady();

@@ -21,6 +21,7 @@ export async function fetchSiteSettings(): Promise<SiteSettings | null> {
   try {
     const res = await $fetch<{ data?: SiteSettingItem[] } | SiteSettingItem[]>(
       `${apiBase}/site/settings`,
+      { timeout: 10000 },
     );
     const list = Array.isArray(res)
       ? res

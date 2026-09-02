@@ -318,7 +318,6 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onMounted, onUnmounted, defineAsyncComponent } from "vue";
-import { getApiBase } from "@/lib/domain";
 import { cdn } from "@/utils/assetUrl";
 import { sanitizeHtml } from "@/utils/sanitizeHtml";
 
@@ -358,33 +357,9 @@ const InquiryModal = defineAsyncComponent(() => import("@/components/inquiry/Inq
 const FaqModal = defineAsyncComponent(() => import("@/components/faq/FaqModal.vue"));
 const ContactModal = defineAsyncComponent(() => import("@/components/contact/ContactModal.vue"));
 
-// Fetched at the layout level so one client request serves the shared popup.
-// It is deliberately not awaited: promotional content never delays app paint.
-interface IPopupBanner {
-  id: number;
-  title: string;
-  image: string;
-  sort: number;
-  updated_at: string;
-}
-const popupApiBase = getApiBase();
-const { data: popupBanners } = useAsyncData<IPopupBanner[]>(
-  "site-banners-popup",
-  async () => {
-    try {
-      const res = await $fetch<{ data?: IPopupBanner[] } | IPopupBanner[]>(
-        `${popupApiBase}/site/banners/popup`,
-      );
-      if (Array.isArray(res)) return res;
-      if (res && typeof res === "object" && Array.isArray(res.data))
-        return res.data;
-      return [];
-    } catch {
-      return [];
-    }
-  },
-  { default: () => [], server: false },
-);
+// Started by app.vue with the other public bootstrap reads. The layout only
+// consumes the shared result, avoiding a second late request on first paint.
+const { banners: popupBanners } = usePopupBanners();
 
 const brandSiteConfig = useSiteConfig();
 const siteConfig = brandSiteConfig;

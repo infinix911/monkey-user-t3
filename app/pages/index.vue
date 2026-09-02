@@ -298,6 +298,21 @@ const miniGamesAsync = useAsyncData<AnyList>(
 );
 const { data: miniGamesData, pending: miniGamesPending } = miniGamesAsync;
 
+// The app-level screen stays above the layout until every homepage response
+// has settled. `useAsyncData` starts all five reads during setup; collecting
+// their thenables here makes that concurrency explicit and lets failed reads
+// release the overlay into their established empty/error fallbacks.
+const homeInitialLoadReady = useState("homeInitialLoadReady", () => false);
+void Promise.allSettled([
+  hotGamesAsync,
+  casinoLobbiesAsync,
+  sportsLobbiesAsync,
+  slotLobbiesAsync,
+  miniGamesAsync,
+]).finally(() => {
+  homeInitialLoadReady.value = true;
+});
+
 // These requests begin during setup but are intentionally not awaited: the SPA
 // renders its section-level loading state while each response arrives.
 
