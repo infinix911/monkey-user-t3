@@ -1,90 +1,92 @@
 ﻿<template>
   <!-- No fixed width here: the layout's banner container sizes this, and pinning
        to 1152px would re-cap the banner inside the wider content column. -->
-  <div class="w-full mx-auto">
+  <!-- Two distinct empty cases, and they must not look the same.
+       While the one banner fetch is still in flight we cannot know whether
+       this page has a banner, so reserve its aspect ratio — otherwise the
+       carousel appearing later shoves the page down. Once the fetch has
+       resolved to nothing for this page, render nothing at all: a black box
+       (previously captioned "no banners") is not a state a visitor should
+       see, and the layout's banner-slot comment already promises that pages
+       "whose key has no active banner" render nothing. -->
+  <div v-if="!bannerStore.loaded" class="w-full mx-auto">
+    <div class="banner-box w-full bg-black" :style="bannerBoxStyle" />
+  </div>
+
+  <div v-else-if="banners.length > 0" class="w-full mx-auto">
     <div id="banner-container" class="bg-black w-full relative overflow-hidden z-10">
-      <!-- Empty State. There is no loading state: every page's banners arrive
-           in the one SSR fetch behind the banner store, so by the time this
-           renders the list for this page is already known (possibly empty). -->
-      <div v-if="banners.length === 0" class="banner-box w-full flex items-center justify-center bg-black"
-        :style="bannerBoxStyle">
-        <span class="text-white/50 text-sm">{{ $t('common.noBanners') }}</span>
-      </div>
+      <div class="banner-swap overflow-hidden w-full relative touch-pan-y"
+        @pointerdown="onPointerDown"
+        @pointermove="onPointerMove" @pointerup="onPointerUp" @pointercancel="onPointerCancel"
+        @click.capture="onClickCapture">
+        <div class="flex w-full ease-in-out" :class="{ 'transition-transform duration-500': !isDragging }"
+          :style="{ transform: trackTransform }">
+          <div v-for="(banner, index) in banners" :key="index" class="shrink-0 w-full relative">
+            <!-- Desktop Banner — v-if (not CSS hidden) so the off-viewport
+                 <video>/<img decoding="async"> is not in the DOM and the browser doesn't
+                 fetch its src. UA-based detection: see useIsMobileSSR. -->
+            <div v-if="!isMobile" class="banner-box relative w-full" :style="{ aspectRatio: BANNER_AR_DESKTOP }">
+              <!-- Main media — first slide is LCP, others should not stream
+                   bytes upfront (preload="metadata" only fetches headers). -->
+              <video v-if="isVideo(banner.main_url)" :src="banner.main_url"
+                class="absolute inset-0 w-full h-full object-cover" loop muted playsinline autoplay
+                :preload="index === 0 ? 'auto' : 'metadata'" />
+              <img v-else :src="optimize(banner.main_url, BANNER_W.desktop)" :alt="`Banner ${index + 1}`"
+                class="absolute inset-0 w-full h-full object-cover" :loading="index === 0 ? 'eager' : 'lazy'"
+                :fetchpriority="index === 0 ? 'high' : undefined" draggable="false" decoding="async">
 
-      <template v-else>
-        <div class="banner-swap overflow-hidden w-full relative touch-pan-y"
-          @pointerdown="onPointerDown"
-          @pointermove="onPointerMove" @pointerup="onPointerUp" @pointercancel="onPointerCancel"
-          @click.capture="onClickCapture">
-          <div class="flex w-full ease-in-out" :class="{ 'transition-transform duration-500': !isDragging }"
-            :style="{ transform: trackTransform }">
-            <div v-for="(banner, index) in banners" :key="index" class="shrink-0 w-full relative">
-              <!-- Desktop Banner — v-if (not CSS hidden) so the off-viewport
-                   <video>/<img decoding="async"> is not in the DOM and the browser doesn't
-                   fetch its src. UA-based detection: see useIsMobileSSR. -->
-              <div v-if="!isMobile" class="banner-box relative w-full" :style="{ aspectRatio: BANNER_AR_DESKTOP }">
-                <!-- Main media — first slide is LCP, others should not stream
-                     bytes upfront (preload="metadata" only fetches headers). -->
-                <video v-if="isVideo(banner.main_url)" :src="banner.main_url"
-                  class="absolute inset-0 w-full h-full object-cover" loop muted playsinline autoplay
-                  :preload="index === 0 ? 'auto' : 'metadata'" />
-                <img v-else :src="optimize(banner.main_url, BANNER_W.desktop)" :alt="`Banner ${index + 1}`"
-                  class="absolute inset-0 w-full h-full object-cover" :loading="index === 0 ? 'eager' : 'lazy'"
-                  :fetchpriority="index === 0 ? 'high' : undefined" draggable="false" decoding="async">
+              <!-- Desktop Overlay — first slide's overlay is the LCP element,
+                   so hint the browser to fetch it with high priority.
+                   `object-cover` matches the main media above: the pair is
+                   drawn as one composition, so they must be fitted the same
+                   way. Under `contain` the overlay shrank to fit whenever the
+                   slot's ratio differed from the artwork's while the main
+                   image cropped to fill, which pulled the two apart. -->
+              <img v-if="banner.overlay_url" :src="optimize(banner.overlay_url, BANNER_W.desktop)" alt="Overlay"
+                class="absolute inset-0 w-full h-full object-cover z-10 pointer-events-none overlay-zoom"
+                :loading="index === 0 ? 'eager' : 'lazy'" :fetchpriority="index === 0 ? 'high' : undefined"
+                draggable="false" decoding="async">
 
-                <!-- Desktop Overlay — first slide's overlay is the LCP element,
-                     so hint the browser to fetch it with high priority.
-                     `object-cover` matches the main media above: the pair is
-                     drawn as one composition, so they must be fitted the same
-                     way. Under `contain` the overlay shrank to fit whenever the
-                     slot's ratio differed from the artwork's while the main
-                     image cropped to fill, which pulled the two apart. -->
-                <img v-if="banner.overlay_url" :src="optimize(banner.overlay_url, BANNER_W.desktop)" alt="Overlay"
-                  class="absolute inset-0 w-full h-full object-cover z-10 pointer-events-none overlay-zoom"
-                  :loading="index === 0 ? 'eager' : 'lazy'" :fetchpriority="index === 0 ? 'high' : undefined"
-                  draggable="false" decoding="async">
+              <!-- Gradient overlays -->
+              <!-- <div class="pointer-events-none absolute inset-y-0 left-0 w-[150px] bg-gradient-to-r from-black to-transparent"></div>
+              <div class="pointer-events-none absolute inset-y-0 right-0 w-[150px] bg-gradient-to-l from-black to-transparent"></div> -->
+            </div>
 
-                <!-- Gradient overlays -->
-                <!-- <div class="pointer-events-none absolute inset-y-0 left-0 w-[150px] bg-gradient-to-r from-black to-transparent"></div>
-                <div class="pointer-events-none absolute inset-y-0 right-0 w-[150px] bg-gradient-to-l from-black to-transparent"></div> -->
-              </div>
+            <!-- Mobile Banner -->
+            <div v-else class="banner-box relative w-full" :style="{ aspectRatio: BANNER_AR_MOBILE }">
+              <!-- Main media -->
+              <video v-if="isVideo(banner.main_url_mobile)" :src="banner.main_url_mobile"
+                class="absolute inset-0 w-full h-full object-cover" loop muted playsinline autoplay
+                :preload="index === 0 ? 'auto' : 'metadata'" />
+              <img v-else :src="optimize(banner.main_url_mobile, BANNER_W.mobile)" :alt="`Banner ${index + 1}`"
+                class="absolute inset-0 w-full h-full object-cover" :loading="index === 0 ? 'eager' : 'lazy'"
+                :fetchpriority="index === 0 ? 'high' : undefined" draggable="false" decoding="async">
 
-              <!-- Mobile Banner -->
-              <div v-else class="banner-box relative w-full" :style="{ aspectRatio: BANNER_AR_MOBILE }">
-                <!-- Main media -->
-                <video v-if="isVideo(banner.main_url_mobile)" :src="banner.main_url_mobile"
-                  class="absolute inset-0 w-full h-full object-cover" loop muted playsinline autoplay
-                  :preload="index === 0 ? 'auto' : 'metadata'" />
-                <img v-else :src="optimize(banner.main_url_mobile, BANNER_W.mobile)" :alt="`Banner ${index + 1}`"
-                  class="absolute inset-0 w-full h-full object-cover" :loading="index === 0 ? 'eager' : 'lazy'"
-                  :fetchpriority="index === 0 ? 'high' : undefined" draggable="false" decoding="async">
+              <!-- Mobile Overlay — LCP candidate on mobile viewports.
+                   `object-cover` for the same reason as the desktop one. -->
+              <img v-if="banner.overlay_url_mobile" :src="optimize(banner.overlay_url_mobile, BANNER_W.mobile)"
+                alt="Overlay"
+                class="absolute inset-0 w-full h-full object-cover z-10 pointer-events-none overlay-zoom"
+                :loading="index === 0 ? 'eager' : 'lazy'" :fetchpriority="index === 0 ? 'high' : undefined"
+                draggable="false" decoding="async">
 
-                <!-- Mobile Overlay — LCP candidate on mobile viewports.
-                     `object-cover` for the same reason as the desktop one. -->
-                <img v-if="banner.overlay_url_mobile" :src="optimize(banner.overlay_url_mobile, BANNER_W.mobile)"
-                  alt="Overlay"
-                  class="absolute inset-0 w-full h-full object-cover z-10 pointer-events-none overlay-zoom"
-                  :loading="index === 0 ? 'eager' : 'lazy'" :fetchpriority="index === 0 ? 'high' : undefined"
-                  draggable="false" decoding="async">
-
-                <!-- Gradient overlays -->
-                <!-- <div class="pointer-events-none absolute inset-y-0 left-0 w-[80px] bg-gradient-to-r from-black to-transparent"></div>
-                <div class="pointer-events-none absolute inset-y-0 right-0 w-[80px] bg-gradient-to-l from-black to-transparent"></div> -->
-              </div>
+              <!-- Gradient overlays -->
+              <!-- <div class="pointer-events-none absolute inset-y-0 left-0 w-[80px] bg-gradient-to-r from-black to-transparent"></div>
+              <div class="pointer-events-none absolute inset-y-0 right-0 w-[80px] bg-gradient-to-l from-black to-transparent"></div> -->
             </div>
           </div>
-
-          <!-- Navigation Dots -->
-          <div v-if="banners.length > 1" class="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-20">
-            <button v-for="(_, index) in banners" :key="index" :class="[
-              'transition-all duration-300 rounded-full',
-              index === selectedIndex
-                ? 'bg-white w-6 h-2'
-                : 'bg-white/50 w-2 h-2 hover:bg-white/70',
-            ]" :aria-label="`Go to slide ${index + 1}`" @click="scrollTo(index)" />
-          </div>
         </div>
-      </template>
+
+        <!-- Navigation Dots -->
+        <div v-if="banners.length > 1" class="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-20">
+          <button v-for="(_, index) in banners" :key="index" :class="[
+            'transition-all duration-300 rounded-full',
+            index === selectedIndex
+              ? 'bg-white w-6 h-2'
+              : 'bg-white/50 w-2 h-2 hover:bg-white/70',
+          ]" :aria-label="`Go to slide ${index + 1}`" @click="scrollTo(index)" />
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -286,8 +288,8 @@ watch(
  * the box would resize mid-rotation and shunt the page around. So the first
  * active banner (lowest `sort`, i.e. the one that renders first) sets the box
  * for the whole carousel, and the rest fill it with object-cover as before.
- * Falls back to the theme value for banners saved without a ratio, and for the
- * loading/empty boxes, which must reserve space before any record exists.
+ * Falls back to the theme value for banners saved without a ratio, and for
+ * the loading box, which must reserve space before any record exists.
  */
 const BANNER_AR_DESKTOP = computed(
   () => banners.value[0]?.aspect_ratio_desktop || THEME_AR_DESKTOP,

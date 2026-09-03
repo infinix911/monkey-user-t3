@@ -73,13 +73,8 @@ definePageMeta({
   layout: "default",
 });
 
-useSeoHead({
-  title: t("home.seo.pageTitles.casino"),
-  description: t("home.seo.pageDescriptions.casino"),
+useHead({
+  title: () =>
+    `${t("home.seo.pageTitles.casino")} — ${siteConfig.identity.siteName}`,
 });
-useBreadcrumbSchema([
-  { name: "Home", path: "/" },
-  { name: "Casino", path: "/casino" },
-]);
-useItemListSchema(() => providers.value.map((p) => ({ name: p.name })));
 </script>

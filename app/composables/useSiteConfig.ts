@@ -7,10 +7,9 @@
  * field it carries; the bundled config fills any field the API omits and acts
  * as the offline fallback when the CMS payload is unavailable.
  *
- * This module also owns the shared useState container (`useSiteConfigState`)
- * and the raw API-payload accessor (`useSiteConfigData`). They previously lived
- * in `useSiteConfigState.ts` / `useSiteConfigData.ts`; both are still exported
- * here under the same names so Nuxt's by-name auto-import keeps resolving every
+ * This module also owns the shared useState container (`useSiteConfigState`),
+ * which previously lived in `useSiteConfigState.ts` and is still exported here
+ * under the same name so Nuxt's by-name auto-import keeps resolving every
  * external caller. The fetch helper (`fetchSiteConfig`) lives in
  * `app/lib/siteConfig.ts`.
  */
@@ -45,23 +44,6 @@ export function useSiteConfigState() {
   const isReady = computed(() => config.value != null);
   return { config, error, isReady };
 }
-
-/**
- * Raw site-config payload fetched from /api/site/config/userpage by
- * `fetchSiteConfig` before the app mounts. Returns a shallow copy of the API
- * payload, or `null` when it has not loaded yet.
- */
-export const useSiteConfigData = () => {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore — useState is a Nuxt auto-import
-  const apiData = useState<Record<string, unknown>>(USER_PAGE_CONFIG_KEY, () => null).value;
-
-  if (!apiData) return null;
-
-  return {
-    ...apiData,
-  };
-};
 
 /**
  * Recursive merge: override wins for primitives, arrays, and at the leaf

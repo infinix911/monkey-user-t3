@@ -79,7 +79,7 @@ useHead(() => {
   return { htmlAttrs: { lang: meta.bcp47 } };
 });
 
-// Domain-based local config as fallback for SEO. Derived at component setup
+// Domain-based local config as the config fallback. Derived at component setup
 // time on both server and client so SSR and CSR produce matching markup
 // (useSiteConfig() reads hostname via useRequestURL on server).
 const localConfig = siteConfig;
@@ -184,188 +184,27 @@ useHead(() => ({
   ],
 }));
 
-// Reactive head — updates when siteConfig loads
+// Reactive head — updates when siteConfig loads. The SPA emits no crawler
+// metadata (see SEO-REMOVAL-PLAN.md); everything here is user-visible chrome:
+// the document title, the tab/home-screen icons, and CMS-injected scripts.
 useHead(() => {
-  const seo = siteConfig.seo || localConfig?.seo;
+  const identity = siteConfig.identity;
   const localIdentity = localConfig?.identity;
 
-  // Favicon — prefer the dedicated CMS asset at `identity.favicon`
-  // over the SEO/meta favicon fields. Falls back to the SEO general favicon
-  // and the bundled local identity favicon when the asset isn't configured.
-  const faviconUrl =
-    siteConfig.identity?.favicon ||
-    localConfig?.identity?.favicon ||
-    seo?.general?.favicon ||
-    localIdentity?.favicon;
-
-  const robotsContent = [
-    seo?.robot?.defaultIndex !== false ? "index" : "noindex",
-    seo?.robot?.defaultFollow !== false ? "follow" : "nofollow",
-    seo?.robot?.noimageindex ? "noimageindex" : "",
-    seo?.robot?.nosnippet ? "nosnippet" : "",
-    seo?.robot?.maxSnippet ? `max-snippet:${seo.robot.maxSnippet}` : "",
-  ]
-    .filter(Boolean)
-    .join(", ");
-
-  // Canonical meta tags from /api/site/config/userpage →
-  // canonicalMeta.SEO_CANONICAL_META. Flat string→string object; og:* keys
-  // become `property`, everything else `name`. Locale keys are overridden
-  // below by i18n-derived values so the tags follow the active language.
-  //
-  // Resolves the block from any of the common paths used by the backend
-  // (top-level, under `seo`, or under `data`) so a future schema tweak
-  // doesn't silently drop the tags.
-  const cfgAny = siteConfig as unknown as Record<string, unknown> | null;
-  const canonicalBlock =
-    (cfgAny?.canonicalMeta as { SEO_CANONICAL_META?: Record<string, string> } | undefined) ??
-    ((cfgAny?.seo as { canonicalMeta?: { SEO_CANONICAL_META?: Record<string, string> } } | undefined)?.canonicalMeta) ??
-    ((cfgAny?.data as { canonicalMeta?: { SEO_CANONICAL_META?: Record<string, string> } } | undefined)?.canonicalMeta) ??
-    undefined;
-  const canonicalMeta = (canonicalBlock?.SEO_CANONICAL_META ?? {}) as Record<
-    string,
-    string | null | undefined
-  >;
-
-  // if (import.meta.dev && cfgAny) {
-  //   console.log("[canonicalMeta] resolved keys:", Object.keys(canonicalMeta));
-  // }
-
-  // Language-ish keys the CMS might emit that would fight our i18n-derived
-  // tags. Strip them here so only the <html lang> + <meta name=language>
-  // pair we control ends up in the rendered head.
-  const OVERRIDDEN_CANONICAL_KEYS = new Set([
-    "language",
-    "content-language",
-    "http-equiv:content-language",
-    "og:locale",
-    "og:locale:alternate",
-  ]);
-
-  // NOTE: do not set `key:` here. @unhead in this Nuxt setup renders SSR meta
-  // tags without `data-hid` markers, and when a `key` is provided the default
-  // name/property dedup is bypassed — so the reactive client rerun appends a
-  // second tag instead of replacing the SSR one. Relying on the default
-  // name/property dedup keeps each tag single.
-  const canonicalMetaEntries = Object.entries(canonicalMeta)
-    .filter(([k, v]) => !OVERRIDDEN_CANONICAL_KEYS.has(k) && v)
-    .map(([k, v]) =>
-      k.startsWith("og:")
-        ? { property: k, content: v as string }
-        : { name: k, content: v as string },
-    );
-
-  const currentLocale =
-    LOCALE_META[locale.value as SupportedLocale] ?? LOCALE_META.en;
-  const alternateLocales = Object.values(LOCALE_META).filter(
-    (l) => l.og !== currentLocale.og,
-  );
-
-  // Strict source separation (see useSeoHead.ts):
-  //   - <title> / <meta description> come from the `meta.*` block.
-  //   - og:* come from `social.defaultOg*`.
-  //   - twitter:* come from `social.defaultTwitter*` (falling back to OG).
-
-  // Document <meta name="description"> — `meta.*` block only. Clamp to
-  // ~155 chars so it fits inside Google's ~1000px truncation window.
-  const rawDescription =
-    seo?.meta?.defaultMetaDescription || localIdentity?.description || "";
-  const description =
-    rawDescription.length > 155
-      ? rawDescription.slice(0, 152).trimEnd() + "…"
-      : rawDescription;
-
-  const ogDescription = seo?.social?.defaultOgDescription || description;
-  const twitterDescription =
-    seo?.social?.defaultTwitterDescription ||
-    seo?.social?.defaultOgDescription ||
-    description;
+  // Favicon — the CMS asset at `identity.favicon`, falling back to the bundled
+  // local identity favicon when the asset isn't configured.
+  const faviconUrl = identity?.favicon || localIdentity?.favicon;
 
   return {
-    title: seo?.meta?.defaultMetaTitle || localIdentity?.siteName,
+    title:
+      identity?.documentTitle ||
+      localIdentity?.documentTitle ||
+      identity?.siteName ||
+      localIdentity?.siteName,
     bodyAttrs: {
       class: "scrollbar-hide antialiased bg-black",
     },
-    meta: [
-      { name: "theme-color", content: "#000000" },
-      {
-        name: "description",
-        content: description,
-      },
-      ...(seo?.meta?.defaultMetaKeywords
-        ? [{ name: "keywords", content: seo.meta.defaultMetaKeywords }]
-        : []),
-      // `robots` falls back to siteConfig-derived string if the userpage
-      // canonicalMeta block doesn't carry one.
-      ...(canonicalMeta.robots
-        ? []
-        : [{ name: "robots", content: robotsContent }]),
-
-      // Canonical meta block from /api/site/config/userpage (flat map).
-      // Includes robots/googlebot/geo.*/author/publisher/rating/distribution/
-      // google/og:type when backend supplies them. Locale keys are excluded
-      // here and rendered below from i18n instead.
-      ...canonicalMetaEntries,
-
-      // <meta name="author"> from seo.general.authorName when the admin set
-      // it. Emitted after canonicalMetaEntries with no `key` so name-based
-      // dedup overrides any `author` carried in the canonicalMeta block.
-      ...(seo?.general?.authorName
-        ? [{ name: "author", content: seo.general.authorName }]
-        : []),
-
-      // i18n-derived locale tags — override any static values in the API
-      // payload so <meta> tracks the active UI language. Keys intentionally
-      // omitted for singletons (see canonicalMetaEntries note above);
-      // og:locale:alternate keeps per-locale keys because it's array-typed.
-      { name: "language", content: currentLocale.bcp47 },
-      { property: "og:locale", content: currentLocale.og },
-      ...alternateLocales.map((l) => ({
-        property: "og:locale:alternate",
-        content: l.og,
-        key: `seo-og-alt-${l.og}`,
-      })),
-
-      // Open Graph — og:type falls back to "website" only if the userpage
-      // canonicalMeta block doesn't supply one.
-      ...(canonicalMeta["og:type"]
-        ? []
-        : [{ property: "og:type", content: "website" }]),
-      { property: "og:site_name", content: seo?.general?.siteName },
-      {
-        property: "og:title",
-        content: seo?.social?.defaultOgTitle,
-      },
-      {
-        property: "og:description",
-        content: ogDescription,
-      },
-      ...(seo?.social?.defaultOgImage
-        ? [{ property: "og:image", content: seo.social.defaultOgImage }]
-        : []),
-      ...(seo?.general?.siteUrl
-        ? [{ property: "og:url", content: seo.general.siteUrl }]
-        : []),
-
-      // Twitter Card
-      {
-        name: "twitter:card",
-        content: seo?.social?.twitterCardType || "summary_large_image",
-      },
-      {
-        name: "twitter:title",
-        content:
-          seo?.social?.defaultTwitterTitle || seo?.social?.defaultOgTitle,
-      },
-      {
-        name: "twitter:description",
-        content: twitterDescription,
-      },
-      ...(seo?.social?.defaultTwitterImage
-        ? [{ name: "twitter:image", content: seo.social.defaultTwitterImage }]
-        : []),
-
-    ],
+    meta: [{ name: "theme-color", content: "#000000" }],
     link: [
       {
         rel: "icon",
@@ -373,18 +212,17 @@ useHead(() => {
         href: faviconUrl,
         key: "favicon",
       },
-      // Apple touch icon — flagged by SEO audits when missing. Falls back
-      // to the favicon URL so the browser has *something* for iOS home
-      // screens even if a dedicated 180×180 PNG isn't configured yet.
+      // Apple touch icon — the iOS home-screen icon. Falls back to the
+      // favicon URL so the browser has *something* even if a dedicated
+      // 180×180 PNG isn't configured yet.
       {
         rel: "apple-touch-icon",
         sizes: "180x180",
         href:
-          (seo?.general as { appleTouchIcon?: string } | undefined)
+          (identity as { appleTouchIcon?: string } | undefined)
             ?.appleTouchIcon || faviconUrl,
         key: "apple-touch-icon",
       },
-      // Canonical + hreflang handled per-page by useSeoHead()
     ],
     script: [
       // CMS-driven inline scripts from /api/site/custom-scripts. Each admin

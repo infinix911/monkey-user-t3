@@ -16,10 +16,4 @@
 
 <script setup lang="ts">
 const { t } = useI18n();
-
-useSeoHead();
-useBreadcrumbSchema([
-  { name: "Home", path: "/" },
-  { name: "Promotions", path: "/promotions" },
-]);
 </script>

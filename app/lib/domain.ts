@@ -59,11 +59,6 @@ export function getPartnerUrl(hostname = getHostname()): string {
   return `https://partner.${rootDomain}/`;
 }
 
-export function getSiteUrl(): string {
-  if (typeof window === 'undefined') return 'http://localhost:3000';
-  return window.location.origin;
-}
-
 function isLocalDevelopment(): boolean {
   const hostname = getHostname();
   return hostname === 'localhost' || hostname === '127.0.0.1';

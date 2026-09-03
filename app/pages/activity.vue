@@ -35,6 +35,5 @@ const { t } = useI18n();
 
 useHead({
   title: () => t("profile.activity"),
-  meta: [{ name: "robots", content: "noindex, nofollow" }],
 });
 </script>

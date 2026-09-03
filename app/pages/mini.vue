@@ -62,14 +62,10 @@ definePageMeta({
   layout: "default",
 });
 
-useSeoHead({
-  title: t("home.seo.pageTitles.mini"),
-  description: t("home.seo.pageDescriptions.mini"),
+useHead({
+  title: () =>
+    `${t("home.seo.pageTitles.mini")} — ${siteConfig.identity.siteName}`,
 });
-useBreadcrumbSchema([
-  { name: "Home", path: "/" },
-  { name: "Mini Games", path: "/mini" },
-]);
 
 
 // Fetch the mini catalogue as one filtered page rather than expanding every
@@ -90,12 +86,6 @@ const { data: miniGames, pending } = useAsyncData<GameRow[]>(
 
 const isLoading = computed(() => pending.value);
 const allGames = computed<GameRow[]>(() => miniGames.value ?? []);
-
-useItemListSchema(() =>
-  allGames.value.map((g: GameRow) => ({
-    name: g.game_name_en || g.game_name || g.name || "",
-  })),
-);
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const handleGameClick = (game: any) => {

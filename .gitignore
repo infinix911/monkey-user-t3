@@ -36,8 +36,8 @@ sw.*
 workbox-*.js
 workbox-*.js.map
 
-# Build-generated SEO files (created by build:before hook in nuxt.config.ts)
-public/sitemap.xml
+# robots.txt is committed on purpose: its `Disallow: /` keeps the SPA out of
+# search indexes. Listed then negated so a stray ignore rule cannot drop it.
 public/robots.txt
 !public/robots.txt
 

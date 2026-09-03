@@ -157,7 +157,6 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import { useI18n } from "vue-i18n";
 import { openGame } from "~~/utils/game-navigation";
 // Temporarily hidden with the Top Withdrawals/Deposits tickers (see template).
 // Restore these imports when the tickers are re-enabled.
@@ -184,18 +183,6 @@ const FIRST_ROW_COUNT = 6;
 definePageMeta({
   layout: "default",
 });
-
-const { tm, rt } = useI18n();
-
-useSeoHead();
-useOrganizationSchema();
-useWebsiteSchema();
-useBreadcrumbSchema([{ name: "Home", path: "/" }]);
-useFaqSchema(
-  normalizeFaqSchemaItems(tm("home.faq.items"), (message) =>
-    rt(message as string),
-  ),
-);
 
 const _router = useRouter();
 const siteConfig = useSiteConfig();
@@ -416,8 +403,4 @@ const slotProviders = computed<LobbyCard[]>(() => {
   );
 });
 
-// Currently unused (underscore prefix), kept as a deployment-currency-aware
-// helper in case Schema.org / JSON-LD pricing is added back later.
-const _currency = useCurrency();
-const _formatCurrency = (amount: number): string => _currency.format(amount);
 </script>

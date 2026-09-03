@@ -241,9 +241,8 @@
              on every page, including the RTP page. -->
         <BottomNav v-if="authStore.isAuthenticated" />
 
-        <!-- Custom SEO footer — admin-managed HTML from /api/site/custom-seo.
-             Only rendered when a row matches this hostname and supplies a
-             non-empty footer string. -->
+        <!-- Admin-authored footer HTML from the CMS (`content.footer`).
+             Only rendered when the CMS supplies a non-empty string. -->
         <div v-if="customSeoFooter" class="w-full bg-black/70">
           <!-- eslint-disable-next-line vue/no-v-html -->
           <!-- No forced text-align here: the footer HTML is admin-authored and
@@ -391,18 +390,9 @@ const bannerPage = computed(() => {
 // 1226px. The allow-list that drove it lived here — see the template comment on
 // the layout wrapper for how to restore it.
 
-const customSeoMatch = useCustomSeoMatch();
-
-const customSeoFooter = computed(() => {
-  // Matched per-page row wins, then the brand config's default footer.
-  // Userpage doesn't expose a footer field, so there is no userpage fallback.
-  const rowFooter = customSeoMatch.value?.footer;
-  const raw =
-    (typeof rowFooter === "string" && rowFooter.trim() ? rowFooter : "") ||
-    brandSiteConfig?.seo?.customSeo?.footer ||
-    "";
-  return sanitizeHtml(raw);
-});
+const customSeoFooter = computed(() =>
+  sanitizeHtml(brandSiteConfig?.content?.footer || ""),
+);
 
 const bodyBgStyle = computed(() => {
   const hasImage = !!siteConfig.assets?.images?.mainBackground;
@@ -815,68 +805,3 @@ onUnmounted(() => {
   stopBannerResizeObserver();
 });
 </script>
-
-<style scoped>
-.seo-link {
-  display: inline-block;
-  padding: 4px 10px;
-  border-radius: 6px;
-  color: #FF8533;
-  background-color: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 106, 0, 0.25);
-  text-decoration: none;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
-}
-
-.seo-link:visited {
-  color: #FF8533;
-}
-
-.seo-link:hover,
-.seo-link:focus-visible {
-  background-color: rgba(255, 106, 0, 0.15);
-  border-color: rgba(255, 106, 0, 0.5);
-  text-decoration: underline;
-  outline: none;
-}
-
-.seo-links ::selection {
-  background-color: rgba(255, 106, 0, 0.35);
-  color: #000;
-}
-
-/* Admin-managed intro copy (v-html) — :deep() so scoped styles reach it. */
-.seo-intro :deep(h1) {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #FF6A00;
-  margin-bottom: 1rem;
-}
-
-.seo-intro :deep(h2),
-.seo-intro :deep(h3) {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: #FF6A00;
-  margin-top: 2rem;
-  margin-bottom: 0.75rem;
-}
-
-.seo-intro :deep(a) {
-  color: #FF8533;
-  text-decoration: underline;
-}
-
-.seo-intro :deep(ul),
-.seo-intro :deep(ol) {
-  padding-left: 1.5rem;
-}
-
-.seo-intro :deep(ul) {
-  list-style-type: disc;
-}
-
-.seo-intro :deep(ol) {
-  list-style-type: decimal;
-}
-</style>

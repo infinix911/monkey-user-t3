@@ -70,13 +70,8 @@ definePageMeta({
   layout: "default",
 });
 
-useSeoHead({
-  title: t("home.seo.pageTitles.sports"),
-  description: t("home.seo.pageDescriptions.sports"),
+useHead({
+  title: () =>
+    `${t("home.seo.pageTitles.sports")} — ${siteConfig.identity.siteName}`,
 });
-useBreadcrumbSchema([
-  { name: "Home", path: "/" },
-  { name: "Sports", path: "/sports" },
-]);
-useItemListSchema(() => providers.value.map((p) => ({ name: p.name })));
 </script>

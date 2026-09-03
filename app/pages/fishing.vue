@@ -15,12 +15,8 @@ definePageMeta({
   layout: "default",
 });
 
-useSeoHead({
-  title: t("home.seo.pageTitles.fishing"),
-  description: t("home.seo.pageDescriptions.fishing"),
+useHead({
+  title: () =>
+    `${t("home.seo.pageTitles.fishing")} — ${siteConfig.identity.siteName}`,
 });
-useBreadcrumbSchema([
-  { name: "Home", path: "/" },
-  { name: "Fishing", path: "/fishing" },
-]);
 </script>
