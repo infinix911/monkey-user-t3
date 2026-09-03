@@ -1,5 +1,6 @@
 <template>
   <NuxtRouteAnnouncer />
+    <InitialLoadOverlay :visible="showInitialLoadOverlay" />
     <!-- Brand-gold top progress bar; auto-shows on every route navigation
          (lobby->lobby, game launches). Also driven manually by the game-launch
          page via useLoadingIndicator() while it resolves the one-time URL. -->
@@ -28,6 +29,9 @@ import { useOfflineTelegramRegisterHandler } from "./composables/useOfflineTeleg
 // mounted. No API request is allowed to gate first paint.
 const rawConfig = useState<unknown>("userPageConfig", () => null);
 const bootstrapReady = useState("siteConfigBootstrapReady", () => false);
+const publicBootstrapReady = useState("publicBootstrapReady", () => false);
+const homeInitialLoadReady = useState("homeInitialLoadReady", () => false);
+const initialLoadPhase = useState("initialLoadPhase", () => true);
 watch(rawConfig, (value) => syncSiteConfig(value), { deep: true, immediate: true });
 
 // Global URL parameter handlers — these composables already guard themselves
@@ -43,6 +47,20 @@ useReferralHandler();
 // place by the raw-config watcher above, so existing consumers never retain a
 // stale fallback snapshot.
 const siteConfig = useSiteConfig();
+const authStore = useAuthStore();
+const route = useRoute();
+const isHomeRoute = computed(() => route.path === "/");
+const showInitialLoadOverlay = computed(
+  () =>
+    initialLoadPhase.value &&
+    (!publicBootstrapReady.value ||
+      !authStore.sessionReady ||
+      (isHomeRoute.value && !homeInitialLoadReady.value)),
+);
+
+watch(showInitialLoadOverlay, (visible) => {
+  if (!visible) initialLoadPhase.value = false;
+}, { immediate: true });
 
 // Dynamic <html lang> from i18n locale — use BCP-47 (e.g. "en-US") so it
 // matches the `<meta name="language">` tag below. Mismatched formats
@@ -74,9 +92,19 @@ async function applyPreferredLocale() {
 }
 
 async function bootstrapSite() {
-  // One bounded foreground request establishes the tenant theme/currency. On
-  // failure the compiled config remains fully usable and the longer retry runs
-  // in the background.
+  // All public CMS reads are independent. Start them together so first-load
+  // latency is bounded by the slowest call rather than their combined RTT.
+  const { fetchPopupBanners } = usePopupBanners();
+  const publicReads = Promise.allSettled([
+    fetchCustomScripts(),
+    fetchSiteSettings(),
+    fetchBanners(),
+    fetchPopupBanners(),
+  ]);
+
+  // Theme config remains the only prerequisite for applying a verified member,
+  // because currency is derived from it. The session network probe itself now
+  // starts concurrently in session-verify.client.ts.
   try {
     await fetchSiteConfig({ maxRetries: 1, timeout: 8000 });
   } finally {
@@ -89,12 +117,8 @@ async function bootstrapSite() {
     }
   }
 
-  // Non-critical public data must never hold up initial navigation.
-  void Promise.allSettled([
-    fetchCustomScripts(),
-    fetchSiteSettings(),
-    fetchBanners(),
-  ]);
+  await publicReads;
+  publicBootstrapReady.value = true;
 
   if (!rawConfig.value) {
     // Retry with the normal bounded backoff budget, without blocking auth or

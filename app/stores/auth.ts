@@ -46,6 +46,21 @@ export const useAuthStore = defineStore("auth", () => {
     sessionReady.value = ready;
   };
 
+  /** Fetch and validate the session without applying currency-dependent state. */
+  const fetchVerifiedUser = async (): Promise<VerifyUserResponse> => {
+    const result = validateResponse(
+      getSessionResponseSchema,
+      (await axiosClient.get("/auth/get-session")).data,
+      "/auth/get-session",
+    );
+    if (!result) throw new Error("INVALID_AUTH");
+    return result;
+  };
+
+  const applyVerifiedUser = (result: VerifyUserResponse) => {
+    user.value = mapVerifyUserToState(result, useSiteCurrency());
+  };
+
   // Referral
   const referralCode = ref<string | null>(null);
 
@@ -113,21 +128,8 @@ export const useAuthStore = defineStore("auth", () => {
       // Runtime-validate the response against the backend contract so a shape
       // drift throws ApiValidationError instead of silently yielding undefined
       // wallet/bank fields (auth + money safety).
-      const result = validateResponse(
-        getSessionResponseSchema,
-        (await axiosClient.get("/auth/get-session")).data,
-        "/auth/get-session",
-      );
-
-      if (!result) {
-        user.value = { ...defaultUserState };
-        throw new Error("INVALID_AUTH");
-      }
-
-      // Map onto internal state via the shared mapper (single source of the
-      // field mapping). `currency` isn't in the profile response — derive it
-      // from the site config.
-      user.value = mapVerifyUserToState(result, useSiteCurrency());
+      const result = await fetchVerifiedUser();
+      applyVerifiedUser(result);
 
       return result;
     } catch (error: unknown) {
@@ -188,6 +190,8 @@ export const useAuthStore = defineStore("auth", () => {
     isNavigating,
     setUser,
     setSessionReady,
+    fetchVerifiedUser,
+    applyVerifiedUser,
     updateUser,
     resetUser,
     setReferralCode,

@@ -24,6 +24,7 @@ export async function fetchBanners(): Promise<BannerCarouselItem[]> {
   try {
     const raw = await $fetch<unknown>(`${apiBase}/site/banners-new/carousel`, {
       query: { page: "all" },
+      timeout: 10000,
     });
 
     const list = mapBannersCarouselResponse(
