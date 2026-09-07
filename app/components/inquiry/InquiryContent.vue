@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col h-full overflow-hidden">
     <!-- Action Buttons - Fixed Section -->
-    <div class="flex-shrink-0 px-0 py-6">
+    <div class="flex-shrink-0 px-0 py-2">
       <div class="flex gap-2 md:gap-3">
         <template v-if="!showForm">
           <!-- Label only, no icons, and no wrapping. Three buttons share one
@@ -72,8 +72,9 @@
       <!-- Inquiry Content -->
       <template v-else>
         <!-- Unread notice. The modal cannot be closed while anything is unread
-             (uiStore.hasUnreadInquiries — see InquiryModal.handleCloseClick and
-             useProfileMenu.closeMobileModal), so say that up front rather than
+             (uiStore.hasUnreadInquiries — see InquiryModal.handleCloseClick,
+             AppSidebar.closeSection and useProfileMenu.closeSection), so say
+             that up front rather than
              letting the member discover it by pressing X and getting an error. -->
         <div
           v-if="hasUnread"

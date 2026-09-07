@@ -1,8 +1,11 @@
 /**
  * useProfileMenu — what is specific to NewProfileModal.vue, the MOBILE profile
  * sheet: its open/close lifecycle, the swipeable two-page carousel, the language
- * selector, the outside-click/escape handling, and the referral header count.
+ * selector, and the outside-click/escape handling.
  * Desktop uses AppSidebar instead, so there is no desktop position to support.
+ *
+ * The open account SECTION is not this surface's concern any more — AppSidebar's
+ * teleported panel draws it at every width, header and all.
  *
  * Everything reusable now lives beside it and is shared with the desktop
  * sidebar: the item list (useProfileMenuItems), the click behaviour
@@ -10,7 +13,6 @@
  * inquiry list (useInquiryFeed). This composable only presents them.
  */
 
-import { useApi } from "@/composables/useApi";
 import { useCarouselSwipe } from "@/composables/useCarouselSwipe";
 import {
   useProfileMenuItems,
@@ -44,17 +46,11 @@ export function useProfileMenu(options: UseProfileMenuOptions) {
   const uiStore = useUiStore();
   const { t, locale, setLocale } = useI18n();
   const siteConfig = useSiteConfig();
-  const api = useApi();
 
   // The menu itself is data, built once in useProfileMenuItems and shared with
   // the desktop sidebar; this composable only presents it.
-  const {
-    tLabel,
-    telegramHref,
-    visibleMenuItems,
-    visiblePage2Items,
-    labelForId,
-  } = useProfileMenuItems();
+  const { tLabel, telegramHref, visibleMenuItems, visiblePage2Items } =
+    useProfileMenuItems();
 
   const menuRef = ref<HTMLElement | null>(null);
   // Shared with the desktop sidebar, so opening a section from either surface
@@ -86,10 +82,6 @@ export function useProfileMenu(options: UseProfileMenuOptions) {
     showLangProfileDropdown.value = false;
   };
 
-  const selectedAccountSectionLabel = computed(() =>
-    selectedAccountSection.value ? labelForId(selectedAccountSection.value) : "",
-  );
-
   /**
    * The section id for a menu item, or `null` when it is not a panel. Used by
    * the tiles to mark the open one.
@@ -120,7 +112,14 @@ export function useProfileMenu(options: UseProfileMenuOptions) {
   // The inquiry list is shared with every surface that renders the section.
   const inquiry = useInquiryFeed();
 
-  async function closeMobileModal() {
+  /**
+   * Closes an open account section from this surface (Escape only — the panel
+   * that draws the section is AppSidebar's, and its close button and backdrop
+   * carry the same guard).
+   *
+   * @returns {Promise<void>} Resolves once the close settles or is refused.
+   */
+  async function closeSection() {
     if (
       selectedAccountSection.value === "inquiry" &&
       uiStore.hasUnreadInquiries
@@ -131,28 +130,6 @@ export function useProfileMenu(options: UseProfileMenuOptions) {
     selectedAccountSection.value = null;
     inquiry.reset();
   }
-
-  // Referral count shown in the mobile modal header, e.g. "Referral (0)".
-  const referralCount = ref<number | null>(null);
-
-  async function fetchReferralCount() {
-    try {
-      const data = await api<unknown[]>("/auth/referrals");
-      referralCount.value = Array.isArray(data) ? data.length : 0;
-    } catch (err) {
-      console.error("Failed to fetch referral count:", err);
-      referralCount.value = 0;
-    }
-  }
-
-  // The referral header count is this surface's own concern; the inquiry list
-  // is loaded by AccountSectionPanel, wherever the section is rendered.
-  watch(selectedAccountSection, async (section) => {
-    if (section === "referral") {
-      referralCount.value = null;
-      await fetchReferralCount();
-    }
-  });
 
   // Swipe for the menu carousel (mouse + touch) via the shared composable.
   // `carouselPage` is the index; the dots follow it. One page since the modal
@@ -206,7 +183,7 @@ export function useProfileMenu(options: UseProfileMenuOptions) {
         return;
       }
       if (selectedAccountSection.value) {
-        closeMobileModal();
+        closeSection();
       } else {
         onClose();
       }
@@ -274,13 +251,10 @@ export function useProfileMenu(options: UseProfileMenuOptions) {
     selectLanguage,
     visibleMenuItems,
     visiblePage2Items,
-    selectedAccountSectionLabel,
     getAccountSection,
     onClose,
     handleItemClick,
     handleLogout,
-    closeMobileModal,
-    referralCount,
     onPointerDown,
     onPointerMove,
     onPointerUp,

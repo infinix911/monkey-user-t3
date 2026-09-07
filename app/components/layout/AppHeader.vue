@@ -398,11 +398,11 @@
 
   <SignupModal v-if="signupModalMounted" :is-open="uiStore.showSignupModal" @close="handleCloseSignupModal" />
 
-  <!-- Mounted for the menu OR a section on its own: the bottom nav's 공지사항
-       opens a section without the menu, and this component renders both.
-       The section arm is breakpoint-gated because the SAME section state drives
-       the desktop rail panel (AppSidebar) — without it, opening a section there
-       would mount this mobile sheet underneath. -->
+  <!-- The mobile profile menu. It no longer draws the open account section —
+       AppSidebar's teleported panel does that at every width — so this mounts
+       for the menu alone. The section arm stays below `lg` only to keep this
+       surface's Escape / click-outside handling alive while a section opened
+       from the bottom nav (공지사항, without the menu) is on screen. -->
   <NewProfileModal v-if="uiStore.showProfileModal || (isBelowRail && accountSection.section.value)"
     :is-open="uiStore.showProfileModal" @close="uiStore.setShowProfileModal(false)" />
 
