@@ -198,6 +198,8 @@
     "passwordPlaceholder": "Enter your withdrawal password"
   },
   "inquiry": {
+    "bodyTooLong": "Body must be 5000 characters or fewer.",
+    "titleTooLong": "Title must be 200 characters or fewer.",
     "depositAccountRequest": "Deposit Account Inquiry",
     "enterInquiryTitle": "Enter your inquiry title...",
     "enterInquiryBody": "Enter your inquiry body...",
@@ -831,6 +833,7 @@
       "An unexpected error occurred during registration": "An unexpected error occurred during registration. Please try again."
     },
     "validation": {
+      "bankNameTooShort": "Bank name must be at least 2 characters",
       "usernameMinLength": "Username must be at least 4 characters",
       "usernameMaxLength": "Username must not exceed 8 characters",
       "passwordMaxLength": "Password must not exceed 20 characters",

@@ -72,9 +72,14 @@ const signupRawSchema = (t: TFn) =>
         // Exactly 10 or 11 digits, the two real Korean mobile lengths. The
         // old floor of 8 with no ceiling let obviously wrong numbers through.
         .regex(/^\d{10,11}$/, t("signup.validation.mobileMinLength")),
+      // 2-30 is what registerSchema accepts. The floor was 1, so a
+      // single-character bank name passed the form and the member got a bare
+      // 400 back. The field is a picker in practice, but the schema is what the
+      // submit is validated against.
       bankName: z
         .string()
         .min(1, t("signup.validation.bankNameRequired"))
+        .min(2, t("signup.validation.bankNameTooShort"))
         .max(30, t("signup.validation.bankNameTooLong")),
       // 2, not 4: this is a Korean account-holder name (예금주명), and Korean
       // names are commonly two or three syllables - 김민, 이준 - so a 4 floor
