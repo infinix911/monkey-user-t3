@@ -8,6 +8,7 @@
  * Client localStorage provides a warm start while the API refreshes.
  */
 
+import { logger } from "~/utils/logger";
 import { useApi } from "@/composables/useApi";
 
 const CLIENT_CACHE_KEY_PREFIX = "themeConfig.v2";
@@ -109,7 +110,7 @@ export const fetchSiteConfig = async (options?: {
 
       return apiData.value;
     } catch (err) {
-      console.error(
+      logger.error(
         `[siteConfig] Fetch attempt ${attempt}/${MAX_RETRIES} failed:`,
         err,
       );

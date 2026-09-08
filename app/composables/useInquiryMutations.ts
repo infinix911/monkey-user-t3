@@ -11,6 +11,7 @@
  * - showSuccessAlert/showErrorAlert → ~/utils/swal-alert
  */
 
+import { logger } from "~/utils/logger";
 import axiosClient from "~/lib/axios-client";
 import { showSuccessAlert, showErrorAlert } from "~~/utils/swal-alert";
 import type { RepliesResponse } from "~/interfaces/inquiry.interface";
@@ -239,7 +240,7 @@ export const useInquiryMutations = (onRefresh?: () => Promise<void>) => {
       await refreshInbox();
     } catch (error: unknown) {
       // Silent fail — just log the error
-      console.error("Failed to mark inquiry as read:", error);
+      logger.error("Failed to mark inquiry as read:", error);
     }
   };
 

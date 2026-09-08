@@ -225,6 +225,7 @@
 </template>
 
 <script setup lang="ts">
+import { logger } from "~/utils/logger";
 import { ref, computed, watch } from "vue";
 import type {
   InquiryItem,
@@ -336,7 +337,7 @@ const handlePageChange = async (page: number) => {
       await props.onRefresh();
     }
   } catch (error) {
-    console.error("Failed to change page:", error);
+    logger.error("Failed to change page:", error);
   } finally {
     isLoadingPage.value = false;
   }

@@ -13,6 +13,7 @@
  * Coexists with useLoginTokenHandler: that handler skips when offline=true && referral is present.
  */
 
+import { logger } from "~/utils/logger";
 import axiosClient from "~/lib/axios-client";
 
 const TELEGRAM_CHAT_ID_PATTERN = /^-?\d{1,19}$/;
@@ -71,7 +72,7 @@ export const useOfflineTelegramRegisterHandler = () => {
         window.location.reload();
       }
     } catch (error) {
-      console.error("Offline Telegram register error:", error);
+      logger.error("Offline Telegram register error:", error);
     }
   });
 };

@@ -151,6 +151,7 @@
 </template>
 
 <script setup lang="ts">
+import { logger } from "~/utils/logger";
 import { ref, computed, onMounted, onUnmounted } from "vue";
 
 export interface Notification {
@@ -298,7 +299,7 @@ const handleMarkAllAsRead = async () => {
   try {
     await markNotificationsRead();
   } catch (error) {
-    console.error("Failed to mark all as read:", error);
+    logger.error("Failed to mark all as read:", error);
   } finally {
     isMarkingAllRead.value = false;
   }

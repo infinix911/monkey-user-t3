@@ -1,3 +1,4 @@
+import { logger } from "~/utils/logger";
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import axiosClient from "@/lib/axios-client";
@@ -159,7 +160,7 @@ export const useAuthStore = defineStore("auth", () => {
     try {
       await axiosClient.post("/auth/logout");
     } catch (error) {
-      console.error("Logout failed:", error);
+      logger.error("Logout failed:", error);
     } finally {
       // Clear all in-memory states
       user.value = { ...defaultUserState };

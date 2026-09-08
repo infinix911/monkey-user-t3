@@ -9,8 +9,6 @@
     "logout": "LOGOUT",
     "logoutDescription": "Sign out of your account",
     "validation": {
-      "usernameCheck": "User ID is required",
-      "usernameTooLong": "User ID must be 32 characters or fewer",
       "usernameInvalidChars": "User ID may only contain letters and numbers",
       "passwordCheck": "Password is required",
       "passwordTooLong": "Password must be 128 characters or fewer",

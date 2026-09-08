@@ -5,6 +5,7 @@
  * filter the shared Pinia list by their own page key.
  */
 
+import { logger } from "~/utils/logger";
 import { getApiBase } from "@/lib/domain";
 import { validateResponse } from "@/lib/validateResponse";
 import {
@@ -33,7 +34,9 @@ export async function fetchBanners(): Promise<BannerCarouselItem[]> {
     store.setBanners(list);
     return list;
   } catch (err) {
-    if (import.meta.dev) console.error("Failed to fetch banners:", err);
+    // Reported rather than dev-gated: a banner fetch that fails in production
+    // is exactly the kind of silent degradation Sentry should see.
+    logger.error("Failed to fetch banners:", err);
     // An empty list still marks the store loaded: the slot renders its empty
     // state rather than retrying per page, which would reintroduce the
     // per-navigation requests this exists to remove.

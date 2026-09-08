@@ -1,3 +1,4 @@
+import { logger } from "~/utils/logger";
 /**
  * PWA install composable
  * Provides installPWA() to trigger the browser's install prompt
@@ -59,7 +60,7 @@ export function usePWAInstall() {
       }
       return { success: outcome === "accepted", outcome };
     } catch (error) {
-      console.error("Error installing PWA:", error);
+      logger.error("Error installing PWA:", error);
       return { success: false, error: String(error) };
     }
   };

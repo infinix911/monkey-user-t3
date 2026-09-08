@@ -198,6 +198,7 @@
 </template>
 
 <script setup lang="ts">
+import { logger } from "~/utils/logger";
 /**
  * Desktop left rail (lg+ two-column layout): deposit/withdraw, the game
  * categories, and the profile menu — which on desktop replaces NewProfileModal.
@@ -293,7 +294,7 @@ watch(
       const data = await api<unknown[]>("/auth/referrals");
       referralCount.value = Array.isArray(data) ? data.length : 0;
     } catch (err) {
-      console.error("Failed to fetch referral count:", err);
+      logger.error("Failed to fetch referral count:", err);
       referralCount.value = 0;
     }
   },

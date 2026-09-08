@@ -41,6 +41,7 @@ class="px-6 py-2 bg-yellow-500 text-black rounded hover:bg-yellow-600 transition
 </template>
 
 <script setup lang="ts">
+import { logger } from "~/utils/logger";
 import { ref, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import axiosClient from "@/lib/axios-client";
@@ -95,13 +96,13 @@ const fetchGameUrl = async () => {
       params = { lobby: lobbyId, game: gameId };
     }
 
-    console.log("[game-launch] request params:", params);
+    logger.log("[game-launch] request params:", params);
     const launchResponse = await axiosClient.get("/games/launch", { params });
     const data = launchResponse.data;
     const url: string = data?.url || data?.game_url || data?.message || "";
 
-    // console.log("[game-launch] response data:", data);
-    // console.log("[game-launch] resolved url:", url);
+    // logger.log("[game-launch] response data:", data);
+    // logger.log("[game-launch] resolved url:", url);
 
     if (!url) {
       throw new Error("Game URL not found in response");
@@ -110,7 +111,7 @@ const fetchGameUrl = async () => {
     loadingIndicator.finish();
     window.location.replace(url);
   } catch (err: unknown) {
-    console.error("Failed to fetch game URL:", err);
+    logger.error("Failed to fetch game URL:", err);
     const gameErr = err as { response?: { data?: { message?: string } } };
     const code = gameErr?.response?.data?.message;
     // Map backend block codes to friendly, localized messages. Anything else

@@ -6,6 +6,7 @@
  * the rail stays put — which is the single `onNavigate` hook.
  */
 
+import { logger } from "~/utils/logger";
 import { showWarningAlert, showAutoAlert } from "~~/utils/swal-alert";
 import { useApi } from "@/composables/useApi";
 import {
@@ -112,7 +113,7 @@ export function useProfileNavigation(options: UseProfileNavigationOptions) {
       if (url) {
         window.open(url, "_blank", "noopener,noreferrer");
       } else {
-        console.log("[profile] live chat link (site:livechat) not configured");
+        logger.log("[profile] live chat link (site:livechat) not configured");
       }
       // Drop focus so the tile doesn't linger in a focused/active state (this
       // branch neither navigates nor closes the host).
@@ -171,7 +172,7 @@ export function useProfileNavigation(options: UseProfileNavigationOptions) {
     try {
       await api("/auth/logout", { method: "POST" });
     } catch (err) {
-      console.error("Logout error:", err);
+      logger.error("Logout error:", err);
     } finally {
       authStore.logout();
       accountSection.close();

@@ -1,3 +1,4 @@
+import { logger } from "~/utils/logger";
 /**
  * Vue composable for handling image loading with fallback
  * Ported from banana-lucky-next/lib/utils/image-handler.ts (useImageWithFallback hook)
@@ -41,7 +42,7 @@ export function useImageWithFallback(
     };
 
     img.onerror = () => {
-      console.warn(`Failed to load image: ${url}`);
+      logger.warn(`Failed to load image: ${url}`);
       imageSrc.value = resolvedFallback;
       isLoading.value = false;
       hasError.value = true;

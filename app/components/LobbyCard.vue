@@ -105,9 +105,13 @@
 </template>
 
 <script setup lang="ts">
+import { logger } from "~/utils/logger";
+import { showSwalAlert } from "~~/utils/swal-alert";
 import { computed, ref, resolveComponent } from "vue";
 import { openGame } from "~~/utils/game-navigation";
 import { useApi } from "@/composables/useApi";
+
+const { t } = useI18n();
 
 const authStore = useAuthStore();
 const uiStore = useUiStore();
@@ -199,7 +203,11 @@ async function openGamePopup() {
         : (body?.data ?? body?.games ?? []);
       const firstGame = Array.isArray(list) ? list[0] : null;
       if (!firstGame?.id) {
-        console.error("No sub-game found for sports lobby", props.game.id);
+        logger.error("No sub-game found for sports lobby", props.game.id);
+        await showSwalAlert({
+          title: t("game.apiMessages.PROVIDER_LAUNCH_FAIL"),
+          icon: "error",
+        });
         return;
       }
       const url = `/${props.gameType}/${firstGame.id}?lobbyId=${encodeURIComponent(props.game.id)}`;
@@ -212,7 +220,11 @@ async function openGamePopup() {
     const url = `/${props.gameType}/${props.game.id}`;
     openGame(url, { gameName: props.game.game_name });
   } catch (err) {
-    console.error("Failed to open game:", err);
+    logger.error("Failed to open game:", err);
+    await showSwalAlert({
+      title: t("game.apiMessages.PROVIDER_LAUNCH_FAIL"),
+      icon: "error",
+    });
   }
 }
 </script>

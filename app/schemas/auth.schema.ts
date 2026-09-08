@@ -4,15 +4,29 @@ import { toTypedSchema } from "@vee-validate/zod";
 type TFn = (key: string) => string;
 
 /**
+ * Username bounds, shared by both forms.
+ *
+ * 4-8 is what every writer enforces — `registerSchema` here, `createMemberBody`
+ * in monkey-admin-api, and both `createSubUserBody` variants in
+ * monkey-partner-api — so no stored username can fall outside it and the login
+ * form can safely be as strict as the signup form (BUG-023).
+ */
+export const USERNAME_MIN = 4;
+export const USERNAME_MAX = 8;
+
+/**
  * Login form schema
  */
 export const loginSchema = (t: TFn) =>
   toTypedSchema(
     z.object({
+      // Same bounds as signup. Login previously accepted 1-12 and, past 12,
+      // showed a message reading "32 characters or fewer" — three different
+      // numbers for one field.
       username: z
         .string()
-        .min(1, t("auth.validation.usernameCheck"))
-        .max(12, t("auth.validation.usernameTooLong"))
+        .min(USERNAME_MIN, t("signup.validation.usernameMinLength"))
+        .max(USERNAME_MAX, t("signup.validation.usernameMaxLength"))
         .regex(/^[a-zA-Z0-9]+$/, t("auth.validation.usernameInvalidChars")),
       password: z
         .string()
@@ -38,13 +52,13 @@ const signupRawSchema = (t: TFn) =>
       // every schema failure and which names no field. The old min of 5 also
       // contradicted this field's own error text, which already said 4.
       //
-      // ⚠ /auth/check/username still accepts 4-12, so it will call a 9-12
-      // character id AVAILABLE. The form no longer lets one through, but that
-      // endpoint's bound is still wrong on the API side.
+      // /auth/check/username agreed at 4-12 until BUG-023, so it would call a
+      // 9-12 character id AVAILABLE and this form would then refuse it. Its
+      // `checkUsernameSchema` is 4-8 now, matching registerSchema.
       username: z
         .string()
-        .min(4, t("signup.validation.usernameMinLength"))
-        .max(8, t("signup.validation.usernameMaxLength"))
+        .min(USERNAME_MIN, t("signup.validation.usernameMinLength"))
+        .max(USERNAME_MAX, t("signup.validation.usernameMaxLength"))
         // Letters and digits only - same rule the login form enforces. Without
         // it an id containing "_" or "-" could be registered here and then be
         // rejected at login, locking the member out of the account they just
