@@ -29,6 +29,7 @@
 </template>
 
 <script setup lang="ts">
+import { logger } from "~/utils/logger";
 import { ref, onMounted } from "vue";
 import { useApi } from "@/composables/useApi";
 
@@ -54,7 +55,7 @@ const fetchBoards = async () => {
     const api = useApi();
     boards.value = (await api<IPromotionBoard[]>("/promotions/boards")) || [];
   } catch (error) {
-    console.error("Failed to fetch promotion boards:", error);
+    logger.error("Failed to fetch promotion boards:", error);
     boards.value = [];
   } finally {
     isLoading.value = false;

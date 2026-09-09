@@ -144,15 +144,22 @@
   </aside>
 
   <!-- Open account section — a centred modal over a 90% black backdrop, matching
-       the deposit and withdrawal modals. Same panel the mobile sheet renders, so
-       the content and its data come from one place. Teleported to <body> so the
-       rail's own stacking context cannot trap it, and z-[100] to match the other
-       modals so it covers the fixed header. -->
+       the deposit and withdrawal modals. Teleported to <body> so the rail's own
+       stacking context cannot trap it, and z-[100] to match the other modals so
+       it covers the fixed header.
+
+       This is the section surface at EVERY width, not just lg+. The rail itself
+       is hidden below lg by the layout's wrapper, but the panel is teleported
+       OUT of that wrapper, so it renders regardless — and NewProfileModal used
+       to draw a second, full-screen sheet for the same `accountSection` state
+       underneath it. The sheet is gone (same reasoning as InquiryModal: one
+       feature should not look like two depending on the device), so this is the
+       only host and there is nothing left behind the 90% backdrop. -->
   <Teleport to="body">
     <Transition name="rail-panel">
       <div v-if="accountSection.section.value"
         class="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 px-4"
-        @click.self="accountSection.close()">
+        @click.self="closeSection()">
         <!-- Height follows the content rather than being pinned: the sections
              behind this panel range from a three-field form to a paged table,
              and a fixed 620px left the short ones with a stretch of empty panel
@@ -163,10 +170,11 @@
           role="dialog" :style="[panelStyle, modalTheme]">
           <div class="flex-shrink-0 flex items-center justify-between px-4 py-3 border-b tm-line">
             <h2 class="tm-accent-text text-lg font-medium" style="font-family: var(--font-line-seed)">
-              {{ menu.labelForId(accountSection.section.value) }}
+              {{ menu.labelForId(accountSection.section.value)
+              }}<template v-if="accountSection.section.value === 'referral'"> ({{ referralCount ?? 0 }})</template>
             </h2>
             <button class="tm-muted hover:text-white transition-colors cursor-pointer"
-              :aria-label="$t('common.close')" @click="accountSection.close()">
+              :aria-label="$t('common.close')" @click="closeSection()">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 27 27" fill="none">
                 <line x1="1.41421" y1="1" x2="25.627" y2="25.2127" stroke="currentColor" stroke-width="2"
                   stroke-linecap="round" />
@@ -190,6 +198,7 @@
 </template>
 
 <script setup lang="ts">
+import { logger } from "~/utils/logger";
 /**
  * Desktop left rail (lg+ two-column layout): deposit/withdraw, the game
  * categories, and the profile menu — which on desktop replaces NewProfileModal.
@@ -204,6 +213,8 @@
  * CMS surfaces it here and in the modal with no code change.
  */
 import { computed } from "vue";
+import { useApi } from "@/composables/useApi";
+import { useInquiryFeed } from "@/composables/useInquiryFeed";
 import AccountSectionPanel from "~/components/profile/AccountSectionPanel.vue";
 import ProfileFeatureModals from "~/components/profile/ProfileFeatureModals.vue";
 import type { MenuItem } from "@/composables/useProfileMenuItems";
@@ -215,6 +226,7 @@ const uiStore = useUiStore();
 const route = useRoute();
 const localePath = useLocalePath();
 const features = useFeatures();
+const api = useApi();
 const { onDeposit, onWithdraw } = useNavTransactionActions();
 
 const menu = useProfileMenuItems();
@@ -235,6 +247,58 @@ const { handleItemClick } = useProfileNavigation({
     showActivity.value = true;
   },
 });
+
+/**
+ * The inquiry list behind the `inquiry` section, so closing the panel can drop
+ * it. Shared with every other surface that renders the section, so this reads
+ * the same feed the panel is showing.
+ */
+const inquiry = useInquiryFeed();
+
+/**
+ * Closes the open section.
+ *
+ * Refuses while the member has unread inquiry replies and the inquiry section
+ * is what is open: the rest of the account menu is gated behind reading them
+ * (see `blockedByUnreadInquiries`), so letting this close would leave them told
+ * to read replies with the surface that shows them dismissed. This guard used
+ * to live on the mobile sheet only; it belongs here now that this panel is the
+ * section surface at every width.
+ *
+ * @returns {Promise<void>} Resolves once the close settles or is refused.
+ */
+async function closeSection(): Promise<void> {
+  if (accountSection.section.value === "inquiry" && uiStore.hasUnreadInquiries) {
+    await showUnreadInquiryAlert();
+    return;
+  }
+  accountSection.close();
+  inquiry.reset();
+}
+
+/**
+ * Referrals in the member's tree, shown beside the section title as
+ * "추천인 (0)". Fetched here rather than by the panel because it is header
+ * chrome, not part of the section's own content. `null` until it lands.
+ */
+const referralCount = ref<number | null>(null);
+
+// Refetched every time the section is opened, so the count cannot go stale
+// behind a panel that was closed and reopened.
+watch(
+  () => accountSection.section.value,
+  async (section) => {
+    if (section !== "referral") return;
+    referralCount.value = null;
+    try {
+      const data = await api<unknown[]>("/auth/referrals");
+      referralCount.value = Array.isArray(data) ? data.length : 0;
+    } catch (err) {
+      logger.error("Failed to fetch referral count:", err);
+      referralCount.value = 0;
+    }
+  },
+);
 
 /**
  * Runs a menu item, prompting login first for anything account-bound so a guest

@@ -1,3 +1,4 @@
+import { logger } from "~/utils/logger";
 import { computed, ref } from "vue";
 import { defineStore } from "pinia";
 import { useApi } from "@/composables/useApi";
@@ -133,7 +134,7 @@ export const useMemberInboxStore = defineStore("memberInbox", () => {
         inquiryStatus.value = "ready";
       } catch (error) {
         inquiryStatus.value = "error";
-        console.error("Error fetching inquiries:", error);
+        logger.error("Error fetching inquiries:", error);
       } finally {
         inquiryRequests.delete(page);
       }
@@ -157,7 +158,7 @@ export const useMemberInboxStore = defineStore("memberInbox", () => {
         repliesByInquiry.value = { ...repliesByInquiry.value, [inquiryId]: replies };
         return replies;
       } catch (error) {
-        console.error("Error fetching inquiry replies:", error);
+        logger.error("Error fetching inquiry replies:", error);
         return null;
       } finally {
         replyRequests.delete(inquiryId);

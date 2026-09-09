@@ -1,4 +1,5 @@
-import { defineStore } from "pinia";
+import { defineStore } from "pinia";
+import { sumDecimalStrings } from "~/utils/decimal";
 import { ref } from "vue";
 import { useApi } from "@/composables/useApi";
 import { validateResponse } from "@/lib/validateResponse";
@@ -138,7 +139,12 @@ export const useMemberRecordsStore = defineStore("member-records", () => {
         const data = mapBetHistoriesResponse(validateResponse(betHistoriesResponseWireSchema, raw, "/games/bet-histories"));
         return { ...data, data: data.data.map((row) => ({ ...row, game_type: type })) };
       }));
-      const sum = (field: keyof NonNullable<BetHistoryResponse["summary"]>) => String(responses.reduce((total, response) => total + Number(response.summary?.[field] ?? "0"), 0));
+      // Money is added in minor units, not doubles: these are server-computed
+      // decimal strings and `Number(a) + Number(b)` drifts from what the server
+      // would have returned had one endpoint covered all four game types
+      // (BUG-025). Row counts below are integers and add safely as numbers.
+      const sum = (field: keyof NonNullable<BetHistoryResponse["summary"]>) =>
+        sumDecimalStrings(responses.map((response) => response.summary?.[field] ?? "0"));
       return {
         data: responses.flatMap((response) => response.data).sort((a: BetHistoryRow, b: BetHistoryRow) => new Date(String(b.created_at)).getTime() - new Date(String(a.created_at)).getTime()),
         pages: Math.max(0, ...responses.map((response) => response.pages)),

@@ -937,7 +937,6 @@
    matching `name=""` shares identical, subtle motion. Keep these in sync with:
      - app.pageTransition / layoutTransition in nuxt.config.ts  -> "page"
      - modals (Teleport + <Transition name="modal">)            -> "modal"
-     - SelectBankAccountModal                                   -> "modal-fade"
      - notification / profile dropdowns                         -> "dropdown"
      - bottom-sheet panels (mobile NewProfileModal, etc.)       -> "sheet"
    The reduced-motion block at the bottom strips transforms for accessibility.

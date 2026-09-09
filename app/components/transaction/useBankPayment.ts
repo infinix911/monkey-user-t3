@@ -8,6 +8,7 @@
  * proof-of-transfer and summary UI.
  */
 
+import { logger } from "~/utils/logger";
 import { useForm } from "vee-validate";
 import { useApi } from "@/composables/useApi";
 import {
@@ -169,7 +170,7 @@ export function useBankPayment(options: UseBankPaymentOptions) {
           : t("deposit.copy.accountNumber");
       showAutoAlert(`${labelText} ${t("deposit.copy.success")}`);
     } catch (error) {
-      console.error("Copy failed:", error);
+      logger.error("Copy failed:", error);
       showAutoAlert("Failed to copy", "error");
     }
   }

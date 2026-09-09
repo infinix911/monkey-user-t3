@@ -103,53 +103,16 @@
     </div>
   </Transition>
 
-  <!-- Mobile full-screen section sheet.
-       OUTSIDE the menu's `v-if` on purpose: a section can be opened without the
-       menu (the bottom nav's 공지사항 does exactly that), and while it was
-       nested the only way to show a panel was to raise the menu behind it. -->
-  <Teleport to="body">
-    <Transition name="mobile-modal">
-      <div v-if="selectedAccountSection"
-        class="tm-modal modal-body-fill fixed inset-0 z-[70] flex flex-col overflow-hidden lg:hidden"
-        :style="modalTheme"
-        @click.self="closeMobileModal">
-        <!-- Modal Header -->
-        <div class="relative z-10 shrink-0 flex items-center justify-between px-4 py-2">
-          <div class="flex items-center gap-0">
-            <!-- Plain white title (no icon / no yellow) — matches the
-                 Pertanyaan (Inquiry) modal header on mobile. -->
-            <h2 class="text-white"
-              :style="{ fontFamily: 'var(--font-line-seed)', fontWeight: 600, marginTop: '17px', fontSize: '20px' }">
-              {{ selectedAccountSectionLabel
-              }}<template v-if="selectedAccountSection === 'referral'"> ({{ referralCount ?? 0 }})</template>
-            </h2>
-          </div>
-          <button type="button" class="self-start mt-1 hover:opacity-80 transition-opacity cursor-pointer pt-[14px]"
-            :aria-label="$t('common.close')" @click="closeMobileModal">
-            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 26 26" fill="none"
-              class="w-[26px] h-[26px]">
-              <line x1="1.44191" y1="1.01958" x2="24.9799" y2="24.5575" stroke="#939393" stroke-width="2.03917"
-                stroke-linecap="round" />
-              <line x1="1.01959" y1="-1.01959" x2="34.3073" y2="-1.01959"
-                transform="matrix(-0.707107 0.707107 0.707107 0.707107 26 1.01959)" stroke="#939393"
-                stroke-width="2.03917" stroke-linecap="round" />
-            </svg>
-          </button>
-        </div>
-
-        <!-- Modal Content -->
-        <div
-          class="tm-card tm-scroll flex-initial shrink min-h-0 min-w-0 max-h-full overflow-y-auto rounded-[18px] mx-2 p-4 mb-[20px]">
-          <AccountSectionPanel :section="selectedAccountSection" />
-        </div>
-      </div>
-    </Transition>
-  </Teleport>
+  <!-- No section sheet here. The open account section is drawn by AppSidebar's
+       teleported panel at EVERY width — a bordered card on a dimmed backdrop —
+       so the feature looks the same on phone and desktop (same reasoning as
+       InquiryModal). This component used to draw a second, full-screen sheet
+       for the same shared `accountSection` state, which rendered underneath
+       that panel on mobile and read as a duplicate modal. -->
 </template>
 
 <script setup lang="ts">
 import LanguageFlag from "~/components/layout/LanguageFlag.vue";
-import AccountSectionPanel from "~/components/profile/AccountSectionPanel.vue";
 import { useProfileMenu } from "@/components/profile/useProfileMenu";
 
 const props = defineProps<{
@@ -170,13 +133,10 @@ const {
   showPromotionModal,
   showActivityModal,
   visiblePage2Items,
-  selectedAccountSectionLabel,
   getAccountSection,
   onClose,
   handleItemClick,
   handleLogout,
-  closeMobileModal,
-  referralCount,
   onPointerDown,
   onPointerMove,
   onPointerUp,
@@ -193,9 +153,6 @@ const {
   isOpen: () => props.isOpen,
   onClose: () => emit("close"),
 });
-
-/** Deposit/withdraw palette for the account sections this modal hosts. */
-const modalTheme = useModalTheme();
 </script>
 
 <style scoped>

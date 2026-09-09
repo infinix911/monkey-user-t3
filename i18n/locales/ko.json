@@ -9,8 +9,6 @@
     "logout": "로그아웃",
     "logoutDescription": "계정에서 로그아웃합니다",
     "validation": {
-      "usernameCheck": "아이디는 필수 입력 항목입니다",
-      "usernameTooLong": "아이디는 32자 이하여야 합니다",
       "usernameInvalidChars": "아이디는 영문자, 숫자만 사용할 수 있습니다",
       "passwordCheck": "비밀번호는 필수 입력 항목입니다",
       "passwordTooLong": "비밀번호는 128자 이하여야 합니다",
@@ -198,6 +196,8 @@
     "passwordPlaceholder": "출금 비밀번호를 입력하세요"
   },
   "inquiry": {
+    "bodyTooLong": "내용은 5000자를 초과할 수 없습니다.",
+    "titleTooLong": "제목은 200자를 초과할 수 없습니다.",
     "depositAccountRequest": "입금 계좌 문의",
     "enterInquiryTitle": "문의 제목을 입력하세요...",
     "enterInquiryBody": "문의 내용을 입력하세요...",
@@ -831,6 +831,7 @@
       "An unexpected error occurred during registration": "등록 중 예기치 않은 오류가 발생했습니다. 다시 시도해 주세요."
     },
     "validation": {
+      "bankNameTooShort": "은행명은 최소 2자 이상이어야 합니다",
       "usernameMinLength": "아이디는 최소 4자 이상이어야 합니다",
       "usernameMaxLength": "아이디는 8자를 초과할 수 없습니다",
       "passwordMaxLength": "비밀번호는 20자를 초과할 수 없습니다",

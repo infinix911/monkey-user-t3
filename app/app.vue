@@ -14,6 +14,7 @@
 </template>
 
 <script setup lang="ts">
+import { logger } from "~/utils/logger";
 import { fetchSiteConfig } from "@/lib/siteConfig";
 import { fetchCustomScripts } from "@/composables/useCustomScripts";
 import { fetchSiteSettings } from "@/composables/useSiteSettings";
@@ -111,7 +112,7 @@ async function bootstrapSite() {
     try {
       await applyPreferredLocale();
     } catch (error) {
-      console.warn("[bootstrap] unable to apply preferred locale", error);
+      logger.warn("[bootstrap] unable to apply preferred locale", error);
     } finally {
       bootstrapReady.value = true;
     }

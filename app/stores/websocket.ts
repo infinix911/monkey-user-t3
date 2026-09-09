@@ -1,3 +1,4 @@
+import { logger } from "~/utils/logger";
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import type {
@@ -114,7 +115,7 @@ export const useWebSocketStore = defineStore("websocket", () => {
     try {
       await useAuthStore().logout();
     } catch (error) {
-      console.error("🔌 Logout after session revocation failed:", error);
+      logger.error("🔌 Logout after session revocation failed:", error);
     }
     if (typeof window === "undefined") return;
     const path = window.location.pathname;
@@ -149,7 +150,7 @@ export const useWebSocketStore = defineStore("websocket", () => {
         const wsUrl = buildWebSocketUrl();
 
         if (!wsUrl) {
-          console.error("🔌 Failed to build WebSocket URL (not in browser)");
+          logger.error("🔌 Failed to build WebSocket URL (not in browser)");
           isConnecting = false;
           return;
         }
@@ -170,7 +171,7 @@ export const useWebSocketStore = defineStore("websocket", () => {
           connectionError.value = null;
           reconnectAttempts.value = 0;
           isConnecting = false;
-          console.log("🔌 WebSocket connected");
+          logger.log("🔌 WebSocket connected");
         };
 
         /**
@@ -258,7 +259,7 @@ export const useWebSocketStore = defineStore("websocket", () => {
 
               default:
                 // Handle unknown events
-                console.log("🔌 Unknown WebSocket event:", data.event);
+                logger.log("🔌 Unknown WebSocket event:", data.event);
                 break;
             }
           } catch {
@@ -278,7 +279,7 @@ export const useWebSocketStore = defineStore("websocket", () => {
           connectionError.value = `Connection closed: ${event.reason || "Unknown reason"}`;
           isConnecting = false;
 
-          console.log("🔌 WebSocket closed:", event.code, event.reason);
+          logger.log("🔌 WebSocket closed:", event.code, event.reason);
 
           /* 1008 is what the API closes with when it will not accept this
              socket — UNAUTHENTICATED, or SESSION_EXPIRED once a kicked
@@ -303,7 +304,7 @@ export const useWebSocketStore = defineStore("websocket", () => {
           if (event.code !== 1000) {
             const currentAttempts = reconnectAttempts.value;
             const delay = Math.min(30_000, 1000 * 2 ** currentAttempts);
-            console.log(
+            logger.log(
               `🔌 Reconnecting in ${delay}ms (attempt ${currentAttempts + 1})`,
             );
 
@@ -318,7 +319,7 @@ export const useWebSocketStore = defineStore("websocket", () => {
          * onerror - Connection error
          */
         newWs.onerror = (error) => {
-          console.error("🔌 WebSocket connection error:", error);
+          logger.error("🔌 WebSocket connection error:", error);
           ws.value = null;
           isConnected.value = false;
           connectionError.value = "Connection failed";
@@ -334,7 +335,7 @@ export const useWebSocketStore = defineStore("websocket", () => {
           void confirmSession();
         }, 30_000);
       } catch (error) {
-        console.error("🔌 WebSocket connection failed:", error);
+        logger.error("🔌 WebSocket connection failed:", error);
         ws.value = null;
         isConnected.value = false;
         connectionError.value = `Connection failed: ${error instanceof Error ? error.message : "Unknown error"}`;
@@ -349,7 +350,7 @@ export const useWebSocketStore = defineStore("websocket", () => {
    */
   const disconnect = () => {
     if (ws.value) {
-      console.log("🔌 Disconnecting WebSocket");
+      logger.log("🔌 Disconnecting WebSocket");
       ws.value.close(1000, "Manual disconnect"); // Normal closure
     }
 

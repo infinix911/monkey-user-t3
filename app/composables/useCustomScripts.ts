@@ -21,6 +21,7 @@
  * payload caches and invalidates independently.
  */
 
+import { logger } from "~/utils/logger";
 import { getApiBase } from "@/lib/domain";
 import { useSiteStore, type CustomScriptEntry } from "@/stores/site";
 import { escapeInlineScript } from "~~/shared/utils/secure-serialization";
@@ -70,7 +71,7 @@ export async function fetchCustomScripts(): Promise<CustomScriptEntry[]> {
     siteStore.setCustomScripts(Array.isArray(list) ? list : []);
     return siteStore.customScripts;
   } catch (err) {
-    console.error("[customScripts] fetch failed:", err);
+    logger.error("[customScripts] fetch failed:", err);
     // A failed CMS request is still settled; without this app navigation would
     // retry indefinitely and duplicate error noise.
     siteStore.setCustomScripts([]);
