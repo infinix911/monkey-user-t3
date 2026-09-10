@@ -130,8 +130,16 @@ const siteConfig = useSiteConfig();
 // lobby-UUID-named file) stays as the fallback for providers with no mapping
 // yet — sports lobbies in particular. Empty means neither resolved, and the
 // template falls back to rendering the provider name as text.
+// Evolution's two lobbies share a provider code and are told apart by a stakes
+// pill in the artwork; the 1:1 card drops that pill when 1:10 is switched off
+// and there is no sibling on the board to contrast against.
+const { highStakesVisible } = useEvolutionStakes();
+
 const providerLogo = computed(
-  () => getLogoImages(props.game.code, props.game.id) || props.game.logo || "",
+  () =>
+    getLogoImages(props.game.code, props.game.id, highStakesVisible.value) ||
+    props.game.logo ||
+    "",
 );
 
 // A card instance is reused across rows when the list re-renders, so clear the
