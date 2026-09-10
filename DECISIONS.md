@@ -459,3 +459,28 @@ two files that this ADR exists to keep in sync.
 
 **Related:** ADR-006 (mutations are never retried — same money-safety reasoning
 about not repeating a request the server already judged).
+
+## ADR-026 — Game-launch cover block shows a generic "contact admin" message
+
+**Status:** Accepted (2026-09-10)
+
+**Decision:** When `GET /api/games/launch` returns `403 GAME_LAUNCH_UNAVAILABLE`,
+the CSR launch page (`app/pages/[game_type]/[game_id].vue`) maps that token in its
+`blockMessages` record to `common.gameUnavailableContactAdmin` ("This game is
+temporarily unavailable. Please contact your admin for assistance." / KO
+equivalent), added to both `i18n/locales/{en,ko}.json`. Anything unmapped still
+falls back to `common.gameError`, so the raw token is never shown.
+
+**Reason:** The backend blocks launch when a member's wallet exceeds the site's
+available cover (monkey-user-api ADR-011). That is an operational/risk condition
+the member cannot self-resolve and should not be exposed to — the message stays
+deliberately generic and never names the cover, balance, or any "coin/credit"
+source. Routing them to their admin is the actionable next step.
+
+**Tradeoffs:** The member is not told *why* the game is unavailable. That is
+intentional; the reason is house-side and not the member's to act on beyond
+contacting support.
+
+**Related:** monkey-user-api ADR-011 (the backend guard and token). Same
+token → localized-message mapping pattern already used for `GAME_RESTRICTED` /
+`GAME_BLOCKED_BY_PROMOTION`.

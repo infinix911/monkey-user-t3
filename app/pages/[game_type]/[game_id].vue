@@ -121,6 +121,7 @@ const fetchGameUrl = async () => {
       GAME_RESTRICTED: t("common.gameBlocked"),
       GAME_BLOCKED: t("common.gameBlocked"),
       GAME_BLOCKED_BY_PROMOTION: t("common.gameBlockedByPromotion"),
+      GAME_LAUNCH_UNAVAILABLE: t("common.gameUnavailableContactAdmin"),
     };
     if (code === "INQUIRY_UNREAD") {
       uiStore.setShowInquiryModal(true);

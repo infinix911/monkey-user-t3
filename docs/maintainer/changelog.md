@@ -6,7 +6,7 @@ Use this page for short maintainer-facing release notes. Link each entry to a ca
 
 ### Added
 
-- _No entries yet._
+- Game-launch page maps the backend `GAME_LAUNCH_UNAVAILABLE` block token (member wallet exceeds the site cover) to a localized "This game is temporarily unavailable. Please contact your admin for assistance." message (`common.gameUnavailableContactAdmin`, en + ko), wired into the existing `blockMessages` map in `app/pages/[game_type]/[game_id].vue`. Wording is intentionally generic and never names the cover source. See ADR-026 and monkey-user-api ADR-011 (PR #44).
 
 ### Changed
 

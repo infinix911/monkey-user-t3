@@ -204,6 +204,8 @@ Money logic never lives in stores — mutations go through `useApi`/`axios-clien
 
 **Add a form:** schema factory in `app/schemas/*.schema.ts` → `useForm({validationSchema: computed(() => { void locale.value; return schema(t); })})` → fields via `auth/FormField.vue` → `handleSubmit` → `useApi()` POST → success `useToast()`, failure map `err.data.message` through i18n → `showErrorAlert`. Big form → extract `useMyForm.ts`.
 
+**Add a game-launch block code:** the backend returns UPPER_SNAKE `message` tokens from `GET /api/games/launch`; the CSR launch page `app/pages/[game_type]/[game_id].vue` maps known ones in its `blockMessages` record to a localized string and shows `common.gameError` for anything unmapped (raw tokens are never surfaced). To surface a new block, add the token → `t("common.<key>")` to `blockMessages` and the string to BOTH locale JSONs. Example: `GAME_LAUNCH_UNAVAILABLE` (member wallet exceeds the site's launch cover) maps to `common.gameUnavailableContactAdmin`; keep such messages generic and never expose the backend cover source to the member.
+
 **Add a modal:** confirmation → `showSwalAlert()` (don't build one). Feature modal → Teleport + `Transition name="modal"` + uiStore flag + `defineAsyncComponent` at trigger site; reuse `.tm-modal` chrome for transaction-style.
 
 **Add a server route:** `server/routes/<name>.ts` — NOT under `/api/*` (proxy claims it). Use `getSiteCurrency(event)`/`getFeatures(event)`, never composables. Header work → Nitro plugin with `headersSent` guard.
