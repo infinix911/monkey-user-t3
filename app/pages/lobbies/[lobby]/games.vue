@@ -37,6 +37,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
+import { providerDisplayName } from "@/utils/gameProviderLogo";
 
 definePageMeta({
   layout: "default",
@@ -95,12 +96,15 @@ const { data, error: fetchError, pending, refresh: fetchGames } = useAsyncData<L
   },
 );
 
+const { t, te } = useI18n();
 const games = computed<GameRow[]>(() => data.value?.games ?? []);
 const totalGames = computed(() => data.value?.total ?? 0);
 
 // Provider logo (left of the games header) — local /designs/<type>-logo/<id>.webp
 // keyed by the lobby UUID, with the type taken from the first game.
-const providerName = computed<string>(() => games.value[0]?.lobby ?? "");
+const providerName = computed<string>(() =>
+    providerDisplayName(t, te, games.value[0]?.gameProvider, games.value[0]?.lobby ?? ""),
+);
 const providerLogo = computed<string>(() => {
   const type = String(games.value[0]?.game_type ?? "slot").toLowerCase();
   const logos = siteConfig.assets.homepage.gameLogos;

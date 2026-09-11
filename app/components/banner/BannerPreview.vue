@@ -42,7 +42,7 @@
                    way. Under `contain` the overlay shrank to fit whenever the
                    slot's ratio differed from the artwork's while the main
                    image cropped to fill, which pulled the two apart. -->
-              <img v-if="banner.overlay_url" :src="optimize(banner.overlay_url, BANNER_W.desktop)" alt="Overlay"
+              <img v-if="banner.overlay_url" :src="optimize(banner.overlay_url, BANNER_W.desktop)" alt=""
                 class="absolute inset-0 w-full h-full object-cover z-10 pointer-events-none overlay-zoom"
                 :loading="index === 0 ? 'eager' : 'lazy'" :fetchpriority="index === 0 ? 'high' : undefined"
                 draggable="false" decoding="async">
@@ -65,7 +65,7 @@
               <!-- Mobile Overlay — LCP candidate on mobile viewports.
                    `object-cover` for the same reason as the desktop one. -->
               <img v-if="banner.overlay_url_mobile" :src="optimize(banner.overlay_url_mobile, BANNER_W.mobile)"
-                alt="Overlay"
+                alt=""
                 class="absolute inset-0 w-full h-full object-cover z-10 pointer-events-none overlay-zoom"
                 :loading="index === 0 ? 'eager' : 'lazy'" :fetchpriority="index === 0 ? 'high' : undefined"
                 draggable="false" decoding="async">
@@ -228,9 +228,49 @@ const bannerStore = useBannerStore();
  * image, and the previous creative stays up until then.
  */
 const displayPage = ref<BannerPageKey>(props.page);
-const banners = computed<BannerPreviewItem[]>(() =>
+
+/**
+ * TEMPORARY — set to `null` to restore the CMS/API banners.
+ *
+ * While this holds a path, the HOME slot renders this one video instead of
+ * whatever the banner store returns. Every other page slot is untouched, and
+ * nothing below is removed: `storeBanners` still resolves exactly as before,
+ * so clearing this constant restores the original behaviour with no other
+ * edit.
+ *
+ * `.mp4` is enough on its own — `isVideo()` already routes the URL to the
+ * <video> branch in the template, so no markup change is needed. The same
+ * file is used for mobile because the override is a stand-in, not a
+ * production creative.
+ */
+const TEMP_HOME_BANNER_VIDEO: string | null =
+  "/designs/banana/banner/2-1773490613809.mp4";
+
+/** Banners exactly as the store resolves them (unchanged). */
+const storeBanners = computed<BannerPreviewItem[]>(() =>
   bannerStore.bannersByPage(displayPage.value),
 );
+
+const banners = computed<BannerPreviewItem[]>(() => {
+  if (TEMP_HOME_BANNER_VIDEO && displayPage.value === "homepage") {
+    // Aspect ratios stay null so the existing theme fallback
+    // (desktopBannerAspectRatio / mobileBannerAspectRatio) still applies and
+    // the slot reserves the same box as before — no layout shift.
+    return [
+      {
+        page: displayPage.value,
+        main_url: TEMP_HOME_BANNER_VIDEO,
+        overlay_url: null,
+        main_url_mobile: TEMP_HOME_BANNER_VIDEO,
+        overlay_url_mobile: null,
+        aspect_ratio_desktop: null,
+        aspect_ratio_mobile: null,
+        sort: 0,
+      },
+    ];
+  }
+  return storeBanners.value;
+});
 
 /** The URL that will actually render for a banner at the current viewport. */
 const mediaUrls = (banner: BannerPreviewItem | undefined): string[] => {

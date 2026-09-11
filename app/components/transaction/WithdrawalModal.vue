@@ -12,7 +12,7 @@
             <!-- Title wordmark image (shown when the brand opts in via
                  deposit.showWithdrawalImageTitle). -->
             <img v-if="dep.showWithdrawalImageTitle" :src="siteConfig.assets.transaction.withdrawIcon"
-              alt="Withdraw" class="h-11 md:h-15 w-auto object-contain select-none pointer-events-none" />
+              :alt="$t('withdrawal.title')" class="h-11 md:h-15 w-auto object-contain select-none pointer-events-none" />
             <button type="button"
               class="absolute right-4 md:right-6 top-1/2 -translate-y-1/2 transition-colors cursor-pointer"
               :aria-label="$t('common.close')" @click="onClose">

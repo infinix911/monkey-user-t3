@@ -83,7 +83,7 @@
         <img
           v-if="showRatio"
           :src="siteConfig.assets.images.ratio"
-          alt="Ratio"
+          alt=""
           loading="lazy"
           class="absolute z-[22]"
           style="left: 6.43%; top: 35.1%; width: 41.4%"

@@ -95,3 +95,127 @@ export function getLogoImages(
 
     return `${GAME_LOGO_BASE}/${encodeURIComponent(name)}.webp`;
 }
+
+/**
+ * Locale-key segment for a provider display name, e.g. `Big Gaming` ->
+ * `bigGaming`. Kept as an explicit table rather than a slug function because
+ * the keys must match `game.providers.*` in the locale bundles exactly, and a
+ * naive camelCase of `SA Gaming` gives `sAGaming`.
+ *
+ * Providers absent from this table have no localised trade name and
+ * deliberately fall back to their Latin brand.
+ */
+const PROVIDER_NAME_KEYS: Record<string, string> = {
+    AllBet: "allbet",
+    Asiangaming: "asianGaming",
+    Betgames: "betgames",
+    "Big Gaming": "bigGaming",
+    "Big Time Gaming": "bigTimeGaming",
+    Blueprint: "blueprint",
+    CQ9: "cq9",
+    "Dream Gaming": "dreamGaming",
+    EEAI: "eeai",
+    "Emperor Gaming": "emperorGaming",
+    Evolution: "evolution",
+    Ezugi: "ezugi",
+    Habanero: "habanero",
+    Hacksaw: "hacksaw",
+    JiLi: "jili",
+    "Live 88": "live88",
+    Microgaming: "microgaming",
+    Netent: "netent",
+    "Nolimit City": "nolimitCity",
+    Oriental: "orientalGaming",
+    "PG Soft": "pgSoft",
+    "Play N Go": "playNGo",
+    Playtech: "playtech",
+    Pragmatic: "pragmatic",
+    "Pretty Gaming": "prettyGaming",
+    Quickspin: "quickspin",
+    "Red Tiger": "redTiger",
+    Relax: "relax",
+    "SA Gaming": "saGaming",
+    "Sexy Gaming": "sexyGaming",
+    Skywind: "skywind",
+    Winfinity: "winfinity",
+    WM: "wm",
+    YGGDrasil: "yggdrasil",
+    Pinnacle: "pinnacle",
+    Saba: "saba",
+    SBO: "sbo",
+    "BTI Sports": "btiSports",
+    CMD: "cmd",
+    Bota: "bota",
+    CreedRoomz: "creedRoomz",
+    Cyberbetx: "cyberbetx",
+    Dowinn: "dowinn",
+    GPI: "gpi",
+    "HO Gaming": "hoGaming",
+    "Miki World": "mikiWorld",
+    Motivation: "motivation",
+    Alize: "alize",
+    Aviator: "aviator",
+    Aviatrix: "aviatrix",
+    "Fast Game": "fastGame",
+    Spribe: "spribe",
+    "Turbo Games": "turboGames",
+    "4 The Player": "fourThePlayer",
+    "Avatar UX": "avatarUx",
+    BNG: "bng",
+    Booming: "booming",
+    CosmoPlay: "cosmoPlay",
+    Evoplay: "evoplay",
+    Expanse: "expanse",
+    Fantasma: "fantasma",
+    Gameart: "gameart",
+    GMW: "gmw",
+    JDB: "jdb",
+    Joker: "joker",
+    Naga: "naga",
+    NextSpin: "nextSpin",
+    Octoplay: "octoplay",
+    OneTouch: "oneTouch",
+    "Peter & Sons": "peterAndSons",
+    Playstar: "playstar",
+    Reelplay: "reelplay",
+    Slotmill: "slotmill",
+    Smartsoft: "smartsoft",
+    "Spade Slots": "spadeSlots",
+    "VA Gaming": "vaGaming",
+    Wazdan: "wazdan",
+    Winfast: "winfast",
+    Wonwon: "wonwon",
+    "World Match": "worldMatch",
+    "Fulla.Bet": "fullaBet",
+    "Illustrative Analytics": "illustrativeAnalytics",
+    "WS Sports": "wsSports",
+    "Spribe Aviator": "spribeAviator",
+};
+
+/**
+ * Localised provider display name.
+ *
+ * Reuses the SAME `gameProviderLogos.json` map the logo lookup already uses —
+ * one provider table for this repo, not two. Falls back to the canonical brand
+ * when a provider has no locale entry, and to `fallback` when the code maps to
+ * no provider at all, so a raw `game.providers.x` key can never render.
+ *
+ * @param {(key: string) => string} t - vue-i18n `t`.
+ * @param {(key: string) => boolean} te - vue-i18n `te`.
+ * @param {string | number | null} [providerCode] - Backend provider code.
+ * @param {string} [fallback] - Text to show when the code is unknown.
+ * @returns {string} Localised name, canonical brand, or `fallback`.
+ */
+export function providerDisplayName(
+    t: (key: string) => string,
+    te: (key: string) => boolean,
+    providerCode?: string | number | null,
+    fallback = "",
+): string {
+    const name = getProviderName(providerCode);
+    if (!name) return fallback;
+    const key = PROVIDER_NAME_KEYS[name];
+    if (!key) return name;
+    const full = `game.providers.${key}`;
+    return te(full) ? t(full) : name;
+}

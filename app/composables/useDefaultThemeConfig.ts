@@ -130,6 +130,16 @@ export interface NavActiveKeysConfig {
 export interface ThemeNavConfig {
     /** Gradient behind the centred desktop header while it is at the top. */
     headerBgGradient: string;
+    /**
+     * Artwork painted across the top header bar, above `stickyBg` and below
+     * the logo/auth row. Public asset path or absolute URL.
+     *
+     * EMPTY STRING DISABLES IT — the header then renders exactly as it did
+     * before this token existed (plain `stickyBg`), so an operator who does
+     * not set artwork loses nothing. Separate from `headerBgGradient`
+     * because that one binds to `backgroundColor`, which ignores a `url()`.
+     */
+    headerBG: string;
     /** Top nav background in its default (non-scrolled) state. Hex color. */
     defaultBg: string;
     /** Top nav background once the page is scrolled (sticky). CSS color (rgba allowed). */
@@ -1011,9 +1021,9 @@ export const getDefaultThemeConfig = (): SiteConfig => {
         // theme — colors, gradients, layout tokens
         // ───────────────────────────────────────────────────────────────────
         theme: {
-            brandColor: "#0077B6",
-            themeColor: "#000000",
-            bodyBgColor: "#000000",
+            brandColor: "#D9A441",
+            themeColor: "#0A0908",
+            bodyBgColor: "#0A0908",
             // 1200 / 450 is the banner overlay artwork's own size, so both
             // layers fill the slot with nothing cropped.
             desktopBannerAspectRatio: "1200 / 450",
@@ -1026,11 +1036,11 @@ export const getDefaultThemeConfig = (): SiteConfig => {
             navMenuItemMarginTop: "3px",
             announcement: {
                 text: "",
-                textStroke: "#B60000",
-                textFill: "#FFF600",
+                textStroke: "#382D21",
+                textFill: "#FEF7C4",
                 desktopGradient:
-                    "linear-gradient(90deg, #001F50 0%, #204D97 50%, #001F50 100%)",
-                mobileBg: "#3493FF",
+                    "linear-gradient(90deg, #0A0908 0%, #191512 50%, #0A0908 100%)",
+                mobileBg: "#191512",
                 mobileIcon: "/designs/template-3/announcement-icon.png",
             },
             logoStyles: {
@@ -1049,12 +1059,13 @@ export const getDefaultThemeConfig = (): SiteConfig => {
                 },
             },
             nav: {
-                headerBgGradient: "#000000",
-                defaultBg: "#000000",
-                stickyBg: "rgba(0, 0, 0, 0.8)",
-                activeItemColor: "#f3ef0b",
+                headerBgGradient: "#0A0908",
+                headerBG: "",
+                defaultBg: "#0A0908",
+                stickyBg: "rgba(10, 9, 8, 0.88)",
+                activeItemColor: "#FEF7C4",
                 depositSectionGradient:
-                    "linear-gradient(to right, #001F50 0%, #204D97 50.48%, #001F50 100%)",
+                    "linear-gradient(to right, #100E0D 0%, #382D21 50.48%, #100E0D 100%)",
                 // Render type: "png" = masked-silhouette icons (template-3,
                 // current behaviour) | "gif" = Lucky 3-layer composite. To run
                 // the gif skin, set type "gif" and point icons.* at the
@@ -1078,16 +1089,27 @@ export const getDefaultThemeConfig = (): SiteConfig => {
                 // activeKeys (gif active/hover icons) now comes from the API.
             },
             sectionHeader: {
+                // Leather band with polished champagne end-caps. Two constraints
+                // shape this value beyond taste:
+                //  1. RtpGameCard reuses it as an RTP bar fill AND scrapes the
+                //     BRIGHTEST 6-digit hex out of it for its accent colour, so
+                //     the stops must stay hex (not rgba) and must include a light
+                //     one — an all-dark ramp made that accent near-black, and a
+                //     value with no hex at all falls back to orange #FFB300.
+                //  2. GameSectionHeader prints a bold WHITE label over the
+                //     centre, so the gold is confined to the outer ~6% where the
+                //     text never reaches; the middle stays dark chocolate at
+                //     16:1 against white.
                 gradient:
-                    "linear-gradient(90deg, #001F50 0%, #204D97 50.48%, #001F50 100%)",
+                    "linear-gradient(90deg, #FFF1B8 0%, #C99A3E 1.5%, #7A5120 6%, #4A2F18 16%, #2B1A10 32%, #1B110B 50%, #2B1A10 68%, #4A2F18 84%, #7A5120 94%, #C99A3E 98.5%, #FFF1B8 100%)",
             },
             sidebar: {
-                borderColor: "#B04C00",
-                bg: "rgba(0, 0, 0, 0.6)",
-                divider: "#434343",
-                activeItemColor: "#FF8A21",
-                activeItemBorderColor: "#FF8A21",
-                hoverBg: "rgba(255, 255, 255, 0.06)",
+                borderColor: "#E9D399",
+                bg: "rgba(10, 9, 8, 0.72)",
+                divider: "#382D21",
+                activeItemColor: "#FEF7C4",
+                activeItemBorderColor: "#D9A441",
+                hoverBg: "rgba(217, 164, 65, 0.08)",
                 // Ordered menu config, shared by the rail and the mobile profile
                 // modal. Page 1 is the game-category group, page 2 the
                 // account/support group — the two groups the rail renders either
@@ -1125,142 +1147,153 @@ export const getDefaultThemeConfig = (): SiteConfig => {
             },
             authButton: {
                 loginBg:
-                    "linear-gradient(to bottom, #0C316C, #175FD2) padding-box, linear-gradient(to bottom, #F7E652, #C9B10C 66.8%, #F7E652) border-box",
+                    "linear-gradient(180deg, #9A6B2F 0%, #5C3B18 45%, #3A2512 100%) padding-box, linear-gradient(180deg, #FFF3B0 0%, #C8953D 50%, #6B4318 100%) border-box",
+
                 loginBorder: "1.5px solid transparent",
+
                 loginBorderGradient:
-                    "linear-gradient(to bottom, #F7E652, #C9B10C 66.8%, #F7E652)",
+                    "linear-gradient(180deg, #FFF3B0 0%, #D9A441 45%, #85561D 100%)",
+
                 loginTextGradient:
-                    "linear-gradient(to right, #F7E652, #C9B10C 66.8%, #F7E652)",
+                    "linear-gradient(180deg, #FFFBE2 0%, #F5D98A 50%, #D6A94B 100%)",
+
                 signupBg:
-                    "linear-gradient(to bottom, #0C316C, #175FD2) padding-box, linear-gradient(to bottom, #3890F9, #194488 66.8%, #3890F9) border-box",
-                // Transparent so `signupBg`'s border-box gradient is what shows
-                // through — the same two-layer trick `loginBorder` uses. A CMS
-                // that supplies a flat `signupBg` must set a real colour here,
-                // otherwise the button renders with no border at all.
+                    "linear-gradient(180deg, #A87835 0%, #63421D 48%, #382411 100%) padding-box, linear-gradient(180deg, #F8E7A8 0%, #C99742 50%, #714719 100%) border-box",
+
                 signupBorder: "1.5px solid transparent",
+
                 signupBorderGradient:
-                    "linear-gradient(to bottom, #3890F9, #194488 66.8%, #3890F9)",
+                    "linear-gradient(180deg, #F8E7A8 0%, #D4A04A 50%, #714719 100%)",
+
                 mobileAuthSectionBg:
-                    "linear-gradient(to right, #001F50 0%, #204D97 50.48%, #001F50 100%)",
+                    "linear-gradient(180deg, #17110C 0%, #0D0A07 100%)",
             },
             transactionmodal: {
-                // Black deposit-modal theme with orange accents: active tab +
-                // selected ring accent, the primary action buttons, an orange
-                // panel border, and dark quick-amount chips.
-                accentColor: "#FF7A00",
-                buttonBgColor: "#FF7A00",
-                buttonBgHoverColor: "#E66E00",
-                buttonTextColor: "#000000",
-                // Primary buttons — exact orange gradient sampled from the
-                // reference (top gold #FBAD00 → bottom orange #FF7800).
+                // Black-marble deposit modal with champagne-gold hardware: active tab +
+                // selected ring accent, the primary action buttons, a thin
+                // antique-gold panel border, and charcoal quick-amount chips.
+                accentColor: "#D9A441",
+                buttonBgColor: "#D9A441",
+                buttonBgHoverColor: "#85561D",
+                buttonTextColor: "#0A0908",
+                // Primary buttons — satin champagne, light at the top edge falling to
+                // antique gold, so the fill reads as brushed metal rather than
+                // a gloss highlight.
                 buttonGradientColor:
-                    "linear-gradient(180deg, #FBAD00 0%, #FF7800 100%)",
+                    "linear-gradient(180deg, #FEF7C4 0%, #D9A441 45%, #85561D 100%)",
                 buttonGradientHoverColor:
-                    "linear-gradient(180deg, #FFBB1F 0%, #FF8A1F 100%)",
-                modalBgColor: "#000000",
-                borderColor: "#C2691A",
-                quickAmountBgColor: "#1C1C1C",
-                quickAmountBgHoverColor: "#2A2A2A",
-                quickAmountTextColor: "#FFFFFF",
-                // Dark text fields with a muted-orange border (sampled).
-                inputBgColor: "#0D0D0D",
-                inputBorderColor: "#A85C2E",
-                inputTextColor: "#FFFFFF",
-                inputPlaceholderColor: "#6F6F6F",
+                    "linear-gradient(180deg, #FFFCE0 0%, #F3BE66 45%, #9A6626 100%)",
+                modalBgColor: "#0A0908",
+                borderColor: "#E9D399",
+                quickAmountBgColor: "#191512",
+                quickAmountBgHoverColor: "#382D21",
+                quickAmountTextColor: "#F5F3F5",
+                // Luxury-black fields with a thin antique-gold hairline border.
+                inputBgColor: "#100E0D",
+                inputBorderColor: "#E9D399",
+                inputTextColor: "#F5F3F5",
+                inputPlaceholderColor: "#C3B49A",
                 showDepositImageTitle: false,
                 showWithdrawalImageTitle: false,
             },
-            // Login modal: mirrors the transaction-modal orange theme by default,
+            // Login modal: mirrors the transaction-modal gold theme by default,
             // but is a separate object so the login screen can be re-skinned on
             // its own from the CMS theme document.
             loginModal: {
-                modalBgColor: "#000000",
-                accentColor: "#FF7A00",
-                borderColor: "#C2691A",
-                buttonTextColor: "#000000",
+                modalBgColor: "#0A0908",
+                accentColor: "#D9A441",
+                borderColor: "#E9D399",
+                buttonTextColor: "#0A0908",
                 buttonGradientColor:
-                    "linear-gradient(180deg, #FBAD00 0%, #FF7800 100%)",
-                // Warm top glow band behind the header (login-card::before).
+                    "linear-gradient(180deg, #FEF7C4 0%, #D9A441 45%, #85561D 100%)",
+                // Warm champagne glow band behind the header, falling through
+                // espresso to deep black (login-card::before).
                 bandGradient:
-                    "linear-gradient(180deg, #D67A12 0%, #B95A00 20%, #7A3200 45%, #2C1200 70%, #02010A 100%)",
+                    "linear-gradient(180deg, #FEF7C4 0%, #85561D 18%, #4A3A24 42%, #382D21 66%, #0A0908 100%)",
             },
-            // Signup modal: mirrors the transaction-modal orange theme by default,
+            // Signup modal: mirrors the transaction-modal gold theme by default,
             // but is a separate object so the signup screen can be re-skinned on
             // its own from the CMS theme document.
             signupModal: {
-                modalBgColor: "#000000",
-                accentColor: "#FF7A00",
-                borderColor: "#C2691A",
-                inputBgColor: "#0D0D0D",
-                inputBorderColor: "#A85C2E",
-                inputTextColor: "#FFFFFF",
-                inputPlaceholderColor: "#6F6F6F",
+                modalBgColor: "#0A0908",
+                accentColor: "#D9A441",
+                borderColor: "#E9D399",
+                inputBgColor: "#100E0D",
+                inputBorderColor: "#E9D399",
+                inputTextColor: "#F5F3F5",
+                inputPlaceholderColor: "#C3B49A",
                 buttonGradientColor:
-                    "linear-gradient(180deg, #FBAD00 0%, #FF7800 100%)",
+                    "linear-gradient(180deg, #FEF7C4 0%, #D9A441 45%, #85561D 100%)",
             },
-            // Popup promo banner: orange gradient frame + warm header/footer
+            // Popup promo banner: champagne gradient frame + warm header/footer
             // bands, matching the auth modals. Separate object so the promo
             // pop-ups can be re-skinned on their own from the CMS.
             popupBanner: {
-                modalBgColor: "#0A0A0A",
-                accentColor: "#FF7A00",
-                borderColor: "#C2691A",
+                modalBgColor: "#100E0D",
+                accentColor: "#D9A441",
+                borderColor: "#E9D399",
                 bandGradient:
-                    "linear-gradient(180deg, #D67A12 0%, #B95A00 20%, #7A3200 45%, #2C1200 70%, #02010A 100%)",
-                blockButtonBgColor: "#140A02",
-                blockButtonTextColor: "#E7C9A6",
-                blockButtonBorderColor: "#C2691A",
+                    "linear-gradient(180deg, #FEF7C4 0%, #85561D 18%, #4A3A24 42%, #382D21 66%, #0A0908 100%)",
+                blockButtonBgColor: "#191512",
+                blockButtonTextColor: "#FEF7C4",
+                blockButtonBorderColor: "#E9D399",
             },
-            // Post-login notice modal: neutral grey glass — subtle light-grey
-            // border and a vertical gradient that is light grey at the top and
-            // bottom, fading to near-black through the middle. Green/red outline
-            // agree/disagree buttons. Independent of the orange auth modals.
+            // Post-login notice modal: black glass under a champagne hairline —
+            // a thin gold band at the very top and bottom edges fading to deep
+            // black through the middle. Agree/disagree keep their semantic
+            // green/red but in muted, non-neon tones that sit with the gold.
             noticeModal: {
                 enabled: true,
-                modalBgColor: "#0A0A0C",
-                borderColor: "rgba(255, 255, 255, 0.14)",
-                // Small light-grey band at the very top and bottom edges only;
+                modalBgColor: "#0A0908",
+                borderColor: "rgba(217, 164, 65, 0.18)",
+                // Thin champagne band at the very top and bottom edges only;
                 // the whole middle stays solid black.
                 cardGradient:
-                    "linear-gradient(180deg, #3A3D44 0%, #14151A 5%, #0A0A0C 10%, #0A0A0C 90%, #14151A 95%, #2A2C31 100%)",
-                dividerColor: "rgba(255, 255, 255, 0.10)",
-                agreeColor: "#34D399",
-                disagreeColor: "#FB7185",
+                    "linear-gradient(180deg, #85561D 0%, #4A3A24 5%, #0A0908 10%, #0A0908 90%, #4A3A24 95%, #85561D 100%)",
+                dividerColor: "rgba(217, 164, 65, 0.12)",
+                agreeColor: "#A9B488",
+                disagreeColor: "#CE8464",
             },
             ui: {
-                langSelectorBg: "#262626",
+                langSelectorBg: "#191512",
             },
             cardFrame: {
-                borderColor: "#de6000",
-                bgColor: "#160a02",
-                placeholderBg: "#d9d9d9",
+                borderColor: "#C8942E",
+                bgColor: "#000000",
+                placeholderBg: "#000000",
+                // Edge bands only — the MIDDLE MUST STAY TRANSPARENT.
+                // HomeGameCard paints this as `.casino-frame-band` ABOVE the
+                // character art (z-10), so an all-opaque ramp here hides the
+                // character on every casino/slot/sport card and leaves just the
+                // gradient plus the provider logo. The dark bottom band is what
+                // lets that logo read; the top band caps the card.
                 bandGradient:
-                    "linear-gradient(to bottom, #9f4400 0%, #5f2900 2%, #1e0c00 4%, rgba(0,0,0,0.95) 5%, rgba(0,0,0,0.85) 7%, rgba(0,0,0,0.6) 9%, rgba(0,0,0,0.3) 10.5%, transparent 12%, transparent 88%, rgba(0,0,0,0.3) 89.5%, rgba(0,0,0,0.6) 91%, rgba(0,0,0,0.85) 93%, rgba(0,0,0,0.95) 95%, #1e0c00 96%, #5f2900 98%, #9f4400 100%)",
+                    "linear-gradient(to bottom, #B8882F 0%, #5B3F1C 2%, #18130F 4%, rgba(8,7,6,0.95) 5%, rgba(8,7,6,0.85) 7%, rgba(8,7,6,0.6) 9%, rgba(8,7,6,0.3) 10.5%, transparent 12%, transparent 88%, rgba(8,7,6,0.3) 89.5%, rgba(8,7,6,0.6) 91%, rgba(8,7,6,0.85) 93%, rgba(8,7,6,0.95) 95%, #18130F 96%, #5B3F1C 98%, #B8882F 100%)",
             },
             bottomNav: {
                 barGradientStops: {
-                    light: "#5DAAFF",
-                    midDark: "#0A64CD",
-                    postEdge: "#6FB1FD",
-                    dark: "#006CEA",
+                    light: "#4A3A24",
+                    midDark: "#100E0D",
+                    postEdge: "#382D21",
+                    dark: "#0A0908",
                 },
                 promoCircleGradient:
-                    "linear-gradient(135deg, #5DAAFF 0%, #3386E5 100%)",
+                    "linear-gradient(135deg, #FEF7C4 0%, #85561D 100%)",
             },
             panel: {
                 contentPanelGradient:
-                    "linear-gradient(180deg, #002A3A 0%, #0F0F0F 14.42%, #0F0F0F 82.69%, #001A2E 100%)",
-                tableHeaderBackground: "#002A3A",
+                    "linear-gradient(180deg, #382D21 0%, #100E0D 14.42%, #100E0D 82.69%, #382D21 100%)",
+                tableHeaderBackground: "#382D21",
                 headerGradient:
-                    "linear-gradient(to bottom, rgba(0,119,182,0.9), rgba(20,20,20,0.95), rgba(0,95,115,0.9))",
+                    "linear-gradient(to bottom, rgba(149,98,34,0.28), rgba(16,15,13,0.95), rgba(58,36,22,0.35))",
                 gameTypeBtnActiveGradient:
-                    "linear-gradient(to right, #005F73, #0077B6, #005F73)",
-                gameTypeBtnActiveBorder: "#00B4D8",
-                gameTypeBtnActiveShadow: "0 0 8px rgba(0,180,216,0.15)",
+                    "linear-gradient(to right, #E9D399, #D9A441, #E9D399)",
+                gameTypeBtnActiveBorder: "#FEF7C4",
+                gameTypeBtnActiveShadow: "0 1px 0 rgba(254,247,196,0.35), 0 6px 18px rgba(0,0,0,0.55)",
                 panelGradient:
-                    "linear-gradient(135deg, rgba(20,20,20,0.6), rgba(10,22,25,0.6), rgba(15,15,15,0.6))",
-                panelBorder: "rgba(0,180,216,0.15)",
-                actionColor: "#00B4D8",
+                    "linear-gradient(135deg, rgba(25,21,18,0.6), rgba(48,37,25,0.6), rgba(16,15,13,0.6))",
+                panelBorder: "rgba(217,164,65,0.16)",
+                actionColor: "#D9A441",
             },
         },
 
@@ -1276,8 +1309,17 @@ export const getDefaultThemeConfig = (): SiteConfig => {
                 ruby: "https://banana.sg-sin-1.linodeobjects.com/dragon/stones/ruby.webp",
                 sapphire: "https://banana.sg-sin-1.linodeobjects.com/dragon/stones/sapphire.webp",
                 diamonds: "https://banana.sg-sin-1.linodeobjects.com/dragon/stones/diamonds.webp",
-                mainBackground: "",
-                fixedMainBackground: false,
+                // Luxury night terrace — warm gold lighting and palms against a
+                // black sky, matching the reference mockup. Sourced from Pexels
+                // (Pexels License, commercial use, no attribution required) and
+                // graded locally: cropped to 16:9, softened, dimmed to ~45 mean
+                // luminance and warmed, so it sits BEHIND the dark UI panel
+                // instead of competing with it. Served from /public, not
+                // hotlinked, so no external host or CSP entry is involved.
+                mainBackground: "/designs/banana/imageAssets/image-50-1-1778909515732.png",
+                // Fixed: the scene should read as the room the UI sits in, not
+                // as content that scrolls away.
+                fixedMainBackground: true,
                 mainBackgroundMobile: false,
                 girlGif: "",
                 loginModalBg: "/designs/misc/modal-login-bg.webp",

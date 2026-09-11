@@ -44,7 +44,7 @@
           <span
             class="tm-muted text-[10px] uppercase tracking-wider font-semibold"
           >
-            Hour
+            {{ $t('common.hour') }}
           </span>
           <span class="tm-accent-text text-xs font-bold tabular-nums">
             {{ displayValue }}
@@ -52,7 +52,7 @@
           <span
             class="tm-muted text-[10px] uppercase tracking-wider font-semibold"
           >
-            Min
+            {{ $t('common.minute') }}
           </span>
         </div>
 
