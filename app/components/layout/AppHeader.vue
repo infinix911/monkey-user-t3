@@ -4,8 +4,27 @@
          hero (fades to the sticky background colour once scrolled); the themed
          gradient is applied to the centred content row only (1152px below lg,
          the 1456px shell width from lg up). -->
+    <!-- TEMPORARY header artwork. Painted on THIS wrapper, not the content
+         row, so it keeps the existing scroll behaviour: transparent over the
+         hero for its COLOUR, opaque once scrolled — while the marble itself
+         is always painted, as in the reference. It cannot go through
+         `theme.nav.headerBgGradient` — every nav token here binds to
+         `backgroundColor`, which ignores a url(). `backgroundColor` stays as
+         the layer UNDER the image, so the scrolled/unscrolled transition and
+         the marble's own dark ground agree. Remove the two background-* lines
+         to restore the original. -->
     <div class="hidden min-[690px]:block relative h-full transition-colors duration-300"
       :style="{ backgroundColor: isScrolled ? siteConfig.theme.nav.stickyBg : 'transparent' }">
+      <!-- Marble as its OWN layer rather than a background on the wrapper:
+           `opacity` on the wrapper would fade the logo and auth buttons with
+           it. `100% 100%` stretches the art to the bar exactly (no crop), and
+           the content row below is `relative`, so it paints above this. -->
+      <div v-if="HEADER_BG" class="absolute inset-0 pointer-events-none" aria-hidden="true" :style="{
+        backgroundImage: `url(${HEADER_BG})`,
+        backgroundSize: '100% 100%',
+        backgroundRepeat: 'no-repeat',
+        opacity: HEADER_BG_OPACITY,
+      }" />
       <!-- max-w matches the two-column wrapper in layouts/default.vue, so the
            logo lands above the left rail and the user controls over the content
            column. Keep the two in step if either width changes. -->
@@ -40,7 +59,7 @@
                  configured path is the one thing that always reflects what the
                  CMS is pointing at now. -->
             <img :src="siteConfig.identity.logo" :alt="siteConfig.identity.siteName"
-              class="h-auto w-auto cursor-pointer object-contain flex-shrink-0 ml-2 lg:ml-0 lg:w-full"
+              class="h-auto w-auto cursor-pointer object-cover flex-shrink-0 ml-2 lg:ml-0 lg:w-full mt-2 pt-[10px]"
               :style="siteConfig.theme.logoStyles.desktopHeader">
           </NuxtLink>
         </div>
@@ -59,8 +78,7 @@
               <!-- Login: gold gradient border + gold gradient text -->
               <button
                 class="cursor-pointer h-[35px] w-[113px] px-3 rounded-[8px] flex items-center justify-center font-extrabold italic uppercase text-[15px] tracking-tight transition-transform hover:scale-[1.03]"
-                :style="authButtonStyle.login"
-                @click="showLoginModal">
+                :style="authButtonStyle.login" @click="showLoginModal">
                 <span class="block w-full text-center truncate"
                   :style="{ background: siteConfig.theme.authButton.loginTextGradient, WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }">{{
                     $t('header.login') }}</span>
@@ -68,8 +86,7 @@
               <!-- Sign up: blue gradient border + white text -->
               <button
                 class="cursor-pointer h-[35px] w-[113px] px-3 rounded-[8px] flex items-center justify-center font-extrabold italic uppercase text-[15px] tracking-tight text-white transition-transform hover:scale-[1.03]"
-                :style="authButtonStyle.signup"
-                @click="showSignupModal">
+                :style="authButtonStyle.signup" @click="showSignupModal">
                 <span class="block w-full text-center truncate">{{ $t('header.signUp') }}</span>
               </button>
               <!-- Language selector -->
@@ -164,7 +181,8 @@
                    no separate transfer affordance in the header: the swap arrow
                    read as decoration and a labelled button beside it was a third
                    competing button, so clicking the amount opens the modal. -->
-              <button type="button" class="flex items-center gap-1.5 ms-10 cursor-pointer hover:opacity-80 transition-opacity"
+              <button type="button"
+                class="flex items-center gap-1.5 ms-10 cursor-pointer hover:opacity-80 transition-opacity"
                 :aria-label="$t('point.title')" @click="openPointModal">
                 <img :src="siteConfig.assets.navIcons.pointIcon" alt="" aria-hidden="true" width="18" height="18"
                   class="w-[18px] h-[18px] object-contain shrink-0" />
@@ -183,8 +201,8 @@
                 <button type="button" :aria-label="$t('common.refreshBalance')" :disabled="isRefreshingWallet"
                   class="shrink-0 cursor-pointer opacity-90 hover:opacity-100 transition-opacity disabled:opacity-60"
                   :class="{ 'spin-once': isRefreshingWallet }" @click="refreshWallet">
-                  <img :src="siteConfig.assets.navIcons.refreshIcon" alt="" aria-hidden="true" width="24"
-                    height="24" class="account-bar-icon-light w-[24px] h-[24px] object-contain" />
+                  <img :src="siteConfig.assets.navIcons.refreshIcon" alt="" aria-hidden="true" width="24" height="24"
+                    class="account-bar-icon-light w-[24px] h-[24px] object-contain" />
                 </button>
                 <NotificationDropdown :notifications="notifications">
                   <div class="relative cursor-pointer opacity-90 hover:opacity-100 transition-opacity"
@@ -259,8 +277,19 @@
     <!-- Mobile Layout (< lg) — also used on tablet/iPad portrait. -->
     <!-- Height + scale come from CSS vars set pre-paint by app.vue's inline
          script, so the SSR header is sized correctly with no hydration flash. -->
-    <div class="min-[690px]:hidden overflow-hidden md:pt-2 md:pb-0.5 pt-0 pb-0"
-      :style="{ height: 'var(--mh-header-height, 60px)', backgroundColor: siteConfig.theme.nav.stickyBg }">
+    <!-- Same TEMPORARY marble as the desktop bar, so the two headers agree.
+         `relative` + its own layer for the same reason as desktop: opacity on
+         this wrapper would fade the scaled logo/button row inside it. -->
+    <div class="min-[690px]:hidden overflow-hidden md:pt-2 md:pb-0.5 pt-0 pb-0 relative" :style="{
+      height: 'var(--mh-header-height, 60px)',
+      backgroundColor: siteConfig.theme.nav.stickyBg,
+    }">
+      <div v-if="HEADER_BG" class="absolute inset-0 pointer-events-none" aria-hidden="true" :style="{
+        backgroundImage: `url(${HEADER_BG})`,
+        backgroundSize: '100% 100%',
+        backgroundRepeat: 'no-repeat',
+        opacity: HEADER_BG_OPACITY,
+      }" />
       <!-- ONE scaled container for the logo AND the buttons: the row is laid
            out at MOBILE_HEADER_DESIGN_WIDTH and scaled down to the viewport, so
            the pair keeps its proportions and its gap at every width instead of
@@ -282,10 +311,8 @@
           <!-- `external`: full document load, same as the desktop logo above. -->
           <NuxtLink v-show="!uiStore.showNoticeModal" to="/" external class="flex items-center">
             <!-- Plain <img>: CMS-swappable logo, see AppHeader.vue -->
-            <img :src="siteConfig.identity.logoMobile || siteConfig.identity.logo"
-              :alt="siteConfig.identity.siteName" class="w-auto max-w-[210px] object-contain ml-1"
-              :style="siteConfig.theme.logoStyles.mobileHeader"
-            >
+            <img :src="siteConfig.identity.logoMobile || siteConfig.identity.logo" :alt="siteConfig.identity.siteName"
+              class="w-auto max-w-[210px] object-contain ml-1" :style="siteConfig.theme.logoStyles.mobileHeader">
           </NuxtLink>
         </div>
         <!-- Mobile guest auth buttons — these used to live in a black strip
@@ -298,8 +325,7 @@
           <!-- Login: gold gradient border + gold gradient text -->
           <button type="button"
             class="cursor-pointer h-[34px] w-[86px] px-2 rounded-[8px] flex items-center justify-center font-extrabold italic uppercase text-[13px] tracking-tight transition-transform hover:scale-[1.03]"
-            :style="authButtonStyle.login"
-            @click="showLoginModal">
+            :style="authButtonStyle.login" @click="showLoginModal">
             <span class="block w-full text-center truncate"
               :style="{ background: siteConfig.theme.authButton.loginTextGradient, WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }">{{
                 $t('header.login') }}</span>
@@ -307,8 +333,7 @@
           <!-- Sign up: blue gradient border + white text -->
           <button type="button"
             class="cursor-pointer h-[34px] w-[86px] px-2 rounded-[8px] flex items-center justify-center font-extrabold italic uppercase text-[13px] tracking-tight text-white transition-transform hover:scale-[1.03]"
-            :style="authButtonStyle.signup"
-            @click="showSignupModal">
+            :style="authButtonStyle.signup" @click="showSignupModal">
             <span class="block w-full text-center truncate">{{ $t('header.signUp') }}</span>
           </button>
         </div>
@@ -516,6 +541,19 @@ const currency = useCurrency();
 const isMobile = ref(false);
 // Desktop header is transparent over the hero, then fades to the sticky
 // background colour once the user scrolls past the top of the page.
+/**
+ * Header artwork, from `theme.nav.headerBG` so the CMS owns it.
+ *
+ * Empty/nullish disables the layer entirely (the `v-if` drops it), leaving
+ * the plain `stickyBg` header — so a theme document that omits the field
+ * renders exactly as it did before the token existed. `?? ""` guards the
+ * case where a CMS payload sends null rather than omitting the key.
+ */
+const HEADER_BG = computed(() => siteConfig.theme.nav.headerBG ?? "");
+
+/** Strength of the header artwork, 0-1. Lower it to mute the marble. */
+const HEADER_BG_OPACITY = 0.6;
+
 const isScrolled = ref(false);
 const updateScrolled = () => {
   isScrolled.value = window.scrollY > 8;

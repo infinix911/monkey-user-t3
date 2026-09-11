@@ -70,7 +70,7 @@
               style="font-family: var(--font-line-seed)">
               <option value="">{{ t("bettingReport.allProviders") }}</option>
               <option v-for="lobby in providers" :key="lobby.id" :value="lobby.game_name">
-                {{ lobby.game_name }}
+                {{ providerDisplayName(t, te, lobby.game_name, lobby.game_name ?? "") }}
               </option>
             </select>
             <svg
@@ -139,7 +139,8 @@
 import { ref, computed, watch, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { formatDateAsISO } from "~/lib/date";
-import { formatNumber } from "~/lib/formatter";
+import { formatNumber } from "~/lib/formatter";
+import { providerDisplayName } from "@/utils/gameProviderLogo";
 
 // One row per individual bet (realtime, from /games/bet-histories).
 
@@ -147,7 +148,7 @@ const _props = defineProps<{
   className?: string;
 }>();
 
-const { t } = useI18n();
+const { t, te } = useI18n();
 
 // Date filter state (using string values for native date inputs)
 const today = new Date();
