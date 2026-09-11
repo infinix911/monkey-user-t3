@@ -228,49 +228,9 @@ const bannerStore = useBannerStore();
  * image, and the previous creative stays up until then.
  */
 const displayPage = ref<BannerPageKey>(props.page);
-
-/**
- * TEMPORARY — set to `null` to restore the CMS/API banners.
- *
- * While this holds a path, the HOME slot renders this one video instead of
- * whatever the banner store returns. Every other page slot is untouched, and
- * nothing below is removed: `storeBanners` still resolves exactly as before,
- * so clearing this constant restores the original behaviour with no other
- * edit.
- *
- * `.mp4` is enough on its own — `isVideo()` already routes the URL to the
- * <video> branch in the template, so no markup change is needed. The same
- * file is used for mobile because the override is a stand-in, not a
- * production creative.
- */
-const TEMP_HOME_BANNER_VIDEO: string | null =
-  "/designs/banana/banner/2-1773490613809.mp4";
-
-/** Banners exactly as the store resolves them (unchanged). */
-const storeBanners = computed<BannerPreviewItem[]>(() =>
+const banners = computed<BannerPreviewItem[]>(() =>
   bannerStore.bannersByPage(displayPage.value),
 );
-
-const banners = computed<BannerPreviewItem[]>(() => {
-  if (TEMP_HOME_BANNER_VIDEO && displayPage.value === "homepage") {
-    // Aspect ratios stay null so the existing theme fallback
-    // (desktopBannerAspectRatio / mobileBannerAspectRatio) still applies and
-    // the slot reserves the same box as before — no layout shift.
-    return [
-      {
-        page: displayPage.value,
-        main_url: TEMP_HOME_BANNER_VIDEO,
-        overlay_url: null,
-        main_url_mobile: TEMP_HOME_BANNER_VIDEO,
-        overlay_url_mobile: null,
-        aspect_ratio_desktop: null,
-        aspect_ratio_mobile: null,
-        sort: 0,
-      },
-    ];
-  }
-  return storeBanners.value;
-});
 
 /** The URL that will actually render for a banner at the current viewport. */
 const mediaUrls = (banner: BannerPreviewItem | undefined): string[] => {
