@@ -6,13 +6,19 @@ type TFn = (key: string) => string;
 /**
  * Username bounds, shared by both forms.
  *
- * 4-8 is what every writer enforces — `registerSchema` here, `createMemberBody`
- * in monkey-admin-api, and both `createSubUserBody` variants in
- * monkey-partner-api — so no stored username can fall outside it and the login
- * form can safely be as strict as the signup form (BUG-023).
+ * 4-12, taken from the only component that decides whether an id can start a
+ * session: the better-auth username plugin in monkey-user-api
+ * (`minUsernameLength` / `maxUsernameLength` in `src/lib/auth.ts`). Every
+ * writer now matches it.
+ *
+ * These were 4-8 on the strength of a survey of the writers, which missed
+ * `createPartnerMemberSchema` — unbounded at the time — and never checked the
+ * authenticator. A LOGIN form must never be stricter than the endpoint it
+ * posts to: reject there and the member is locked out of a working account
+ * with no server error to diagnose, because no request is ever sent.
  */
 export const USERNAME_MIN = 4;
-export const USERNAME_MAX = 8;
+export const USERNAME_MAX = 12;
 
 /**
  * Login form schema
@@ -20,9 +26,9 @@ export const USERNAME_MAX = 8;
 export const loginSchema = (t: TFn) =>
   toTypedSchema(
     z.object({
-      // Same bounds as signup. Login previously accepted 1-12 and, past 12,
-      // showed a message reading "32 characters or fewer" — three different
-      // numbers for one field.
+      // Same bounds as signup, and as the sign-in endpoint. Login once
+      // accepted 1-12 and, past 12, showed a message reading "32 characters
+      // or fewer" — three different numbers for one field.
       username: z
         .string()
         .min(USERNAME_MIN, t("signup.validation.usernameMinLength"))
@@ -41,20 +47,14 @@ export const loginSchema = (t: TFn) =>
 const signupRawSchema = (t: TFn) =>
   z
     .object({
-      // 4-8, matching the API's registerSchema exactly (`username: t.String({
-      // minLength: 4, maxLength: 8 })`). Verified against that schema directly:
-      // a 10-character id fails with "Expected string length less or equal to
-      // 8" and the same payload passes at 8.
+      // 4-12, matching the API's registerSchema. The form must not be the
+      // looser of the two: an id this form accepts and Elysia rejects fails
+      // BEFORE the controller runs, and the member gets
+      // `{"message":"VALIDATION_ERROR"}` — what the API returns for every
+      // schema failure, naming no field.
       //
-      // Without this the form was the looser of the two, so a 9-12 character id
-      // passed here and was rejected by Elysia BEFORE the controller ran; the
-      // member got `{"message":"VALIDATION_ERROR"}`, which the API returns for
-      // every schema failure and which names no field. The old min of 5 also
-      // contradicted this field's own error text, which already said 4.
-      //
-      // /auth/check/username agreed at 4-12 until BUG-023, so it would call a
-      // 9-12 character id AVAILABLE and this form would then refuse it. Its
-      // `checkUsernameSchema` is 4-8 now, matching registerSchema.
+      // /auth/check/username carries the same bound, so it cannot report an
+      // id as available that this form would then refuse.
       username: z
         .string()
         .min(USERNAME_MIN, t("signup.validation.usernameMinLength"))

@@ -64,7 +64,7 @@
                       id="login-username"
                       v-model="username"
                       type="text"
-                      maxlength="32"
+                      maxlength="12"
                       autocomplete="username"
                       :placeholder="$t('auth.idPlaceHolder')"
                       class="w-full focus:outline-none"
