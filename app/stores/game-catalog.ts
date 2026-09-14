@@ -79,13 +79,20 @@ export const useGameCatalogStore = defineStore("gameCatalog", () => {
   const lobbyRequests = new Map<string, Promise<NormalizedLobby[]>>();
   const gameRequests = new Map<string, Promise<GameListResult>>();
 
+  // Both accessors read the entry BACK out of the ref after creating it. The
+  // value of `record[key] ??= x` is the raw `x`, not the reactive proxy the ref
+  // hands out on read, and page composables call these from inside a computed:
+  // the computed would then cache a raw object whose later mutations track
+  // nothing, leaving the view pinned to the entry's initial "idle" state.
   const lobbyEntry = (gameType?: string | null) => {
     const key = lobbyKey(gameType);
-    return (lobbies.value[key] ??= entry<NormalizedLobby[]>([]));
+    if (!lobbies.value[key]) lobbies.value[key] = entry<NormalizedLobby[]>([]);
+    return lobbies.value[key]!;
   };
   const gameEntry = (query: GameQuery) => {
     const key = gameQueryKey(query);
-    return (games.value[key] ??= entry<GameListResult>({ games: [], total: 0 }));
+    if (!games.value[key]) games.value[key] = entry<GameListResult>({ games: [], total: 0 });
+    return games.value[key]!;
   };
 
   const waitForSessionReady = async () => {
@@ -123,17 +130,31 @@ export const useGameCatalogStore = defineStore("gameCatalog", () => {
     // instead of repeating `/games/lobbies?gameType=...` for each type.
     if (gameType != null) {
       const targetType = normalizeGameType(gameType);
-      const all = await loadLobbies(null, force);
-      const data = all.filter(
-        (lobby) => normalizeGameType(lobby.gameType) === targetType,
-      );
-      Object.assign(current, {
-        data,
-        status: "success" as const,
-        error: null,
-        fetchedAt: lobbyEntry(null).fetchedAt,
-      });
-      return data;
+
+      // A failure of the shared unfiltered request has to land on THIS entry
+      // too. Without it the typed entry keeps its initial "idle" status and the
+      // category page shows its loading state forever instead of the error and
+      // its retry button.
+      current.status = "loading";
+      current.error = null;
+      try {
+        const all = await loadLobbies(null, force);
+        const data = all.filter(
+          (lobby) => normalizeGameType(lobby.gameType) === targetType,
+        );
+        Object.assign(current, {
+          data,
+          status: "success" as const,
+          error: null,
+          fetchedAt: lobbyEntry(null).fetchedAt,
+        });
+        return data;
+      } catch (error: unknown) {
+        current.status = "error";
+        current.error =
+          error instanceof Error ? error.message : "Unable to load game lobbies";
+        throw error;
+      }
     }
 
     const active = lobbyRequests.get(key);
