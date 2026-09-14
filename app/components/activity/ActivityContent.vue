@@ -19,12 +19,7 @@ v-for="tab in tabs" :key="tab.id" type="button" role="tab"
                     :class="activeTab === tab.id
                         ? 'text-white font-semibold'
                         : 'tm-muted hover:text-white'"
-                    :style="activeTab === tab.id
-                        ? {
-                            background: siteConfig.theme.panel.gameTypeBtnActiveGradient,
-                            boxShadow: siteConfig.theme.panel.gameTypeBtnActiveShadow,
-                        }
-                        : {}" @click="setTab(tab.id)">
+                    :style="activeTab === tab.id ? activeTabStyle : {}" @click="setTab(tab.id)">
                     {{ t(tab.labelKey) }}
                 </button>
             </div>
@@ -165,6 +160,33 @@ defineOptions({
 });
 
 const siteConfig = useSiteConfig();
+
+/**
+ * Fill for the selected category pill.
+ *
+ * Mirrors the deposit modal's primary action button
+ * (`theme.transactionmodal`) so one CMS field drives both, rather than the
+ * pill drifting on the panel group's own colour. The panel tokens remain the
+ * fallback for deployments whose CMS leaves the deposit button unset, and the
+ * config is read inside the computed because `syncSiteConfig` replaces
+ * `theme` wholesale when the CMS payload lands.
+ *
+ * @returns Inline style for the active pill.
+ */
+const activeTabStyle = computed(() => {
+  const deposit = siteConfig.theme.transactionmodal;
+  const panel = siteConfig.theme.panel;
+  return {
+    background:
+      deposit.buttonGradientColor ||
+      deposit.buttonBgColor ||
+      panel.gameTypeBtnActiveGradient,
+    // Undefined leaves the `text-white` class in charge, so a CMS that sets a
+    // button gradient without a text colour still renders a readable label.
+    color: deposit.buttonTextColor || undefined,
+    boxShadow: panel.gameTypeBtnActiveShadow,
+  };
+});
 
 type ActivityCategory =
   | "all"

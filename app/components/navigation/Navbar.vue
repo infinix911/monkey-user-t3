@@ -304,20 +304,25 @@ const navSkin = useNavSkin();
 // white icon to #FFE207 via the `.nav-icon-active` filter.
 // theme.nav holds the render type, gif chrome (gifBg/activeGifBg/gifBorder/activeGifBorder),
 // the per-category base icons, and the (temporary) activeKeys for gif hover.
-const nav = siteConfig.theme.nav;
+//
+// Read through a computed, never captured into a plain const: `syncSiteConfig`
+// REPLACES `theme` with a freshly merged object when the CMS payload lands, so
+// a reference taken during setup keeps pointing at the bundled defaults and the
+// bar renders template-3's icons however the CMS is configured.
+const nav = computed(() => siteConfig.theme.nav);
 
 /**
  * Every category the bar can show. `id` is the lobby `game_type` the
  * availability read matches on, except HOT — see the filter below.
  */
 const ALL_NAV_ITEMS = computed(() => [
-  { id: "hot", path: "/hot", labelKey: "navbar.hot", icon: nav.icons.hot, activeIcon: nav.activeKeys?.hot, maskSizePercent: "78%", marginLeft: "9px" },
-  { id: "slot", path: "/slots", labelKey: "navbar.slot", icon: nav.icons.slot, activeIcon: nav.activeKeys?.slot },
-  { id: "casino", path: "/casino", labelKey: "navbar.casino", icon: nav.icons.casino, activeIcon: nav.activeKeys?.casino },
-  { id: "sport", path: "/sports", labelKey: "navbar.sports", icon: nav.icons.sport, activeIcon: nav.activeKeys?.sport },
-  { id: "mini", path: "/mini", labelKey: "navbar.mini", icon: nav.icons.mini, activeIcon: nav.activeKeys?.mini },
-  { id: "fishing", path: "/fishing", labelKey: "navbar.fishing", icon: nav.icons.fishing, activeIcon: nav.activeKeys?.fishing },
-  { id: "virtual", path: "/virtual", labelKey: "navbar.virtual", icon: nav.icons.virtual, activeIcon: nav.activeKeys?.virtual },
+  { id: "hot", path: "/hot", labelKey: "navbar.hot", icon: nav.value.icons.hot, activeIcon: nav.value.activeKeys?.hot, maskSizePercent: "78%", marginLeft: "9px" },
+  { id: "slot", path: "/slots", labelKey: "navbar.slot", icon: nav.value.icons.slot, activeIcon: nav.value.activeKeys?.slot },
+  { id: "casino", path: "/casino", labelKey: "navbar.casino", icon: nav.value.icons.casino, activeIcon: nav.value.activeKeys?.casino },
+  { id: "sport", path: "/sports", labelKey: "navbar.sports", icon: nav.value.icons.sport, activeIcon: nav.value.activeKeys?.sport },
+  { id: "mini", path: "/mini", labelKey: "navbar.mini", icon: nav.value.icons.mini, activeIcon: nav.value.activeKeys?.mini },
+  { id: "fishing", path: "/fishing", labelKey: "navbar.fishing", icon: nav.value.icons.fishing, activeIcon: nav.value.activeKeys?.fishing },
+  { id: "virtual", path: "/virtual", labelKey: "navbar.virtual", icon: nav.value.icons.virtual, activeIcon: nav.value.activeKeys?.virtual },
 ]);
 
 const { hasLobbies } = useGameCategoryAvailability();

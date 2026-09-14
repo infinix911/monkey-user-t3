@@ -32,7 +32,7 @@
               <!-- Plain <img>: CMS-swappable logo, see AppHeader.vue -->
               <img
                 :src="logoSrc" :alt="siteConfig.identity.siteName"
-                class="h-[40px] w-auto max-w-full object-contain drop-shadow-[0_2px_10px_rgba(255,122,0,0.45)]"
+                class="signup-logo h-[40px] w-auto max-w-full object-contain"
                 height="40" loading="eager"
               >
             </div>
@@ -373,6 +373,10 @@ const modalVars = computed(() => ({
   "--tm-accent": dep.value.accentColor,
   // primary (Daftar) button gradient — reuses the existing key
   "--tm-btn-grad": dep.value.buttonGradientColor,
+  // Label colour for the primary button. `theme.signupModal` has no
+  // buttonTextColor key, so it borrows the sibling auth modal's — the login and
+  // signup CTAs share the same gradient face and must stay legible together.
+  "--tm-btn-text": siteConfig.theme.loginModal.buttonTextColor,
   "font-family": "var(--font-line-seed)",
 }));
 
@@ -422,6 +426,13 @@ const {
    `.modal-gradient-border` / `.modal-body-fill` classes in main.css — the same
    border the deposit and withdrawal modals use. */
 
+/* Logo glow — the accent, softened, so a re-skin carries the halo with it. */
+.signup-logo {
+  filter: drop-shadow(
+    0 2px 10px color-mix(in srgb, var(--tm-accent) 45%, transparent)
+  );
+}
+
 .signup-close {
   color: var(--tm-accent);
   background: rgba(0, 0, 0, 0.35);
@@ -431,8 +442,8 @@ const {
   color: color-mix(in srgb, var(--tm-accent) 70%, #fff);
 }
 
-/* Accent helpers — every orange in the signup modal derives from --tm-accent
-   (= transactionmodal.accentColor), so there is one accent source of truth. */
+/* Accent helpers — every accent tint in the signup modal derives from
+   --tm-accent (= signupModal.accentColor), so there is one source of truth. */
 .tm-accent {
   color: var(--tm-accent);
 }
@@ -460,7 +471,7 @@ const {
   min-width: 0;
 }
 
-/* Octagonal icon badge: orange ring, dark interior, orange glyph. */
+/* Octagonal icon badge: accent ring, dark interior, accent glyph. */
 .octa {
   position: relative;
   flex: none;
@@ -494,7 +505,7 @@ const {
   background: radial-gradient(
     120% 120% at 50% 0%,
     color-mix(in srgb, var(--tm-accent) 20%, #000) 0%,
-    #0b0603 72%
+    color-mix(in srgb, var(--tm-accent) 6%, var(--body-bg)) 72%
   );
 }
 .octa > svg {
@@ -505,7 +516,7 @@ const {
   color: color-mix(in srgb, var(--tm-accent) 82%, #fff);
 }
 
-/* Section divider with centered orange label and fading rules. */
+/* Section divider with centered accent label and fading rules. */
 .sect-divider {
   display: flex;
   align-items: center;
@@ -534,10 +545,15 @@ const {
 }
 
 /* Primary action button: layered hexagonal badge —
-   bright glowing rim → dark inner outline → gold gradient face. */
+   bright glowing rim → dark inner outline → themed gradient face. Every layer
+   derives from --tm-accent / --tm-btn-grad, so the rim can never drift away
+   from the CMS face gradient the way a literal colour did. */
 .daftar-btn {
   position: relative;
   height: 56px;
+  /* Accent taken most of the way to black — the shade both pseudo layers use
+     for the inner outline and the face's bottom inner shadow. */
+  --daftar-shade: color-mix(in srgb, var(--tm-accent) 40%, #000);
   /* shared elongated-hexagon silhouette, reused by both pseudo layers */
   --daftar-clip: polygon(
     5% 0,
@@ -550,11 +566,17 @@ const {
     0 28%
   );
   clip-path: var(--daftar-clip);
-  /* outer layer = bright glowing rim */
-  background: linear-gradient(180deg, #ffd86b 0%, #ff8a14 55%, #ff7000 100%);
+  /* outer layer = bright glowing rim (light/mid/dark accent stops, same
+     language as the .octa ring above) */
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--tm-accent) 55%, #fff) 0%,
+    var(--tm-accent) 55%,
+    color-mix(in srgb, var(--tm-accent) 75%, #000) 100%
+  );
   box-shadow:
-    0 0 24px rgba(255, 140, 0, 0.6),
-    0 0 56px rgba(255, 90, 0, 0.28);
+    0 0 24px color-mix(in srgb, var(--tm-accent) 55%, transparent),
+    0 0 56px color-mix(in srgb, var(--tm-accent) 26%, transparent);
   transition:
     transform 0.12s ease,
     filter 0.12s ease;
@@ -565,9 +587,9 @@ const {
   position: absolute;
   inset: 3px;
   clip-path: var(--daftar-clip);
-  background: #2a1404;
+  background: color-mix(in srgb, var(--daftar-shade) 45%, var(--body-bg));
 }
-/* gold gradient face — reuses transactionmodal.buttonGradientColor */
+/* gradient face — signupModal.buttonGradientColor via --tm-btn-grad */
 .daftar-btn::after {
   content: "";
   position: absolute;
@@ -576,16 +598,18 @@ const {
   background: var(--tm-btn-grad);
   box-shadow:
     inset 0 2px 2px rgba(255, 255, 255, 0.55),
-    inset 0 -4px 8px rgba(150, 50, 0, 0.55);
+    inset 0 -4px 8px color-mix(in srgb, var(--daftar-shade) 55%, transparent);
 }
 .daftar-btn__label {
   position: relative;
   z-index: 1;
-  color: #3a1d00;
+  color: var(--tm-btn-text);
   font-weight: 800;
   font-size: 18px;
   letter-spacing: 0.04em;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
+  /* Neutral dark emboss: the label colour is CMS-driven now, and a light
+     highlight would haze a light label against the gradient face. */
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
 }
 .daftar-btn:hover:not(:disabled) {
   filter: brightness(1.06);
@@ -607,11 +631,11 @@ const {
   background: transparent;
 }
 .signup-scroll::-webkit-scrollbar-thumb {
-  background: rgba(255, 122, 0, 0.45);
+  background: color-mix(in srgb, var(--tm-accent) 45%, transparent);
   border-radius: 999px;
 }
 .signup-scroll::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 122, 0, 0.7);
+  background: color-mix(in srgb, var(--tm-accent) 70%, transparent);
 }
 
 /* Modal open/close transition ("modal") is defined globally in
