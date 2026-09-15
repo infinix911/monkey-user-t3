@@ -4,21 +4,27 @@ import { toTypedSchema } from "@vee-validate/zod";
 type TFn = (key: string) => string;
 
 /**
- * Username bounds, shared by both forms.
+ * Username bounds.
  *
- * 4-12, taken from the only component that decides whether an id can start a
- * session: the better-auth username plugin in monkey-user-api
- * (`minUsernameLength` / `maxUsernameLength` in `src/lib/auth.ts`). Every
- * writer now matches it.
+ * `USERNAME_MIN`/`USERNAME_MAX` are 4-12, taken from the only component that
+ * decides whether an id can start a session: the better-auth username plugin
+ * in monkey-user-api (`minUsernameLength` / `maxUsernameLength` in
+ * `src/lib/auth.ts`). They are the LOGIN bounds and must stay there.
  *
- * These were 4-8 on the strength of a survey of the writers, which missed
- * `createPartnerMemberSchema` — unbounded at the time — and never checked the
- * authenticator. A LOGIN form must never be stricter than the endpoint it
- * posts to: reject there and the member is locked out of a working account
- * with no server error to diagnose, because no request is ever sent.
+ * A LOGIN form must never be stricter than the endpoint it posts to: reject
+ * there and the member is locked out of a working account with no server error
+ * to diagnose, because no request is ever sent. Ids longer than 8 exist —
+ * `createPartnerMemberSchema` still mints 4-12, and everyone registered before
+ * the signup rule tightened kept their name — so login stays at 12.
+ *
+ * `SIGNUP_USERNAME_MAX` is 8: the product rule for self-registration, and the
+ * same window `registerSchema` / `checkUsernameSchema` enforce in
+ * monkey-user-api. Being stricter than login is safe in this direction only —
+ * every id this form can create is one the sign-in endpoint accepts.
  */
 export const USERNAME_MIN = 4;
 export const USERNAME_MAX = 12;
+export const SIGNUP_USERNAME_MAX = 8;
 
 /**
  * Login form schema
@@ -26,13 +32,14 @@ export const USERNAME_MAX = 12;
 export const loginSchema = (t: TFn) =>
   toTypedSchema(
     z.object({
-      // Same bounds as signup, and as the sign-in endpoint. Login once
+      // The sign-in endpoint's own bounds, NOT signup's (which is 4-8): this
+      // form has to accept every id that can still authenticate. Login once
       // accepted 1-12 and, past 12, showed a message reading "32 characters
       // or fewer" — three different numbers for one field.
       username: z
         .string()
-        .min(USERNAME_MIN, t("signup.validation.usernameMinLength"))
-        .max(USERNAME_MAX, t("signup.validation.usernameMaxLength"))
+        .min(USERNAME_MIN, t("auth.validation.usernameMinLength"))
+        .max(USERNAME_MAX, t("auth.validation.usernameMaxLength"))
         .regex(/^[a-zA-Z0-9]+$/, t("auth.validation.usernameInvalidChars")),
       password: z
         .string()
@@ -47,7 +54,7 @@ export const loginSchema = (t: TFn) =>
 const signupRawSchema = (t: TFn) =>
   z
     .object({
-      // 4-12, matching the API's registerSchema. The form must not be the
+      // 4-8, matching the API's registerSchema. The form must not be the
       // looser of the two: an id this form accepts and Elysia rejects fails
       // BEFORE the controller runs, and the member gets
       // `{"message":"VALIDATION_ERROR"}` — what the API returns for every
@@ -58,7 +65,7 @@ const signupRawSchema = (t: TFn) =>
       username: z
         .string()
         .min(USERNAME_MIN, t("signup.validation.usernameMinLength"))
-        .max(USERNAME_MAX, t("signup.validation.usernameMaxLength"))
+        .max(SIGNUP_USERNAME_MAX, t("signup.validation.usernameMaxLength"))
         // Letters and digits only - same rule the login form enforces. Without
         // it an id containing "_" or "-" could be registered here and then be
         // rejected at login, locking the member out of the account they just
