@@ -58,7 +58,7 @@
                  rendering them here would produce tiles that open nothing, since
                  the shared navigation has no handler for those ids. -->
             <div class="w-full flex-shrink-0">
-              <div class="grid grid-cols-4 gap-x-1 gap-y-2 place-items-center">
+              <div class="grid grid-cols-4 gap-x-1 gap-y-2 place-items-center" :style="menuVars">
                 <template v-for="item in visiblePage2Items" :key="item.id">
                   <a v-if="item.id === 'telegram'" :href="telegramHref" target="_blank" rel="noopener noreferrer"
                     class="w-full text-center flex flex-col items-center gap-1.5 px-2 py-1.5 rounded-md hover:scale-105 transition-all"
@@ -74,11 +74,16 @@
                   <button v-else
                     class="group w-full flex flex-col items-center gap-1.5 px-2 py-1.5 rounded-md hover:scale-105 transition-all cursor-pointer outline-none focus:outline-none focus-visible:outline-none"
                     @click="handleItemClick(item)">
-                    <img :src="item.image" :alt="tLabel(item.labelKey)" width="50" height="50"
-                      class="w-9 h-9 object-contain transition-all"
-                      :class="{ 'menu-icon-active': selectedAccountSection && selectedAccountSection === getAccountSection(item.id) }" />
+                    <span
+                      class="menu-icon-box"
+                      :style="{ '--menu-icon-src': `url(&quot;${item.image}&quot;)` }"
+                      :class="{ 'is-active': selectedAccountSection && selectedAccountSection === getAccountSection(item.id) }">
+                      <img :src="item.image" :alt="tLabel(item.labelKey)" width="50" height="50"
+                        class="w-9 h-9 object-contain transition-all" />
+                      <span class="menu-icon-tint" aria-hidden="true" />
+                    </span>
                     <div class="w-full h-[22px] flex items-center justify-center">
-                      <span class="text-white group-hover:text-[#FFC421] text-[11.5px] lg:text-[11px] transition-colors"
+                      <span class="menu-label text-white text-[11.5px] lg:text-[11px] transition-colors"
                         style="font-family: var(--font-line-seed)">
                         {{ tLabel(item.labelKey) }}
                       </span>
@@ -153,6 +158,19 @@ const {
   isOpen: () => props.isOpen,
   onClose: () => emit("close"),
 });
+
+/**
+ * The accent this modal tints with, published as a custom property.
+ *
+ * `theme.sidebar` is the shared menu config - the rail and this modal render
+ * the same CMS list - so the hover accent comes from the same token rather than
+ * a second one that could drift. It replaces a literal `#FFC421` on the label
+ * and a hand-tuned filter chain on the icon, neither of which followed the
+ * theme at all.
+ */
+const menuVars = computed<Record<string, string>>(() => ({
+  "--menu-accent": siteConfig.theme.sidebar.activeItemColor,
+}));
 </script>
 
 <style scoped>
@@ -166,10 +184,38 @@ const {
   opacity: 0;
 }
 
-/* Yellow tint filter for active/hover icons */
-.menu-icon-active,
-.group:hover img {
-  filter: brightness(0) saturate(100%) invert(83%) sepia(57%) saturate(1000%) hue-rotate(359deg) brightness(103%) contrast(106%);
+/* Active/hover tint for the menu icons.
+
+   Was a hand-tuned `filter:` chain that only approximated a fixed yellow, so it
+   ignored the theme entirely - the same problem the rail had. A filter chain
+   cannot be derived from a colour token in CSS, so the tint is a masked overlay
+   that paints `--menu-accent` through the icon's own alpha, giving the token
+   exactly. The <img> underneath keeps its real artwork at rest. */
+.menu-icon-box {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.menu-icon-tint {
+  position: absolute;
+  inset: 0;
+  background-color: var(--menu-accent);
+  -webkit-mask: var(--menu-icon-src) center / contain no-repeat;
+  mask: var(--menu-icon-src) center / contain no-repeat;
+  opacity: 0;
+  transition: opacity 150ms ease;
+  pointer-events: none;
+}
+
+.group:hover .menu-icon-tint,
+.menu-icon-box.is-active .menu-icon-tint {
+  opacity: 1;
+}
+
+/* The label follows the same token instead of a literal #FFC421. */
+.group:hover .menu-label {
+  color: var(--menu-accent);
 }
 
 /* Menu grid items: never draw a box/line on hover, focus or tap. Kills the

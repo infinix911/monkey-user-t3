@@ -75,15 +75,18 @@
         <button
           type="button" :class="[ROW_CLASS, { 'is-active': isActive(item.path) }]" :style="rowVars"
           @click="goTo(item.path)">
-          <img
-            :src="item.icon"
-            :alt="''"
-            aria-hidden="true"
-            width="28"
-            height="28"
-            class="sb-icon w-7 h-7 object-contain flex-shrink-0"
-            loading="lazy"
-            decoding="async">
+          <span class="sb-icon-box" :style="iconVars(item.icon)">
+            <img
+              :src="item.icon"
+              :alt="''"
+              aria-hidden="true"
+              width="28"
+              height="28"
+              class="sb-icon w-7 h-7 object-contain flex-shrink-0"
+              loading="lazy"
+              decoding="async">
+            <span class="sb-icon-tint" aria-hidden="true" />
+          </span>
           <span>{{ $t(item.labelKey) }}</span>
         </button>
       </li>
@@ -101,22 +104,25 @@
       <li v-for="item in menu.visiblePage2Items.value" :key="item.id">
         <a v-if="item.id === 'telegram'" :href="menu.telegramHref.value" target="_blank" rel="noopener noreferrer"
           :class="ROW_CLASS" :style="rowVars">
-          <img
-            :src="iconFor(item)"
-            alt=""
-            aria-hidden="true"
-            width="28"
-            height="28"
-            class="sb-icon w-7 h-7 object-contain flex-shrink-0"
-            loading="lazy"
-            decoding="async">
+          <span class="sb-icon-box" :style="iconVars(iconFor(item))">
+            <img
+              :src="iconFor(item)"
+              alt=""
+              aria-hidden="true"
+              width="28"
+              height="28"
+              class="sb-icon w-7 h-7 object-contain flex-shrink-0"
+              loading="lazy"
+              decoding="async">
+            <span class="sb-icon-tint" aria-hidden="true" />
+          </span>
           <span class="truncate">{{ menu.tLabel(item.labelKey) }}</span>
         </a>
         <button
           v-else type="button"
           :class="[ROW_CLASS, { 'is-active': accountSection.section.value === item.id }]" :style="rowVars"
           @click="onItemClick(item)">
-          <span class="relative flex-shrink-0">
+          <span class="sb-icon-box relative flex-shrink-0" :style="iconVars(iconFor(item))">
             <img
               :src="iconFor(item)"
               alt=""
@@ -126,6 +132,8 @@
               class="sb-icon w-7 h-7 object-contain"
               loading="lazy"
               decoding="async">
+            <!-- Tint sits before the badge so the badge keeps painting on top. -->
+            <span class="sb-icon-tint" aria-hidden="true" />
             <!-- Unread badge — pinned to the 문의 icon only. Blinks so it is
                  noticed in peripheral vision: the member is otherwise blocked
                  from transacting with no on-screen reason why. Capped at 99+ so
@@ -433,6 +441,25 @@ const rowVars = computed<Record<string, string>>(() => {
 });
 
 /**
+ * The row icon, published as a mask source for the hover/active tint.
+ *
+ * The rail icons are raster (PNG/WebP) and can come from the CMS, so they
+ * cannot be recoloured with `currentColor` the way `NavIcon`'s inline SVG is.
+ * The tint is therefore a masked overlay that paints `--sb-active-color`
+ * through the icon's own alpha channel, which needs the URL in CSS - hence
+ * this custom property.
+ *
+ * Quoted because a CMS URL may contain parentheses or spaces, either of which
+ * would terminate an unquoted `url()` early.
+ *
+ * @param src - Resolved icon URL for the row.
+ * @returns The custom property carrying it.
+ */
+function iconVars(src: string): Record<string, string> {
+  return { "--sb-icon-src": `url("${src}")` };
+}
+
+/**
  * Every category the rail can show. `id` doubles as the lobby `game_type` the
  * availability read matches on, except HOT — see the filter below.
  */
@@ -619,13 +646,41 @@ function goTo(path: string): void {
   transform: scale(0.97);
 }
 
-/* The rail icons ship white; the active row — and now a hovered one, which
-   wears the same look — tints its icon to match the accent label. A filter is
-   used because the assets are flat PNGs, not SVGs, so the tint is an
-   approximation of `activeItemColor` rather than the token itself: a theme that
-   changes that token materially needs this recomputed. */
-.sb-row.is-active .sb-icon,
-.sb-row:hover .sb-icon {
-  filter: brightness(0) saturate(100%) invert(62%) sepia(72%) saturate(1355%) hue-rotate(345deg) brightness(101%) contrast(101%);
+/* The active row — and a hovered one, which wears the same look — tints its
+   icon to match the accent label.
+
+   This used to be a hand-tuned `filter:` chain (brightness/sepia/hue-rotate)
+   that only APPROXIMATED the accent, and approximated a fixed orange at that:
+   it ignored `activeItemColor` entirely, so a theme could set any accent it
+   liked and the icons still went orange. There is no way to compute a filter
+   chain from a colour token in CSS.
+
+   So the tint is a masked overlay instead: `--sb-icon-src` (set per row) masks
+   a solid `--sb-active-color` to the icon's own alpha, which yields the token
+   EXACTLY rather than an approximation of it. The underlying <img> is left
+   untouched, so an icon keeps its real artwork at rest and only flattens to the
+   accent while active or hovered - the same thing the filter did, in the right
+   colour. */
+.sb-icon-box {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.sb-icon-tint {
+  position: absolute;
+  inset: 0;
+  background-color: var(--sb-active-color);
+  -webkit-mask: var(--sb-icon-src) center / contain no-repeat;
+  mask: var(--sb-icon-src) center / contain no-repeat;
+  opacity: 0;
+  transition: opacity 150ms ease;
+  /* Never intercept the click that belongs to the row behind it. */
+  pointer-events: none;
+}
+
+.sb-row.is-active .sb-icon-tint,
+.sb-row:hover .sb-icon-tint {
+  opacity: 1;
 }
 </style>

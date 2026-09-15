@@ -1122,27 +1122,32 @@ export const getDefaultThemeConfig = (): SiteConfig => {
                     // names are pluralised for two of them — slots.png and
                     // sports.png — while the menu keys are not, so these cannot
                     // be derived from `key`.
-                    { key: 'hot', is_active: true, page: 1, sort: 1, image: 'https://krw-demo1.jaeisol.com/designs/navigation/hot.png' },
-                    { key: 'slot', is_active: true, page: 1, sort: 2, image: 'https://krw-demo1.jaeisol.com/designs/navigation/slots.png' },
-                    { key: 'casino', is_active: true, page: 1, sort: 3, image: 'https://krw-demo1.jaeisol.com/designs/navigation/casino.png' },
-                    { key: 'sport', is_active: true, page: 1, sort: 4, image: 'https://krw-demo1.jaeisol.com/designs/navigation/sports.png' },
-                    { key: 'mini', is_active: true, page: 1, sort: 5, image: 'https://krw-demo1.jaeisol.com/designs/navigation/mini.png' },
-                    { key: 'fishing', is_active: true, page: 1, sort: 6, image: 'https://krw-demo1.jaeisol.com/designs/navigation/fishing.png' },
-                    { key: 'virtual', is_active: true, page: 1, sort: 7, image: 'https://krw-demo1.jaeisol.com/designs/navigation/virtual.png' },
-                    { key: 'rtp', is_active: true, page: 2, sort: 1, image: 'https://krw-demo1.jaeisol.com/designs/navigation/rtp.png' },
-                    { key: 'livechat', is_active: true, page: 2, sort: 2, image: 'https://krw-demo1.jaeisol.com/designs/menu/livechat.webp' },
-                    { key: 'transaksi', is_active: true, page: 2, sort: 3, image: 'https://krw-demo1.jaeisol.com/designs/menu/transaction.webp' },
-                    { key: 'activity', is_active: true, page: 2, sort: 4, image: 'https://krw-demo1.jaeisol.com/designs/menu/activity.webp' },
-                    { key: 'referral', is_active: true, page: 2, sort: 5, image: 'https://krw-demo1.jaeisol.com/designs/menu/referral.webp' },
-                    { key: 'bettingReport', is_active: true, page: 2, sort: 6, image: 'https://krw-demo1.jaeisol.com/designs/menu/betting-report.webp' },
-                    { key: 'history', is_active: true, page: 2, sort: 7, image: 'https://krw-demo1.jaeisol.com/designs/menu/history.webp' },
-                    { key: 'contact', is_active: true, page: 2, sort: 8, image: 'https://krw-demo1.jaeisol.com/designs/menu/contact.webp' },
-                    { key: 'changePassword', is_active: true, page: 2, sort: 9, image: 'https://krw-demo1.jaeisol.com/designs/menu/change-pass.webp' },
-                    { key: 'apk', is_active: true, page: 2, sort: 10, image: 'https://krw-demo1.jaeisol.com/designs/menu/apk.webp' },
-                    { key: 'telegram', is_active: false, page: 2, sort: 11, image: 'https://krw-demo1.jaeisol.com/designs/menu/telegram.webp' },
-                    { key: 'faq', is_active: true, page: 2, sort: 12, image: 'https://krw-demo1.jaeisol.com/designs/menu/faq.webp' },
-                    { key: 'loginHistory', is_active: true, page: 2, sort: 13, image: 'https://krw-demo1.jaeisol.com/designs/menu/login.webp' },
-                    { key: 'inquiry', is_active: true, page: 2, sort: 14, image: 'https://krw-demo1.jaeisol.com/designs/menu/inquiry.webp' },
+                    //
+                    // Site-relative: every icon below ships in this app's own
+                    // `public/designs/`. These were absolute URLs against the
+                    // krw-demo1.jaeisol.com demo host, which made the default
+                    // rail depend on a third-party origin staying up.
+                    { key: 'hot', is_active: true, page: 1, sort: 1, image: '/designs/navigation/hot.png' },
+                    { key: 'slot', is_active: true, page: 1, sort: 2, image: '/designs/navigation/slots.png' },
+                    { key: 'casino', is_active: true, page: 1, sort: 3, image: '/designs/navigation/casino.png' },
+                    { key: 'sport', is_active: true, page: 1, sort: 4, image: '/designs/navigation/sports.png' },
+                    { key: 'mini', is_active: true, page: 1, sort: 5, image: '/designs/navigation/mini.png' },
+                    { key: 'fishing', is_active: true, page: 1, sort: 6, image: '/designs/navigation/fishing.png' },
+                    { key: 'virtual', is_active: true, page: 1, sort: 7, image: '/designs/navigation/virtual.png' },
+                    { key: 'rtp', is_active: true, page: 2, sort: 1, image: '/designs/navigation/rtp.png' },
+                    { key: 'livechat', is_active: true, page: 2, sort: 2, image: '/designs/menu/livechat.webp' },
+                    { key: 'transaksi', is_active: true, page: 2, sort: 3, image: '/designs/menu/transaction.webp' },
+                    { key: 'activity', is_active: true, page: 2, sort: 4, image: '/designs/menu/activity.webp' },
+                    { key: 'referral', is_active: true, page: 2, sort: 5, image: '/designs/menu/referral.webp' },
+                    { key: 'bettingReport', is_active: true, page: 2, sort: 6, image: '/designs/menu/betting-report.webp' },
+                    { key: 'history', is_active: true, page: 2, sort: 7, image: '/designs/menu/history.webp' },
+                    { key: 'contact', is_active: true, page: 2, sort: 8, image: '/designs/menu/contact.webp' },
+                    { key: 'changePassword', is_active: true, page: 2, sort: 9, image: '/designs/menu/change-pass.webp' },
+                    { key: 'apk', is_active: true, page: 2, sort: 10, image: '/designs/menu/apk.webp' },
+                    { key: 'telegram', is_active: false, page: 2, sort: 11, image: '/designs/menu/telegram.webp' },
+                    { key: 'faq', is_active: true, page: 2, sort: 12, image: '/designs/menu/faq.webp' },
+                    { key: 'loginHistory', is_active: true, page: 2, sort: 13, image: '/designs/menu/login.webp' },
+                    { key: 'inquiry', is_active: true, page: 2, sort: 14, image: '/designs/menu/inquiry.webp' },
                 ],
             },
             authButton: {
