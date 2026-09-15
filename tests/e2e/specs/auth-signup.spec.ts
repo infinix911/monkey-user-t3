@@ -42,7 +42,8 @@ test.describe('Signup Modal', () => {
     await openSignupModal(page)
     const usernameInput = page.locator('form input[type="text"]').first()
     if ((await usernameInput.count()) > 0) {
-      await usernameInput.fill('newuser123')
+      // 8 characters — the signup ceiling (see SIGNUP_USERNAME_MAX)
+      await usernameInput.fill('newuser1')
       await usernameInput.blur()
       await page.waitForTimeout(1_000)
     }
