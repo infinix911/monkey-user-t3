@@ -425,7 +425,6 @@
     },
     "search": "Search",
     "loading": "Loading...",
-    "initialLoading": "Preparing site...",
     "providers": "Providers",
     "searchProvidersDescription": "Search and select from available game providers",
     "close": "Close",
