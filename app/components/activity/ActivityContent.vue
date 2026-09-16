@@ -50,22 +50,37 @@ class="opacity-75" fill="currentColor"
             </div>
         </div>
 
-        <!-- Empty -->
+        <!-- Empty / error. A failed load is NOT "no recent activity": it says so
+             and offers a retry, so a request that fell over (an expired session
+             on the first paint, say) reads as a failure the member can act on
+             instead of an empty ledger — or, before the store kept its cached
+             entries reactive, a spinner that never stopped. -->
         <div
 v-else-if="!loading && tableData.length === 0"
             class="flex flex-col items-center justify-center py-12 flex-1 min-h-[400px]">
             <div
 class="w-20 h-20 rounded-full flex items-center justify-center mb-4"
                 style="background: linear-gradient(135deg, rgba(80,80,80,0.4) 0%, rgba(40,40,40,0.6) 100%);">
-                <svg class="tm-muted w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg v-if="hasError" class="tm-muted w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 9v2m0 4h.01M5.07 19h13.86a2 2 0 001.74-3L13.74 4a2 2 0 00-3.48 0L3.33 16a2 2 0 001.74 3z" />
+                </svg>
+                <svg v-else class="tm-muted w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
 stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
             </div>
             <div class="tm-muted text-base font-medium text-center">
-                {{ t("activity.empty") }}
+                {{ hasError ? t("common.errorLoadingData") : t("activity.empty") }}
             </div>
+            <button
+v-if="hasError" type="button"
+                class="tm-btn-ghost mt-4 px-4 py-2 rounded-lg text-white font-line-seed text-xs shadow-md transition-all duration-200 hover:shadow-lg cursor-pointer"
+                @click="fetchActivity(activeTab, currentPage)">
+                {{ t("common.retry") }}
+            </button>
         </div>
 
         <!-- Table. Uses the shared AppTable shell, the same one the other
@@ -203,14 +218,21 @@ interface Tab {
 }
 
 
+/**
+ * Categories offered in the tab strip.
+ *
+ * `sport` and `fishing` are deliberately absent: they are hidden from the UI,
+ * not removed from the domain. They remain valid `ActivityCategory` values, and
+ * the store / `GET /transactions/activity/:category` still serve them, so a
+ * deep link or a programmatic `setTab("sport")` keeps working. Re-add the two
+ * entries here to offer them again.
+ */
 const tabs: Tab[] = [
   { id: "all", labelKey: "common.all" },
   { id: "transaction", labelKey: "notifications.categories.transaction" },
   { id: "slot", labelKey: "navbar.slot" },
   { id: "casino", labelKey: "navbar.casino" },
-  { id: "sport", labelKey: "bettingReport.sport" },
   { id: "mini", labelKey: "navbar.mini" },
-  { id: "fishing", labelKey: "navbar.fishing" },
 ];
 
 const TRANSACTION_COLUMNS = [
@@ -261,6 +283,14 @@ const recordsStore = useMemberRecordsStore();
 const activityKey = computed(() => `activity:category=${activeTab.value}&limit=${PAGE_SIZE}&page=${currentPage.value}`);
 const activityEntry = computed(() => recordsStore.activities[activityKey.value]);
 const loading = computed(() => !activityEntry.value || activityEntry.value.status === "loading");
+/**
+ * Whether the entry for the current tab/page came back failed.
+ *
+ * Drives the error face of the empty block. `load()` only short-circuits on a
+ * `success` entry, so the retry button re-issuing `fetchActivity` genuinely
+ * refetches rather than replaying the cached failure.
+ */
+const hasError = computed(() => activityEntry.value?.status === "error");
 const rawData = computed(() => activityEntry.value?.data?.data ?? []);
 const totalPages = computed(() => activityEntry.value?.data?.pages ?? 0);
 const totalRows = computed(() => activityEntry.value?.data?.rows ?? 0);

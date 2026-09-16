@@ -188,6 +188,8 @@ Resolution chain (verified, replaces the stale CLAUDE.md story):
 
 Money logic never lives in stores — mutations go through `useApi`/`axios-client` with `retry: 0`.
 
+**`member-records` (memory-only history cache).** `app/stores/member-records.ts` backs every member-history panel (Activity, LoginHistory, TransactionLogs, TransactionHistory, BettingReport, Referral). One generic `load(key, collection, fetcher, force)` holds a `CachedEntry<T>` (`data`/`status`/`error`/`fetchedAt`) per complete query — key built by `keyOf(prefix, params)`, params sorted alphabetically and URL-encoded. It short-circuits on a `success` entry, dedupes concurrent calls through an `inFlight` map, and is cleared on logout by `app/plugins/member-store-lifecycle.client.ts` (never persisted — a previous member's financial records must not survive a session). **Invariant: `load()` seeds a missing entry and then re-reads it out of the collection before mutating it. Never keep the value of `collection[key] ??= entry()` — that expression yields the raw object, and mutating it bypasses the reactive proxy, stranding every `computed` that already read the entry (ADR-027).** Consumers read `store.<collection>[key]` through a computed and derive their own `loading`, so a missing entry reads as loading — which is why a write that never lands under the computed key is indistinguishable from a request still in flight.
+
 ---
 
 ## 9. i18n
@@ -294,6 +296,7 @@ Money logic never lives in stores — mutations go through `useApi`/`axios-clien
 | WS won't connect                  | `/auth/ws` token fetch, ws-proxy plugin, `NUXT_WS_API_URL`                                                                                                                                                                                   |
 | Hydration mismatch                | `tests/hydration-check.mjs`, `useIsMobileSSR` (the only safe render gate), pre-paint CSS vars                                                                                                                                               |
 | Duplicate meta tags               | unhead dedup quirk — do NOT add `key:` to singleton metas (app.vue comment)                                                                                                                                                                 |
+| History panel spins forever, renders on reopen | `member-records` `load()` — the entry must be re-read from the collection before mutation, or the writes miss the reactive proxy (ADR-027). Next suspect: the consumer's hand-built key not matching `keyOf()`, which leaves the entry `undefined` and `loading` latched true. |
 
 ---
 
@@ -309,6 +312,8 @@ Money logic never lives in stores — mutations go through `useApi`/`axios-clien
 - Hardcode hex colors when a `theme.*` token exists.
 - Re-add lazy-loading to footer marquee logos.
 - Trust CLAUDE.md-era brand facts (see §1 drift box).
+- Hold the value of `obj[key] ??= …` (or `||=`/`&&=`) on a `reactive`/`ref` collection and then mutate it — that is the raw object, not the proxy, and the mutations are invisible to Vue (ADR-027).
+- Let a rejected fetch render as a loading or empty state — a panel whose entry is `error` must say so.
 
 ## 18. Generated / dead files
 
