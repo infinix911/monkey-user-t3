@@ -46,7 +46,7 @@
                   <div>
                     <div class="relative">
                       <input id="login-password" v-model="password" :type="showPassword ? 'text' : 'password'"
-                        maxlength="128" autocomplete="current-password" :placeholder="$t('auth.passPlaceHolder')"
+                        maxlength="20" autocomplete="current-password" :placeholder="$t('auth.passPlaceHolder')"
                         class="w-full focus:outline-none" :class="{ 'ring-2 ring-red-500': errors.password }"
                         :style="passwordInputStyle" />
                       <button type="button"
