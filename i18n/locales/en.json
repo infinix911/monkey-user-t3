@@ -921,10 +921,8 @@
       "INTERNAL_ERROR": "An internal error occurred. Please try again later.",
       "PHONE_ALREADY_TAKEN": "This phone number is already registered. Please use a different phone number.",
       "USERNAME_ALREADY_TAKEN": "This username is already taken. Please choose a different username.",
-      "BANK_ACCOUNT_ALREADY_TAKEN": "This bank account is already registered. Please use a different bank account.",
       "INVALID_CAPTCHA": "Invalid Captcha",
       "AGENT_DEPTH_MAX": "Agent Depth Max",
-      "BANK_ALREADY_EXISTS": "Bank Already Exists",
       "BANK_INFO_UPDATED": "Bank Info Updated",
       "INVALID_REFERRAL": "Invalid Referral",
       "An unexpected error occurred during registration": "An unexpected error occurred during registration. Please try again."

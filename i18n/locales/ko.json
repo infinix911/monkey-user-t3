@@ -921,10 +921,8 @@
       "INTERNAL_ERROR": "내부 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
       "PHONE_ALREADY_TAKEN": "이미 등록된 전화번호입니다. 다른 번호를 사용해 주세요.",
       "USERNAME_ALREADY_TAKEN": "이미 사용 중인 아이디입니다. 다른 아이디를 선택해 주세요.",
-      "BANK_ACCOUNT_ALREADY_TAKEN": "이미 등록된 은행 계좌입니다. 다른 계좌를 사용해 주세요.",
       "INVALID_CAPTCHA": "잘못된 캡차입니다",
       "AGENT_DEPTH_MAX": "에이전트 깊이 한도 초과",
-      "BANK_ALREADY_EXISTS": "이미 등록된 은행입니다",
       "BANK_INFO_UPDATED": "은행 정보가 업데이트되었습니다",
       "INVALID_REFERRAL": "유효하지 않은 추천인입니다",
       "An unexpected error occurred during registration": "등록 중 예기치 않은 오류가 발생했습니다. 다시 시도해 주세요."
