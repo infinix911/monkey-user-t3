@@ -64,7 +64,16 @@ export const useMemberRecordsStore = defineStore("member-records", () => {
     force = false,
   ): Promise<CachedEntry<T>> {
     const isSingle = "value" in collection;
-    const current = isSingle ? collection.value : (collection[key] ??= entry<T>());
+    // Seed a missing entry, then READ IT BACK through the collection.
+    // `collection[key] ??= entry<T>()` looks equivalent but is not: a logical
+    // assignment evaluates to the raw object that was assigned, while Vue's
+    // reactive proxy only wraps it on the next *get*. Holding the raw object
+    // meant every mutation below (loading -> success/error, `data`) bypassed
+    // the proxy's set trap, so a `computed` that had already read `status`
+    // never invalidated — the Activity modal spun forever on its first open
+    // and only rendered after a close/reopen built a fresh computed.
+    if (!isSingle && !collection[key]) collection[key] = entry<T>();
+    const current = isSingle ? collection.value : collection[key]!;
     if (!force && current.status === "success") return current;
     const pending = inFlight.get(key) as Promise<CachedEntry<T>> | undefined;
     if (pending) return pending;
