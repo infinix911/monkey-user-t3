@@ -54,6 +54,11 @@ export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
   devtools: { enabled: process.env.NODE_ENV !== "production" },
   ssr: false,
+  // No SPA loading splash. Nuxt shows a built-in one whenever this is unset, and
+  // deleting app/spa-loading-template.html alone would fall back to that rather
+  // than to nothing — `false` is what actually removes it. The first paint is
+  // therefore the page's own background until Vue mounts.
+  spaLoadingTemplate: false,
   // appManifest disabled: the per-build manifest at /_nuxt/builds/meta/<buildId>.json
   // 404s under deploy/cache skew (stale HTML referencing an old buildId), which
   // breaks client bootstrap. We don't rely on client-side payload revalidation or

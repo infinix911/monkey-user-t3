@@ -30,15 +30,23 @@ const HOT_CACHE_KEY_PREFIX = "gameCategories.hot.v1";
 /**
  * The cheapest question that answers "are there any hot games".
  *
- * `limit: 1` because only `total` is read — the rail never renders these rows.
- * The catalog store caches by query key and de-dupes in flight, so every nav
- * surface asking shares one request.
+ * Only `total` is read — the rail never renders these rows — so the smallest
+ * page the API will accept is the right size. That floor is 10: `GET /api/games`
+ * validates `limit` as `{ minimum: 10, maximum: 50 }` (monkey-user-api
+ * `src/validators/games.validator.ts`), and a smaller value is rejected as a
+ * validation error rather than simply returning fewer rows.
+ *
+ * Deliberately NOT matched to the /hot page's own page size so the two share a
+ * cache entry: that would couple this probe to a constant in an unrelated file,
+ * and the coupling would break silently — the page would just start making its
+ * own request again. The catalog store already caches by query key and de-dupes
+ * in flight, so every nav surface asking shares one request regardless.
  */
 const HOT_PROBE = {
   gameType: "slot",
   category: "hot",
   page: 1,
-  limit: 1,
+  limit: 10,
 } as const;
 
 function host(): string {
@@ -203,13 +211,21 @@ export function useGameCategoryAvailability() {
    * header and no grid. It was previously exempted from the filter entirely,
    * which is why it was the one category that always showed.
    *
-   * Permissive while genuinely unknown, and answers from the warm seed until
-   * the probe lands, so the row does not flicker out from under the pointer.
+   * Hidden while genuinely unknown — the opposite default to `hasLobbies`, and
+   * the reason is the flash. This app is SPA-only (`ssr: false`), so there is no
+   * server render to resolve the probe in: a permissive default meant the very
+   * first visit to a deployment with nothing marked hot painted the row, then
+   * pulled it out from under the pointer a moment later. Erring hidden means the
+   * row can only ever appear, never vanish.
+   *
+   * The cost is one-sided and one-time: a deployment that *does* have hot games
+   * shows the row a beat late on a device's first visit only, because the warm
+   * seed below answers instantly on every visit after that — including the
+   * negative answer, so a site with no hot games never paints the row again.
    */
   const hasHotGames = computed(() => {
-    const known = hotSettled.value || cachedHasHot.value !== null;
-    if (!known) return true;
-    return hotSettled.value ? liveHasHot.value : cachedHasHot.value ?? true;
+    if (hotSettled.value) return liveHasHot.value;
+    return cachedHasHot.value ?? false;
   });
 
   /**

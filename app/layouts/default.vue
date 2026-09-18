@@ -95,12 +95,14 @@
                declared here rather than only implied by the shell arithmetic
                above, and cannot drift if the shell, rail or gap changes. -->
           <div class="min-w-0 lg:flex-1 lg:max-w-[1202px]">
-            <!-- Announcement Bar (desktop lg+: above the banner). Hidden on the RTP page. -->
+            <!-- Announcement Bar (desktop lg+: above the banner). Hidden on the
+             RTP page, and switched off wholesale by `theme.announcement.enabled`
+             (v-if, so nothing — not even the bar's min-height — is left behind). -->
             <!-- Fills the content column rather than pinning to a fixed 1152px: the
              column is capped at 1202px by its wrapper, so a fixed width here
              would leave dead space either side and break alignment with the
              banner directly below. -->
-            <div v-if="!isRtpPage" class="hidden lg:block w-full mx-auto">
+            <div v-if="showAnnouncementBar" class="hidden lg:block w-full mx-auto">
               <div
                 class="w-full rounded-t-[10px] shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] max-h-[30px] md:max-h-[40px] md:min-h-[40px] min-h-[32px] md:h-[40px] flex justify-center"
                 :style="{ background: brandSiteConfig.theme.announcement.desktopGradient }">
@@ -140,8 +142,9 @@
 
             <!-- Announcement Bar (mobile/tablet < lg: below the banner). It scrolls
              away with the page — the pinned slot under the header belongs to
-             MobileUserBar above. -->
-            <div v-if="!isRtpPage" class="block lg:hidden w-full xl:w-[1152px] mx-auto">
+             MobileUserBar above. Same `theme.announcement.enabled` switch as the
+             desktop band above. -->
+            <div v-if="showAnnouncementBar" class="block lg:hidden w-full xl:w-[1152px] mx-auto">
               <div
                 class="w-full shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] max-h-[30px] min-h-[30px] md:max-h-[41px] md:min-h-[41px] md:h-[41px] flex justify-center"
                 :style="{ background: brandSiteConfig.theme.announcement.mobileBg }">
@@ -370,6 +373,21 @@ const localePath = useLocalePath();
 // instead of the rotating BannerPreview carousel.
 const isRtpPage = computed(() => route.path === localePath("/slot-rtp"));
 const rtpBannerSrc = cdn("/designs/rtp-banner.png");
+
+/**
+ * Whether either announcement bar (desktop band / mobile bar) renders.
+ *
+ * The CMS switch is `theme.announcement.enabled`. It is compared against
+ * `false` rather than read as a truthy value so a config document saved before
+ * the flag existed — where the key is simply absent — keeps the bar visible,
+ * which is the behaviour every live site has today. Reactive: the bars mount
+ * and unmount the moment the merged site config changes (theme preview
+ * included).
+ */
+const showAnnouncementBar = computed(
+  () =>
+    !isRtpPage.value && brandSiteConfig.theme?.announcement?.enabled !== false,
+);
 
 /**
  * Which page's CMS banners to render, or null for a page with no banner slot.
