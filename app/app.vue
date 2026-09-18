@@ -110,17 +110,10 @@ async function bootstrapSite() {
   }
 }
 
-// Let Vue paint the fallback layout first, then remove the static document
-// shell on the next animation frame so the visitor never sees a blank page.
+// The SPA loading splash is disabled (`spaLoadingTemplate: false`), so there is
+// no static document shell left to tear down here — the app paints straight
+// into the page.
 onMounted(() => {
-  void nextTick(() => {
-    requestAnimationFrame(() => {
-      const shell = document.getElementById("spa-loading-template");
-      if (!shell) return;
-      shell.style.opacity = "0";
-      window.setTimeout(() => shell.remove(), 180);
-    });
-  });
   void bootstrapSite();
 });
 
