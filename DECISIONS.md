@@ -484,3 +484,34 @@ contacting support.
 **Related:** monkey-user-api ADR-011 (the backend guard and token). Same
 token → localized-message mapping pattern already used for `GAME_RESTRICTED` /
 `GAME_BLOCKED_BY_PROMOTION`.
+
+## ADR-027 — Server response codes are translated by code via a global apiMessages catalog
+
+**Status:** Accepted (2026-09-18)
+
+**Decision:** Every `UPPER_SNAKE` token `monkey-user-api` surfaces (errors and
+mutation successes) resolves through `useApiMessage()`. `apiMessage(source, namespace?, fallbackKey?)`
+looks up the per-feature `<namespace>.apiMessages.<CODE>` first (when a namespace
+is passed), then the global `apiMessages.<CODE>` catalog (en/ko), and only then a
+generic message (`apiMessages.INTERNAL_ERROR` / `common.error` / an explicit
+`fallbackKey`), each guarded by `te()`. A global `apiMessages` namespace was added
+as the canonical catalog; `VALIDATIONERRORS.md` documents it. A raw token or blank
+error can never reach a member.
+
+**Reason:** The composable resolved only scattered per-feature `apiMessages` maps,
+so a code with no map fell through — sometimes echoing the raw key path back to the
+user. Centralizing every code in a global catalog makes "generic only when no code
+maps" actually hold.
+
+**Login stays generic (anti-enumeration):** `INVALID_CREDENTIALS` is one generic
+"Invalid username or password" (the API returns it for both an unknown username and
+a wrong password), and the session-bootstrap code `INVALID_AUTH` is intentionally
+left **unmapped** so it resolves to the generic fallback rather than confirming
+account state. Do not split either into field-specific messages.
+
+**Tradeoffs:** the catalog must track the API — a new/renamed code with no entry
+degrades to generic (safe, untranslated). Per-feature maps are kept for
+back-compat and resolve first.
+
+**Related:** monkey-partner ADR-54 and monkey-admin ADR-38 (same pattern). Extends
+the token → localized-message mapping already used by ADR-026.

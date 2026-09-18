@@ -17,7 +17,10 @@
  *
  * `useApiMessage()` resolves either shape and only translates when the key
  * actually exists, so anything unexpected degrades to a sane fallback instead of
- * leaking a path.
+ * leaking a path. It looks up the optional per-feature `<namespace>.apiMessages`
+ * map first, then the global `apiMessages` catalog (the canonical set of every
+ * API code — see `VALIDATIONERRORS.md`), and only then a generic fallback. So a
+ * code is shown generically **only when it has no translation anywhere**.
  */
 
 /** Error body carried by an ofetch/$fetch or axios rejection. */
@@ -73,12 +76,27 @@ export function useApiMessage() {
    */
   return function apiMessage(
     source: unknown,
-    namespace: string,
-    fallbackKey = `${namespace}.apiMessages.INTERNAL_ERROR`,
+    namespace?: string,
+    fallbackKey?: string,
   ): string {
     const token = resolveApiToken(source);
-    const key = `${namespace}.apiMessages.${token}`;
-    if (token && te(key)) return t(key);
-    return te(fallbackKey) ? t(fallbackKey) : t("common.error");
+    if (token) {
+      // Per-feature `<namespace>.apiMessages` first (back-compat with existing
+      // call sites), then the global `apiMessages` catalog (see
+      // VALIDATIONERRORS.md) so every known code is translated by code — never a
+      // raw token. `namespace` is optional: central/new call sites can pass just
+      // the error and resolve straight from the global catalog.
+      if (namespace && te(`${namespace}.apiMessages.${token}`)) {
+        return t(`${namespace}.apiMessages.${token}`);
+      }
+      if (te(`apiMessages.${token}`)) return t(`apiMessages.${token}`);
+    }
+    // Generic fallback only when no known code resolved.
+    const fk =
+      fallbackKey ??
+      (namespace
+        ? `${namespace}.apiMessages.INTERNAL_ERROR`
+        : "apiMessages.INTERNAL_ERROR");
+    return te(fk) ? t(fk) : t("common.error");
   };
 }
