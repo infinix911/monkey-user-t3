@@ -474,7 +474,7 @@ const ALL_GAME_ITEMS = computed(() => [
   { id: "virtual", path: "/virtual", labelKey: "sidebar.virtual", icon: icons.value.virtual },
 ]);
 
-const { hasLobbies } = useGameCategoryAvailability();
+const { hasLobbies, hasHotGames } = useGameCategoryAvailability();
 
 /** The CMS menu (theme.sidebar.menus), normalised and sorted. */
 const menuSettings = useMenuSettings();
@@ -501,14 +501,18 @@ const orderedGameItems = computed(() => {
 });
 
 /**
- * Categories with no lobby behind them are dropped: the row would otherwise
- * lead to a page holding a section header and nothing else. HOT is exempt — it
- * is a curated slice of slot games, not a lobby type, so the lobby read can
- * never vouch for it.
+ * Categories with nothing behind them are dropped: the row would otherwise lead
+ * to a page holding a section header and nothing else.
+ *
+ * HOT is asked a different question. It is a curated slice of slot games rather
+ * than a lobby type, so the lobby read cannot vouch for it — it used to be
+ * exempted from the filter altogether, which made it the one category that
+ * showed even when an operator had marked no games hot. `hasHotGames` counts
+ * the games instead.
  */
 const gameItems = computed(() =>
   orderedGameItems.value.filter(
-    (item) => item.id === "hot" || hasLobbies(item.id),
+    (item) => (item.id === "hot" ? hasHotGames.value : hasLobbies(item.id)),
   ),
 );
 

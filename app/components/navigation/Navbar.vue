@@ -325,7 +325,7 @@ const ALL_NAV_ITEMS = computed(() => [
   { id: "virtual", path: "/virtual", labelKey: "navbar.virtual", icon: nav.value.icons.virtual, activeIcon: nav.value.activeKeys?.virtual },
 ]);
 
-const { hasLobbies } = useGameCategoryAvailability();
+const { hasLobbies, hasHotGames } = useGameCategoryAvailability();
 
 /**
  * Categories with no lobby behind them are dropped — fishing and virtual today,
@@ -337,7 +337,7 @@ const { hasLobbies } = useGameCategoryAvailability();
  */
 const navItems = computed(() =>
   ALL_NAV_ITEMS.value.filter(
-    (item) => item.id === "hot" || hasLobbies(item.id),
+    (item) => (item.id === "hot" ? hasHotGames.value : hasLobbies(item.id)),
   ),
 );
 </script>
