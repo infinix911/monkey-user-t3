@@ -11,7 +11,7 @@
         <img
           v-if="game.game_img && !imgError"
           :src="game.game_img"
-          :alt="game.game_name_en"
+          :alt="gameName"
           :loading="eager ? 'eager' : 'lazy'"
           :fetchpriority="priority ? 'high' : undefined"
           width="240"
@@ -67,9 +67,9 @@
     <div class="mt-2">
       <p
         class="italic text-white text-[12px] sm:text-[14.252px] font-bold leading-[18px] sm:leading-[21.217px] tracking-[-0.36px] sm:tracking-[-0.4276px] text-center transition-colors duration-200 group-hover:text-[#D4AF37] truncate px-1"
-        :title="game.game_name_en"
+        :title="gameName"
       >
-        {{ game.game_name_en }}
+        {{ gameName }}
       </p>
       <div
         v-if="showProvider"
@@ -86,9 +86,12 @@
 </template>
 
 <script setup lang="ts">
+import { localizedGameName } from "~/utils/localized-game-name";
+
 interface Game {
   id: string | number;
-  game_name_en: string;
+  game_name_en: string | null;
+  game_name_ko?: string | null;
   game_img?: string;
   lobby?: string;
 }
@@ -96,7 +99,7 @@ interface Game {
 const siteConfig = useSiteConfig();
 const imgError = ref(false);
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     game: Game;
     showProvider?: boolean;
@@ -109,4 +112,7 @@ withDefaults(
     priority: false,
   },
 );
+
+const { locale } = useI18n();
+const gameName = computed(() => localizedGameName(props.game, locale.value));
 </script>

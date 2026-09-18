@@ -134,6 +134,7 @@
 import { computed, ref, watch, onMounted, onBeforeUnmount } from "vue";
 import { openGame } from "~~/utils/game-navigation";
 import type { NormalizedGame } from "@/interfaces/game.interface";
+import { localizedGameName } from "~/utils/localized-game-name";
 
 definePageMeta({
   layout: "default",
@@ -142,7 +143,7 @@ definePageMeta({
 const authStore = useAuthStore();
 const uiStore = useUiStore();
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const siteConfig = useSiteConfig();
 const catalog = useGameCatalogStore();
 
@@ -300,9 +301,10 @@ const handleGameClick = (game: NormalizedGame) => {
     return;
   }
   const lobbyId = selectedLobby.value || "";
+  const gameName = localizedGameName(game, locale.value);
   authStore.setCurrentGame({
     id: String(game.id),
-    name: game.game_name_en ?? "",
+    name: gameName,
     provider: game.lobby || "",
     type: "slot",
     lobby_id: lobbyId,
@@ -310,7 +312,7 @@ const handleGameClick = (game: NormalizedGame) => {
   const url = lobbyId
     ? `/slot/${game.id}?lobbyId=${encodeURIComponent(lobbyId)}`
     : `/slot/${game.id}`;
-  openGame(url, { gameName: game.game_name_en ?? "" });
+  openGame(url, { gameName });
 };
 
 // Games for the selected provider — fetched imperatively whenever the tab or

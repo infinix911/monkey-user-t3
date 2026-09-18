@@ -114,6 +114,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
 import { openGame } from "~~/utils/game-navigation";
+import { localizedGameName } from "~/utils/localized-game-name";
 
 const authStore = useAuthStore();
 const uiStore = useUiStore();
@@ -122,7 +123,8 @@ const _router = useRouter();
 
 interface Game {
   id: string | number;
-  game_name_en: string;
+  game_name_en: string | null;
+  game_name_ko?: string | null;
   game_img?: string;
   game_type?: string;
   lobby?: string;
@@ -143,6 +145,11 @@ const props = defineProps<{
   // Seeds the search input so a shared/refreshed URL (?q=...) shows its term.
   initialSearch?: string;
 }>();
+
+const { locale } = useI18n();
+
+const displayGameName = (game: Game): string =>
+  localizedGameName(game, locale.value);
 
 const logoError = ref(false);
 
@@ -184,9 +191,10 @@ const handleGameClick = (game: Game) => {
     uiStore.setShowLoginModal(true);
     return;
   }
+  const gameName = displayGameName(game);
   authStore.setCurrentGame({
     id: String(game.id),
-    name: game.game_name_en,
+    name: gameName,
     provider: game.lobby || "",
     type: game.game_type || "slot",
     lobby_id: game.lobby_id || "",
@@ -196,13 +204,13 @@ const handleGameClick = (game: Game) => {
   const url = lobbyId
     ? `/${gameType}/${game.id}?lobbyId=${encodeURIComponent(lobbyId)}`
     : `/${gameType}/${game.id}`;
-  openGame(url, { gameName: game.game_name_en });
+  openGame(url, { gameName });
 };
 
 const filteredGames = computed(() => {
   if (!searchQuery.value.trim()) return props.games;
   const q = searchQuery.value.toLowerCase();
-  return props.games.filter((g) => g.game_name_en?.toLowerCase().includes(q));
+  return props.games.filter((game) => displayGameName(game).toLowerCase().includes(q));
 });
 
 const pageItems = computed<(number | "...")[]>(() => {

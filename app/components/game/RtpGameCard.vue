@@ -18,7 +18,7 @@
         class="relative w-full h-full object-cover transition-opacity duration-300"
         :class="imgLoaded ? 'opacity-100' : 'opacity-0'" @load="imgLoaded = true" @error="imgError = true">
       <div v-else class="absolute inset-0 flex items-center justify-center px-2 text-center text-white/40 text-[10px]">
-        {{ game.game_name_en }}
+        {{ gameName }}
       </div>
       <span class="rtp-dim" aria-hidden="true" />
       <span class="rtp-shimmer" aria-hidden="true" />
@@ -32,8 +32,8 @@
     <div class="rtp-info relative z-30 flex flex-col gap-[1.6cqw] px-[6%] pt-[2.5cqw] pb-[4cqw]"
       :style="{ '--rtp-info-bg': frame.bgColor }">
       <div class="text-center leading-tight">
-        <p class="text-white font-bold truncate" style="font-size: clamp(8px, 7.5cqw, 14px)" :title="game.game_name_en ?? ''">
-          {{ game.game_name_en }}
+        <p class="text-white font-bold truncate" style="font-size: clamp(8px, 7.5cqw, 14px)" :title="gameName">
+          {{ gameName }}
         </p>
       </div>
 
@@ -57,6 +57,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from "vue";
+import { localizedGameName } from "~/utils/localized-game-name";
 
 const siteConfig = useSiteConfig();
 const frame = computed(() => siteConfig.theme.cardFrame);
@@ -64,11 +65,14 @@ const frame = computed(() => siteConfig.theme.cardFrame);
 interface Game {
   id: string | number;
   game_name_en: string | null;
+  game_name_ko?: string | null;
   game_img?: string | null;
   lobby?: string | null;
 }
 
 const props = defineProps<{ game: Game }>();
+const { locale } = useI18n();
+const gameName = computed(() => localizedGameName(props.game, locale.value));
 
 const imgError = ref(false);
 const imgLoaded = ref(false);

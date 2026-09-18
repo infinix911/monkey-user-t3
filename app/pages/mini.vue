@@ -47,8 +47,9 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
+import { localizedGameName } from "~/utils/localized-game-name";
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const authStore = useAuthStore();
 const uiStore = useUiStore();
 
@@ -95,9 +96,10 @@ const handleGameClick = (game: any) => {
   }
   const gameType = game.game_type || "mini";
   const lobbyId = game.lobby_id || "";
+  const gameName = localizedGameName(game, locale.value);
   authStore.setCurrentGame({
     id: String(game.id),
-    name: game.game_name_en || game.name || "",
+    name: gameName,
     provider: game.lobby || "",
     type: gameType,
     lobby_id: lobbyId,

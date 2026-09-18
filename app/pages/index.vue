@@ -165,11 +165,12 @@ import { openGame } from "~~/utils/game-navigation";
 //   fallbackTopWithdrawals,
 // } from "~~/utils/top-transactions-fallback";
 // import TopTransactionsTicker from "~/components/site/TopTransactionsTicker.vue";
-import { stripGamePayload } from "~/utils/strip-game-payload";
+import { localizedGameName } from "~/utils/localized-game-name";
 import type { NormalizedLobby } from "@/interfaces/game.interface";
 
 const authStore = useAuthStore();
 const uiStore = useUiStore();
+const { locale } = useI18n();
 
 // Cards in the first visible row across breakpoints (3 mobile, 4 md, 6 lg) —
 // these get loading="eager" so the browser doesn't defer their fetch. Reduced
@@ -195,9 +196,10 @@ const handleGameClick = (game: any) => {
   }
   const gameType = game.game_type || "slot";
   const lobbyId = game.lobby_id || "";
+  const gameName = localizedGameName(game, locale.value);
   authStore.setCurrentGame({
     id: String(game.id),
-    name: game.game_name_en || game.name || "",
+    name: gameName,
     provider: game.lobby || "",
     type: gameType,
     lobby_id: lobbyId,
@@ -205,7 +207,7 @@ const handleGameClick = (game: any) => {
   const url = lobbyId
     ? `/${gameType}/${game.id}?lobbyId=${encodeURIComponent(lobbyId)}`
     : `/${gameType}/${game.id}`;
-  openGame(url, { gameName: game.game_name_en || game.name || "" });
+  openGame(url, { gameName });
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -224,9 +226,7 @@ const hotGamesAsync = useAsyncData<AnyList>(
     const res = await catalog.loadGames({
       gameType: "slot", category: "hot", page: 1, limit: 48,
     }).catch(() => ({ games: [] }));
-    // Drop fields the UI never reads (e.g. game_name_ko) before they're baked
-    // into the SSR payload. See utils/strip-game-payload.ts.
-    return stripGamePayload(res.games);
+    return res.games;
   },
   { default: (): AnyList => [], server: false },
 );
@@ -277,9 +277,7 @@ const miniGamesAsync = useAsyncData<AnyList>(
       page: 1,
       limit: 50,
     });
-    // Drop fields the UI never reads (e.g. game_name_ko) before they're baked
-    // into the SSR payload. See utils/strip-game-payload.ts.
-    return stripGamePayload(games);
+    return games;
   },
   { default: (): AnyList => [], server: false },
 );

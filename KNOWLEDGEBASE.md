@@ -171,7 +171,7 @@ Resolution chain (verified, replaces the stale CLAUDE.md story):
 - **Auth:** `auth/LoginModal.vue` (canonical form pattern), `SignupModal.vue` + `useSignupForm.ts`, `auth/FormField.vue` = the de-facto dark input primitive.
 - **Transactions:** `DepositModal.vue` shell + `useDepositModal.ts` + `BankPaymentContent`/`useBankPayment.ts` (money-in logic); `WithdrawalContent.vue` (money-out). Shared chrome: `.tm-modal`/`.modal-gradient-border` classes + `theme.transactionmodal` CSS vars.
 - **Themed surfaces (one palette):** `useModalTheme()` turns `theme.transactionmodal` into the `--tm-*` var bundle; hosts (rail panel, profile modal, each standalone modal) spread it and descendants style themselves with the `.tm-*` classes in `main.css` (`tm-card/field/thead/row/btn/btn-ghost/muted/accent-text/accent-bar/bubble-self/line/scroll`). Retheming deposit/withdraw in the CMS rethemes every account panel and modal. Do not hardcode surface greys.
-- **Game catalog:** `HotGameCard.vue` (standard tile), `LobbyCard.vue` (provider tile + launch quirks), `SubGames.vue` (grid; ⚠ contains an inline copy of PaginationBar).
+- **Game catalog:** `HotGameCard.vue` (standard tile), `LobbyCard.vue` (provider tile + launch quirks), `SubGames.vue` (grid; ⚠ contains an inline copy of PaginationBar). Sub-game names resolve through `utils/localized-game-name.ts`: Korean uses `game_name_ko` with an English fallback; every other locale uses `game_name_en`.
 - **Shared top-level:** `PaginationBar` (windowed), `TrimmedImage` (canvas alpha-crop w/ bbox cache), `UserBalancePill` (class-prop styling API; ⚠ no consumers since the header account bar was flattened), `NoticeSection` (post-login mandatory notice, Tiptap-rendered).
 - **Conventions:** `<script setup lang="ts">`, typed `defineProps`/tuple `defineEmits`, `withDefaults`; co-located `useXxx.ts` composable when logic >~150 lines (useDepositModal, useProfileMenu precedent); heavy modals = `defineAsyncComponent` + uiStore flag + mounted-latch for close animations; dual mobile/desktop DOM trees (`hidden lg:block`/`lg:hidden`); flat component namespace (`pathPrefix:false`).
 - **Toasts** = `useToast()` (vue-sonner). **Dialogs** = `showSwalAlert/showErrorAlert/...` from `utils/swal-alert.ts` → in-house queue. Do not import sweetalert2 (not installed).
@@ -280,7 +280,7 @@ Money logic never lives in stores — mutations go through `useApi`/`axios-clien
 - SSR CPU is the bottleneck → anon page cache + authed-SPA switch exist for this reason.
 - `inline-critical-css` plugin removes the ~450ms first-paint flash (+~23KB/doc).
 - Homepage LCP: preconnects to Linode CDN + game-thumbnail host; footer marquee logos MUST stay `loading="eager"` (lazy broke animation — commit 40fbd3c); IntersectionObserver reveal is the mitigation.
-- `strip-game-payload.ts` trims `__NUXT_DATA__`; `/_ipx/**` has rate limiting disabled (50+ transforms/page).
+- Game payloads retain both English and Korean names so the language selector can update cards without refetching; `/_ipx/**` has rate limiting disabled (50+ transforms/page).
 - Perf e2e: `test:e2e:perf` throttled-network spec against live prod (`PERF_BASE_URL`).
 
 ## 16. Debugging Guide

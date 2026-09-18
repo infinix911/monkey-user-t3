@@ -58,8 +58,8 @@
            desktop card, smaller as the card shrinks to 3-per-row on mobile,
            capped at [8px, 14px]. -->
         <p class="text-white font-bold leading-tight truncate" style="font-size: clamp(8px, 7.5cqw, 14px);"
-          :title="game.game_name_en">
-          {{ game.game_name_en }}
+          :title="gameName">
+          {{ gameName }}
         </p>
         <p v-if="game.lobby" class="text-[#b0b0b0] font-medium leading-tight truncate mt-0.5"
           style="font-size: clamp(8px, 7.5cqw, 14px);">
@@ -71,29 +71,20 @@
 </template>
 
 <script setup lang="ts">
+import { localizedGameName } from "~/utils/localized-game-name";
+
 const siteConfig = useSiteConfig();
 
 interface Game {
   id: string | number;
-  game_name_en: string;
+  game_name_en: string | null;
+  game_name_ko?: string | null;
   game_img?: string;
   lobby?: string;
   is_new?: boolean;
 }
 
-const imgError = ref(false);
-const imgLoaded = ref(false);
-const imgEl = ref<HTMLImageElement | null>(null);
-
-// Cached/fast images can finish loading before Vue attaches the `@load`
-// listener during hydration, so the event never fires and the opacity reveal
-// stays stuck at 0 (invisible despite a fully-loaded image). Sync the flag
-// from the element's `complete` state on mount to cover that race.
-onMounted(() => {
-  if (imgEl.value?.complete && imgEl.value.naturalWidth > 0) imgLoaded.value = true;
-});
-
-withDefaults(
+const props = withDefaults(
   defineProps<{
     game: Game;
     eager?: boolean;
@@ -113,6 +104,21 @@ withDefaults(
     aspect: "200 / 250",
   },
 );
+
+const { locale } = useI18n();
+const gameName = computed(() => localizedGameName(props.game, locale.value));
+const imgError = ref(false);
+const imgLoaded = ref(false);
+const imgEl = ref<HTMLImageElement | null>(null);
+
+// Cached/fast images can finish loading before Vue attaches the `@load`
+// listener during hydration, so the event never fires and the opacity reveal
+// stays stuck at 0 (invisible despite a fully-loaded image). Sync the flag
+// from the element's `complete` state on mount to cover that race.
+onMounted(() => {
+  if (imgEl.value?.complete && imgEl.value.naturalWidth > 0) imgLoaded.value = true;
+});
+
 </script>
 
 <style scoped>
