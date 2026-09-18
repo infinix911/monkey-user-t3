@@ -203,13 +203,21 @@ export function useGameCategoryAvailability() {
    * header and no grid. It was previously exempted from the filter entirely,
    * which is why it was the one category that always showed.
    *
-   * Permissive while genuinely unknown, and answers from the warm seed until
-   * the probe lands, so the row does not flicker out from under the pointer.
+   * Hidden while genuinely unknown — the opposite default to `hasLobbies`, and
+   * the reason is the flash. This app is SPA-only (`ssr: false`), so there is no
+   * server render to resolve the probe in: a permissive default meant the very
+   * first visit to a deployment with nothing marked hot painted the row, then
+   * pulled it out from under the pointer a moment later. Erring hidden means the
+   * row can only ever appear, never vanish.
+   *
+   * The cost is one-sided and one-time: a deployment that *does* have hot games
+   * shows the row a beat late on a device's first visit only, because the warm
+   * seed below answers instantly on every visit after that — including the
+   * negative answer, so a site with no hot games never paints the row again.
    */
   const hasHotGames = computed(() => {
-    const known = hotSettled.value || cachedHasHot.value !== null;
-    if (!known) return true;
-    return hotSettled.value ? liveHasHot.value : cachedHasHot.value ?? true;
+    if (hotSettled.value) return liveHasHot.value;
+    return cachedHasHot.value ?? false;
   });
 
   /**
