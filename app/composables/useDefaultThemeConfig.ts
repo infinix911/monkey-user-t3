@@ -50,6 +50,14 @@ export interface IdentityConfig {
 
 /** Announcement marquee styling (desktop banner + mobile bar). */
 export interface ThemeAnnouncementConfig {
+    /**
+     * Master on/off switch for the announcement bar (the desktop band above the
+     * banner and the mobile bar below it). When false neither surface is
+     * rendered at all — no empty strip and no reserved height — regardless of
+     * the message published in the CMS. Defaults to true, so a config document
+     * saved before this flag existed keeps the bar visible.
+     */
+    enabled: boolean;
     /** Scrolling announcement message text. Plain text (empty = none / CMS-driven). */
     text: string;
     /**
@@ -1035,6 +1043,7 @@ export const getDefaultThemeConfig = (): SiteConfig => {
             mobileHeaderHeight: 63,
             navMenuItemMarginTop: "3px",
             announcement: {
+                enabled: true,
                 text: "",
                 textStroke: "#382D21",
                 textFill: "#FEF7C4",
