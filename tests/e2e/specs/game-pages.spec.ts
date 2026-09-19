@@ -52,4 +52,83 @@ test.describe('Game Category Pages', () => {
     const count = await images.count()
     expect(count).toBeGreaterThan(0)
   })
+
+  test('lobby games append one page at a time while images stay lazy', async ({ page }) => {
+    // Keep the sentinel outside its 400px prefetch margin until the test
+    // deliberately scrolls to it.
+    await page.setViewportSize({ width: 1280, height: 400 })
+    await setupApiMocks(page)
+
+    const requestedPages: number[] = []
+    const image = 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='
+    const games = Array.from({ length: 30 }, (_, index) => ({
+      id: `game-${index + 1}`,
+      lobby: 'Test Provider',
+      lobbyId: 'lobby1',
+      gameType: 'SLOT',
+      gameNameEn: `Test Game ${index + 1}`,
+      gameNameKo: null,
+      gameImg: image,
+      sort: index + 1,
+      isNew: false,
+    }))
+
+    // Registered after the shared mocks so this route handles the catalogue
+    // calls for this scenario and can model the real paginated envelope.
+    await page.route(
+      (url) => url.pathname === '/api/games' || url.pathname === '/api/games/lobbies',
+      async (route) => {
+        const url = new URL(route.request().url())
+        if (url.pathname.endsWith('/games/lobbies')) {
+          return route.fulfill({
+            contentType: 'application/json',
+            body: JSON.stringify([
+              {
+                id: 'lobby1',
+                gameProvider: 'Test Provider',
+                gameType: 'SLOT',
+                gameName: 'Test Provider',
+                hasSubGame: true,
+                sort: 1,
+                isActive: true,
+              },
+            ]),
+          })
+        }
+
+        const requestedPage = Number(url.searchParams.get('page') ?? '1')
+        const limit = Number(url.searchParams.get('limit') ?? '24')
+        requestedPages.push(requestedPage)
+        const start = (requestedPage - 1) * limit
+        return route.fulfill({
+          contentType: 'application/json',
+          body: JSON.stringify({
+            data: games.slice(start, start + limit),
+            meta: {
+              total: games.length,
+              page: requestedPage,
+              limit,
+              totalPages: Math.ceil(games.length / limit),
+            },
+          }),
+        })
+      },
+    )
+
+    await gotoAndWait(page, '/lobbies/lobby1/games?page=7')
+
+    const cards = page.locator('#provider-games .grid > div')
+    await expect(cards).toHaveCount(24)
+    await expect(cards.first().locator('img')).toHaveAttribute('loading', 'lazy')
+    await expect(cards.first().locator('img')).toHaveAttribute('decoding', 'async')
+    await expect(page).not.toHaveURL(/(?:\?|&)page=/)
+
+    await page.getByTestId('lobby-games-sentinel').scrollIntoViewIfNeeded()
+    await expect(cards).toHaveCount(30)
+    expect(requestedPages.filter((value) => value === 1)).toHaveLength(1)
+    expect(requestedPages.filter((value) => value === 2)).toHaveLength(1)
+
+    await page.waitForTimeout(250)
+    expect(requestedPages).not.toContain(3)
+  })
 })

@@ -31,7 +31,8 @@
            v-show) reveals it on load so a lazy image keeps a layout box and
            can actually intersect the viewport to fetch. -->
         <img v-if="game.game_img && !imgError" ref="imgEl" :src="game.game_img" alt=""
-          :loading="eager ? 'eager' : 'lazy'" :fetchpriority="priority ? 'high' : undefined" width="185" height="185"
+          :loading="eager ? 'eager' : 'lazy'" decoding="async" :fetchpriority="priority ? 'high' : undefined"
+          width="185" height="185"
           class="relative w-full h-full object-cover transition-opacity duration-300"
           :class="imgLoaded ? 'opacity-100' : 'opacity-0'" @load="imgLoaded = true" @error="imgError = true">
         <!-- Hover effects: dim overlay + shimmer sweep (no scale) -->

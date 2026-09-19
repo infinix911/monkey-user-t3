@@ -59,7 +59,8 @@
     </div>
 
     <!-- Pagination -->
-    <div v-if="totalPages > 1" class="mt-6 sm:mt-8 relative flex flex-col items-center justify-center">
+    <div v-if="showPagination !== false && totalPages > 1"
+      class="mt-6 sm:mt-8 relative flex flex-col items-center justify-center">
       <div
         class="absolute left-0 right-0 top-1/2 -translate-y-1/2 w-full h-px bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent z-0" />
       <div
@@ -142,6 +143,9 @@ const props = defineProps<{
   providerName?: string;
   // Show the search field. Defaults to on; /hot passes false to hide it.
   showSearch?: boolean;
+  // Lobby pages use infinite scrolling; other consumers retain the numbered
+  // pagination controls by default.
+  showPagination?: boolean;
   // Seeds the search input so a shared/refreshed URL (?q=...) shows its term.
   initialSearch?: string;
 }>();
