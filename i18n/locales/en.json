@@ -446,7 +446,15 @@
       "sbo": "SBO",
       "saba": "Saba",
       "btiSports": "BTI Sports",
-      "cmd": "CMD"
+      "cmd": "CMD",
+      "pragmaticSlots": "Pragmatic Slots",
+      "pragmaticLive": "Pragmatic Play Live",
+      "evolution1to10": "Evolution 1:10",
+      "microgamingSlots": "Micro Gaming Slots",
+      "microgamingLive": "Micro Gaming Live",
+      "skywindSlots": "Skywind Slots",
+      "skywindLive": "Skywind Live",
+      "orientalSlots": "Oriental Slots"
     },
     "apiMessages": {
       "LOBBY_NOT_FOUND": "Game lobby not found.",
