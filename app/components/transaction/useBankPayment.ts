@@ -212,6 +212,35 @@ export function useBankPayment(options: UseBankPaymentOptions) {
     await veeSubmit();
   };
 
+  /**
+   * USDT deposit: create the pending deposit + Watron payment, then send the
+   * member to the returned checkout URL to pay (see monkey-user-api ADR-014).
+   * Reuses the same amount validation as the bank deposit.
+   */
+  const veeSubmitUsdt = veeHandleSubmit(async () => {
+    try {
+      const res = (await api("/transactions/deposit/usdt", {
+        method: "POST",
+        headers: idempotencyHeaders(),
+        body: { amount: depositAmountNum.value },
+      })) as { checkoutUrl?: string } | undefined;
+      const checkoutUrl = res?.checkoutUrl;
+      if (checkoutUrl && import.meta.client) {
+        // Hand off to the Watron checkout; crediting happens later via webhook.
+        window.location.href = checkoutUrl;
+        return;
+      }
+      await showErrorAlert(t("deposit.title"), apiMessage(undefined, "deposit"));
+    } catch (error: unknown) {
+      await showErrorAlert(t("deposit.title"), apiMessage(error, "deposit"));
+    }
+  });
+
+  const onSubmitUsdt = async () => {
+    submitted.value = true;
+    await veeSubmitUsdt();
+  };
+
   const veeSubmit = veeHandleSubmit(async () => {
     // Backend contract (camelCase, see createDepositSchema in monkey-user-api):
     // { amount: number, receiptImage?: string | null }. The backend derives the
@@ -256,5 +285,6 @@ export function useBankPayment(options: UseBankPaymentOptions) {
     handleCopy,
     handleBankSelect,
     onSubmit,
+    onSubmitUsdt,
   };
 }

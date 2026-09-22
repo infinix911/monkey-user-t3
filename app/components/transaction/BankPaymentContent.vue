@@ -143,6 +143,14 @@ type="submit"
               {{ t("deposit.depositButton") }}
             </button>
           </div>
+          <button
+            type="button"
+            class="deposit-usdt-btn mt-3 h-[48px] w-full text-[17px] font-bold transition-colors"
+            style="border-radius: 12px; border: 1.7px solid #3c3c3c"
+            @click="onSubmitUsdt"
+          >
+            {{ t("deposit.usdtDepositButton") }}
+          </button>
         </div>
       </div>
     </div>
@@ -176,6 +184,7 @@ const {
   handleMax,
   handleReset,
   onSubmit,
+  onSubmitUsdt,
 } = useBankPayment({
   bankAccounts: () => props.bankAccounts,
 });

@@ -515,3 +515,34 @@ back-compat and resolve first.
 
 **Related:** monkey-partner ADR-54 and monkey-admin ADR-38 (same pattern). Extends
 the token → localized-message mapping already used by ADR-026.
+
+## ADR-028 — USDT deposit is a redirect-to-checkout button, gated server-side
+
+**Status:** Accepted (2026-09-22)
+
+**Decision:** The deposit modal offers a "USDT Deposit" button
+(`BankPaymentContent.vue` → `useBankPayment.submitUsdt`) that reuses the bank
+deposit's amount validation, posts to `POST /api/transactions/deposit/usdt`, and
+on success sends the member to the returned Watron `checkoutUrl`
+(`window.location.href`). The member app never credits the wallet or polls for
+payment — crediting is the admin-API Watron webhook's job. The button is always
+rendered; whether USDT is available is decided by the **server**: when the
+`deposits:usdt-enabled` site setting is off, the API returns
+`403 USDT_DEPOSIT_DISABLED`, which resolves through the global `apiMessages`
+catalog to a localized "currently unavailable" message.
+
+**Reason:** A TRON transfer carries no memo, so the member must be handed a
+Watron-hosted checkout that fixes their identity via the payment `reference`
+(monkey-user-api ADR-014). Gating on the server (not by hiding the button) is the
+only real control — a hidden button can still be called — and it keeps the flag
+private (`admin=true`, out of the public site-config payload) rather than shipping
+deposit configuration to the client.
+
+**Tradeoffs:** With the flag private, the button shows even when USDT is disabled
+and the member learns it's unavailable only on tap. Exposing the flag in the
+public site-config payload would let the button hide proactively; the server gate
+stays regardless. The `checkoutUrl` field name follows the receiver guide and must
+be reconciled against Watron's real contract before enabling live.
+
+**Related:** monkey-user-api ADR-014 (create→pay→store ordering + the gate),
+monkey-admin-api ADR-041 (the webhook that credits).

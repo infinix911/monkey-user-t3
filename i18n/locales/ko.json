@@ -1,5 +1,6 @@
 {
   "apiMessages": {
+    "USDT_DEPOSIT_DISABLED": "USDT 입금은 현재 이용할 수 없습니다.",
     "PASSWORD_TOO_SHORT": "비밀번호는 6자 이상이어야 합니다.",
     "INVALID_HIERARCHY_PATH": "추천에 사용할 수 없는 에이전트입니다. 다른 에이전트를 이용해 주세요.",
     "MAX_HIERARCHY_DEPTH_EXCEEDED": "이 에이전트는 더 이상 신규 가입을 받을 수 없습니다.",
@@ -722,6 +723,7 @@
     "selectFile": "파일 선택",
     "noFilesSelected": "선택된 파일 없음",
     "depositButton": "입금",
+    "usdtDepositButton": "USDT 입금",
     "amount": "금액",
     "id": "ID",
     "reset": "리셋",
