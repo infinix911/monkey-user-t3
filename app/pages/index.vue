@@ -45,6 +45,7 @@
               :game="game"
               :eager="idx < FIRST_ROW_COUNT"
               :priority="idx < 3"
+              show-provider
               fluid
               aspect="240 / 313.04"
               @click="handleGameClick(game)"

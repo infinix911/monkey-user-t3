@@ -48,7 +48,7 @@
     <div class="w-full" :class="(logo || showSearch !== false) ? '' : 'mt-[10px] sm:mt-[8px]'">
       <div class="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-[5px]">
         <div v-for="game in filteredGames" :key="game.id" class="cursor-pointer" @click="handleGameClick(game)">
-          <HotGameCard :game="game" fluid />
+          <HotGameCard :game="game" fluid :show-provider="showProvider === true" />
         </div>
       </div>
     </div>
@@ -146,6 +146,8 @@ const props = defineProps<{
   // Lobby pages use infinite scrolling; other consumers retain the numbered
   // pagination controls by default.
   showPagination?: boolean;
+  // Show the provider name on each card. Off by default; only /hot opts in.
+  showProvider?: boolean;
   // Seeds the search input so a shared/refreshed URL (?q=...) shows its term.
   initialSearch?: string;
 }>();

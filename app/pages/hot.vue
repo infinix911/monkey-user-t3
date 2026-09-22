@@ -64,6 +64,7 @@
       :current-page="currentPage"
       :total-pages="totalPages"
       :show-search="false"
+      show-provider
       @page-change="onPageChange"
     />
   </GamePageLayout>
