@@ -190,7 +190,35 @@ const PROVIDER_NAME_KEYS: Record<string, string> = {
     "Illustrative Analytics": "illustrativeAnalytics",
     "WS Sports": "wsSports",
     "Spribe Aviator": "spribeAviator",
+    // `MG` is the canonical name for the `mg_slot` code only.
+    MG: "microgamingSlots",
+    // Lobby display names as the backend spells them. They are more specific
+    // than the canonical provider (slots vs live, Evolution's 1:10 lobby), so
+    // `providerDisplayName` tries them first. Punctuation in these names is
+    // safe: only the camelCase value on the right becomes an i18n path.
+    "Pragmatic Slots": "pragmaticSlots",
+    "Pragmatic Play Live": "pragmaticLive",
+    "Evolution 1:10": "evolution1to10",
+    "Micro Gaming Slots": "microgamingSlots",
+    "Micro Gaming Live": "microgamingLive",
+    "Skywind Slots": "skywindSlots",
+    "Skywind Live": "skywindLive",
+    "Oriental Gaming": "orientalGaming",
+    "Oriental Slots": "orientalSlots",
+    "No Limity City": "nolimitCity",
 };
+
+/** Localised name for a display name in `PROVIDER_NAME_KEYS`, else `undefined`. */
+function localisedByName(
+    t: (key: string) => string,
+    te: (key: string) => boolean,
+    name?: string | null,
+): string | undefined {
+    const key = name ? PROVIDER_NAME_KEYS[name.trim()] : undefined;
+    if (!key) return undefined;
+    const full = `game.providers.${key}`;
+    return te(full) ? t(full) : undefined;
+}
 
 /**
  * Localised provider display name.
@@ -199,6 +227,7 @@ const PROVIDER_NAME_KEYS: Record<string, string> = {
  * one provider table for this repo, not two. Falls back to the canonical brand
  * when a provider has no locale entry, and to `fallback` when the code maps to
  * no provider at all, so a raw `game.providers.x` key can never render.
+ * A `fallback` that is itself a known lobby display name is localised first.
  *
  * @param {(key: string) => string} t - vue-i18n `t`.
  * @param {(key: string) => boolean} te - vue-i18n `te`.
@@ -212,10 +241,11 @@ export function providerDisplayName(
     providerCode?: string | number | null,
     fallback = "",
 ): string {
+    // A lobby display name passed as `fallback` (e.g. "Pragmatic Slots") is
+    // more specific than the provider the code resolves to, so it wins.
+    const byLobby = localisedByName(t, te, fallback);
+    if (byLobby) return byLobby;
     const name = getProviderName(providerCode);
     if (!name) return fallback;
-    const key = PROVIDER_NAME_KEYS[name];
-    if (!key) return name;
-    const full = `game.providers.${key}`;
-    return te(full) ? t(full) : name;
+    return localisedByName(t, te, name) ?? name;
 }
