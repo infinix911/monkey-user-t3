@@ -1,5 +1,6 @@
 {
   "apiMessages": {
+    "USDT_DEPOSIT_DISABLED": "USDT deposits are currently unavailable.",
     "PASSWORD_TOO_SHORT": "Password must be at least 6 characters.",
     "INVALID_HIERARCHY_PATH": "This agent is unavailable for referrals. Please use a different agent.",
     "MAX_HIERARCHY_DEPTH_EXCEEDED": "This agent can no longer accept new sign-ups.",
@@ -722,6 +723,7 @@
     "selectFile": "Select file",
     "noFilesSelected": "No files selected",
     "depositButton": "Deposit",
+    "usdtDepositButton": "USDT Deposit",
     "amount": "Amount",
     "id": "ID",
     "reset": "RESET",
