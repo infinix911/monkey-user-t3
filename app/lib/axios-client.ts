@@ -6,7 +6,6 @@
  *
  * **Features**:
  * - Cookie credentials sent with every request (`withCredentials: true`)
- * - CSRF token header on all mutating requests (requires server to set XSRF-TOKEN-V2 cookie)
  * - 401 error handling with auto-redirect to home (loop-safe)
  * - TypeScript typed axios instance
  * - Configurable base URL from runtime config (NUXT_PUBLIC_API_BASE)
@@ -33,10 +32,7 @@ import type {
   InternalAxiosRequestConfig,
 } from "axios";
 import { getApiBase } from "@/lib/domain";
-import { getCsrfHeaders } from "@/lib/csrf";
 import { isCredentialFailure } from "@/lib/session-401";
-
-const MUTATING_METHODS = new Set(["post", "put", "patch", "delete"]);
 
 /**
  * Idempotent methods are the only ones safe to retry. Money mutations
@@ -95,21 +91,6 @@ const createAxiosInstance = (baseURL: string): AxiosInstance => {
     headers: {},
     timeout: 10000, // 10 second timeout
     withCredentials: true, // Send bn.session cookie with every request
-  });
-
-  /**
-   * Request interceptor: attach the browser-readable CSRF token to mutations.
-   */
-  instance.interceptors.request.use((config) => {
-    if (
-      import.meta.client &&
-      config.method &&
-      MUTATING_METHODS.has(config.method.toLowerCase())
-    ) {
-      for (const [name, value] of Object.entries(getCsrfHeaders()))
-        config.headers[name] = value;
-    }
-    return config;
   });
 
   /**

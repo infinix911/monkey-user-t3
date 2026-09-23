@@ -90,6 +90,9 @@ test.describe("Login Modal", () => {
     await page.fill("#login-username", "testuser");
     await page.fill("#login-password", "testpass123");
 
+    const loginRequestPromise = page.waitForRequest(
+      (request) => request.url().includes("/auth/sign-in/username"),
+    );
     const submitBtn = page.locator('form button[type="submit"]').first();
     if ((await submitBtn.count()) > 0) {
       await submitBtn.click();
@@ -97,6 +100,8 @@ test.describe("Login Modal", () => {
       await page.locator("form").first().locator("button").last().click();
     }
 
+    const loginRequest = await loginRequestPromise;
+    expect(loginRequest.headers()["x-csrf-token"]).toBeUndefined();
     await expect(page.locator("#login-username")).not.toBeVisible({
       timeout: 10_000,
     });

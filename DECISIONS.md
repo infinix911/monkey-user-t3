@@ -7,13 +7,13 @@
 ---
 
 ## ADR-001 — Same-origin Nitro BFF proxy for REST and WebSocket
-**Status:** Accepted
+**Status:** Superseded by ADR-028
 **Decision:** The browser only ever talks to the Nuxt origin. REST goes through `server/routes/api/[...path].ts` (h3 `proxyRequest` → server-only `NUXT_API_URL`, `cookieDomainRewrite {"*":""}` so `bn.session`/`XSRF-TOKEN` attach to the frontend origin, `x-forwarded-host/proto` set, streaming). WebSockets upgrade on `/ws` via `server/plugins/ws-proxy.ts` (httpxy → `NUXT_WS_API_URL`; httpxy replaced deprecated `http-proxy`, commit cd2f7e8).
 **Context:** Backend (Bun/Elysia HTTP + WS :4000) runs as an internal Docker service behind Traefik; exposing it needs CORS + public hostnames.
 **Alternatives:** CORS + direct calls; Traefik-level path routing.
 **Reason:** Single origin removes CORS and cookie-domain problems entirely; backend host never reaches the browser bundle.
 **Tradeoffs:** Every API byte transits Node; streamed responses constrain response-header plugins (`headersSent` guards); `/api/*` namespace is fully claimed — no Nitro `server/api/` routes possible.
-**Do not change unless** moving to edge/CDN-level proxying — re-verify cookie rewrite and CSRF semantics end-to-end.
+**Do not change unless** moving to edge/CDN-level proxying — re-verify cookie semantics end-to-end.
 
 ---
 
@@ -55,8 +55,8 @@
 ---
 
 ## ADR-006 — Dual HTTP clients with mandated parity; mutations never retry
-**Status:** Accepted
-**Decision:** `useApi()` ($fetch-based, isomorphic, `retry: 0`, 10s timeout) for page/SSR data; `axiosClient` (GET-only dedupe, idempotent-only retry) for client-side mutations/stores. Both implement the same CSRF double-submit and the shared `sessionStorage.session_logged_out` 401 latch; comments mandate keeping them in sync.
+**Status:** Accepted; token-handling portion superseded by ADR-028
+**Decision:** `useApi()` ($fetch-based, `retry: 0`, 10s timeout) for page data and mutations; `axiosClient` (GET-only dedupe, idempotent-only retry) for client-side mutations/stores. Both implement the shared `sessionStorage.session_logged_out` 401 latch; comments mandate keeping them in sync.
 **Context:** Gradual Next.js port; ofetch integrates with `useAsyncData`, axios legacy remains.
 **Tradeoffs:** Two parity-maintained implementations. **Never-retry on mutations is deliberate money safety** — a failed-but-applied debit must not replay.
 
@@ -515,3 +515,26 @@ back-compat and resolve first.
 
 **Related:** monkey-partner ADR-54 and monkey-admin ADR-38 (same pattern). Extends
 the token → localized-message mapping already used by ADR-026.
+
+---
+
+## ADR-028 — Direct API sessions use SameSite cookies without CSRF tokens
+
+**Status:** Accepted (2026-09-22)
+
+**Decision:** The static SPA calls its sibling `uapi.<root-domain>` API directly
+with `credentials: include`. The API session remains a host-only, HttpOnly,
+production-Secure, `SameSite=Lax` cookie. Clients do not read an XSRF cookie or
+send a CSRF header. `useApi()` and `axiosClient` retain their retry and 401-latch
+behavior without mutation-header interceptors.
+
+**Reason:** The double-submit cookie complicated first login and other writes
+without being part of the session credential itself. The chosen deployment
+model relies on the session cookie's SameSite policy and the API's exact CORS
+allowlist instead.
+
+**Tradeoffs:** The API does not add application-wide Origin, Referer, or Fetch
+Metadata rejection for writes. Because sibling subdomains are same-site, an
+untrusted or compromised sibling is outside this model's protection. Better
+Auth's native checks, tenant-origin mapping, realtime origin checks, and signed
+proxy validation remain unchanged.

@@ -50,24 +50,30 @@ npm run test:e2e:perf  # throttled-network spec against live prod (PERF_BASE_URL
 
 This is **monkey-user-t3**: a single bundled design template ("Template3") with CMS-driven theming. Full details in KNOWLEDGEBASE.md — summary below.
 
-### Nitro Proxy Layer
+### Direct Browser API
 
-The browser never contacts the backend directly. All `/api/*` requests hit the same-origin Nitro proxy (`server/routes/api/[...path].ts`), which forwards them to `NUXT_API_URL` (server-only env var) with `cookieDomainRewrite` so `bn.session` attaches to the frontend origin. WebSockets proxy via `server/plugins/ws-proxy.ts` (httpxy) to the same API listener, deriving its `ws(s)` target from `NUXT_API_URL`. The `/api/*` namespace is fully claimed — never add `server/api/**` routes.
+The static SPA calls the public sibling API directly. In production,
+`getApiBase()` derives `https://uapi.<root-domain>/api`; local development uses
+`NUXT_PUBLIC_API_BASE`. REST requests include credentials, and WebSockets use
+the same public API origin with an appropriate `ws(s)` scheme.
 
-### SSR API Pattern
+### API Client Pattern
 
-Use `useApi()` for all page data fetching — it's isomorphic:
+Use `useApi()` for page data and mutations. Client-side store mutations may use
+`app/lib/axios-client.ts`; both clients target `getApiBase()` and include the
+host-scoped `bn.session` cookie:
 
-- **Server**: targets `NUXT_API_URL` directly and forwards the request's `cookie` header.
-- **Client**: targets `/api` (same-origin proxy), `credentials: include`.
+- `useApi()`: `$fetch`, `credentials: include`, no automatic retries.
+- `axiosClient`: Axios, `withCredentials: true`, GET-only retry and deduplication.
 
-`retry: 0` always (money safety). Client-side mutations from stores use `app/lib/axios-client.ts` (kept in deliberate parity with useApi's CSRF + 401-latch logic). Never call `$fetch`/axios directly against the backend URL. Public user-independent SSR fetches go through `withServerCache()` with raw `$fetch` (no cookies — leak risk otherwise).
+Mutations are never retried (money safety). The clients keep their 401-latch
+logic in deliberate parity. There is no browser-readable auth helper cookie or
+custom mutation header.
 
-### Render modes
+### Render mode
 
-- Anonymous HTML GET → full SSR (SEO).
-- Authenticated (`bn.session` cookie present) → **SPA mode** per-request (`server/middleware/auth-spa.ts` sets `noSSR`); blank shell + client render. Don't rely on SSR-only behavior for logged-in flows.
-- `/**/GAME_*` routes → CSR-only (`ssr: false` routeRule); one-time launch URLs.
+- The application is a static client-rendered SPA (`ssr: false`).
+- `/**/GAME_*` routes continue to use one-time launch URLs.
 
 ### Site Config / Theming (CMS contract)
 
