@@ -29,6 +29,7 @@
         :provider-name="providerName"
         :show-search="true"
         :show-pagination="false"
+        :show-provider="false"
         :initial-search="searchQuery"
         @search="onSearch"
       />
