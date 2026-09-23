@@ -463,7 +463,7 @@
       "INVALID_USER": "Invalid user. Please log in again.",
       "INVALID_GAME": "Invalid game selected.",
       "PROVIDER_LAUNCH_FAIL": "Failed to launch game. Please try again.",
-      "PROVIDER_LAUNCH_FAILED": "Failed to launch game. Please try again.",
+      "PROVIDER_LAUNCH_FAILED": "The game provider could not start this game. Please try again. If the issue continues, contact support and provide these details:",
       "INTERNAL_ERROR": "An internal error occurred. Please try again later."
     },
     "evolutionOneToTenConsent": {
@@ -538,6 +538,11 @@
     "decorativeImage": "Decorative image",
     "gameLoading": "Loading game...",
     "gameError": "Failed to load game",
+    "gameLaunchErrorTitle": "Game launch failed",
+    "gameLaunchFailed": "We could not start the game. Please try again. If the issue continues, contact support and provide these details:",
+    "gameLaunchLobbyId": "Lobby ID",
+    "gameLaunchGameId": "Game ID",
+    "gameLaunchNotAvailable": "N/A",
     "gameBlocked": "This game cannot be accessed. Please contact CS/Admin for assistance.",
     "gameBlockedByPromotion": "You must complete your active promotion turnover before playing this game.",
     "gameUnavailableContactAdmin": "This game is temporarily unavailable. Please contact your admin for assistance.",

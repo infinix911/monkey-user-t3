@@ -24,8 +24,12 @@ class="h-16 w-16 mx-auto mb-4 text-red-500" xmlns="http://www.w3.org/2000/svg" f
 stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
           d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
       </svg>
-      <p class="text-xl font-bold mb-2">{{ $t("common.gameError") }}</p>
-      <p class="text-gray-400 mb-6">{{ error || $t("common.gameError") }}</p>
+      <p class="text-xl font-bold mb-2">{{ $t("common.gameLaunchErrorTitle") }}</p>
+      <p class="text-gray-400 mb-4">{{ error || $t("common.gameLaunchFailed") }}</p>
+      <div class="text-sm text-gray-400 mb-6 space-y-1 break-all">
+        <p>{{ $t("common.gameLaunchLobbyId") }}: {{ attemptedLobbyId || $t("common.gameLaunchNotAvailable") }}</p>
+        <p>{{ $t("common.gameLaunchGameId") }}: {{ attemptedGameId || $t("common.gameLaunchNotAvailable") }}</p>
+      </div>
       <div class="flex gap-4 justify-center">
         <button
 class="px-6 py-2 bg-yellow-500 text-black rounded hover:bg-yellow-600 transition-colors"
@@ -51,7 +55,7 @@ definePageMeta({
   layout: "game",
 });
 
-const { t } = useI18n();
+const { t, te } = useI18n();
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
@@ -70,6 +74,8 @@ const lobbyIdParam = (route.query.lobbyId as string) || "";
 // State
 const isLoading = ref(true);
 const error = ref<string | null>(null);
+const attemptedLobbyId = ref("");
+const attemptedGameId = ref("");
 
 /**
  * Fetch game launch URL from API and redirect the tab to it.
@@ -82,18 +88,22 @@ const fetchGameUrl = async () => {
 
   try {
     const isCasino = gameType.toLowerCase() === "casino";
+    attemptedLobbyId.value = isCasino
+      ? gameId
+      : lobbyIdParam || authStore.currentGame?.lobby_id || "";
+    attemptedGameId.value = isCasino ? "" : gameId;
+
     let params: Record<string, string>;
     if (isCasino) {
-      params = { lobby: gameId };
+      params = { lobby: attemptedLobbyId.value };
     } else {
-      const lobbyId = lobbyIdParam || authStore.currentGame?.lobby_id || "";
-      if (!lobbyId) {
-        error.value = t("common.gameError");
+      if (!attemptedLobbyId.value) {
+        error.value = t("common.gameLaunchFailed");
         isLoading.value = false;
         loadingIndicator.finish();
         return;
       }
-      params = { lobby: lobbyId, game: gameId };
+      params = { lobby: attemptedLobbyId.value, game: attemptedGameId.value };
     }
 
     logger.log("[game-launch] request params:", params);
@@ -114,9 +124,7 @@ const fetchGameUrl = async () => {
     logger.error("Failed to fetch game URL:", err);
     const gameErr = err as { response?: { data?: { message?: string } } };
     const code = gameErr?.response?.data?.message;
-    // Map backend block codes to friendly, localized messages. Anything else
-    // (or no code) falls back to the generic load error so raw codes like
-    // GAME_RESTRICTED are never shown to the user.
+    // Preserve specific launch reasons and never display raw API codes.
     const blockMessages: Record<string, string> = {
       GAME_RESTRICTED: t("common.gameBlocked"),
       GAME_BLOCKED: t("common.gameBlocked"),
@@ -126,10 +134,17 @@ const fetchGameUrl = async () => {
     if (code === "INQUIRY_UNREAD") {
       uiStore.setShowInquiryModal(true);
     }
+    const providerLaunchFailed =
+      code === "PROVIDER_LAUNCH_FAIL" || code === "PROVIDER_LAUNCH_FAILED";
+    const gameMessageKey = `game.apiMessages.${code}`;
+    const apiMessageKey = `apiMessages.${code}`;
     error.value =
       (code === "INQUIRY_UNREAD" && t("inquiry.mustReadMessages")) ||
+      (providerLaunchFailed && t("game.apiMessages.PROVIDER_LAUNCH_FAILED")) ||
       (code && blockMessages[code]) ||
-      t("common.gameError");
+      (code && te(gameMessageKey) && t(gameMessageKey)) ||
+      (code && te(apiMessageKey) && t(apiMessageKey)) ||
+      t("common.gameLaunchFailed");
     isLoading.value = false;
     loadingIndicator.finish();
   }
