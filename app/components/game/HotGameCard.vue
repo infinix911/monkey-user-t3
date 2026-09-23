@@ -53,8 +53,12 @@
       <span class="hot-frame-band" :style="{ background: siteConfig.theme.cardFrame.bandGradient }"
         aria-hidden="true" />
 
-      <!-- Label area -->
-      <div class="absolute left-3 right-3 text-center z-30" style="bottom: 3.5%;">
+      <!-- Label area. With the provider line hidden (lobby pages) the lone name
+           is centred in the band below the thumbnail instead of sitting at the
+           bottom with an empty line above it. -->
+      <div class="absolute left-3 right-3 text-center z-30"
+        :class="showProvider ? '' : 'flex flex-col justify-center'"
+        :style="showProvider ? { bottom: '3.5%' } : { top: '78%', bottom: '0' }">
         <!-- Label scales with card width (container units): 14px at the 191px
            desktop card, smaller as the card shrinks to 3-per-row on mobile,
            capped at [8px, 14px]. -->
@@ -62,7 +66,7 @@
           :title="gameName">
           {{ gameName }}
         </p>
-        <p v-if="game.lobby" class="text-[#b0b0b0] font-medium leading-tight truncate mt-0.5"
+        <p v-if="showProvider && game.lobby" class="text-[#b0b0b0] font-medium leading-tight truncate mt-0.5"
           style="font-size: clamp(8px, 7.5cqw, 14px);">
           {{ game.lobby }}
         </p>
@@ -97,12 +101,16 @@ const props = withDefaults(
     // Fluid aspect ratio. Defaults to the card's native 200:250; the homepage
     // hot row passes 191:240 to match the other game rows' fixed size.
     aspect?: string;
+    // Show the provider (lobby) name under the game name. Lobby games pages
+    // pass false — the user is already inside that provider's lobby.
+    showProvider?: boolean;
   }>(),
   {
     eager: false,
     priority: false,
     fluid: false,
     aspect: "200 / 250",
+    showProvider: true,
   },
 );
 
