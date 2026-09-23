@@ -13,7 +13,6 @@
  *    relative redirect path.
  */
 
-import { getCsrfHeaders } from "@/lib/csrf";
 import { getApiBase } from "@/lib/domain";
 
 const TELEGRAM_CHAT_ID_PATTERN = /^-?\d{1,19}$/;
@@ -88,7 +87,6 @@ export const useLoginTokenHandler = () => {
         baseURL: getApiBase(),
         method: "POST",
         credentials: "include",
-        headers: getCsrfHeaders(),
         body: { chatId, token, redirectPath: window.location.pathname || "/" },
         retry: 0,
       });

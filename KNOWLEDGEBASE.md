@@ -1,19 +1,11 @@
 # KNOWLEDGEBASE.md — monkey-user-t3
 
 > **Permanent repository encyclopedia.** Consult this BEFORE reading source code.
-> Facts verified against commit `fb66962` (2026-07-06). Line numbers drift — trust file paths and search strings.
+> Architecture and API access checked against the current working tree (2026-09-23). Older feature notes may still describe removed code; verify paths before using them.
 > Responsibilities: this file = WHAT/WHERE/HOW. `DECISIONS.md` = WHY. `CLAUDE.md` = AI workflow. `MEMORY.md` = temporary notes.
 
-> ⚠️ **STALE SINCE TOGEL/QRIS REMOVAL (ADR-017).** The **Togel domain and QRIS
-> payment method were fully removed**, so every togel/qris reference below
-> (§1 size counts, §2 tree, §7 component library, §8 stores `togelPool`/
-> `betHistory`, §10–§14 togel recipes, §19 high-risk togel math, the File
-> Reading Map togel rows) is **obsolete** — those files no longer exist. Also
-> changed: **2 locales `en`/`ko`, default `ko`** (was 4/`id`); **default
-> currency KRW**; `theme.togel.*` → `theme.panel.*`; `DataTable` → root
-> `app/components/DataTable.vue`; ledger types → `app/interfaces/ledger.ts`;
-> `useFeatures()` returns only `{ payments }`. See ADR-017. Ignore togel/qris
-> facts here until this doc is fully re-verified.
+> Togel and QRIS were removed (ADR-017). The active locales are `en` and `ko`,
+> with `ko` as default and KRW as fallback currency.
 
 > ⚠️ **PARTNER SECTION REMOVED (ADR-020).** The whole partner/affiliate section
 > is gone: the nine `/partner*` pages, `app/components/partner/**`,
@@ -28,18 +20,18 @@
 ## 1. Repository Overview
 
 - **Purpose:** User-facing gaming platform frontend. `monkey-user-t3` uses one bundled design template ("Template3") with CMS-driven theming.
-- **Stack:** Nuxt **4.4.2** SSR (node-server preset), Vue 3.5, TypeScript, Tailwind **v4**, Pinia 3, @nuxtjs/i18n 10 (en/id/ko/th, `no_prefix`), vee-validate + zod, vue-sonner (toasts), in-house AppDialog (SweetAlert2 removed), @nuxt/image (IPX), nuxt-security, Sentry (env-gated), ioredis (SSR caches).
-- **Backend:** `../monkey-user-api` (Bun+Elysia, HTTP + WS :4000) — the browser never talks to it directly (§4).
-- **Build/run:** Docker — Bun builds (`bun install --frozen-lockfile`, `bun run build`), **Node 22 runs** `.output/server/index.mjs` as non-root, port 3000, behind Traefik (router files written dynamically by the APIs).
-- **Size:** 831 tracked files; `app/components` 201 files (~45k lines, half of it togel), 41 composables, 26 pages, 6 Pinia stores, 4 togel money-math services (the only unit-tested code).
-- **Testing:** Playwright e2e (13 specs, ~52 tests, API-mocked, serial, NO webServer — start the app yourself), Vitest `component` project only (the togel `unit` project went with the togel domain): payload/security characterization plus `tests/component/inquiry-card.spec.ts`, which mounts a component for real via `mountSuspended`. Mounting boots a Nuxt app in a `beforeAll`, which is why the project sets `hookTimeout: 120_000` in `vitest.config.ts`. No coverage-measured suite remains.
-- **No CI, no git hooks.** The verification gate is manual convention: `npm run test:component && npm run typecheck && npm run build`.
+- **Stack:** Nuxt 4 client-rendered SPA (`ssr: false`, default Nitro preset `node-server`), Vue 3, TypeScript, Tailwind v4, Pinia, @nuxtjs/i18n (en/ko, `no_prefix`), vee-validate + zod, vue-sonner, AppDialog, @nuxt/image, nuxt-security, and Sentry.
+- **Backend:** `../monkey-user-api` (Bun/Elysia). The browser calls its public sibling API origin directly for REST and WebSocket traffic (§4).
+- **Build/run:** `nuxt.config.ts` defaults Nitro to `node-server`; production API URLs are derived in the browser from the current hostname. Local development uses `NUXT_PUBLIC_API_BASE`.
+- **Size:** 13 page files, 78 component files, and 8 Pinia stores at this update; use `rg --files` for current counts.
+- **Testing:** Playwright e2e specs in `tests/e2e/specs/` and Vitest component tests in `tests/component/`. Run the appropriate suite for the change.
+- **Verification:** `npm run test:component && npm run typecheck && npm run build` is the local check for broader frontend changes.
 
 ### ⚠️ Legacy drift you must not trust
 
 - The old 11-brand build-time selector (`NUXT_PUBLIC_SITE` / `__BUILD_SITE__`) was removed. Theme configuration comes from the CMS payload.
 - `assets.navigation` "bundled-only exception" no longer exists — renamed `assets.navIcons`, merged normally.
-- CMS theme endpoint is **`/site/config/theme`** (renamed from `/site/config/userpage`; useState key is still `"userPageConfig"`). `server/utils/site-currency.ts` still calls `/site/config/userpage`.
+- CMS theme endpoint is **`/site/config/theme`** (renamed from `/site/config/userpage`; the state key remains `"userPageConfig"`).
 - Root `index.js`, `homepage.html`, `public/_headers` are dead Cloudflare-Workers-era artifacts. Several "Worker isolate" comments are stale — runtime is node-server.
 
 ---
@@ -48,48 +40,28 @@
 
 ```
 monkey-user-t3/
-├── nuxt.config.ts            # ★★ routeRules (GAME_* CSR-only, immutable
+├── nuxt.config.ts            # ★★ ssr:false; routeRules (GAME_* CSR-only, immutable
 │                             #   /_nuxt|/fonts|/_ipx), CSP (script-src https: — deliberate), i18n inline config,
 │                             #   esbuild.drop console, sourcemap hidden
-├── Dockerfile                # ★ bun deps → bun build → node:22-alpine runtime
 ├── app/
-│   ├── app.vue               # ★★ SSR boot: awaits siteConfig+customScripts+siteSettings, locale=f(currency),
+│   ├── app.vue               # ★★ SPA boot: mounts fallback UI, then loads siteConfig and public CMS data,
 │   │                         #   URL param handlers (telegram login/register, referral), document head, AppDialog mount
-│   ├── pages/                # 26 pages: index, hot, casino, slots, sports, fishing, virtual, mini, slot-rtp,
-│   │   │                     #   lobbies/[lobby]/games, [game_type]/[game_id] (CSR game launch), promotions,
-│   │   │                     #   activity, togel/{index,[id],history,invoice,aturan,hadiah,normor,meanang}
-│   │   └── togel/winners/    # ⚠ winner-card.vue/winner-modal.vue are COMPONENTS misplaced as routes
-│   ├── layouts/              # default.vue (698L shell), game.vue; Togel{Desktop,Mobile}Layout.vue = DEAD
-│   ├── components/           # 201 files — see §7. ui/ (3 primitives), layout/, navigation/, auth/, transaction/,
-│   │                         #   game/, togel/ (86 files incl. game engine + generators), profile/, my-account/, …
-│   ├── composables/          # 41 — useApi ★, useSiteConfig family ★, useDefaultThemeConfig (1477L Template3
-│   │                         #   defaults + SiteConfig interface tree), useFeatures, useNavSkin, useDialogQueue, …
-│   ├── stores/               # 6 Pinia setup-stores: auth, websocket, togelPool, betHistory, site, ui
-│   │                         #   (+ gameControlSortOrder.ts = plain module, NOT a store)
-│   ├── services/togel/       # ★ pure money math: betCalculation/betValidation/betSubmission/numberGenerator
-│   │                         #   + colocated .spec.ts — the ONLY unit-tested app code
-│   ├── schemas/              # zod: form factories (t)=>toTypedSchema(...) + togel API response guards
-│   ├── lib/                  # axios-client (client mutations), siteConfig.ts (fetcher ★), serverCache.ts,
+│   ├── pages/                # index, game categories, lobby games, activity, promotions, and game launch
+│   ├── layouts/              # default.vue and game.vue
+│   ├── components/           # ui/, layout/, navigation/, auth/, transaction/, game/, profile/, my-account/
+│   ├── composables/          # useApi, useSiteConfig family, useDefaultThemeConfig, useFeatures, and others
+│   ├── stores/               # auth, websocket, site, banner, ui, game-catalog, member records/inbox
+│   ├── schemas/              # zod form factories and API response guards
+│   ├── lib/                  # axios-client, siteConfig.ts (client fetcher),
 │   │                         #   domain.ts (getApiBase/getWsApiUrl)
-│   ├── utils/                # 17 auto-imported (currency, permutations, bet shims, cdn(), sortPools, …)
+│   ├── utils/                # formatting, assets, localization, and other helpers
 │   ├── middleware/auth.global.ts  # client guard (GAME_ routes; PROTECTED_PATHS currently empty)
-│   ├── plugins/              # 5: hydrate-app-store, pwa-manifest, session-hydrate(dev), session-verify ★,
-│   │                         #   theme-preview (postMessage bridge w/ admin CMS)
+│   ├── plugins/              # client session verification, store hydration, i18n, theme preview, and more
 │   └── interfaces/ types/    # domain types; barrel interfaces/index.ts = single source of truth
-├── server/
-│   ├── routes/api/[...path].ts   # ★★ THE proxy: proxyRequest → NUXT_API_URL, cookieDomainRewrite "*"→"",
-│   │                             #   x-forwarded-host/proto, streams. /api/* namespace fully claimed
-│   ├── (robots.txt is a static public/ file; no sitemap — the SPA emits no crawler metadata)
-│   ├── middleware/           # alphabetical order MATTERS: anon-page-cache (serve) → auth-spa (bn.session ⇒
-│   │                         #   noSSR/SPA mode) → guard (GAME_ cookie gate + togel 404 on non-IDR) → locale-redirect
-│   ├── plugins/              # anon-page-cache (store), cache-bypass-authenticated (no-store for authed +
-│   │                         #   optional CDN-Cache-Control), csp-admin-frame-ancestors, inline-critical-css,
-│   │                         #   ws-proxy (httpxy /ws → NUXT_WS_API_URL)
-│   └── utils/                # anonPageCache ★, features.ts, site-currency.ts (⚠ bug — see §16)
-├── i18n/locales/{en,id,ko,th}.json  # flat 54–91KB files; ko/th drift (missing footer, stray Faq)
-├── tests/                    # e2e/ (13 Playwright specs + fixtures/api-mocks.ts ★), component/ (payload pins),
+├── i18n/locales/{en,ko}.json
+├── tests/                    # e2e/ (Playwright specs + fixtures/api-mocks.ts), component/,
 │                             #   hydration-check.mjs, duplicate-meta-check.mjs
-└── index.js / homepage.html / public/_headers  # DEAD Cloudflare-era artifacts
+└── public/                  # static assets and robots.txt
 ```
 
 ---
@@ -97,52 +69,44 @@ monkey-user-t3/
 ## 3. Architecture — request lifecycle
 
 ```
-Browser ──HTTP──▶ Nitro (:3000)
-  ├─ /api/*  → server/routes/api/[...path].ts → proxyRequest(NUXT_API_URL)   [cookie domain rewrite]
-  ├─ /ws     → server/plugins/ws-proxy.ts (httpxy upgrade) → NUXT_WS_API_URL
-  └─ HTML GET:
-       anon-page-cache middleware ──HIT──▶ cached HTML (x-anon-cache: HIT), renderer never runs
-       │ MISS
-       auth-spa middleware: bn.session cookie? ──yes──▶ event.context.nuxt.noSSR = true (SPA shell)
-       │ no (anonymous)                                  └─ client renders everything post-hydration
-       guard.ts: /togel* + non-IDR currency → 404; GAME_ route w/o bn.session → 302 /
-       locale-redirect: 301 /id|/ko|/th/* → unprefixed
-       ▼
-       SSR render (app.vue awaits siteConfig/customScripts/siteSettings)
-       render:response → anon-page-cache stores 200 HTML; cache-bypass stamps headers;
-       inline-critical-css inlines /_nuxt/*.css; csp plugin injects frame-ancestors
+Browser ──HTML/assets──▶ Nuxt SPA host
+  ├─ REST /api/* ──credentials:include──▶ https://uapi.<root-domain>/api
+  └─ WebSocket /ws ──session cookie──▶ wss://uapi.<root-domain>/ws
+
+Local development uses NUXT_PUBLIC_API_BASE and its corresponding ws(s) origin.
+The browser mounts the bundled fallback UI, starts public CMS reads, applies
+the theme and locale when available, and verifies the session after mount.
 ```
 
-**Two render modes** (ADR-003): anonymous = full SSR (SEO); authenticated = SPA shell + client fetch. Never rely on SSR-only behavior for logged-in flows.
+**One render mode:** `ssr: false` for anonymous and authenticated visitors. The old per-request SSR/SPA switch and Nitro API/WS proxies are absent from this tree.
 
-**SSR boot (app.vue):** `Promise.all` of `useAsyncData("siteConfig")` (→ `fetchSiteConfig()` in `app/lib/siteConfig.ts`: `/site/config/theme` + `/site/custom-seo` in parallel, enforceHttps, hostname-filtered custom-seo footer rows, writes `useState('userPageConfig')`; failure ⇒ bundled fallback + **503** so edge caches never store degraded HTML), `"customScripts"` (raw admin `<script>` injection — trusted-admin model), `"siteSettings"` (→ Pinia site store), `"banners"` (→ `fetchBanners()` in `app/composables/useBanners.ts`: **every** active carousel banner in ONE call, `/site/banners-new/carousel?page=all` → Pinia `banner` store). Then locale = `ui_locale` cookie || `currencyToLocale(currency)` (THB→th, IDR→id, KRW→ko). Then URL param handlers (Telegram login/register, referral).
+**SPA boot (`app/app.vue`):** `onMounted` starts theme loading and, concurrently, custom scripts, site settings, carousel banners, and popup banners. Bundled theme defaults paint first. The theme fetch updates `useState('userPageConfig')`; locale comes from `ui_locale` or the site currency. URL parameter handlers cover Telegram login/register and referrals. `session-verify.client.ts` starts the session probe alongside theme loading and applies the member after configuration is ready.
 
 ---
 
 ## 4. Data access
 
-**Rule: browser never contacts the backend host. Two sanctioned clients:**
+**Rule: the browser calls the public sibling API directly through two sanctioned clients:**
 
 | Client        | File                        | Use for                                        | Behavior                                                                                                                                                                                                                                                                                                                                                                                       |
 | ------------- | --------------------------- | ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `useApi()`    | `app/composables/useApi.ts` | page data via `useAsyncData`, SSR + client     | server: `NUXT_API_URL` direct + forwards `cookie` header; client: `/api` + `credentials:include`. **retry: 0** (money safety), timeout 10s, CSRF double-submit (`XSRF-TOKEN` → `X-XSRF-TOKEN` on mutations), client 401 → one-shot logout latch (`sessionStorage.session_logged_out`, excludes `/auth/sign-in/username` **and credential-failure tokens — `lib/session-401.ts`, ADR-025**). `.validated<T>(zodSchema, req)` throws `ApiValidationError`. |
-| `axiosClient` | `app/lib/axios-client.ts`   | client-side mutations / imperative store calls | singleton; GET dedupe; idempotent-only retry; same CSRF + 401 latch + `isCredentialFailure()` skip (parity comments mandate keeping both in sync).                                                                                                                                                                                                                                                                            |
+| `useApi()`    | `app/composables/useApi.ts` | page data and mutations                         | direct public API origin with `credentials:include`; **retry: 0** (money safety), 10s timeout, client 401 → one-shot logout latch (`sessionStorage.session_logged_out`, excludes `/auth/sign-in/username` **and credential-failure tokens — `lib/session-401.ts`, ADR-025**). `.validated<T>(zodSchema, req)` throws `ApiValidationError`. |
+| `axiosClient` | `app/lib/axios-client.ts`   | client-side mutations / imperative store calls | direct public API origin with credentials; GET dedupe; idempotent-only retry; same 401 latch + `isCredentialFailure()` skip (parity comments mandate keeping both in sync).                                                                                                                       |
 
-- Public **user-independent** SSR fetches bypass useApi: raw `$fetch` inside `withServerCache(key, ttlMs, fetcher)` (`app/lib/serverCache.ts`) — Redis `nuxt:ssr:*` when `REDIS_HOST` set, else in-process Map; client = pass-through. **Never put a cookie-forwarding fetcher inside it** (session leak). Keys must be namespaced per host (`site-settings:<hostname>`). Current users: siteSettings, customScripts, popup banners, carousel banners (`banners-carousel-all:<hostname>`) (all 60s).
-- Zod validation at two boundaries only: forms (locale-reactive factories `(t)=>toTypedSchema(...)` in `app/schemas/`) and togel API payloads (`api.validated(poolStatusListSchema, …)`, `satisfies z.ZodType<Interface>`).
-- Anon full-page cache: `server/utils/anonPageCache.ts` — gated `NUXT_ENABLE_ANON_PAGE_CACHE=true`; GET+HTML+no `bn.session`+not in excluded prefixes (`/api /_nuxt /_ipx /togel` GAME_ etc.); key `nuxt:anonpage:<host><path><allowlisted-query>` (default allowlist: `page`); TTL `NUXT_ANON_PAGE_CACHE_TTL_MS` (60s). Edge cache (`NUXT_ENABLE_EDGE_CACHE=true`) adds `CDN-Cache-Control` for anon responses; authed always `private, no-store`.
+- `getApiBase()` in `app/lib/domain.ts` derives `https://uapi.<root-domain>/api` in production and uses `NUXT_PUBLIC_API_BASE` on localhost. `getWsApiUrl()` derives the matching WebSocket origin. The API owns CORS and session-cookie policy.
+- Neither client adds a CSRF header. Mutations still carry the host-only `bn.session` cookie via browser credentials; see ADR-028 for the security tradeoff.
+- Zod validates forms and selected API responses through `api.validated(...)`.
 
 ---
 
 ## 5. Authentication
 
-- Session = backend `bn.session` cookie (attached to frontend origin by the proxy's `cookieDomainRewrite`).
-- **Server guard** (`server/middleware/guard.ts`): cookie-PRESENCE check only; protects only `GAME_ROUTE_PATTERN = /^\/[a-z][a-z0-9-]*\/GAME_.+$/`; `PROTECTED_PREFIXES = []` (empty). Plus togel 404 gate on non-IDR currency.
-- **Client guard** (`app/middleware/auth.global.ts`): post-hydration, same pattern + empty `PROTECTED_PATHS`; verifies via `authStore.verifyUser()` (`GET /auth/get-session`). UI-only — API endpoints enforce auth server-side.
+- Session = host-only backend `bn.session` cookie sent to the public API with credentialed requests.
+- **Client guard** (`app/middleware/auth.global.ts`): protects game-launch routes; `PROTECTED_PATHS` is currently empty. It calls `authStore.verifyUser()` (`GET /auth/get-session`) when needed. This guard is for navigation; API endpoints enforce authorization.
 - **Auth store** (`app/stores/auth.ts`): user/wallet/level/bank state; `verifyUser()`, `logout()` (clears storage keys + site store). Wallet updated live by WS `wallet` events.
 - **Session lifecycle plugin** (`app/plugins/session-verify.client.ts`): onNuxtReady verify → WS connect + fetchNotice; WS disconnect on tab-hide/`pagehide` (bfcache), reconnect on `pageshow persisted`.
 - Telegram entry: `useLoginTokenHandler` (`?chatId&token`) and `useOfflineTelegramRegisterHandler` (`?offline=true…`) in app.vue.
-- Pages with per-user data but NOT guarded (degrade to anon + `noindex`): `/activity`, `/togel/invoice`, `/togel/history`.
+- Pages with member data, such as `/activity`, handle anonymous state in the client.
 
 ---
 
@@ -152,20 +116,20 @@ Resolution chain (verified, replaces the stale CLAUDE.md story):
 
 1. **Bundled base:** `getDefaultThemeConfig()` in `app/composables/useDefaultThemeConfig.ts` (1477L) — the full typed `SiteConfig` tree: `identity, theme, assets, contact, integrations, content` (6 CMS tabs, ~40 sub-interfaces). There is no `seo` group — see SEO-REMOVAL-PLAN.md. `content` is CMS-authored *copy* rather than tokens/assets — `content.depositRule` and `content.footer` (HTML, rendered in the deposit modal's bank card). See ADR-024.
 2. **CMS override:** `/site/config/theme` payload (hostname-scoped) in `useState('userPageConfig')`.
-3. **Merge:** `useSiteConfig()` = `deepMerge(base, override)` — exact-path override wins; `null`/`undefined` falls back to bundled (CMS cannot blank a field); wrong path = silently ignored. **NOT reactive** — returns a snapshot per call.
-4. Extra cache layers in `app/lib/siteConfig.ts`: server module-memo per hostname 5s TTL; client localStorage warm-start `themeConfig.v1`. Preview mode `?themePreview=1` bypasses all caches + live-updates via `theme-preview.client.ts` postMessage bridge (origin-allowlisted to `NUXT_PUBLIC_ADMIN_PREVIEW_ORIGIN`).
+3. **Merge:** `useSiteConfig()` merges bundled defaults and CMS values. `app/app.vue` watches `userPageConfig` and synchronizes the effective config, so consumers update when a fresh theme arrives. Wrong CMS paths are silently ignored.
+4. `app/lib/siteConfig.ts` can warm-start from client localStorage (`themeConfig.v2:<hostname>`) while refreshing from the API. Preview mode `?themePreview=1` bypasses the normal cache and updates through `theme-preview.client.ts`.
 
 - Full field map: the typed `SiteConfig` interface in `app/composables/useDefaultThemeConfig.ts` is the authoritative contract (the standalone CMS field-map docs were removed). Transaction-modal tokens: `ThemeTransactionModalConfig` at `theme.transactionmodal.*`.
 - Layout variants are config-driven: `theme.nav.type` (`png`|`gif`) → `useNavSkin()` registry picks NavGlyph mode + transaction panel component.
-- Feature flags derive from currency: `useFeatures()` → `{payments: currency!=='THB'}`; server twin `server/utils/features.ts` (keep in sync).
+- `useFeatures()` supplies the payments feature flag.
 - **Add a brand-config field:** typed field + default in `useDefaultThemeConfig.ts` → consume via `useSiteConfig().<group>.<field>`. Nothing else to wire (the interface JSDoc is the field documentation).
-- **New tenant/brand:** deploy a container per domain, point `NUXT_API_URL` at its backend, author everything in the admin CMS, upload assets to the Linode CDN (`cdn()` in `app/utils/assetUrl.ts` maps `/designs/**`).
+- **New tenant/brand:** configure the public sibling `uapi` host and API CORS/cookie settings, author theme data in the CMS, and upload assets to the CDN.
 
 ---
 
-## 7. Component library (201 files)
+## 7. Component library
 
-- **ui/ primitives — only 3:** `AppDialog.vue` (singleton dialog renderer mounted once in app.vue; the SweetAlert2 replacement — fire via `fireDialog()`/`showSwalAlert()` wrappers, never mount a second one), `UiFormField.vue` (vee `<Field rules>` style, light theme, 1 consumer), `UiTimePicker.vue`. There is NO Button/Input/Card layer — components hand-style with Tailwind + inline `:style` from siteConfig tokens.
+- **ui/ primitives:** `AppDialog.vue` (singleton dialog renderer mounted once in app.vue; fire via `fireDialog()`/`showSwalAlert()` wrappers) and `UiTimePicker.vue`. Components style themselves with Tailwind and site-config tokens.
 - **Shell:** `layout/AppHeader.vue` (dual desktop/mobile DOM; the desktop authenticated account bar is a single flat `#262626` bar — username / wallet / points / swap / refresh / bell — with its art from `assets.navIcons.{walletIcon,pointIcon,swapIcon,refreshIcon,bellIcon}` and the Korean suffixes from `header.honorific` + `header.walletUnit`), `layout/AppSidebar.vue` (lg+ left rail: deposit/withdraw, game categories, account entries; `theme.sidebar` — `borderColor`/`bg`/`divider`/`activeItemColor`/`hoverBg`, all five editable in the admin Theme Editor's "Sidebar" tab — plus `assets.sidebarIcons`; ADR-021), `navigation/Navbar.vue` (hosts Deposit/Withdrawal modals; `desktop` prop off in the two-column layout), `layout/BottomNav.vue` (mobile, container-query sized), `layout/AppFooter.vue`, `layout/GamePageLayout.vue` (wraps every game-grid page). Header height via pre-paint CSS vars (`--mh-header-height`) set by an inline head script.
 - **Pinned-bar stacking contract (below `lg`):** several bars pin under the header at once, and body's `overflow-x` disables real `position: sticky` there, so each uses a JS `fixed` + flow-spacer. They stack via two `<html>` CSS vars: `--mh-header-height` (header) and `--mh-userbar-height` (`layouts/default.vue`, = `MobileUserBar`'s height while pinned, `0px` otherwise / for guests / at `lg+`). **Anything pinning below the user bar — inside the layout or inside a page — must position at `calc(var(--mh-header-height, 60px) + var(--mh-userbar-height, 0px))` and use the same expression as its scroll threshold.** Consumers: the layout's `Navbar` (reads the refs directly, same value) and `pages/slot-rtp.vue`'s provider strip (`STICKY_TOP` / `stickyTopPx()`, its only channel to the layout's pin state). Pin at the bare header height instead and the bar lands on top of the user bar on mobile.
 - **Auth:** `auth/LoginModal.vue` (canonical form pattern), `SignupModal.vue` + `useSignupForm.ts`, `auth/FormField.vue` = the de-facto dark input primitive.
@@ -182,9 +146,9 @@ Resolution chain (verified, replaces the stale CLAUDE.md story):
 
 | Mechanism                                   | Use                                                                                                                           | Instances                                                                                                                                                                                                                                                                                           |
 | ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `useState`                                  | request-scoped, SSR-serialized global config (`userPageConfig`, `siteConfigError`, `isMobileSSR`)                             | app.vue / composables                                                                                                                                                                                                                                                                               |
-| Pinia (setup stores, no persistence plugin) | interactive session state                                                                                                     | `auth` (user/wallet/level, verifyUser/logout), `websocket` (connect via `/auth/ws` token → `wss://<host>/ws?token=`; events: `notification`→toast, `wallet`→authStore; backoff ×3; 30s `/auth/get-session` poll), `site` (settings/banks; populated during SSR), `banner` (every active carousel banner, all pages, from the single SSR fetch; `bannersByPage(page)` filters — public CMS data, so NOT cleared on logout), `ui` (modal flags, device, notice) |
-| sessionStorage/localStorage                 | `currentGame` mirror (popup bridge), `session_logged_out` latch, `noticeAgreed`, `themeConfig.v1` warm-start, recently-played | manual mirror + rehydrate in `.client.ts` plugins                                                                                                                                                                                                                                                   |
+| `useState`                                  | SPA-wide reactive configuration (`userPageConfig`, `siteConfigError`, `siteConfigBootstrapReady`) | app.vue / composables |
+| Pinia (setup stores, no persistence plugin) | interactive session and CMS state | `auth`, `websocket` (cookie-authenticated direct API `/ws`), `site`, `banner`, `ui`, `member-records`, `member-inbox`, `game-catalog` |
+| sessionStorage/localStorage                 | `session_logged_out` latch, notice preferences, `themeConfig.v2` warm-start, recently played games | client plugins and composables |
 
 Money logic never lives in stores — mutations go through `useApi`/`axios-client` with `retry: 0`.
 
@@ -204,7 +168,7 @@ Money logic never lives in stores — mutations go through `useApi`/`axios-clien
 
 **Add a public page:** `app/pages/<name>.vue` → `useApi()` + `useAsyncData("<unique-key>", …)` (dynamic key fn if params vary) → `useHead({ title: () => `${t("…")} — ${siteConfig.identity.siteName}` })` for the browser-tab title → strings in BOTH locale JSONs. No crawler metadata: the app is `ssr: false` and `robots.txt` disallows everything (see SEO-REMOVAL-PLAN.md).
 
-**Add a protected page:** add path to `PROTECTED_PREFIXES` (`server/middleware/guard.ts`) AND `PROTECTED_PATHS` (`app/middleware/auth.global.ts`); `noindex`; remember authed requests render as SPA.
+**Add a protected page:** add its path to `PROTECTED_PATHS` in `app/middleware/auth.global.ts` and enforce authorization in the API endpoint. Every page renders as SPA.
 
 **Add a form:** schema factory in `app/schemas/*.schema.ts` → `useForm({validationSchema: computed(() => { void locale.value; return schema(t); })})` → fields via `auth/FormField.vue` → `handleSubmit` → `useApi()` POST → `const apiMessage = useApiMessage()` → success `useToast(apiMessage(token, ns))`, failure → `showErrorAlert(apiMessage(err, ns, fallbackKey))` (translate-by-code: per-feature map → global `apiMessages` catalog → generic only when the code has no translation anywhere — see `VALIDATIONERRORS.md`). Big form → extract `useMyForm.ts`.
 
@@ -212,9 +176,7 @@ Money logic never lives in stores — mutations go through `useApi`/`axios-clien
 
 **Add a modal:** confirmation → `showSwalAlert()` (don't build one). Feature modal → Teleport + `Transition name="modal"` + uiStore flag + `defineAsyncComponent` at trigger site; reuse `.tm-modal` chrome for transaction-style.
 
-**Add a server route:** `server/routes/<name>.ts` — NOT under `/api/*` (proxy claims it). Use `getSiteCurrency(event)`/`getFeatures(event)`, never composables. Header work → Nitro plugin with `headersSent` guard.
-
-**Add a togel bet type:** validator guard in api-side + here: component under `togel/game/`, register in `GameRouter.vue` (⚠ also update Game4d's negative exclusion list), limits via `usePoolStore().getBetLimits`, submit via `useBetSubmission`. Money math changes go in `app/services/togel/` WITH spec updates.
+**Add an API endpoint:** implement it in `monkey-user-api` and call it through `useApi()` or `axiosClient`. There is no frontend `/api/*` proxy.
 
 ---
 
@@ -222,27 +184,27 @@ Money logic never lives in stores — mutations go through `useApi`/`axios-clien
 
 | Task                              | Read ONLY                                                                                                                                  | Do NOT read                  |
 | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------- |
-| API fetching / SSR data           | `composables/useApi.ts`, `lib/domain.ts`, target page                                                                                      | components, stores           |
-| Proxy / cookies / CORS-ish issues | `server/routes/api/[...path].ts`, `server/plugins/ws-proxy.ts`, `useApi.ts`                                                                | pages                        |
-| Auth / login flow                 | `stores/auth.ts`, `auth/LoginModal.vue`, `plugins/session-verify.client.ts`, `server/middleware/guard.ts`, `app/middleware/auth.global.ts` | transactions                 |
+| API fetching / page data          | `composables/useApi.ts`, `lib/domain.ts`, target page                                                                                      | components, stores           |
+| API origin / cookies / CORS       | `lib/domain.ts`, `composables/useApi.ts`, `lib/axios-client.ts`; API CORS and cookie configuration in `monkey-user-api`                  | pages                        |
+| Auth / login flow                 | `stores/auth.ts`, `auth/LoginModal.vue`, `plugins/session-verify.client.ts`, `app/middleware/auth.global.ts`                            | transactions                 |
 | Theming / brand config            | `composables/useSiteConfig.ts`, `useDefaultThemeConfig.ts`, `lib/siteConfig.ts`                                                            | components until field known |
 | Deposit/withdraw UI               | `transaction/DepositModal.vue`, `useDepositModal.ts`, `useBankPayment.ts`, `WithdrawalContent.vue`, `schemas/transaction.schema.ts`        | —                            |
-| Caching (SSR/page)                | `lib/serverCache.ts`, `server/utils/anonPageCache.ts`, both `anon-page-cache.*`, `cache-bypass-authenticated.ts`                           | app code                     |
-| WebSocket / live wallet           | `stores/websocket.ts`, `plugins/session-verify.client.ts`, `server/plugins/ws-proxy.ts`                                                    | rest                         |
+| Theme warm-start                 | `lib/siteConfig.ts`, `composables/useSiteConfig.ts`, `app.vue`                                                                              | app code                     |
+| WebSocket / live wallet           | `stores/websocket.ts`, `plugins/session-verify.client.ts`, `lib/domain.ts`                                                                | rest                         |
 | Document head / admin footer      | `layouts/default.vue` (renders `content.footer`), app.vue head block (title, favicon, custom scripts)                                          | components                   |
 | i18n                              | `i18n/locales/*.json`, nuxt.config i18n block, app.vue locale resolution                                                                   | —                            |
-| Build/deploy                      | `Dockerfile`, `nuxt.config.ts`, `.env.example`                                                                                             | src                          |
+| Build/deploy                      | `nuxt.config.ts`, `.env.example`, package scripts                                                                                             | src                          |
 | Banners (carousel)                | `composables/useBanners.ts`, `stores/banner.ts`, `utils/pageBanner.ts`, `banner/BannerPreview.vue`                                          | popup banner files           |
 | E2E / tests                       | `playwright.config.ts`, `tests/e2e/fixtures/api-mocks.ts`, `vitest.config.ts`                                                              | —                            |
 | Game-card provider logos          | `utils/gameProviderLogo.ts`, `data/gameProviderLogos.json`, `game/HomeGameCard.vue`, `utils/homepageLobbyAssets.ts`                        | the logo `.webp` files       |
 
 ## 12. AI Edit Map (features → edit / avoid)
 
-- **New page:** edit `app/pages/`, locales. Avoid server/middleware unless protected.
+- **New page:** edit `app/pages/` and both locales. Update the client route guard if protected.
 - **Theme/config field:** edit `useDefaultThemeConfig.ts` + consumer. Avoid hardcoding hex (check for an existing token first).
 - **Provider logo on a game card:** `getLogoImages(providerCode)` (`app/utils/gameProviderLogo.ts`) resolves `public/designs/game-logo/<Display Name>.webp` via the code→name table in `app/data/gameProviderLogos.json`. One asset serves every code a provider has (slug per game type + numeric ids). To add a provider: add the entry to the JSON **and** drop in a `.webp` named exactly like `name` (case-sensitive — prod serves from Linux). Returns `""` for unmapped codes; `HomeGameCard` then falls back to the lobby-UUID-named `game.logo` (`lobbyLogoUrl`, the older `/designs/{casino,slot,sport}-logo` scheme still used by /sports), then to the provider name as text.
 - **Modal/nav shell:** edit AppHeader/Navbar/BottomNav + uiStore. Watch outside-click attribute conventions (`data-hamburger-menu`, `[data-lang-selector]`) and Teleport-to-body for anything inside overflow-hidden shells.
-- **Server behavior:** middleware order is alphabetical — renaming files changes execution order. Never add `server/api/**` (proxy shadow).
+- **API behavior:** update the sibling API and review CORS, cookies, and the browser client together.
 
 ---
 
@@ -250,15 +212,14 @@ Money logic never lives in stores — mutations go through `useApi`/`axios-clien
 
 | Want                    | Search                                                 |
 | ----------------------- | ------------------------------------------------------ |
-| API base / proxy target | `getApiBase`, `NUXT_API_URL`                            |
+| API base / WebSocket origin | `getApiBase`, `getWsApiUrl`, `NUXT_PUBLIC_API_BASE` |
 | Session/auth verify     | `verifyUser`, `bn.session`, `session_logged_out`       |
 | Site config merge       | `deepMerge`, `userPageConfig`, `getDefaultThemeConfig` |
 | Feature flags           | `useFeatures`, `getFeatures`                           |
 | Dialogs                 | `fireDialog`, `showSwalAlert`                          |
 | Wallet updates          | `updateUser`, `"wallet"` (WS event)                    |
-| Page cache              | `anonPageCacheKey`, `x-anon-cache`, `nuxt:anonpage`    |
-| SSR shared cache        | `withServerCache`, `nuxt:ssr:`                         |
-| SPA switch              | `noSSR`, `auth-spa`                                    |
+| Theme cache             | `themeConfig.v2`, `fetchSiteConfig`                    |
+| Render mode             | `ssr: false`, `spaLoadingTemplate`                     |
 | CMS scripts             | `useCustomScripts`, `custom-scripts`                   |
 | Nav skin                | `useNavSkin`, `theme.nav.type`                         |
 
@@ -268,19 +229,19 @@ Money logic never lives in stores — mutations go through `useApi`/`axios-clien
 
 | If you change                        | Also review                                                          | Risk                       |
 | ------------------------------------ | -------------------------------------------------------------------- | -------------------------- |
-| `useApi.ts` 401/CSRF logic           | `axios-client.ts` (mandated parity), `session_logged_out` consumers, `lib/session-401.ts` token list (contract with monkey-user-api) | HIGH                       |
+| `useApi.ts` 401 logic                | `axios-client.ts` (mandated parity), `session_logged_out` consumers, `lib/session-401.ts` token list (contract with monkey-user-api) | HIGH                       |
 | `useDefaultThemeConfig.ts` interface | CMS payload contract (admin repo)                                    | HIGH — silent-ignore merge |
-| `server/middleware/*` names/logic    | execution order (alphabetical), anon cache ↔ guard ordering          | HIGH                       |
+| `app/middleware/auth.global.ts`      | game-launch routing, API authorization behavior                     | HIGH                       |
 | nuxt.config CSP/routeRules           | game-provider pixels, IPX rate-limit exemption, admin preview iframe | MED                        |
-| Locale JSONs                         | all 4 files + ko/th drift                                            | LOW                        |
-| Nitro proxy                          | cookie rewrite, `x-forwarded-*`, WS proxy symmetry                   | HIGH                       |
+| Locale JSONs                         | both `en.json` and `ko.json`                                         | LOW                        |
+| Public API base / credentials        | CORS origins, `bn.session` attributes, WebSocket URL symmetry         | HIGH                       |
 
 ---
 
 ## 15. Performance Notes
 
-- SSR CPU is the bottleneck → anon page cache + authed-SPA switch exist for this reason.
-- `inline-critical-css` plugin removes the ~450ms first-paint flash (+~23KB/doc).
+- The SPA paints bundled fallback UI before public CMS requests settle; keep the initial path light.
+- `spaLoadingTemplate: false` avoids Nuxt's built-in loading splash; the page's own background paints until Vue mounts.
 - Homepage LCP: preconnects to Linode CDN + game-thumbnail host; footer marquee logos MUST stay `loading="eager"` (lazy broke animation — commit 40fbd3c); IntersectionObserver reveal is the mitigation.
 - Game payloads retain both English and Korean names so the language selector can update cards without refetching; `/_ipx/**` has rate limiting disabled (50+ transforms/page).
 - Perf e2e: `test:e2e:perf` throttled-network spec against live prod (`PERF_BASE_URL`).
@@ -290,13 +251,12 @@ Money logic never lives in stores — mutations go through `useApi`/`axios-clien
 | Symptom                           | Look first                                                                                                                                                                                                                                  |
 | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Login state flashes / reload loop | `session_logged_out` latch in useApi/axios; `login-blink.spec.ts`. **Reload on a wrong withdrawal/current password → `lib/session-401.ts` (ADR-025); a 401 token missing from `CREDENTIAL_FAILURE_TOKENS` reloads instead of showing the dialog.**                                                                                                                                                                           |
-| Stale page for anon users         | anon page cache (`x-anon-cache` header), TTL envs                                                                                                                                                                                           |
-| Authed page blank on first paint  | expected — auth-spa SPA mode; check client fetch errors                                                                                                                                                                                     |
+| Theme stale after reload          | `themeConfig.v2` warm-start and the API refresh in `siteConfig.ts`                                                                                                                                                                           |
+| Blank first paint                 | SPA bootstrap and client asset/network errors; inspect `app.vue` and the browser console                                                                                                                                                    |
 | Theme field ignored               | wrong CMS path (silent ignore) — verify against `useDefaultThemeConfig.ts` interface                                                                                                                                                        |
-| Togel 404 on a deployment         | `guard.ts` currency gate; `server/utils/site-currency.ts` resolves the private `NUXT_API_URL` through the shared server validator. |
 | No console output in prod         | `esbuild.drop` strips console.*; use Sentry or `process.stderr.write`                                                                                                                                                                       |
-| WS won't connect                  | `/auth/ws` token fetch, ws-proxy plugin, `NUXT_WS_API_URL`                                                                                                                                                                                   |
-| Hydration mismatch                | `tests/hydration-check.mjs`, `useIsMobileSSR` (the only safe render gate), pre-paint CSS vars                                                                                                                                               |
+| WS won't connect                  | `getWsApiUrl()` and direct API `/ws` cookie/origin handling                                                                                                                                                                                   |
+| First-paint layout shift          | pre-paint CSS vars and client theme loading in `app.vue`                                                                                                                                                                                    |
 | Duplicate meta tags               | unhead dedup quirk — do NOT add `key:` to singleton metas (app.vue comment)                                                                                                                                                                 |
 | History panel spins forever, renders on reopen | `member-records` `load()` — the entry must be re-read from the collection before mutation, or the writes miss the reactive proxy (ADR-027). Next suspect: the consumer's hand-built key not matching `keyOf()`, which leaves the entry `undefined` and `loading` latched true. |
 
@@ -304,16 +264,15 @@ Money logic never lives in stores — mutations go through `useApi`/`axios-clien
 
 ## 17. Anti-Patterns (NEVER do)
 
-- Call backend URL directly from pages/components (always useApi/axiosClient/proxy).
+- Call the API directly from pages/components outside `useApi()` or `axiosClient`.
 - Retry mutations (both clients set retry rules deliberately — money safety).
-- Put cookie-forwarding fetchers in `withServerCache` (cross-user leak).
-- Add `server/api/**` routes (proxy claims `/api/*`).
+- Reintroduce a browser-readable CSRF cookie/header without an API contract change (ADR-028).
 - Mount a second AppDialog; import sweetalert2.
 - Add `key:` to singleton meta tags.
-- Add edge/`swr` route rules without the `bn.session` bypass guard.
+- Assume the frontend host receives the API's host-only `bn.session` cookie.
 - Hardcode hex colors when a `theme.*` token exists.
 - Re-add lazy-loading to footer marquee logos.
-- Trust CLAUDE.md-era brand facts (see §1 drift box).
+- Trust retired build-time brand settings (see §1 drift box).
 - Hold the value of `obj[key] ??= …` (or `||=`/`&&=`) on a `reactive`/`ref` collection and then mutate it — that is the raw object, not the proxy, and the mutations are invisible to Vue (ADR-027).
 - Let a rejected fetch render as a loading or empty state — a panel whose entry is `error` must say so.
 
@@ -325,8 +284,8 @@ Money logic never lives in stores — mutations go through `useApi`/`axios-clien
 ## 19. High-Risk Areas
 
 1. Deposit/withdraw flow (`useBankPayment.ts`, `WithdrawalContent.vue`).
-2. Nitro proxy + cookie rewrite (session integrity).
-3. Anon page cache eligibility (cache poisoning if `bn.session` bypass breaks).
+2. Direct API origin, CORS allowlist, and session-cookie attributes (session integrity).
+3. Session verification and the client navigation guard.
 4. CSP / custom-scripts injection (trusted-admin model).
 5. `useSiteConfig` merge contract with the admin CMS.
 
