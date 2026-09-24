@@ -124,7 +124,7 @@
     "apiMessages": {
       "SUCCESSFUL_LOGIN": "로그인 성공! 다시 오신 것을 환영합니다.",
       "SUCCESSFUL_LOGOUT": "성공적으로 로그아웃되었습니다.",
-      "LOGIN_UNAVAILABLE_HERE": "현재 이곳에서는 로그인할 수 없습니다. 평소 이용하시던 로그인 페이지에서 다시 시도하거나 고객센터에 문의해 주세요.",
+      "LOGIN_UNAVAILABLE_HERE": "로그인할 수 없습니다. 잠시 후 시도해 주세요.",
       "LOGIN_NETWORK_ERROR": "서버에 연결할 수 없습니다. 연결을 확인한 후 다시 시도해 주세요.",
       "LOGIN_TIMEOUT": "서버 응답이 지연되고 있습니다. 잠시 후 다시 시도해 주세요.",
       "LOGIN_UNEXPECTED_ERROR": "로그인 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",

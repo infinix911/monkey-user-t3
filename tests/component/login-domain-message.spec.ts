@@ -20,10 +20,10 @@ describe("browser login restriction message", () => {
 
     expect(token).toBe("LOGIN_UNAVAILABLE_HERE");
     expect(en.login.apiMessages.LOGIN_UNAVAILABLE_HERE).toBe(
-      "We couldn’t sign you in here. Please try your usual login page or contact support for help.",
+      "We cannot login this account.  Please try again later",
     );
     expect(ko.login.apiMessages.LOGIN_UNAVAILABLE_HERE).toBe(
-      "현재 이곳에서는 로그인할 수 없습니다. 평소 이용하시던 로그인 페이지에서 다시 시도하거나 고객센터에 문의해 주세요.",
+      "로그인할 수 없습니다. 잠시 후 시도해 주세요.",
     );
   });
 });
