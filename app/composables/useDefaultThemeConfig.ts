@@ -986,8 +986,8 @@ const SLOT_CHARACTER_OVERRIDES: Record<string, string> = Object.fromEntries(
     ]),
 );
 
-/** PWA app icons — the value Lime.json ships for every size. */
-const JAE_ICON = "/designs/logo/ocean.webp";
+/** PWA app icons — empty by default; the icon comes from the CMS theme only. */
+const JAE_ICON = "";
 const PWA_ICONS = {
     "72x72": JAE_ICON,
     "96x96": JAE_ICON,
