@@ -7,7 +7,7 @@
 
 ## Contract
 
-The API returns, on both errors and mutation successes, a body of the shape:
+Custom API controllers return, on errors and mutation successes, a body of the shape:
 
 ```json
 { "message": "<UPPER_SNAKE_CODE>" }
@@ -16,6 +16,7 @@ The API returns, on both errors and mutation successes, a body of the shape:
 with an HTTP status. Field-level validation failures use `422` with
 `{ "message": "VALIDATION_ERROR", "errors": [ { "field", "message" } ] }`. The
 **code is the `message` token** — there is no separate machine `code` field.
+Better Auth sign-in errors use `{ "code": "<UPPER_SNAKE_CODE>", "message": "<prose>" }`.
 
 ## How it is shown (translate-by-code, generic only as fallback)
 
@@ -27,7 +28,8 @@ caught error (either wire shape) or a raw token string:
 const apiMessage = useApiMessage();
 // error path (namespace + fallback optional):
 showErrorAlert(title, apiMessage(err));
-// or: apiMessage(err, "login", "login.invalidCredentials")
+// Login uses resolveLoginError(err) to distinguish credentials, account state,
+// network, timeout, and unknown failures.
 // success path (token read from response.data.message):
 useToast(apiMessage(token));
 ```
@@ -42,8 +44,9 @@ code's message.
 
 ## Maintenance
 
-- Every code the API returns MUST have an entry in the `apiMessages` namespace of
-  **both** `en.json` and `ko.json`, and a row in the table below.
+- Every custom-controller code MUST have an entry in the `apiMessages` namespace
+  of **both** `en.json` and `ko.json`. Sign-in codes use `login.apiMessages` in
+  both files. Record all codes in the table below.
 - When the API adds/renames a code, update: the API, this table, and both locale
   files. A missing entry degrades to the generic fallback (safe, but untranslated).
 - Locales are `en` and `ko` (`ko` is the default). There is no `zh` here.
@@ -63,11 +66,30 @@ code's message.
 | `TELEGRAM_REGISTRATION_UNAVAILABLE` | `apiMessages.TELEGRAM_REGISTRATION_UNAVAILABLE` | Telegram registration is currently unavailable.                            | 텔레그램 가입은 현재 이용할 수 없습니다.                           |
 | `TOKEN_ALREADY_USED_OR_EXPIRED`     | `apiMessages.TOKEN_ALREADY_USED_OR_EXPIRED`     | This link has already been used or has expired.                            | 이 링크는 이미 사용되었거나 만료되었습니다.                        |
 
-> **Login is deliberately generic (anti-enumeration).** The API returns
-> `INVALID_CREDENTIALS` for both an unknown username and a wrong password — it
-> never reveals which. The session-bootstrap code `INVALID_AUTH` is intentionally
-> left **unmapped** so it resolves to the generic fallback rather than confirming
-> account state. Do not split either into field-specific messages.
+> **Login keeps credential failures generic.** Unknown usernames, missing
+> credential records, and wrong passwords share the credentials message. After
+> password verification, sign-in may return one of the account-status codes
+> below. The session-bootstrap code `INVALID_AUTH` remains unmapped.
+
+### Sign-in errors
+
+`/auth/sign-in/username` uses Better Auth's `{ code, message }` error shape.
+The login modal translates recognized `code` values through
+`login.apiMessages` in both locales. It uses client-only
+`LOGIN_NETWORK_ERROR` when there is no HTTP response, `LOGIN_TIMEOUT` for
+timeouts, and `LOGIN_UNEXPECTED_ERROR` for unrecognized HTTP errors. A 429
+response always shows the rate-limit message.
+Network failures, timeouts, and unknown HTTP errors send only the endpoint,
+status, and safe machine code to the frontend logger; usernames, passwords, and
+raw errors are excluded.
+
+| Code | Meaning |
+| --- | --- |
+| `INVALID_CREDENTIALS`, `INVALID_USERNAME_OR_PASSWORD`, `INVALID_EMAIL_OR_PASSWORD` | Incorrect or unavailable credentials (401) |
+| `ACCOUNT_NEW`, `ACCOUNT_PENDING_APPROVAL`, `ACCOUNT_INACTIVE`, `ACCOUNT_BLOCKED`, `ACCOUNT_BANNED`, `ACCOUNT_REJECTED`, `ACCOUNT_DELETED`, `ACCOUNT_UNAVAILABLE` | Verified credentials, but account cannot sign in (403) |
+| `LOGIN_UNAVAILABLE_HERE` | Browser login is restricted for this domain |
+| `USERNAME_TOO_SHORT`, `USERNAME_TOO_LONG`, `INVALID_USERNAME`, `PASSWORD_TOO_SHORT`, `EMAIL_NOT_VERIFIED` | Better Auth input or verification failure |
+| `TOO_MANY_REQUESTS` | Rate limited (429) |
 
 ### Auth / Account
 

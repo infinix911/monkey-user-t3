@@ -59,7 +59,7 @@ export function resolveApiToken(source: unknown): string | undefined {
  * const apiMessage = useApiMessage();
  * // error path
  * catch (err) {
- *   showErrorAlert(t("login.failed"), apiMessage(err, "login", "login.invalidCredentials"));
+ *   showErrorAlert(t("login.failed"), apiMessage(err, "login"));
  * }
  * // success path
  * showSuccessAlert(t("inquiry.success"), apiMessage(token, "inquiry", "inquiry.closeInquirySuccess"));

@@ -118,13 +118,14 @@ import { useForm } from "vee-validate";
 import { useApi } from "@/composables/useApi";
 import { loginSchema } from "@/schemas";
 import { showErrorAlert } from "~~/utils/swal-alert";
+import { resolveLoginError } from "@/lib/login-error";
+import { logger } from "@/utils/logger";
 
 // No auth/websocket store here: a successful login reloads, so SSR hydrates the
 // session and plugins/session-verify.client.ts connects the socket on the new page.
 const uiStore = useUiStore();
 
 const { t, locale } = useI18n();
-const apiMessage = useApiMessage();
 const siteConfig = useSiteConfig();
 
 // Props
@@ -280,12 +281,17 @@ const onSubmit = handleSubmit(async (values) => {
     resetForm();
     emit("close");
   } catch (err: unknown) {
-    // Login posts straight to Better Auth, which returns human prose in
-    // `message` — see app/composables/useApiMessage.ts for why that can't be used as
-    // an i18n key.
+    const loginError = resolveLoginError(err);
+    if (loginError.unexpected) {
+      // Do not forward the thrown error: fetch errors can include the request
+      // body, which contains the password.
+      logger.error(
+        `Unexpected login failure: endpoint=/auth/sign-in/username status=${loginError.status ?? "none"} code=${loginError.code ?? "none"}`,
+      );
+    }
     await showErrorAlert(
       t("login.failed"),
-      apiMessage(err, "login", "login.invalidCredentials"),
+      t(loginError.key),
     );
   } finally {
     isSubmitting.value = false;
