@@ -986,12 +986,8 @@ const SLOT_CHARACTER_OVERRIDES: Record<string, string> = Object.fromEntries(
     ]),
 );
 
-/**
- * PWA app icons. Every entry below declares a SQUARE size, so this is the
- * square mark cropped from the brand wordmark rather than the wordmark
- * itself, which runs 5.6:1 and would be squashed at each of them.
- */
-const JAE_ICON = "/designs/logo/ocean-icon.png";
+/** PWA app icons — the value Lime.json ships for every size. */
+const JAE_ICON = "/designs/logo/ocean.webp";
 const PWA_ICONS = {
     "72x72": JAE_ICON,
     "96x96": JAE_ICON,
@@ -1009,52 +1005,50 @@ const PWA_ICONS = {
  * @returns {SiteConfig} Template3 site configuration
  */
 export const getDefaultThemeConfig = (): SiteConfig => {
-    const siteName = "Jae";
     return {
         // ───────────────────────────────────────────────────────────────────
         // identity — site name, slug, logos, favicon, description
         // ───────────────────────────────────────────────────────────────────
         identity: {
-            siteName,
-            documentTitle: `Play Online Casino Games, Slots & Live Dealer | ${siteName}`,
-            slug: "ocean",
-            logo: "/designs/logo/ocean.webp",
-            logoMobile: "/designs/logo/ocean.webp",
-            logoPopup: "/designs/logo/ocean.webp",
-            description: `Experience the best online gaming experience with ${siteName}`,
-            favicon: "/designs/logo/ocean-icon.png",
+            // No bundled identity — every field comes from the CMS theme only.
+            siteName: "",
+            documentTitle: "",
+            slug: "",
+            logo: "",
+            logoMobile: "",
+            logoPopup: "",
+            description: "",
+            favicon: "",
         },
 
         // ───────────────────────────────────────────────────────────────────
-        // theme — colors, gradients, layout tokens
+        // theme — colors, gradients, layout tokens (values from Lime.json)
         // ───────────────────────────────────────────────────────────────────
         theme: {
-            brandColor: "#D9A441",
-            themeColor: "#0A0908",
-            bodyBgColor: "#0A0908",
-            // 1200 / 450 is the banner overlay artwork's own size, so both
-            // layers fill the slot with nothing cropped.
-            desktopBannerAspectRatio: "1200 / 450",
+            brandColor: "#ffffff",
+            themeColor: "#000000",
+            bodyBgColor: "#000000",
+            desktopBannerAspectRatio: "1202 / 300",
             mobileBannerAspectRatio: "1200 / 450",
             // Mobile/tablet header design height (scaled by min(1, vw/786)).
             // Read in sync by app.vue (pre-paint), AppHeader, and default.vue.
             // 63px keeps the bar compact on phones (the desktop header takes
             // over at >=850px at 83px).
             mobileHeaderHeight: 63,
-            navMenuItemMarginTop: "3px",
+            navMenuItemMarginTop: "10px",
             announcement: {
-                enabled: true,
+                enabled: false,
                 text: "",
-                textStroke: "#382D21",
-                textFill: "#FEF7C4",
+                textStroke: "",
+                textFill: "#ffffff",
                 desktopGradient:
-                    "linear-gradient(90deg, #0A0908 0%, #191512 50%, #0A0908 100%)",
-                mobileBg: "#191512",
+                    "linear-gradient(90deg, #D84402 0%, #D94702 52.4%, #D84402 100%)",
+                mobileBg: "#000001",
                 mobileIcon: "/designs/template-3/announcement-icon.png",
             },
             logoStyles: {
                 loginModalContainer: { top: "-45px" },
-                loginModal: { marginBottom: "4px" },
+                loginModal: { width: "248px", marginBottom: "4px" },
                 profileModal: {
                     width: "145px",
                     height: "auto",
@@ -1064,17 +1058,17 @@ export const getDefaultThemeConfig = (): SiteConfig => {
                 mobileHeader: {
                     width: "auto",
                     height: "50px",
-                    marginBottom: "4px",
+                    marginBottom: "9px",
                 },
             },
             nav: {
                 headerBgGradient: "#0A0908",
                 headerBG: "",
-                defaultBg: "#0A0908",
-                stickyBg: "rgba(10, 9, 8, 0.88)",
-                activeItemColor: "#FEF7C4",
+                defaultBg: "#000000",
+                stickyBg: "rgba(0,0,0,1)",
+                activeItemColor: "#ea5100",
                 depositSectionGradient:
-                    "linear-gradient(to right, #100E0D 0%, #382D21 50.48%, #100E0D 100%)",
+                    "linear-gradient(6.88deg, #D54601 0%, #F09B06 102.05%) ",
                 // Render type: "png" = masked-silhouette icons (template-3,
                 // current behaviour) | "gif" = Lucky 3-layer composite. To run
                 // the gif skin, set type "gif" and point icons.* at the
@@ -1082,43 +1076,35 @@ export const getDefaultThemeConfig = (): SiteConfig => {
                 type: "png",
                 // gif-mode chrome (template-1): inactive uses the 01 variant,
                 // active/hover uses the 05 variant (bg tile + border).
-                gifBg: "/designs/template-1/navbar/gif-bg/01.gif",
+                gifBg: "/designs/template-1/navbar/gif-bg/03.gif",
                 activeGifBg: "/designs/template-1/navbar/gif-bg/05.gif",
-                gifBorder: "/designs/template-1/navbar/border/01.webp",
+                gifBorder: "/designs/template-1/navbar/border/05.webp",
                 activeGifBorder: "/designs/template-1/navbar/border/05.webp",
                 icons: {
-                    hot: "/designs/template-3/nav-icons/hot/01.webp",
-                    slot: "/designs/template-3/nav-icons/slot/01.webp",
-                    casino: "/designs/template-3/nav-icons/casino/01.webp",
-                    sport: "/designs/template-3/nav-icons/sport/01.webp",
-                    mini: "/designs/template-3/nav-icons/mini/01.webp",
-                    fishing: "/designs/template-3/nav-icons/fishing.webp",
-                    virtual: "/designs/template-3/nav-icons/virtual.webp",
+                    hot: "https://sg-sin-1.linodeobjects.com/banana/designs/template-3/nav-icons/hot/01.webp",
+                    slot: "https://sg-sin-1.linodeobjects.com/banana/designs/template-3/nav-icons/slot/01.webp",
+                    casino: "https://sg-sin-1.linodeobjects.com/banana/designs/template-3/nav-icons/casino/01.webp",
+                    sport: "https://sg-sin-1.linodeobjects.com/banana/designs/template-3/nav-icons/sport/01.webp",
+                    mini: "https://sg-sin-1.linodeobjects.com/banana/designs/template-3/nav-icons/mini/01.webp",
+                    fishing: "/designs/banana/theme/fishing-icon-optimized-1782396049473.webp",
+                    virtual: "/designs/banana/theme/virtual-icon-optimized-1782395959578.webp",
                 },
                 // activeKeys (gif active/hover icons) now comes from the API.
             },
             sectionHeader: {
-                // Leather band with polished champagne end-caps. Two constraints
-                // shape this value beyond taste:
-                //  1. RtpGameCard reuses it as an RTP bar fill AND scrapes the
-                //     BRIGHTEST 6-digit hex out of it for its accent colour, so
-                //     the stops must stay hex (not rgba) and must include a light
-                //     one — an all-dark ramp made that accent near-black, and a
-                //     value with no hex at all falls back to orange #FFB300.
-                //  2. GameSectionHeader prints a bold WHITE label over the
-                //     centre, so the gold is confined to the outer ~6% where the
-                //     text never reaches; the middle stays dark chocolate at
-                //     16:1 against white.
+                // RtpGameCard reuses this as an RTP bar fill AND scrapes the
+                // BRIGHTEST 6-digit hex out of it for its accent colour, so the
+                // stops must stay hex (not rgba) and include a light one.
                 gradient:
-                    "linear-gradient(90deg, #FFF1B8 0%, #C99A3E 1.5%, #7A5120 6%, #4A2F18 16%, #2B1A10 32%, #1B110B 50%, #2B1A10 68%, #4A2F18 84%, #7A5120 94%, #C99A3E 98.5%, #FFF1B8 100%)",
+                    "linear-gradient(90deg, #000000 0%, #DA4101 30%, #fa8c02 50%, #fa8c02 70%, #000000 100%)",
             },
             sidebar: {
-                borderColor: "#E9D399",
-                bg: "rgba(10, 9, 8, 0.72)",
+                borderColor: "#B04C00",
+                bg: "rgba(0, 0, 0, 0.6)",
                 divider: "#382D21",
-                activeItemColor: "#FEF7C4",
-                activeItemBorderColor: "#D9A441",
-                hoverBg: "rgba(217, 164, 65, 0.08)",
+                activeItemColor: "#FF8A21",
+                activeItemBorderColor: "#FF8A21",
+                hoverBg: "#D9A44114",
                 // Ordered menu config, shared by the rail and the mobile profile
                 // modal. Page 1 is the game-category group, page 2 the
                 // account/support group — the two groups the rail renders either
@@ -1143,138 +1129,125 @@ export const getDefaultThemeConfig = (): SiteConfig => {
                     { key: 'mini', is_active: true, page: 1, sort: 5, image: '/designs/navigation/mini.png' },
                     { key: 'fishing', is_active: true, page: 1, sort: 6, image: '/designs/navigation/fishing.png' },
                     { key: 'virtual', is_active: true, page: 1, sort: 7, image: '/designs/navigation/virtual.png' },
-                    { key: 'rtp', is_active: true, page: 2, sort: 1, image: '/designs/navigation/rtp.png' },
-                    { key: 'livechat', is_active: true, page: 2, sort: 2, image: '/designs/menu/livechat.webp' },
-                    { key: 'transaksi', is_active: true, page: 2, sort: 3, image: '/designs/menu/transaction.webp' },
-                    { key: 'activity', is_active: true, page: 2, sort: 4, image: '/designs/menu/activity.webp' },
-                    { key: 'referral', is_active: true, page: 2, sort: 5, image: '/designs/menu/referral.webp' },
-                    { key: 'bettingReport', is_active: true, page: 2, sort: 6, image: '/designs/menu/betting-report.webp' },
-                    { key: 'history', is_active: true, page: 2, sort: 7, image: '/designs/menu/history.webp' },
-                    { key: 'contact', is_active: true, page: 2, sort: 8, image: '/designs/menu/contact.webp' },
-                    { key: 'changePassword', is_active: true, page: 2, sort: 9, image: '/designs/menu/change-pass.webp' },
-                    { key: 'apk', is_active: true, page: 2, sort: 10, image: '/designs/menu/apk.webp' },
+                    //
+                    // Order and flags follow Lime.json. Its `partner` entry is
+                    // left out — the partner section was removed (ADR-020).
+                    { key: 'faq', is_active: true, page: 2, sort: 1, image: '/designs/menu/faq.webp' },
+                    { key: 'inquiry', is_active: true, page: 2, sort: 2, image: '/designs/menu/inquiry.webp' },
+                    { key: 'activity', is_active: true, page: 2, sort: 3, image: '/designs/menu/activity.webp' },
+                    { key: 'referral', is_active: true, page: 2, sort: 4, image: '/designs/menu/referral.webp' },
+                    { key: 'loginHistory', is_active: true, page: 2, sort: 5, image: '/designs/menu/login.webp' },
+                    { key: 'changePassword', is_active: true, page: 2, sort: 6, image: '/designs/menu/change-pass.webp' },
+                    { key: 'rtp', is_active: false, page: 2, sort: 1, image: '/designs/navigation/rtp.png' },
+                    { key: 'livechat', is_active: false, page: 2, sort: 2, image: '/designs/menu/livechat.webp' },
+                    { key: 'transaksi', is_active: false, page: 2, sort: 3, image: '/designs/menu/transaction.webp' },
+                    { key: 'bettingReport', is_active: false, page: 2, sort: 6, image: '/designs/menu/betting-report.webp' },
+                    { key: 'history', is_active: false, page: 2, sort: 7, image: '/designs/menu/history.webp' },
+                    { key: 'contact', is_active: false, page: 2, sort: 8, image: '/designs/menu/contact.webp' },
+                    { key: 'apk', is_active: false, page: 2, sort: 10, image: '/designs/menu/apk.webp' },
                     { key: 'telegram', is_active: false, page: 2, sort: 11, image: '/designs/menu/telegram.webp' },
-                    { key: 'faq', is_active: true, page: 2, sort: 12, image: '/designs/menu/faq.webp' },
-                    { key: 'loginHistory', is_active: true, page: 2, sort: 13, image: '/designs/menu/login.webp' },
-                    { key: 'inquiry', is_active: true, page: 2, sort: 14, image: '/designs/menu/inquiry.webp' },
                 ],
             },
             authButton: {
                 loginBg:
-                    "linear-gradient(180deg, #9A6B2F 0%, #5C3B18 45%, #3A2512 100%) padding-box, linear-gradient(180deg, #FFF3B0 0%, #C8953D 50%, #6B4318 100%) border-box",
+                    "linear-gradient(180deg, #D64A01 0%, #E57804 100%)",
 
                 loginBorder: "1.5px solid transparent",
 
                 loginBorderGradient:
-                    "linear-gradient(180deg, #FFF3B0 0%, #D9A441 45%, #85561D 100%)",
+                    "linear-gradient(90deg, #F7E652 0%, #C9B10C 67%, #F7E652 100%)",
 
                 loginTextGradient:
-                    "linear-gradient(180deg, #FFFBE2 0%, #F5D98A 50%, #D6A94B 100%)",
+                    "linear-gradient(to right, #FFFFFF, #F5F5F5 66.8%, #FFFFFF)",
 
                 signupBg:
-                    "linear-gradient(180deg, #A87835 0%, #63421D 48%, #382411 100%) padding-box, linear-gradient(180deg, #F8E7A8 0%, #C99742 50%, #714719 100%) border-box",
+                    "linear-gradient(180deg, #0C316C 0%, #175FD2 100%)",
 
                 signupBorder: "1.5px solid transparent",
 
                 signupBorderGradient:
-                    "linear-gradient(180deg, #F8E7A8 0%, #D4A04A 50%, #714719 100%)",
+                    "linear-gradient(to bottom, #3890F9, #194488 66.8%, #3890F9)",
 
                 mobileAuthSectionBg:
                     "linear-gradient(180deg, #17110C 0%, #0D0A07 100%)",
             },
             transactionmodal: {
-                // Black-marble deposit modal with champagne-gold hardware: active tab +
-                // selected ring accent, the primary action buttons, a thin
-                // antique-gold panel border, and charcoal quick-amount chips.
-                accentColor: "#D9A441",
-                buttonBgColor: "#D9A441",
-                buttonBgHoverColor: "#85561D",
-                buttonTextColor: "#0A0908",
-                // Primary buttons — satin champagne, light at the top edge falling to
-                // antique gold, so the fill reads as brushed metal rather than
-                // a gloss highlight.
+                accentColor: "#FF7A00",
+                buttonBgColor: "#FF7A00",
+                buttonBgHoverColor: "#E66E00",
+                buttonTextColor: "#000000",
                 buttonGradientColor:
-                    "linear-gradient(180deg, #FEF7C4 0%, #D9A441 45%, #85561D 100%)",
+                    "linear-gradient(180deg, #FBAD00 0%, #FF7800 100%)",
                 buttonGradientHoverColor:
-                    "linear-gradient(180deg, #FFFCE0 0%, #F3BE66 45%, #9A6626 100%)",
-                modalBgColor: "#0A0908",
-                borderColor: "#E9D399",
-                quickAmountBgColor: "#191512",
-                quickAmountBgHoverColor: "#382D21",
-                quickAmountTextColor: "#F5F3F5",
-                // Luxury-black fields with a thin antique-gold hairline border.
-                inputBgColor: "#100E0D",
-                inputBorderColor: "#E9D399",
-                inputTextColor: "#F5F3F5",
-                inputPlaceholderColor: "#C3B49A",
+                    "linear-gradient(180deg, #FFBB1F 0%, #FF8A1F 100%)",
+                modalBgColor: "#000000",
+                borderColor: "#C2691A",
+                quickAmountBgColor: "#1C1C1C",
+                quickAmountBgHoverColor: "#2A2A2A",
+                quickAmountTextColor: "#FFFFFF",
+                inputBgColor: "#0D0D0D",
+                inputBorderColor: "#A85C2E",
+                inputTextColor: "#FFFFFF",
+                inputPlaceholderColor: "#6F6F6F",
                 showDepositImageTitle: false,
                 showWithdrawalImageTitle: false,
             },
-            // Login modal: mirrors the transaction-modal gold theme by default,
-            // but is a separate object so the login screen can be re-skinned on
-            // its own from the CMS theme document.
+            // Login modal: a separate object so the login screen can be
+            // re-skinned on its own from the CMS theme document.
             loginModal: {
-                modalBgColor: "#0A0908",
-                accentColor: "#D9A441",
-                borderColor: "#E9D399",
-                buttonTextColor: "#0A0908",
+                modalBgColor: "#000000",
+                accentColor: "#beb6ae",
+                borderColor: "#ff7700",
+                buttonTextColor: "#000000",
                 buttonGradientColor:
-                    "linear-gradient(180deg, #FEF7C4 0%, #D9A441 45%, #85561D 100%)",
-                // Warm champagne glow band behind the header, falling through
-                // espresso to deep black (login-card::before).
+                    "linear-gradient(180deg, #FBAD00 0%, #FF7800 100%)",
+                // Glow band behind the header (login-card::before).
                 bandGradient:
-                    "linear-gradient(180deg, #FEF7C4 0%, #85561D 18%, #4A3A24 42%, #382D21 66%, #0A0908 100%)",
+                    "linear-gradient(180deg, #D67A12 0%, #B95A00 20%, #7A3200 45%, #2C1200 70%, #02010A 100%)",
             },
-            // Signup modal: mirrors the transaction-modal gold theme by default,
-            // but is a separate object so the signup screen can be re-skinned on
-            // its own from the CMS theme document.
+            // Signup modal: a separate object so the signup screen can be
+            // re-skinned on its own from the CMS theme document.
             signupModal: {
-                modalBgColor: "#0A0908",
-                accentColor: "#D9A441",
-                borderColor: "#E9D399",
-                inputBgColor: "#100E0D",
-                inputBorderColor: "#E9D399",
-                inputTextColor: "#F5F3F5",
-                inputPlaceholderColor: "#C3B49A",
+                modalBgColor: "#000000",
+                accentColor: "#FF7A00",
+                borderColor: "#C2691A",
+                inputBgColor: "#0D0D0D",
+                inputBorderColor: "#A85C2E",
+                inputTextColor: "#FFFFFF",
+                inputPlaceholderColor: "#6F6F6F",
                 buttonGradientColor:
-                    "linear-gradient(180deg, #FEF7C4 0%, #D9A441 45%, #85561D 100%)",
+                    "linear-gradient(180deg, #FBAD00 0%, #FF7800 100%)",
             },
-            // Popup promo banner: champagne gradient frame + warm header/footer
-            // bands, matching the auth modals. Separate object so the promo
-            // pop-ups can be re-skinned on their own from the CMS.
+            // Popup promo banner: a separate object so the promo pop-ups can
+            // be re-skinned on their own from the CMS.
             popupBanner: {
-                modalBgColor: "#100E0D",
-                accentColor: "#D9A441",
-                borderColor: "#E9D399",
+                modalBgColor: "#0A0A0A",
+                accentColor: "#FF7A00",
+                borderColor: "#C2691A",
                 bandGradient:
-                    "linear-gradient(180deg, #FEF7C4 0%, #85561D 18%, #4A3A24 42%, #382D21 66%, #0A0908 100%)",
-                blockButtonBgColor: "#191512",
-                blockButtonTextColor: "#FEF7C4",
-                blockButtonBorderColor: "#E9D399",
+                    "linear-gradient(180deg, #D67A12 0%, #B95A00 20%, #7A3200 45%, #2C1200 70%, #02010A 100%)",
+                blockButtonBgColor: "#140A02",
+                blockButtonTextColor: "#E7C9A6",
+                blockButtonBorderColor: "#C2691A",
             },
-            // Post-login notice modal: black glass under a champagne hairline —
-            // a thin gold band at the very top and bottom edges fading to deep
-            // black through the middle. Agree/disagree keep their semantic
-            // green/red but in muted, non-neon tones that sit with the gold.
+            // Post-login notice modal.
             noticeModal: {
-                enabled: true,
-                modalBgColor: "#0A0908",
-                borderColor: "rgba(217, 164, 65, 0.18)",
-                // Thin champagne band at the very top and bottom edges only;
-                // the whole middle stays solid black.
+                enabled: false,
+                modalBgColor: "#0A0A0C",
+                borderColor: "rgba(255, 255, 255, 0.14)",
                 cardGradient:
-                    "linear-gradient(180deg, #85561D 0%, #4A3A24 5%, #0A0908 10%, #0A0908 90%, #4A3A24 95%, #85561D 100%)",
-                dividerColor: "rgba(217, 164, 65, 0.12)",
-                agreeColor: "#A9B488",
-                disagreeColor: "#CE8464",
+                    "linear-gradient(180deg, #3A3D44 0%, #14151A 5%, #0A0A0C 10%, #0A0A0C 90%, #14151A 95%, #2A2C31 100%)",
+                dividerColor: "rgba(255, 255, 255, 0.10)",
+                agreeColor: "#34D399",
+                disagreeColor: "#FB7185",
             },
             ui: {
-                langSelectorBg: "#191512",
+                langSelectorBg: "#000000",
             },
             cardFrame: {
-                borderColor: "#C8942E",
+                borderColor: "#f7a800",
                 bgColor: "#000000",
-                placeholderBg: "#000000",
+                placeholderBg: "#ffffff",
                 // Edge bands only — the MIDDLE MUST STAY TRANSPARENT.
                 // HomeGameCard paints this as `.casino-frame-band` ABOVE the
                 // character art (z-10), so an all-opaque ramp here hides the
@@ -1282,32 +1255,32 @@ export const getDefaultThemeConfig = (): SiteConfig => {
                 // gradient plus the provider logo. The dark bottom band is what
                 // lets that logo read; the top band caps the card.
                 bandGradient:
-                    "linear-gradient(to bottom, #B8882F 0%, #5B3F1C 2%, #18130F 4%, rgba(8,7,6,0.95) 5%, rgba(8,7,6,0.85) 7%, rgba(8,7,6,0.6) 9%, rgba(8,7,6,0.3) 10.5%, transparent 12%, transparent 88%, rgba(8,7,6,0.3) 89.5%, rgba(8,7,6,0.6) 91%, rgba(8,7,6,0.85) 93%, rgba(8,7,6,0.95) 95%, #18130F 96%, #5B3F1C 98%, #B8882F 100%)",
+                    "linear-gradient(180deg,#FFC400 0%,#FF8A00 6%,rgba(255,138,0,0.18) 15%,rgba(0,0,0,0) 48%,#111111 80%,#000000 95%,#FF6A00 100%)",
             },
             bottomNav: {
                 barGradientStops: {
-                    light: "#4A3A24",
-                    midDark: "#100E0D",
-                    postEdge: "#382D21",
-                    dark: "#0A0908",
+                    light: "#fa7e02",
+                    midDark: "#000000",
+                    postEdge: "#000000",
+                    dark: "#fa7e02",
                 },
                 promoCircleGradient:
-                    "linear-gradient(135deg, #FEF7C4 0%, #85561D 100%)",
+                    "linear-gradient(to bottom, #FFB300 0%, #E86A00 50%, #DA4101 100%)",
             },
             panel: {
                 contentPanelGradient:
-                    "linear-gradient(180deg, #382D21 0%, #100E0D 14.42%, #100E0D 82.69%, #382D21 100%)",
-                tableHeaderBackground: "#382D21",
+                    "linear-gradient(180deg, #0D0D0D 0%, #000000 100%)",
+                tableHeaderBackground: "#1C1C1C",
                 headerGradient:
-                    "linear-gradient(to bottom, rgba(149,98,34,0.28), rgba(16,15,13,0.95), rgba(58,36,22,0.35))",
+                    "linear-gradient(to bottom, rgba(255,122,0,0.9), rgba(20,20,20,0.95), rgba(198,105,26,0.9))",
                 gameTypeBtnActiveGradient:
-                    "linear-gradient(to right, #E9D399, #D9A441, #E9D399)",
-                gameTypeBtnActiveBorder: "#FEF7C4",
-                gameTypeBtnActiveShadow: "0 1px 0 rgba(254,247,196,0.35), 0 6px 18px rgba(0,0,0,0.55)",
+                    "linear-gradient(to right, #B95A00, #FF7A00, #B95A00)",
+                gameTypeBtnActiveBorder: "#FF7A00",
+                gameTypeBtnActiveShadow: "0 0 8px rgba(255,122,0,0.25)",
                 panelGradient:
-                    "linear-gradient(135deg, rgba(25,21,18,0.6), rgba(48,37,25,0.6), rgba(16,15,13,0.6))",
-                panelBorder: "rgba(217,164,65,0.16)",
-                actionColor: "#D9A441",
+                    "linear-gradient(180deg, #0A0A0A 0%, #000000 100%)",
+                panelBorder: "#C2691A",
+                actionColor: "#FF7A00",
             },
         },
 
@@ -1323,17 +1296,8 @@ export const getDefaultThemeConfig = (): SiteConfig => {
                 ruby: "https://banana.sg-sin-1.linodeobjects.com/dragon/stones/ruby.webp",
                 sapphire: "https://banana.sg-sin-1.linodeobjects.com/dragon/stones/sapphire.webp",
                 diamonds: "https://banana.sg-sin-1.linodeobjects.com/dragon/stones/diamonds.webp",
-                // Luxury night terrace — warm gold lighting and palms against a
-                // black sky, matching the reference mockup. Sourced from Pexels
-                // (Pexels License, commercial use, no attribution required) and
-                // graded locally: cropped to 16:9, softened, dimmed to ~45 mean
-                // luminance and warmed, so it sits BEHIND the dark UI panel
-                // instead of competing with it. Served from /public, not
-                // hotlinked, so no external host or CSP entry is involved.
-                mainBackground: "/designs/banana/imageAssets/image-50-1-1778909515732.png",
-                // Fixed: the scene should read as the room the UI sits in, not
-                // as content that scrolls away.
-                fixedMainBackground: true,
+                mainBackground: "https://sg-sin-1.linodeobjects.com/banana/theme/image-50-1-1778909515732-3e809383-4517-49fc-9e5f-df436affbd4f.webp",
+                fixedMainBackground: false,
                 mainBackgroundMobile: false,
                 girlGif: "",
                 loginModalBg: "/designs/misc/modal-login-bg.webp",
@@ -1364,16 +1328,14 @@ export const getDefaultThemeConfig = (): SiteConfig => {
                 bankAccountListPath:
                     "https://sg-sin-1.linodeobjects.com/banana/ocean/banks/accountlist",
                 bankAccountNoImage: "/designs/banks/accountlist/NOIMG.webp",
-                depositIcon: "/designs/misc/deposit.webp",
-                withdrawIcon: "/designs/misc/withdraw.webp",
+                depositIcon: "",
+                withdrawIcon: "",
                 bankBasePath: "https://sg-sin-1.linodeobjects.com/banana/ocean/banks",
                 bankNoImage: "/designs/banks/NOIMAGE.webp",
             },
             lobbyCard: {
-                thumbnailBgPathMobile:
-                    "https://sg-sin-1.linodeobjects.com/banana/ocean/gif/thumbnail-bg/mobile",
-                thumbnailBgPathWeb:
-                    "https://sg-sin-1.linodeobjects.com/banana/ocean/gif/thumbnail-bg/web",
+                thumbnailBgPathMobile: "/designs/banana/ocean/gif/thumbnail-bg/mobile",
+                thumbnailBgPathWeb: "/designs/banana/ocean/gif/thumbnail-bg/web",
                 topBorder: "/designs/gif-border/top-border.webp",
                 bottomBorder: "/designs/gif-border/bottom-border.webp",
             },
@@ -1397,10 +1359,10 @@ export const getDefaultThemeConfig = (): SiteConfig => {
                     slot: SLOT_CHARACTER_OVERRIDES,
                 },
                 gameBg: {
-                    casino: "/designs/template-3/game-thumbnail-bg/01.webp",
-                    sport: "/designs/template-3/game-thumbnail-bg/09.webp",
-                    sportRatio: "/designs/template-3/sport-ratio-bg.png",
-                    slot: "/designs/template-3/game-thumbnail-bg/02.webp",
+                    casino: "https://banana.sg-sin-1.linodeobjects.com/designs/template-3/game-thumbnail-bg/18.webp",
+                    sport: "https://banana.sg-sin-1.linodeobjects.com/designs/template-3/game-thumbnail-bg/31.webp",
+                    sportRatio: "",
+                    slot: "https://banana.sg-sin-1.linodeobjects.com/designs/template-3/game-thumbnail-bg/32.webp",
                 },
                 gameFrame: {
                     casino: "/designs/template-3/frame.png",
@@ -1453,10 +1415,10 @@ export const getDefaultThemeConfig = (): SiteConfig => {
         // ───────────────────────────────────────────────────────────────────
         contact: {
             handles: {
-                messenger: "@LuckCasino",
-                whatsapp: "+822213122393",
-                line: "@LuckCasino",
-                telegram: "luckcasino88bot",
+                messenger: "-",
+                whatsapp: "6282174092123",
+                line: "-",
+                telegram: "@KARMA",
             },
         },
 
@@ -1474,9 +1436,9 @@ export const getDefaultThemeConfig = (): SiteConfig => {
         // content — CMS-authored copy (deposit rule, footer)
         // ───────────────────────────────────────────────────────────────────
         content: {
-            // Empty by default: the deposit modal renders nothing until an
-            // admin publishes a rule on the CMS "Deposit Rule" page.
-            depositRule: "",
+            // Deposit rule from Lime.json; an admin-published rule on the CMS
+            // "Deposit Rule" page replaces it.
+            depositRule: "<h3>입금 주의 사항</h3><p></p>",
             // Empty by default — the copyright lives in AppFooter. A CMS-authored
             // footer renders above it when the admin publishes one.
             footer: "",
