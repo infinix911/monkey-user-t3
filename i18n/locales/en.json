@@ -124,7 +124,7 @@
     "apiMessages": {
       "SUCCESSFUL_LOGIN": "Login successful! Welcome back.",
       "SUCCESSFUL_LOGOUT": "You have been logged out successfully.",
-      "LOGIN_UNAVAILABLE_HERE": "We cannot login this account.  Please try again later",
+      "LOGIN_UNAVAILABLE_HERE": "We cannot sign you in. Please try again.",
       "LOGIN_NETWORK_ERROR": "Couldn’t connect to the server. Check your connection and try again.",
       "LOGIN_TIMEOUT": "The server is taking too long to respond. Please try again shortly.",
       "LOGIN_UNEXPECTED_ERROR": "Something went wrong while signing in. Please try again shortly.",
