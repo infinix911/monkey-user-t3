@@ -28,11 +28,10 @@
                 ? ''
                 : 'bg-transparent',
           ]">
-            <!-- When the items all fit (no overflow) spread them evenly across
-                 the full width; otherwise keep them at natural width so the row
-                 scrolls. -->
-            <div class="flex h-full items-center px-1"
-              :class="mobileNavHasOverflow ? 'min-w-max' : 'w-full justify-around'">
+            <!-- Pure CSS so the first paint is already right: when the items fit,
+                 w-full + justify-around spreads them evenly; when they don't,
+                 min-w-max wins over w-full and the row scrolls at natural width. -->
+            <div class="flex h-full items-center px-1 w-full min-w-max justify-around">
               <button v-for="item in navItems" :key="item.path" type="button"
                 class="group z-10 cursor-pointer flex flex-col items-center justify-center transition flex-shrink-0"
                 :class="navSkin.layout.mobile.button"
@@ -161,10 +160,9 @@ const localePath = useLocalePath();
 
 const mobileNavScrollRef = ref<HTMLElement | null>(null);
 const isMobileScrolledRight = ref(false);
-// Default true so SSR/initial render uses the natural-width scroll layout
-// (correct for phones); onMounted relaxes it to the spread layout when the
-// items actually fit (e.g. iPad mini).
-const mobileNavHasOverflow = ref(true);
+// Only drives the scroll arrow (the row layout itself is pure CSS). Starts
+// false so the arrow doesn't flash in and out when the items fit.
+const mobileNavHasOverflow = ref(false);
 const desktopNavScrollRef = ref<HTMLElement | null>(null);
 const isScrolledRight = ref(false);
 const desktopNavHasOverflow = ref(false);
@@ -339,5 +337,12 @@ const navItems = computed(() =>
   ALL_NAV_ITEMS.value.filter(
     (item) => (item.id === "hot" ? hasHotGames.value : hasLobbies(item.id)),
   ),
+);
+
+// The item list shrinks once the lobby read lands (e.g. fishing/virtual drop),
+// so re-measure after the DOM updates or the arrow state goes stale.
+watch(
+  () => navItems.value.length,
+  () => nextTick(updateAllScrollStates),
 );
 </script>
