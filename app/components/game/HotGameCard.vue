@@ -68,7 +68,7 @@
         </p>
         <p v-if="showProvider && game.lobby" class="text-[#b0b0b0] font-medium leading-tight truncate mt-0.5"
           style="font-size: clamp(8px, 7.5cqw, 14px);">
-          {{ game.lobby }}
+          {{ providerName }}
         </p>
       </div>
     </div>
@@ -77,6 +77,7 @@
 
 <script setup lang="ts">
 import { localizedGameName } from "~/utils/localized-game-name";
+import { providerDisplayName } from "~/utils/gameProviderLogo";
 
 const siteConfig = useSiteConfig();
 
@@ -114,8 +115,13 @@ const props = withDefaults(
   },
 );
 
-const { locale } = useI18n();
+const { locale, t, te } = useI18n();
 const gameName = computed(() => localizedGameName(props.game, locale.value));
+// The API sends the lobby's English display name (e.g. "Pragmatic Slots");
+// map it to `game.providers.*`, falling back to the raw name when unknown.
+const providerName = computed(() =>
+  providerDisplayName(t, te, null, props.game.lobby ?? ""),
+);
 const imgError = ref(false);
 const imgLoaded = ref(false);
 const imgEl = ref<HTMLImageElement | null>(null);
