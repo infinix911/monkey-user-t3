@@ -132,7 +132,7 @@ interface Game {
   lobby_id?: string;
 }
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   games: Game[];
   isLoading: boolean;
   currentPage: number;
@@ -151,7 +151,13 @@ const props = defineProps<{
   showProvider?: boolean;
   // Seeds the search input so a shared/refreshed URL (?q=...) shows its term.
   initialSearch?: string;
-}>();
+}>(), {
+  // Vue casts an absent boolean prop to `false`, not `undefined`, so the
+  // "defaults to on" flags above need explicit defaults.
+  showSearch: true,
+  showPagination: true,
+  showProvider: true,
+});
 
 const { locale } = useI18n();
 
