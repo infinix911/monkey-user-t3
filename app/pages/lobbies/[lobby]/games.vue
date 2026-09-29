@@ -172,8 +172,16 @@ const hasMore = computed(() =>
 
 // Provider logo (left of the games header) — local /designs/<type>-logo/<id>.webp
 // keyed by the lobby UUID, with the type taken from the first game.
+// Game rows carry no provider code, so find this lobby in the cached lobby
+// lists; the code picks the per-code name (casino vs slot). A cold deep link
+// has no cache yet and falls back to the lobby-name lookup.
+const lobbyCode = computed<string | null>(() =>
+    Object.values(catalog.lobbies)
+        .flatMap((entry) => entry.data)
+        .find((lobby) => lobby.id === lobbyId.value)?.gameProvider ?? null,
+);
 const providerName = computed<string>(() =>
-    providerDisplayName(t, te, games.value[0]?.gameProvider, games.value[0]?.lobby ?? ""),
+    providerDisplayName(t, te, lobbyCode.value, games.value[0]?.lobby ?? ""),
 );
 const providerLogo = computed<string>(() => {
   const type = String(games.value[0]?.game_type ?? "slot").toLowerCase();

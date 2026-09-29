@@ -70,7 +70,7 @@
               style="font-family: var(--font-line-seed)">
               <option value="">{{ t("bettingReport.allProviders") }}</option>
               <option v-for="lobby in providers" :key="lobby.id" :value="lobby.game_name">
-                {{ providerDisplayName(t, te, lobby.game_name, lobby.game_name ?? "") }}
+                {{ providerDisplayName(t, te, lobby.game_provider, lobby.game_name ?? "") }}
               </option>
             </select>
             <svg
