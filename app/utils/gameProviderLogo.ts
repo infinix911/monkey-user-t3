@@ -241,6 +241,13 @@ export function providerDisplayName(
     providerCode?: string | number | null,
     fallback = "",
 ): string {
+    // A per-code name (`game.providerCodes.pragmatic_slot`) is the most
+    // specific label there is — it tells the casino and slot lobbies of one
+    // provider apart — so it beats both the lobby name and the brand.
+    if (providerCode !== null && providerCode !== undefined) {
+        const byCode = `game.providerCodes.${String(providerCode).trim().toLowerCase()}`;
+        if (te(byCode)) return t(byCode);
+    }
     // A lobby display name passed as `fallback` (e.g. "Pragmatic Slots") is
     // more specific than the provider the code resolves to, so it wins.
     const byLobby = localisedByName(t, te, fallback);

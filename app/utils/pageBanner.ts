@@ -19,8 +19,7 @@ export type BannerPageKey =
   | "virtual";
 
 /**
- * Unlocalised route path → page key. `/slot-rtp` is deliberately absent: it
- * keeps its own hardcoded banner and is not CMS-driven.
+ * Unlocalised route path → page key.
  */
 const ROUTE_TO_PAGE: Record<string, BannerPageKey> = {
   "/": "homepage",
@@ -37,7 +36,7 @@ export const BANNER_PAGE_ROUTES = Object.keys(ROUTE_TO_PAGE);
 
 /**
  * Resolve the banner page key for a route, or null when the page has no
- * CMS-driven banner slot (every other route, including /slot-rtp).
+ * CMS-driven banner slot.
  *
  * @param path - Unlocalised route path, e.g. one of {@link BANNER_PAGE_ROUTES}.
  */

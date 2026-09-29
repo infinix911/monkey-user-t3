@@ -50,6 +50,8 @@ export const QUICK_AMOUNTS = ["10K", "50K", "100K", "500K", "1JT", "5JT"];
 
 export interface UseBankPaymentOptions {
   bankAccounts: () => IBankAccount[] | undefined;
+  /** Called once a deposit is accepted — the modal closes itself with it. */
+  onSuccess?: () => void;
 }
 
 export function useBankPayment(options: UseBankPaymentOptions) {
@@ -229,9 +231,12 @@ export function useBankPayment(options: UseBankPaymentOptions) {
         headers: idempotencyHeaders(),
         body: depositData,
       });
+      resetForm();
+      // Close the modal straight away; the success dialog is mounted in
+      // app.vue, so it still shows once the modal is gone.
+      options.onSuccess?.();
       // Title only — no supporting line (showSuccessAlert's `text` is optional).
       await showSuccessAlert(t("deposit.success.title"));
-      resetForm();
     } catch (error: unknown) {
       await showErrorAlert(t("deposit.title"), apiMessage(error, "deposit"));
     }

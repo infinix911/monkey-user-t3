@@ -66,7 +66,7 @@
       </button>
 
       <!-- Item overlay: 공지사항 · 입금 · [홈] · 출금 · 메뉴 when signed in
-           (guests get BERANDA · RTP · [MASUK] · PROMOSI · MENU). The
+           (guests get BERANDA · [MASUK] · PROMOSI · MENU). The
            overlay covers the bar only (top-0 → bar bottom; bottom-[1.85cqw]
            excludes the SVG's shadow space below), and each column centres its
            icon+label group vertically so there's equal padding above and below. -->
@@ -172,7 +172,7 @@ const labelStyle = {
 // The menu icon is a wide/short glyph (59×41); sized to the same height as the
 // squarer icons it looks oversized, so give it a smaller height to match.
 const iconSizeClass = (id: string) =>
-  id === "menu" ? "h-[4.4cqw]" : id === "rtp" ? "h-[7cqw]" : "h-[5.8cqw]";
+  id === "menu" ? "h-[4.4cqw]" : "h-[5.8cqw]";
 
 interface NavItem {
   id: string;
@@ -193,7 +193,7 @@ const canDepWid = computed(
 
 // The bar has two faces. Authenticated: 공지사항 · 입금 · [홈] · 출금 · 메뉴 —
 // the centre FAB is HOME (labelled with the site name) and deposit/withdraw are
-// payments-gated. Guests get a public set instead: BERANDA · RTP · [MASUK] ·
+// payments-gated. Guests get a public set instead: BERANDA · [MASUK] ·
 // PROMOSI · MENU — the centre FAB becomes the login button and the side slots
 // expose RTP + Promosi (no auth).
 const leftItems = computed<NavItem[]>(() =>
@@ -206,7 +206,6 @@ const leftItems = computed<NavItem[]>(() =>
       ]
     : [
         { id: "home", labelKey: "navbar.home", icon: "home", requiresAuth: false },
-        { id: "rtp", labelKey: "navbar.rtp", icon: "rtp", requiresAuth: false },
       ],
 );
 
@@ -269,10 +268,6 @@ const handleNavClick = async (item: NavItem) => {
   }
 
   // Public guest items — no auth gate.
-  if (item.id === "rtp") {
-    navigateTo(localePath("/slot-rtp"));
-    return;
-  }
   if (item.id === "promotion") {
     // Opens an overlay without changing the route, so the gate's navigation
     // watcher never sees it — see the block below. Inert for guests, who have
@@ -296,7 +291,7 @@ const handleNavClick = async (item: NavItem) => {
     here covers all of them, and replaces the deposit/withdraw-only guard that
     used to sit inside the branch below.
 
-    `home` and `rtp` are deliberately NOT guarded: they navigate, so the gate
+    `home` is deliberately NOT guarded: it navigates, so the gate
     warns straight after, and blocking them would leave a member with an unread
     reply unable to reach even the home page.
   */

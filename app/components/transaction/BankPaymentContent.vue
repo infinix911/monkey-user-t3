@@ -159,6 +159,7 @@ import { renderRichContent } from "~/composables/useTiptap";
 
 const props = defineProps<{
   bankAccounts?: IBankAccount[];
+  onSuccess?: () => void;
 }>();
 
 const { t } = useI18n();
@@ -178,6 +179,7 @@ const {
   onSubmit,
 } = useBankPayment({
   bankAccounts: () => props.bankAccounts,
+  onSuccess: () => props.onSuccess?.(),
 });
 
 const dep = computed(() => siteConfig.theme.transactionmodal);

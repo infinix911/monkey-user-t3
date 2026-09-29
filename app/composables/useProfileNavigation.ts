@@ -138,13 +138,6 @@ export function useProfileNavigation(options: UseProfileNavigationOptions) {
       return;
     }
 
-    // RTP — the slot-RTP page. Normalised to catch rtp / slot-rtp / slotRtp.
-    if (id === "rtp" || id === "slotrtp") {
-      router.push(localePath("/slot-rtp"));
-      options.onNavigate?.();
-      return;
-    }
-
     if (isAccountSection(item.id)) {
       accountSection.open(item.id);
       return;

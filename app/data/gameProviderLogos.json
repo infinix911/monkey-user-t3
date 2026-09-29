@@ -8,7 +8,8 @@
   {
     "name": "Asiangaming",
     "codes": [
-      "ag_casino"
+      "ag_casino",
+      "ag_slot"
     ]
   },
   {
@@ -84,7 +85,8 @@
   {
     "name": "GPI",
     "codes": [
-      "gpi_casino"
+      "gpi_casino",
+      "gpi_slot"
     ]
   },
   {
@@ -124,14 +126,17 @@
     "codes": [
       "oriental_casino",
       "24",
-      "2001"
+      "2001",
+      "og_casino",
+      "og_slot"
     ]
   },
   {
     "name": "Playtech",
     "codes": [
       "playtech_casino",
-      "296"
+      "296",
+      "playtech_slot"
     ]
   },
   {
@@ -322,7 +327,8 @@
   {
     "name": "JDB",
     "codes": [
-      "265"
+      "265",
+      "jdb_slot"
     ]
   },
   {
@@ -346,7 +352,8 @@
   {
     "name": "Naga",
     "codes": [
-      "249"
+      "249",
+      "naga_slot"
     ]
   },
   {
@@ -380,7 +387,8 @@
   {
     "name": "OneTouch",
     "codes": [
-      "211"
+      "211",
+      "onetouch_slot"
     ]
   },
   {
@@ -445,7 +453,8 @@
   {
     "name": "Smartsoft",
     "codes": [
-      "278"
+      "278",
+      "smartsoft_slot"
     ]
   },
   {
@@ -463,7 +472,8 @@
   {
     "name": "Wazdan",
     "codes": [
-      "222"
+      "222",
+      "wazdan_slot"
     ]
   },
   {
@@ -494,7 +504,8 @@
   {
     "name": "BTI Sports",
     "codes": [
-      "105"
+      "105",
+      "bt1_sports"
     ]
   },
   {
@@ -537,6 +548,126 @@
     "name": "WS Sports",
     "codes": [
       "112"
+    ]
+  },
+  {
+    "name": "Thunderkick",
+    "codes": [
+      "thunderkick_slot"
+    ]
+  },
+  {
+    "name": "Slotmatrix",
+    "codes": [
+      "slotmatrix_slot"
+    ]
+  },
+  {
+    "name": "Funky Games",
+    "codes": [
+      "funkygames_slot"
+    ]
+  },
+  {
+    "name": "Revolver",
+    "codes": [
+      "revolver_slot"
+    ]
+  },
+  {
+    "name": "RubyPlay",
+    "codes": [
+      "rubyplay_slot"
+    ]
+  },
+  {
+    "name": "1x2 Gaming",
+    "codes": [
+      "1x2_slot"
+    ]
+  },
+  {
+    "name": "Kalamba",
+    "codes": [
+      "kalamba_slot"
+    ]
+  },
+  {
+    "name": "Dragoonsoft",
+    "codes": [
+      "dragoonsoft_slot"
+    ]
+  },
+  {
+    "name": "Endorphina",
+    "codes": [
+      "endorphina_slot"
+    ]
+  },
+  {
+    "name": "FTG",
+    "codes": [
+      "ftg_slot"
+    ]
+  },
+  {
+    "name": "Aspect",
+    "codes": [
+      "aspect_slot"
+    ]
+  },
+  {
+    "name": "AdvantPlay",
+    "codes": [
+      "advantplay_slot"
+    ]
+  },
+  {
+    "name": "SimplePlay",
+    "codes": [
+      "simpleplay_slot"
+    ]
+  },
+  {
+    "name": "Reevo",
+    "codes": [
+      "reevo_slot"
+    ]
+  },
+  {
+    "name": "Yellow Bat",
+    "codes": [
+      "yellowbat_slot"
+    ]
+  },
+  {
+    "name": "Croco",
+    "codes": [
+      "croco_slot"
+    ]
+  },
+  {
+    "name": "Belatra",
+    "codes": [
+      "belatra_slot"
+    ]
+  },
+  {
+    "name": "FC",
+    "codes": [
+      "fc_slot"
+    ]
+  },
+  {
+    "name": "Ideal Gaming",
+    "codes": [
+      "idg_slot"
+    ]
+  },
+  {
+    "name": "9G",
+    "codes": [
+      "9g_slot"
     ]
   }
 ]
