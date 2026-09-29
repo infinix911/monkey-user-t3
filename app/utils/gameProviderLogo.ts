@@ -98,91 +98,92 @@ export function getLogoImages(
 
 /**
  * Locale-key segment for a provider display name, e.g. `Big Gaming` ->
- * `bigGaming`. Kept as an explicit table rather than a slug function because
- * the keys must match `game.providers.*` in the locale bundles exactly, and a
- * naive camelCase of `SA Gaming` gives `sAGaming`.
+ * `bg_casino`. A provider the API serves under ONE code points at that code's
+ * `game.providers.<code>` entry, so each name is translated once. Brands the
+ * API names identically for casino and slot (`Pragmatic`, `Skywind`, …) keep a
+ * generic camelCase key, since the name alone cannot pick a lobby.
  *
  * Providers absent from this table have no localised trade name and
  * deliberately fall back to their Latin brand.
  */
 const PROVIDER_NAME_KEYS: Record<string, string> = {
-    AllBet: "allbet",
+    AllBet: "allbet_casino",
     Asiangaming: "asianGaming",
     Betgames: "betgames",
-    "Big Gaming": "bigGaming",
+    "Big Gaming": "bg_casino",
     "Big Time Gaming": "bigTimeGaming",
-    Blueprint: "blueprint",
-    CQ9: "cq9",
-    "Dream Gaming": "dreamGaming",
+    Blueprint: "blueprint_slot",
+    CQ9: "cq9_slot",
+    "Dream Gaming": "dg_casino",
     EEAI: "eeai",
     "Emperor Gaming": "emperorGaming",
-    Evolution: "evolution",
+    Evolution: "evolution_casino",
     Ezugi: "ezugi",
-    Habanero: "habanero",
-    Hacksaw: "hacksaw",
+    Habanero: "habanero_slot",
+    Hacksaw: "hacksaw_slot",
     JiLi: "jili",
     "Live 88": "live88",
     Microgaming: "microgaming",
     Netent: "netent",
-    "Nolimit City": "nolimitCity",
+    "Nolimit City": "nolimit_slot",
     Oriental: "orientalGaming",
-    "PG Soft": "pgSoft",
-    "Play N Go": "playNGo",
+    "PG Soft": "pgsoft_slot",
+    "Play N Go": "playngo_slot",
     Playtech: "playtech",
     Pragmatic: "pragmatic",
-    "Pretty Gaming": "prettyGaming",
+    "Pretty Gaming": "prettygaming_casino",
     Quickspin: "quickspin",
     "Red Tiger": "redTiger",
-    Relax: "relax",
-    "SA Gaming": "saGaming",
-    "Sexy Gaming": "sexyGaming",
+    Relax: "relax_slot",
+    "SA Gaming": "sa_casino",
+    "Sexy Gaming": "sexybaccarat_casino",
     Skywind: "skywind",
     Winfinity: "winfinity",
-    WM: "wm",
-    YGGDrasil: "yggdrasil",
+    WM: "wm_casino",
+    YGGDrasil: "yggdrasil_slot",
     Pinnacle: "pinnacle",
     Saba: "saba",
     SBO: "sbo",
-    "BTI Sports": "btiSports",
+    "BTI Sports": "bt1_sports",
     CMD: "cmd",
-    Bota: "bota",
+    Bota: "bota_casino",
     CreedRoomz: "creedRoomz",
-    Cyberbetx: "cyberbetx",
-    Dowinn: "dowinn",
+    Cyberbetx: "cyberbetx_casino",
+    Dowinn: "dowinn_casino",
     GPI: "gpi",
     "HO Gaming": "hoGaming",
     "Miki World": "mikiWorld",
-    Motivation: "motivation",
+    Motivation: "motivation_casino",
     Alize: "alize",
     Aviator: "aviator",
     Aviatrix: "aviatrix",
     "Fast Game": "fastGame",
     Spribe: "spribe",
     "Turbo Games": "turboGames",
-    "4 The Player": "fourThePlayer",
-    "Avatar UX": "avatarUx",
-    BNG: "bng",
-    Booming: "booming",
+    "4 The Player": "4theplayer_slot",
+    "Avatar UX": "avatarux_slot",
+    BNG: "bng_slot",
+    Booming: "booming_slot",
     CosmoPlay: "cosmoPlay",
-    Evoplay: "evoplay",
-    Expanse: "expanse",
-    Fantasma: "fantasma",
-    Gameart: "gameart",
-    GMW: "gmw",
-    JDB: "jdb",
+    Evoplay: "evoplay_slot",
+    Expanse: "expanse_slot",
+    Fantasma: "fantasma_slot",
+    Gameart: "gameart_slot",
+    GMW: "gmw_slot",
+    JDB: "jdb_slot",
     Joker: "joker",
-    Naga: "naga",
+    Naga: "naga_slot",
     NextSpin: "nextSpin",
-    Octoplay: "octoplay",
-    OneTouch: "oneTouch",
-    "Peter & Sons": "peterAndSons",
-    Playstar: "playstar",
-    Reelplay: "reelplay",
-    Slotmill: "slotmill",
-    Smartsoft: "smartsoft",
+    Octoplay: "octoplay_slot",
+    OneTouch: "onetouch_slot",
+    "Peter & Sons": "peterandsons_slot",
+    Playstar: "ps_slot",
+    Reelplay: "reelplay_slot",
+    Slotmill: "slotmill_slot",
+    Smartsoft: "smartsoft_slot",
     "Spade Slots": "spadeSlots",
     "VA Gaming": "vaGaming",
-    Wazdan: "wazdan",
+    Wazdan: "wazdan_slot",
     Winfast: "winfast",
     Wonwon: "wonwon",
     "World Match": "worldMatch",
@@ -191,21 +192,21 @@ const PROVIDER_NAME_KEYS: Record<string, string> = {
     "WS Sports": "wsSports",
     "Spribe Aviator": "spribeAviator",
     // `MG` is the canonical name for the `mg_slot` code only.
-    MG: "microgamingSlots",
+    MG: "mg_slot",
     // Lobby display names as the backend spells them. They are more specific
     // than the canonical provider (slots vs live, Evolution's 1:10 lobby), so
     // `providerDisplayName` tries them first. Punctuation in these names is
-    // safe: only the camelCase value on the right becomes an i18n path.
-    "Pragmatic Slots": "pragmaticSlots",
-    "Pragmatic Play Live": "pragmaticLive",
+    // safe: only the key on the right becomes an i18n path.
+    "Pragmatic Slots": "pragmatic_slot",
+    "Pragmatic Play Live": "pragmatic_casino",
     "Evolution 1:10": "evolution1to10",
-    "Micro Gaming Slots": "microgamingSlots",
-    "Micro Gaming Live": "microgamingLive",
-    "Skywind Slots": "skywindSlots",
-    "Skywind Live": "skywindLive",
+    "Micro Gaming Slots": "mg_slot",
+    "Micro Gaming Live": "mg_casino",
+    "Skywind Slots": "skywind_slot",
+    "Skywind Live": "skywind_casino",
     "Oriental Gaming": "orientalGaming",
-    "Oriental Slots": "orientalSlots",
-    "No Limity City": "nolimitCity",
+    "Oriental Slots": "og_slot",
+    "No Limity City": "nolimit_slot",
 };
 
 /** Localised name for a display name in `PROVIDER_NAME_KEYS`, else `undefined`. */
@@ -241,11 +242,11 @@ export function providerDisplayName(
     providerCode?: string | number | null,
     fallback = "",
 ): string {
-    // A per-code name (`game.providerCodes.pragmatic_slot`) is the most
+    // A per-code name (`game.providers.pragmatic_slot`) is the most
     // specific label there is — it tells the casino and slot lobbies of one
     // provider apart — so it beats both the lobby name and the brand.
     if (providerCode !== null && providerCode !== undefined) {
-        const byCode = `game.providerCodes.${String(providerCode).trim().toLowerCase()}`;
+        const byCode = `game.providers.${String(providerCode).trim().toLowerCase()}`;
         if (te(byCode)) return t(byCode);
     }
     // A lobby display name passed as `fallback` (e.g. "Pragmatic Slots") is

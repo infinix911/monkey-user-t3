@@ -134,7 +134,7 @@
                collapsed to zero and the page below jumped up and back. Keeping
                the instance is what makes the swap smooth; the height glide
                lives inside the component. -->
-              <BannerPreview v-else-if="bannerPage" :page="bannerPage" />
+              <BannerPreview v-if="bannerPage" :page="bannerPage" />
             </div>
 
             <!-- Announcement Bar (mobile/tablet < lg: below the banner). It scrolls
