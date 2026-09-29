@@ -18,7 +18,7 @@
               :style="{ '--body-bg': dep.modalBgColor }" style="scrollbar-width: thin; scrollbar-color: #4a4a4a #2a2a2a">
               <div class="px-4 md:px-6 lg:px-10 py-5">
                 <!-- Bank transfer is the only deposit method. -->
-                <BankPaymentContent :bank-accounts="bankAccounts" />
+                <BankPaymentContent :bank-accounts="bankAccounts" :on-success="onClose" />
 
                 <!-- Deposit History Table. Shown at every width: it was
                      `hidden md:block`, so a phone had no way to check whether

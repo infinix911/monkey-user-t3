@@ -431,15 +431,16 @@ const veeSubmit = veeHandleSubmit(async (values) => {
       },
     });
 
-    // Title only — no supporting line (showSuccessAlert's `text` is optional).
-    await showSuccessAlert(t("withdrawal.success"));
-
     amount.value = "0";
     lastSelectedButton.value = null;
     submitted.value = false;
     revealPassword.value = false;
     veeResetForm();
+    // Close the modal straight away; the success dialog is mounted in
+    // app.vue, so it still shows once the modal is gone.
     props.onSuccess?.();
+    // Title only — no supporting line (showSuccessAlert's `text` is optional).
+    await showSuccessAlert(t("withdrawal.success"));
   } catch (error: unknown) {
     // The old hardcoded `translatableErrors` allowlist is gone — apiMessage()
     // already translates only tokens that exist in withdrawal.apiMessages, so
