@@ -754,7 +754,7 @@
     "depositButton": "입금",
     "amount": "금액",
     "id": "ID",
-    "reset": "리셋",
+    "reset": "초기화",
     "max": "MAX",
     "validation": {
       "amountRequired": "입금 금액은 필수입니다",
