@@ -776,9 +776,6 @@
     "rtp": "RTP",
     "login": "로그인"
   },
-  "slotRtp": {
-    "pola": "패턴"
-  },
   "notifications": {
     "title": "알림",
     "empty": "알림이 없습니다",

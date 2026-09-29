@@ -109,11 +109,6 @@ export function useProfileMenuItems() {
     },
     contact: { labelKey: "profile.contact", image: profileMenu.contact },
     livechat: { labelKey: "common.liveChat", image: profileMenu.livechat },
-    // RTP (slot-RTP page). The live CMS places it on page 1, so it needs a
-    // label here as well as in PAGE2_ITEM_DEFAULTS — without it the id would
-    // fall through to prettifyItemId() and render as "Rtp". Icon comes from
-    // the API `image`.
-    rtp: { labelKey: "navbar.rtp", image: "" },
   };
 
   // Hardcoded fallback list (used when API returns nothing)
@@ -140,8 +135,6 @@ export function useProfileMenuItems() {
     // to a prettified id (e.g. "Livechat"). Icons come from the API `image`.
     activity: { labelKey: "profile.activity", image: profileMenu.activity },
     livechat: { labelKey: "common.liveChat", image: profileMenu.livechat },
-    // RTP (slot-RTP page) — label maps to the nav's RTP string; icon from API.
-    rtp: { labelKey: "navbar.rtp", image: "" },
   };
 
   // Hardcoded fallback list (used when API returns nothing)
@@ -157,6 +150,7 @@ export function useProfileMenuItems() {
   // - togel group (invoice … carabermain): ADR togel/qris removal — routes gone.
   // - bonushistory / levelsystem: backed only by GET /promotions/bonuses and
   //   GET /promotions/level-rewards, which don't exist in monkey-user-api.
+  // - rtp / slotrtp: the /slot-rtp page was removed; the CMS may still ship the tile.
   // - partner group: ADR-020 — the /partner* routes, components, and partner
   //   deposit/withdraw flows are gone. The bare `partner` id is the exception:
   //   it is no longer a route here but an outbound link to the monkey-partner
@@ -179,6 +173,8 @@ export function useProfileMenuItems() {
     "partnersettlementrequest",
     "partnerbethistory",
     "partnergamestats",
+    "rtp",
+    "slotrtp",
   ]);
   const isRemovedItem = (id: string) =>
     REMOVED_ITEM_IDS.has(id.replace(/[^a-z]/gi, "").toLowerCase());

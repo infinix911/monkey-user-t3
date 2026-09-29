@@ -354,10 +354,6 @@ const RAIL_ICON_IDS: Record<string, keyof AssetsSidebarIconsConfig> = {
   telegram: "telegram",
   contact: "contact",
   livechat: "livechat",
-  // The CMS ships RTP with no bundled image, so the rail art is the only icon
-  // it has; both spellings the CMS has used map to it.
-  rtp: "rtp",
-  slotRtp: "rtp",
 };
 
 /**

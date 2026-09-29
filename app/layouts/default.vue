@@ -95,8 +95,7 @@
                declared here rather than only implied by the shell arithmetic
                above, and cannot drift if the shell, rail or gap changes. -->
           <div class="min-w-0 lg:flex-1 lg:max-w-[1202px]">
-            <!-- Announcement Bar (desktop lg+: above the banner). Hidden on the
-             RTP page, and switched off wholesale by `theme.announcement.enabled`
+            <!-- Announcement Bar (desktop lg+: above the banner). Switched off wholesale by `theme.announcement.enabled`
              (v-if, so nothing — not even the bar's min-height — is left behind). -->
             <!-- Fills the content column rather than pinning to a fixed 1152px: the
              column is capped at 1202px by its wrapper, so a fixed width here
@@ -125,9 +124,7 @@
                its own page key — so a category page can carry its own creative
                instead of the single hardcoded image they used to share. Pages
                with no key (and pages whose key has no active banner) render
-               nothing. /slot-rtp is the one exception: it keeps its own
-               hardcoded creative and is deliberately not CMS-driven. -->
-              <img v-if="isRtpPage" :src="rtpBannerSrc" :alt="$t('navbar.rtp')" class="block w-full h-auto">
+               nothing. -->
               <!-- Deliberately NOT keyed, and no transition here. This layout
                survives client-side navigation, so one BannerPreview instance
                persists and simply re-filters the banner store when `page`
@@ -211,8 +208,8 @@
                 </div>
               </template>
 
-              <!-- Navbar — hidden on the RTP page (own provider tabs). -->
-              <div v-if="!isRtpPage" ref="navbarAnchor" class="relative z-20">
+              <!-- Navbar -->
+              <div ref="navbarAnchor" class="relative z-20">
                 <div :class="effectiveNavFixed ? 'fixed left-0 right-0 z-40' : ''"
                   :style="effectiveNavFixed ? { top: ((headerHeight - 2) + (isUserBarPinned ? userBarHeight : 0)) + 'px' } : {}">
                   <Navbar :desktop="false" />
@@ -241,7 +238,7 @@
 
         <!-- Mobile Bottom Navigation — signed-in only. Gated here rather than
              inside the component so guests never fetch its async chunk. Shown
-             on every page, including the RTP page. -->
+             on every page. -->
         <BottomNav v-if="authStore.isAuthenticated" />
 
         <!-- Admin-authored footer HTML from the CMS (`content.footer`).
@@ -300,10 +297,9 @@
     <!-- Shared modal hosts (single instance, layout-level) — Promotion, Inquiry
          and FAQ. Triggered from anywhere via the ui store (footer quick links,
          etc.) so the same modal component is reused, never duplicated. -->
-    <!-- Deposit/Withdrawal belong here rather than inside Navbar: the RTP page
-         renders no navbar (see `isRtpPage` above), but the desktop rail and the
-         bottom nav that open them render on every page — hosting them in the
-         navbar left both triggers dead on that page. -->
+    <!-- Deposit/Withdrawal belong here rather than inside Navbar: the desktop
+         rail and the bottom nav that open them render outside the navbar, so
+         they are hosted at layout level beside the other shared modals. -->
     <DepositModal v-if="uiStore.showDepositModal" :is-open="uiStore.showDepositModal"
       @close="uiStore.setShowDepositModal(false)" />
     <WithdrawalModal v-if="uiStore.showWithdrawalModal" :is-open="uiStore.showWithdrawalModal"
@@ -320,7 +316,6 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onMounted, onUnmounted, defineAsyncComponent } from "vue";
-import { cdn } from "@/utils/assetUrl";
 import { sanitizeHtml } from "@/utils/sanitizeHtml";
 
 const authStore = useAuthStore();
@@ -368,12 +363,6 @@ const siteConfig = brandSiteConfig;
 const route = useRoute();
 const localePath = useLocalePath();
 
-// The Slot RTP page is a stripped-down variant: no announcement bar, no bottom
-// nav, and a single static promo banner (rtp-banner.png on the asset CDN)
-// instead of the rotating BannerPreview carousel.
-const isRtpPage = computed(() => route.path === localePath("/slot-rtp"));
-const rtpBannerSrc = cdn("/designs/rtp-banner.png");
-
 /**
  * Whether either announcement bar (desktop band / mobile bar) renders.
  *
@@ -386,7 +375,7 @@ const rtpBannerSrc = cdn("/designs/rtp-banner.png");
  */
 const showAnnouncementBar = computed(
   () =>
-    !isRtpPage.value && brandSiteConfig.theme?.announcement?.enabled !== false,
+    brandSiteConfig.theme?.announcement?.enabled !== false,
 );
 
 /**
@@ -518,7 +507,7 @@ watch(effectiveNavFixed, (fixed) => {
 
 // The pinned user bar's height, published as a CSS var alongside
 // `--mh-header-height`. Elements INSIDE the page slot also pin under the header
-// (the RTP provider strip), and they have no access to `isUserBarPinned` /
+// and they have no access to `isUserBarPinned` /
 // `userBarHeight` from here — without this they pin at the header's bottom edge
 // and collide with this bar. `calc(var(--mh-header-height) +
 // var(--mh-userbar-height))` is the correct top for anything stacking below it.

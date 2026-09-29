@@ -137,9 +137,8 @@ class="w-full h-[6px]" :style="{
       </div>
     </div>
 
-    <!-- Deposit/Withdrawal modals are NOT hosted here. This navbar is skipped on
-         the RTP page (layouts/default.vue), while the rail and bottom nav that
-         trigger them render everywhere — so the hosts live at layout level
+    <!-- Deposit/Withdrawal modals are NOT hosted here. The rail and bottom nav that
+         trigger them render outside this navbar, so the hosts live at layout level
          beside the other shared modals. -->
   </nav>
 </template>

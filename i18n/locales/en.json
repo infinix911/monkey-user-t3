@@ -776,9 +776,6 @@
     "rtp": "RTP",
     "login": "LOGIN"
   },
-  "slotRtp": {
-    "pola": "Pattern"
-  },
   "notifications": {
     "title": "Notifications",
     "empty": "No notifications available",
