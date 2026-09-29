@@ -17,6 +17,7 @@
  */
 
 import { useSiteStore } from "@/stores/site";
+import { useApi } from "@/composables/useApi";
 
 export type TransactionKind = "deposits" | "withdrawals" | "pointconversion";
 
@@ -84,13 +85,41 @@ function toNumber(raw: string | undefined): number | undefined {
  */
 export function useTransactionLimits(kind: TransactionKind) {
   const siteStore = useSiteStore();
+  const effective = useState<{
+    depositMaximum: number;
+    withdrawalMaximum: number;
+  } | null>("effective-transaction-limits", () => null);
+  const api = useApi();
+
+  // Refresh for each form mount: an ancestor may have changed the limit.
+  onMounted(async () => {
+    if (kind === "pointconversion") return;
+    try {
+      const limits = await api<{
+        depositMaximum: number;
+        withdrawalMaximum: number;
+      }>("/transactions/limits");
+      if (Number.isFinite(limits.depositMaximum) &&
+          Number.isFinite(limits.withdrawalMaximum)) {
+        effective.value = limits;
+      }
+    } catch {
+      effective.value = null;
+    }
+  });
 
   return computed<TransactionLimits>(() => {
     const s = siteStore.siteSettings ?? {};
     const fallback = FALLBACK[kind];
     return {
       minimum: toNumber(s[`${kind}:minimum`]) ?? fallback.minimum,
-      maximum: toNumber(s[`${kind}:maximum`]) ?? fallback.maximum,
+      maximum: kind === "deposits"
+        ? effective.value?.depositMaximum ??
+          Math.min(toNumber(s[`${kind}:maximum`]) ?? fallback.maximum, 100_000_000)
+        : kind === "withdrawals"
+          ? effective.value?.withdrawalMaximum ??
+            Math.min(toNumber(s[`${kind}:maximum`]) ?? fallback.maximum, 50_000_000)
+          : toNumber(s[`${kind}:maximum`]) ?? fallback.maximum,
       divisible: toNumber(s[`${kind}:divisible`]) ?? fallback.divisible,
       cooldownMinutes:
         toNumber(s[COOLDOWN_CODE[kind]]) ?? fallback.cooldownMinutes,
