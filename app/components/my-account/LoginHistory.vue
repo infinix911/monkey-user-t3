@@ -48,12 +48,13 @@
 import { computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { formatDeviceInfo } from "~/lib/user-agent";
+import { loginHistoryQuery } from "~/components/my-account/loginHistoryQuery";
 
 const { t } = useI18n();
 
 const recordsStore = useMemberRecordsStore();
-const dateRange = calculateDateRange();
-const loginKey = `login:endDate=${encodeURIComponent(dateRange.end_date)}&startDate=${encodeURIComponent(dateRange.start_date)}`;
+const query = loginHistoryQuery();
+const loginKey = `login:endDate=${encodeURIComponent(query.endDate)}&startDate=${encodeURIComponent(query.startDate)}`;
 const loginEntry = computed(() => recordsStore.loginHistories[loginKey]);
 const loginHistories = computed(() => loginEntry.value?.data ?? []);
 const loading = computed(() => !loginEntry.value || loginEntry.value.status === "loading");
@@ -88,17 +89,5 @@ function cleanIp(raw: string | null | undefined): string {
   return isFullHost ? (address ?? "") : "";
 }
 
-function calculateDateRange() {
-  const today = new Date();
-  const sevenDaysAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-  const formatDate = (date: Date) => {
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, "0");
-    const d = String(date.getDate()).padStart(2, "0");
-    return `${y}-${m}-${d}`;
-  };
-  return { start_date: formatDate(sevenDaysAgo), end_date: formatDate(today) };
-}
-
-onMounted(() => recordsStore.loadLoginHistories({ startDate: dateRange.start_date, endDate: dateRange.end_date }));
+onMounted(() => recordsStore.loadLoginHistories(query));
 </script>
