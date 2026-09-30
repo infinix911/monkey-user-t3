@@ -297,8 +297,6 @@ const columns = computed(() => [
       { label: t("footer.links.casino"), to: "/casino" },
       { label: t("footer.links.slots"), to: "/slots" },
       { label: t("footer.links.sports"), to: "/sports" },
-      { label: t("footer.links.fishing"), to: "/fishing" },
-      { label: t("footer.links.virtual"), to: "/virtual" },
     ] as FooterLink[],
   },
 ]);
