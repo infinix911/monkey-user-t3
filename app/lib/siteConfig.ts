@@ -10,6 +10,7 @@
 
 import { logger } from "~/utils/logger";
 import { useApi } from "@/composables/useApi";
+import { takeThemePrefetch, takeThemePrefetchData } from "@/lib/theme-prefetch";
 
 const CLIENT_CACHE_KEY_PREFIX = "themeConfig.v2";
 
@@ -52,6 +53,30 @@ function getHostname(): string {
   return "_default";
 }
 
+/**
+ * Apply the theme response started by the static HTML (lib/theme-prefetch.ts)
+ * synchronously, if it has already landed. Called by
+ * plugins/theme-prefetch.client.ts before the app mounts, so the very first
+ * render uses the CMS theme instead of the bundled default. `fetchSiteConfig()`
+ * then finds the state populated and skips its own request.
+ *
+ * @returns {boolean} True when a theme was applied.
+ */
+export function applyThemePrefetchIfReady(): boolean {
+  if (!import.meta.client || isThemePreview()) return false;
+  const data = takeThemePrefetchData();
+  if (data === undefined || data === null) return false;
+  const merged = enforceHttps(data);
+  useState<unknown>("userPageConfig", () => null).value = merged;
+  useState<string | null>("siteConfigError", () => null).value = null;
+  try {
+    localStorage.setItem(`${CLIENT_CACHE_KEY_PREFIX}:${getHostname().toLowerCase()}`, JSON.stringify(merged));
+  } catch {
+    // Ignore quota errors
+  }
+  return true;
+}
+
 export const fetchSiteConfig = async (options?: {
   maxRetries?: number;
   timeout?: number;
@@ -90,25 +115,47 @@ export const fetchSiteConfig = async (options?: {
   const REQUEST_TIMEOUT = options?.timeout ?? 10000;
   const api = useApi();
 
+  const applyTheme = (theme: unknown) => {
+    const merged = enforceHttps(theme);
+    apiData.value = merged;
+    configError.value = null;
+
+    if (import.meta.client && !isPreview) {
+      try {
+        localStorage.setItem(clientCacheKey, JSON.stringify(merged));
+      } catch {
+        // Ignore quota errors
+      }
+    }
+
+    return apiData.value;
+  };
+
+  // The static HTML fired this request before the JS bundle loaded (see
+  // lib/theme-prefetch.ts), so on a cold visit it has usually already landed
+  // and the app never paints the bundled default theme. Only the first call
+  // gets it; if it failed, fall through to the normal request below.
+  const early = import.meta.client && !isPreview ? takeThemePrefetch() : undefined;
+  if (early) {
+    try {
+      return applyTheme(await Promise.race([
+        early,
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("theme prefetch timeout")), REQUEST_TIMEOUT),
+        ),
+      ]));
+    } catch (err) {
+      logger.warn("[siteConfig] Early theme request failed; refetching:", err);
+    }
+  }
+
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
       const theme = await api<unknown>(
         isPreview ? "/site/config/theme?domain=preview" : "/site/config/theme",
         { timeout: REQUEST_TIMEOUT },
       );
-      const merged = enforceHttps(theme);
-      apiData.value = merged;
-      configError.value = null;
-
-      if (import.meta.client && !isPreview) {
-        try {
-          localStorage.setItem(clientCacheKey, JSON.stringify(merged));
-        } catch {
-          // Ignore quota errors
-        }
-      }
-
-      return apiData.value;
+      return applyTheme(theme);
     } catch (err) {
       logger.error(
         `[siteConfig] Fetch attempt ${attempt}/${MAX_RETRIES} failed:`,

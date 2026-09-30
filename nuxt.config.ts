@@ -1,4 +1,5 @@
 import tailwindcss from "@tailwindcss/vite";
+import { buildThemePrefetchScript } from "./app/lib/theme-prefetch";
 
 function configuredPreviewOrigins(): string[] {
   return (process.env.NUXT_PUBLIC_ADMIN_PREVIEW_ORIGIN || "")
@@ -363,6 +364,15 @@ export default defineNuxtConfig({
         },
       ],
       script: [
+        // Start the CMS theme request from the HTML, in parallel with the JS
+        // bundle download, so a cold visit renders the real theme instead of
+        // flashing the bundled default. See app/lib/theme-prefetch.ts.
+        {
+          key: "theme-prefetch",
+          innerHTML: buildThemePrefetchScript(publicApiBase),
+          type: "text/javascript",
+          tagPriority: "critical",
+        },
         {
           innerHTML: `
             window.__pwaListeners = new Set();
