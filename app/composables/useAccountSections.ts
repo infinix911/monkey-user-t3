@@ -15,6 +15,9 @@
 
 import type { Component } from "vue";
 import { storeToRefs } from "pinia";
+import { loginHistoryQuery } from "~/components/my-account/loginHistoryQuery";
+import { loadPromotionBoards } from "~/composables/usePromotionBoards";
+import { loadSiteNotices } from "~/composables/useSiteNotices";
 import Referral from "~/components/my-account/Referral.vue";
 import BettingReport from "~/components/my-account/BettingReport.vue";
 import LoginHistory from "~/components/my-account/LoginHistory.vue";
@@ -62,6 +65,36 @@ export function isAccountSection(id: string): boolean {
 }
 
 /**
+ * Data each section renders on first paint, keyed like
+ * {@link ACCOUNT_SECTION_COMPONENTS}. Loaded before the panel is shown so it
+ * opens at its final size — these panels used to mount empty (or with a
+ * skeleton) and resize when their fetch landed. Sections not listed paint at
+ * a stable size already.
+ */
+const SECTION_PREPARE: Partial<Record<string, () => Promise<unknown>>> = {
+  referral: () => useMemberRecordsStore().loadReferrals(),
+  loginHistory: () => useMemberRecordsStore().loadLoginHistories(loginHistoryQuery()),
+  promotion: loadPromotionBoards,
+  faq: loadSiteNotices,
+  notice: loadSiteNotices,
+};
+
+/**
+ * Resolve once a section's first paint will be at its final size (capped, see
+ * utils/firstPaintReady.ts). Cached data resolves immediately.
+ *
+ * @param id - Section id.
+ * @returns {Promise<void>} Resolves when ready; never rejects.
+ */
+export function prepareAccountSection(id: string): Promise<void> {
+  const prepare = SECTION_PREPARE[id];
+  return prepare ? whenReady([prepare(), loadKoreanFonts()]) : Promise.resolve();
+}
+
+/** Latest open request; an older one that resolves late must not win. */
+let openToken = 0;
+
+/**
  * Shared account-section selection.
  *
  * @returns {object} The current section, its component, and open/close actions.
@@ -80,14 +113,19 @@ export function useAccountSection() {
   });
 
   /**
-   * Opens a section. Unknown ids are ignored, so a stale CMS id leaves the
-   * current view alone instead of opening a blank panel.
+   * Opens a section once its first-paint data is ready (see
+   * {@link prepareAccountSection}). Unknown ids are ignored, so a stale CMS id
+   * leaves the current view alone instead of opening a blank panel.
    *
    * @param id - Section id to open.
    * @returns {void}
    */
   function open(id: string): void {
-    if (isAccountSection(id)) uiStore.setAccountSection(id);
+    if (!isAccountSection(id)) return;
+    const token = ++openToken;
+    prepareAccountSection(id).then(() => {
+      if (token === openToken) uiStore.setAccountSection(id);
+    });
   }
 
   /**
@@ -96,6 +134,8 @@ export function useAccountSection() {
    * @returns {void}
    */
   function close(): void {
+    // Also cancels an open that is still preparing.
+    openToken++;
     uiStore.setAccountSection(null);
   }
 

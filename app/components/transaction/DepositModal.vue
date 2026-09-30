@@ -39,14 +39,14 @@
 </template>
 
 <script setup lang="ts">
-import { defineAsyncComponent } from "vue";
 import { useDepositModal } from "@/components/transaction/useDepositModal";
 import DepositModalHeader from "@/components/transaction/DepositModalHeader.vue";
-
-// Kept async so the deposit form isn't fetched until the modal opens.
-const BankPaymentContent = defineAsyncComponent(
-  () => import("@/components/transaction/BankPaymentContent.vue"),
-);
+// Imported eagerly on purpose. This whole modal is already lazy-loaded by the
+// layout, so the form still is not fetched until the first open — but as a
+// nested async component it arrived in a SECOND chunk after the modal had
+// painted, and the desktop panel (height: auto) jumped from ~340px to full
+// height when it landed.
+import BankPaymentContent from "@/components/transaction/BankPaymentContent.vue";
 
 const siteConfig = useSiteConfig();
 const dep = computed(() => siteConfig.theme.transactionmodal);

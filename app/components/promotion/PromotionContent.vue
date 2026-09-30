@@ -29,41 +29,22 @@
 </template>
 
 <script setup lang="ts">
-import { logger } from "~/utils/logger";
 import { ref, onMounted } from "vue";
-import { useApi } from "@/composables/useApi";
-
-interface IPromotionBoard {
-  id: string;
-  order: number;
-  thumbnail: string;
-  description: string;
-}
+import { loadPromotionBoards, usePromotionBoards } from "~/composables/usePromotionBoards";
 
 const { t } = useI18n();
-const boards = ref<IPromotionBoard[]>([]);
+// Shared cache: the modal/panel prefetch it before opening, so a mount
+// normally finds the boards already there and never shows the skeleton.
+const { boards, isLoading } = usePromotionBoards();
 const expandedId = ref<string | null>(null);
-const isLoading = ref(true);
 
 const toggle = (id: string) => {
   expandedId.value = expandedId.value === id ? null : id;
 };
 
-const fetchBoards = async () => {
-  isLoading.value = true;
-  try {
-    const api = useApi();
-    boards.value = (await api<IPromotionBoard[]>("/promotions/boards")) || [];
-  } catch (error) {
-    logger.error("Failed to fetch promotion boards:", error);
-    boards.value = [];
-  } finally {
-    isLoading.value = false;
-  }
-};
-
+// Background refresh — keeps the list current without re-showing the skeleton.
 onMounted(() => {
-  fetchBoards();
+  loadPromotionBoards();
 });
 </script>
 

@@ -89,23 +89,14 @@
  * `scope` flag: this list is `board`, that modal is `site`.
  */
 import { ref, onMounted } from "vue";
-import { useApi } from "@/composables/useApi";
 import { renderTiptap } from "~/composables/useTiptap";
+import { loadSiteNotices, useSiteNotices } from "~/composables/useSiteNotices";
 
-interface NoticeDto {
-  title?: string;
-  content?: string;
-}
-
-interface NoticeItem {
-  id: number;
-  title: string;
-  content: string;
-}
-
+// Every row starts closed until the member chooses one.
 const expanded = ref<number | null>(null);
-const notices = ref<NoticeItem[]>([]);
-const loading = ref(true);
+// Shared cache: the FAQ modal / notice panel prefetch it before opening, so a
+// mount normally finds the list already there instead of growing into it.
+const { notices, loading } = useSiteNotices();
 
 /**
  * Expand one notice, collapsing whichever was open.
@@ -116,25 +107,9 @@ const toggle = (id: number) => {
   expanded.value = expanded.value === id ? null : id;
 };
 
-onMounted(async () => {
-  try {
-    const api = useApi();
-    const body = await api<{ data?: NoticeDto[] } | NoticeDto[]>("/site/notices");
-    const rows: NoticeDto[] = Array.isArray(body) ? body : (body?.data ?? []);
-    notices.value = rows
-      .filter((row): row is Required<NoticeDto> => !!row && !!row.title)
-      .map((row, idx) => ({
-        id: idx + 1,
-        title: row.title,
-        content: row.content ?? "",
-      }));
-    // Leave every row closed until the member chooses one.
-    expanded.value = null;
-  } catch {
-    // Silently fail — the panel renders its empty state.
-  } finally {
-    loading.value = false;
-  }
+// Background refresh — keeps the list current without an empty first paint.
+onMounted(() => {
+  loadSiteNotices();
 });
 </script>
 

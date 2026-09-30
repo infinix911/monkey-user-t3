@@ -6,6 +6,8 @@
  * the browser's root domain.
  */
 
+import { getProductionApiBase } from './api-base';
+
 type PublicRuntimeConfig = { public?: { apiBase?: unknown } };
 
 function normalizeApiBase(value: unknown): string {
@@ -64,12 +66,9 @@ function isLocalDevelopment(): boolean {
   return hostname === 'localhost' || hostname === '127.0.0.1';
 }
 
-/** Build the deployed API base URL from the current browser hostname. */
-export function getProductionApiBase(hostname: string): string {
-  const labels = hostname.split('.');
-  const rootDomain = labels.length > 2 ? labels.slice(1).join('.') : hostname;
-  return `https://uapi.${rootDomain}/api`;
-}
+// Kept in its own dependency-free module so nuxt.config can embed it in the
+// theme-prefetch <head> script; re-exported here for existing imports.
+export { getProductionApiBase };
 
 /** Return the browser-facing API base URL. */
 export function getApiBase(): string {

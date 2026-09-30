@@ -317,6 +317,9 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onMounted, onUnmounted, defineAsyncComponent } from "vue";
 import { sanitizeHtml } from "@/utils/sanitizeHtml";
+import { prepareTransactionModal } from "@/components/transaction/prepareTransactionModal";
+import { loadPromotionBoards } from "@/composables/usePromotionBoards";
+import { loadSiteNotices } from "@/composables/useSiteNotices";
 
 const authStore = useAuthStore();
 const uiStore = useUiStore();
@@ -347,11 +350,24 @@ const BannerPopup = defineAsyncComponent(() => import("@/components/banner/Banne
 // Shared, layout-level modal hosts (one instance each), driven by the ui store.
 // The `v-if` guards keep each chunk (Deposit/Withdrawal pull in vee-validate,
 // zod and the bank UI) from being requested until the modal is actually opened.
-const DepositModal = defineAsyncComponent(() => import("@/components/transaction/DepositModal.vue"));
-const WithdrawalModal = defineAsyncComponent(() => import("@/components/transaction/WithdrawalModal.vue"));
-const PromotionModal = defineAsyncComponent(() => import("@/components/promotion/PromotionModal.vue"));
+// Modals that load data after mounting also wait for it here, alongside the
+// chunk (in parallel, capped — utils/firstPaintReady.ts), so their first paint
+// is already at the final size instead of resizing when the data lands.
+const withPrepare = <T>(chunk: Promise<T>, prepare: () => Promise<void>): Promise<T> =>
+  Promise.all([chunk, prepare()]).then(([mod]) => mod);
+const DepositModal = defineAsyncComponent(() =>
+  withPrepare(import("@/components/transaction/DepositModal.vue"), () => prepareTransactionModal("deposit")),
+);
+const WithdrawalModal = defineAsyncComponent(() =>
+  withPrepare(import("@/components/transaction/WithdrawalModal.vue"), () => prepareTransactionModal("withdrawal")),
+);
+const PromotionModal = defineAsyncComponent(() =>
+  withPrepare(import("@/components/promotion/PromotionModal.vue"), () => whenReady([loadPromotionBoards(), loadKoreanFonts()])),
+);
 const InquiryModal = defineAsyncComponent(() => import("@/components/inquiry/InquiryModal.vue"));
-const FaqModal = defineAsyncComponent(() => import("@/components/faq/FaqModal.vue"));
+const FaqModal = defineAsyncComponent(() =>
+  withPrepare(import("@/components/faq/FaqModal.vue"), () => whenReady([loadSiteNotices(), loadKoreanFonts()])),
+);
 const ContactModal = defineAsyncComponent(() => import("@/components/contact/ContactModal.vue"));
 
 // Started by app.vue with the other public bootstrap reads. The layout only

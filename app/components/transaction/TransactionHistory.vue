@@ -44,6 +44,7 @@
 <script setup lang="ts">
 import type { StatusTone } from "~/components/StatusBadge.vue";
 import { formatNumberID as formatNumber } from "~/lib/formatter";
+import { transactionHistoryQuery } from "~/components/transaction/transactionHistoryQuery";
 
 const props = defineProps<{
   type: "deposit" | "withdrawal";
@@ -107,31 +108,12 @@ function getStatusKey(status: number): string {
   return (STATUSES[status] ?? FALLBACK_STATUS).key;
 }
 
-function calculateDateRange(): { start_date: string; end_date: string } {
-  const today = new Date();
-  const sevenDaysAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-
-  const formatDateStr = (date: Date): string => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
-  };
-
-  return {
-    start_date: formatDateStr(sevenDaysAgo),
-    end_date: formatDateStr(today),
-  };
-}
-
 async function fetchTransactions() {
-  const { start_date, end_date } = calculateDateRange();
-  await recordsStore.loadWalletTransactions({ type: props.type, startDate: start_date, endDate: end_date, method: props.method });
+  await recordsStore.loadWalletTransactions(transactionHistoryQuery(props.type, props.method));
 }
 
 const transactionKey = computed(() => {
-  const { start_date, end_date } = calculateDateRange();
-  const params = { type: props.type, startDate: start_date, endDate: end_date, method: props.method };
+  const params = transactionHistoryQuery(props.type, props.method);
   return `wallet:${Object.entries(params).filter(([, value]) => value !== undefined && value !== "").sort(([a], [b]) => a.localeCompare(b)).map(([name, value]) => `${name}=${encodeURIComponent(String(value))}`).join("&")}`;
 });
 const transactions = computed(() => recordsStore.walletTransactions[transactionKey.value]?.data ?? []);

@@ -7,9 +7,12 @@
       :style="cardStyle">
       <!-- Top band: centered logo -->
       <div class="relative z-10 flex items-center justify-center px-4 pt-[18px] pb-3.5">
-        <!-- Plain <img>: CMS-swappable logo, see AppHeader.vue -->
+        <!-- Plain <img>: CMS-swappable logo, see AppHeader.vue. Height is set
+             outright (was h-auto + max-h), so the slot is reserved before the
+             file loads instead of the popup growing when it arrives; any real
+             logo is taller than this, so it renders at the same size. -->
         <img :src="siteConfig.identity.logoPopup" :alt="siteConfig.identity.siteName"
-          class="h-auto max-h-[22px] lg:max-h-[26px] w-auto drop-shadow"
+          class="h-[22px] lg:h-[26px] w-auto drop-shadow"
         >
       </div>
 

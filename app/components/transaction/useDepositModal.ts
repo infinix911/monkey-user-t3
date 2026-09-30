@@ -36,15 +36,16 @@ const STATIC_BANK_ACCOUNT: IBankAccount = {
   credit_fee: "0",
 };
 
+// Bank transfer is the only deposit method — the E-WALLET and PULSA tabs were
+// removed, so the history filter is fixed rather than derived from a tab.
+// Exported for prepareTransactionModal(), which prefetches the same history.
+export const DEPOSIT_HISTORY_METHOD = "bank";
+
 export function useDepositModal() {
   const bankAccounts = ref<IBankAccount[]>([STATIC_BANK_ACCOUNT]);
 
-  // Bank transfer is the only deposit method — the E-WALLET and PULSA tabs were
-  // removed, so the history filter is fixed rather than derived from a tab.
-  const historyMethod = "bank";
-
   return {
     bankAccounts,
-    historyMethod,
+    historyMethod: DEPOSIT_HISTORY_METHOD,
   };
 }
