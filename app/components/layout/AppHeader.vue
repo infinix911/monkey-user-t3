@@ -450,11 +450,15 @@ const { isMobile: isBelowRail } = useMobileDetect(1024);
 
 // The desktop account bar formats its own balances (see ACCOUNT_BAR_COLORS);
 // UserBalancePill is no longer part of the header.
-const LoginModal = defineAsyncComponent(
-  () => import("@/components/auth/LoginModal.vue"),
+// Both render Korean text in LINE Seed weights the current page may not have
+// used yet (only the Latin faces are preloaded), which painted in the fallback
+// font and re-laid out on the swap. Load them alongside the chunk (capped —
+// utils/firstPaintReady.ts); already-loaded faces resolve immediately.
+const LoginModal = defineAsyncComponent(() =>
+  Promise.all([import("@/components/auth/LoginModal.vue"), whenReady([loadKoreanFonts()])]).then(([mod]) => mod),
 );
-const SignupModal = defineAsyncComponent(
-  () => import("@/components/auth/SignupModal.vue"),
+const SignupModal = defineAsyncComponent(() =>
+  Promise.all([import("@/components/auth/SignupModal.vue"), whenReady([loadKoreanFonts()])]).then(([mod]) => mod),
 );
 const NotificationDropdown = defineAsyncComponent(
   () => import("@/components/notification/NotificationDropdown.vue"),

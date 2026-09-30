@@ -353,8 +353,11 @@ const BannerPopup = defineAsyncComponent(() => import("@/components/banner/Banne
 // Modals that load data after mounting also wait for it here, alongside the
 // chunk (in parallel, capped — utils/firstPaintReady.ts), so their first paint
 // is already at the final size instead of resizing when the data lands.
-const withPrepare = <T>(chunk: Promise<T>, prepare: () => Promise<void>): Promise<T> =>
-  Promise.all([chunk, prepare()]).then(([mod]) => mod);
+// A function declaration, not a `<T>(...) =>` arrow: in a .vue file ESLint's
+// template-aware parser reads a leading `<T>` as a tag and fails the file.
+function withPrepare<T>(chunk: Promise<T>, prepare: () => Promise<void>): Promise<T> {
+  return Promise.all([chunk, prepare()]).then(([mod]) => mod);
+}
 const DepositModal = defineAsyncComponent(() =>
   withPrepare(import("@/components/transaction/DepositModal.vue"), () => prepareTransactionModal("deposit")),
 );
