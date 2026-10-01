@@ -102,7 +102,7 @@
         <td class="whitespace-nowrap"><TableDateCell :value="String(row.created_at ?? '')" /></td>
         <td v-if="showTypeColumn" class="whitespace-nowrap">{{ typeLabel(row.game_type as string) }}</td>
         <td class="whitespace-nowrap">{{ row.game_name }}</td>
-        <td class="whitespace-nowrap">{{ row.game_room }}</td>
+        <td class="whitespace-nowrap">{{ providerDisplayName(t, te, null, String(row.game_room ?? "")) }}</td>
         <td class="whitespace-nowrap">{{ formatNumber(row.bet_amount as number) }}</td>
         <td class="whitespace-nowrap">{{ formatNumber(row.win_amount as number) }}</td>
         <td class="whitespace-nowrap">{{ formatNumber(row.auto_deducted_amount as number) }}</td>

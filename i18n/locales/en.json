@@ -498,7 +498,8 @@
       "sbo": "SBO",
       "saba": "Saba",
       "cmd": "CMD",
-      "evolution1to10": "Evolution 1:10"
+      "evolution1to10": "Evolution 1:10",
+      "evolution1to1": "Evolution 1:1"
     },
     "apiMessages": {
       "LOBBY_NOT_FOUND": "Game lobby not found.",
@@ -886,22 +887,6 @@
         "new": "Pending",
         "completed": "Completed",
         "failed": "Failed"
-      },
-      "transactions": {
-        "DEPOSIT_REQUEST": "Deposit Request",
-        "DEPOSIT_NEW": "Deposit Request",
-        "DEPOSIT_APPROVED": "Deposit Approved",
-        "DEPOSIT_COMPLETED": "Deposit Completed",
-        "DEPOSIT_FAILED": "Deposit Failed",
-        "DEPOSIT_ERROR": "Deposit Error",
-        "WITHDRAWAL_REQUEST": "Withdrawal Request",
-        "WITHDRAWAL_REQUESTED": "Withdrawal Request",
-        "WITHDRAWAL_APPROVED": "Withdrawal Approved",
-        "WITHDRAWAL_COMPLETED": "Withdrawal Completed",
-        "WITHDRAWAL_REJECTED": "Withdrawal Rejected",
-        "WITHDRAWAL_CANCELLED": "Withdrawal Cancelled",
-        "WITHDRAWAL_FAILED": "Withdrawal Failed",
-        "WITHDRAWAL_ERROR": "Withdrawal Error"
       }
     }
   },
@@ -961,15 +946,6 @@
       "win": "Win",
       "balance": "Balance",
       "date": "Date"
-    },
-    "transactionTypes": {
-      "DEPOSIT_APPROVED": "Deposit",
-      "WITHDRAWAL_REQUESTED": "Withdrawal Requested",
-      "WITHDRAWAL_CANCELLED": "Withdrawal Cancelled",
-      "WITHDRAWAL_REJECTED": "Withdrawal Rejected",
-      "ADMIN_WALLET_ADJUSTMENT": "Admin Adjustment",
-      "POINT_EXCHANGE": "Point Exchange",
-      "User Withdrawal": "Withdrawal"
     },
     "agentTransfer": "Agent Transfer"
   },
@@ -1248,5 +1224,31 @@
     "title": "WORK IN PROGRESS",
     "subtitle": "We're crafting something amazing for you!",
     "stayTuned": "Stay tuned for updates!"
+  },
+  "walletLogs": {
+    "transactionTypes": {
+      "depositApproved": "Deposit Approved",
+      "withdrawalRejected": "Withdrawal Rejected (Refund)",
+      "autoBetRefund": "Auto Bet Refund",
+      "userWithdrawal": "Withdrawal Request",
+      "walletTransferSend": "Wallet Transfer (Sent)",
+      "walletTransferReceive": "Wallet Transfer (Received)",
+      "agentWalletTransferAdd": "Agent Wallet Transfer (Add)",
+      "agentWalletTransferDeduct": "Agent Wallet Transfer (Deduct)",
+      "withdrawalRequested": "Withdrawal Requested",
+      "withdrawalCancelled": "Withdrawal Cancelled",
+      "withdrawalApproved": "Withdrawal Approved",
+      "adminWalletAdjustment": "Admin Wallet Adjustment",
+      "pointExchange": "Point Exchange",
+      "adminAdd": "Admin Credit",
+      "adminDeduct": "Admin Deduction",
+      "deposit": "Deposit",
+      "depositAuto": "Auto Deposit",
+      "pointWithdrawal": "Point Withdrawal",
+      "gameWalletWithdrawal": "Game Wallet Withdrawal ({provider})"
+    },
+    "notes": {
+      "maxWinExceededDeduction": "Max Win Exceeded (Deduction)"
+    }
   }
 }
