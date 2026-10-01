@@ -477,16 +477,16 @@
       "illustrativeAnalytics": "일러스트레이티브 애널리틱스",
       "wsSports": "WS 스포츠",
       "spribeAviator": "스프라이브 에비에이터",
-      "orientalGaming": "오리엔탈 게이밍",
+      "orientalGaming": "오리엔탈게임",
       "betgames": "벳게임즈",
       "live88": "라이브 88",
       "winfinity": "윈피니티",
       "emperorGaming": "엠페러 게이밍",
       "skywind": "스카이윈드",
-      "pragmatic": "프라그마틱 플레이",
+      "pragmatic": "프라그마틱",
       "eeai": "EEAI",
       "ezugi": "이주기",
-      "asianGaming": "아시아 게이밍",
+      "asianGaming": "아시아게이밍",
       "playtech": "플레이텍",
       "microgaming": "마이크로게이밍",
       "jili": "지리",
@@ -498,7 +498,8 @@
       "sbo": "스보벳",
       "saba": "사바",
       "cmd": "CMD",
-      "evolution1to10": "에볼루션 1:10"
+      "evolution1to10": "에볼루션 1:10",
+      "evolution1to1": "에볼루션 1:1"
     },
     "apiMessages": {
       "LOBBY_NOT_FOUND": "게임 로비를 찾을 수 없습니다.",
@@ -886,22 +887,6 @@
         "new": "대기중",
         "completed": "완료",
         "failed": "실패"
-      },
-      "transactions": {
-        "DEPOSIT_REQUEST": "입금 신청",
-        "DEPOSIT_NEW": "입금 신청",
-        "DEPOSIT_APPROVED": "입금 승인",
-        "DEPOSIT_COMPLETED": "입금 완료",
-        "DEPOSIT_FAILED": "입금 실패",
-        "DEPOSIT_ERROR": "입금 오류",
-        "WITHDRAWAL_REQUEST": "출금 신청",
-        "WITHDRAWAL_REQUESTED": "출금 신청",
-        "WITHDRAWAL_APPROVED": "출금 승인",
-        "WITHDRAWAL_COMPLETED": "출금 완료",
-        "WITHDRAWAL_REJECTED": "출금 거절",
-        "WITHDRAWAL_CANCELLED": "출금 취소",
-        "WITHDRAWAL_FAILED": "출금 실패",
-        "WITHDRAWAL_ERROR": "출금 오류"
       }
     }
   },
@@ -961,15 +946,6 @@
       "win": "당첨",
       "balance": "잔액",
       "date": "일시"
-    },
-    "transactionTypes": {
-      "DEPOSIT_APPROVED": "입금",
-      "WITHDRAWAL_REQUESTED": "출금 요청",
-      "WITHDRAWAL_CANCELLED": "출금 취소",
-      "WITHDRAWAL_REJECTED": "출금 거절",
-      "ADMIN_WALLET_ADJUSTMENT": "관리자 조정",
-      "POINT_EXCHANGE": "포인트 전환",
-      "User Withdrawal": "출금"
     },
     "agentTransfer": "에이전트 이체"
   },
@@ -1248,5 +1224,31 @@
     "title": "준비 중입니다",
     "subtitle": "멋진 기능을 준비하고 있습니다!",
     "stayTuned": "업데이트를 기대해 주세요!"
+  },
+  "walletLogs": {
+    "transactionTypes": {
+      "depositApproved": "입금 승인",
+      "withdrawalRejected": "출금 거절 (환불)",
+      "autoBetRefund": "베팅 자동 환불",
+      "userWithdrawal": "출금 신청",
+      "walletTransferSend": "지갑 이체 (보냄)",
+      "walletTransferReceive": "지갑 이체 (받음)",
+      "agentWalletTransferAdd": "에이전트 지갑 이체 (지급)",
+      "agentWalletTransferDeduct": "에이전트 지갑 이체 (차감)",
+      "withdrawalRequested": "출금 신청",
+      "withdrawalCancelled": "출금 취소",
+      "withdrawalApproved": "출금 승인",
+      "adminWalletAdjustment": "관리자 지갑 조정",
+      "pointExchange": "포인트 전환",
+      "adminAdd": "관리자 지급",
+      "adminDeduct": "관리자 차감",
+      "deposit": "입금",
+      "depositAuto": "자동 입금",
+      "pointWithdrawal": "포인트 출금",
+      "gameWalletWithdrawal": "게임 지갑 회수 ({provider})"
+    },
+    "notes": {
+      "maxWinExceededDeduction": "최대 당첨금 초과 차감"
+    }
   }
 }

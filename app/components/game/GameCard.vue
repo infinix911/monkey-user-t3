@@ -78,7 +78,7 @@
         <p
           class="italic text-[#b0b0b0] text-[12px] sm:text-[14.252px] font-medium leading-[18px] sm:leading-[21.217px] tracking-[-0.36px] sm:tracking-[-0.4276px] text-center mt-1 line-clamp-1 break-words"
         >
-          {{ game.lobby }}
+          {{ providerName }}
         </p>
       </div>
     </div>
@@ -87,6 +87,7 @@
 
 <script setup lang="ts">
 import { localizedGameName } from "~/utils/localized-game-name";
+import { providerDisplayName } from "~/utils/gameProviderLogo";
 
 interface Game {
   id: string | number;
@@ -113,6 +114,10 @@ const props = withDefaults(
   },
 );
 
-const { locale } = useI18n();
+const { locale, t, te } = useI18n();
 const gameName = computed(() => localizedGameName(props.game, locale.value));
+// Same lobby-name translation as HotGameCard (`Pragmatic Slots` → `프라그마틱 슬롯`).
+const providerName = computed(() =>
+  providerDisplayName(t, te, null, props.game.lobby ?? ""),
+);
 </script>

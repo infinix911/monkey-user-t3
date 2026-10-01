@@ -97,7 +97,7 @@
         class="w-full h-full bg-gray-800 flex flex-col items-center justify-center p-3"
       >
         <p class="text-white text-sm font-medium text-center line-clamp-2">
-          {{ game.game_name }}
+          {{ providerDisplayName(t, te, null, game.game_name) }}
         </p>
       </div>
     </template>
@@ -110,8 +110,9 @@ import { showSwalAlert } from "~~/utils/swal-alert";
 import { computed, ref, resolveComponent } from "vue";
 import { openGame } from "~~/utils/game-navigation";
 import { useApi } from "@/composables/useApi";
+import { providerDisplayName } from "~/utils/gameProviderLogo";
 
-const { t } = useI18n();
+const { t, te } = useI18n();
 
 const authStore = useAuthStore();
 const uiStore = useUiStore();

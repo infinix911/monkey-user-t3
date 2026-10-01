@@ -264,18 +264,15 @@ const COLUMN_LABEL_KEYS: Record<string, string> = {
 };
 
 /**
- * Translate a backend transaction/status code (e.g. `DEPOSIT_APPROVED`) to a
- * localized label, falling back to the raw value for unmapped codes and game
- * provider names (Evolution, Pragmatic Slots, …).
+ * Translate a wallet-log `transaction` value — fixed codes (`DEPOSIT_APPROVED`),
+ * transfer labels and game lobby names (Evolution, Pragmatic Slots, …) — via
+ * utils/walletLogTransaction.ts; unmapped values pass through unchanged.
  *
  * @param value - The raw `transaction` cell value.
  * @returns {string} Localized label, or the raw value when unmapped.
  */
 function transactionLabel(value: unknown): string {
-  const raw = String(value ?? "").trim();
-  if (!raw) return "";
-  const key = `activity.transactionTypes.${raw}`;
-  return te(key) ? t(key) : raw;
+  return walletLogTransactionLabel(t, te, value);
 }
 const activeTab = ref<ActivityCategory>("all");
 const currentPage = ref(1);

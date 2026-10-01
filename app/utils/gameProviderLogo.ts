@@ -200,6 +200,7 @@ const PROVIDER_NAME_KEYS: Record<string, string> = {
     "Pragmatic Slots": "pragmatic_slot",
     "Pragmatic Play Live": "pragmatic_casino",
     "Evolution 1:10": "evolution1to10",
+    "Evolution 1:1": "evolution1to1",
     "Micro Gaming Slots": "mg_slot",
     "Micro Gaming Live": "mg_casino",
     "Skywind Slots": "skywind_slot",
@@ -207,7 +208,39 @@ const PROVIDER_NAME_KEYS: Record<string, string> = {
     "Oriental Gaming": "orientalGaming",
     "Oriental Slots": "og_slot",
     "No Limity City": "nolimit_slot",
+    // Current lobby names (`GET /games/lobbies` gameName) that differ from the
+    // logo-map display names above. Wallet-log game rows and other name-only
+    // call sites carry just this name, so without these they rendered in
+    // English. Each points at the per-code key the approved Korean list fills.
+    "Asia Gaming": "asianGaming",
+    Thunderkick: "thunderkick_slot",
+    "Slot Matrix": "slotmatrix_slot",
+    "Funky Games": "funkygames_slot",
+    Revolver: "revolver_slot",
+    Rubyplay: "rubyplay_slot",
+    "1x2 Gaming": "1x2_slot",
+    Kalamba: "kalamba_slot",
+    Dragoonsoft: "dragoonsoft_slot",
+    Endorphina: "endorphina_slot",
+    Ftg: "ftg_slot",
+    Aspect: "aspect_slot",
+    Advantplay: "advantplay_slot",
+    Simpleplay: "simpleplay_slot",
+    FC: "fc_slot",
+    Reevo: "reevo_slot",
+    Yellowbat: "yellowbat_slot",
+    Croco: "croco_slot",
+    Belatra: "belatra_slot",
+    "BT1 Sports": "bt1_sports",
 };
+
+/**
+ * `PROVIDER_NAME_KEYS` keyed by lower-cased name, so a lobby spelled with
+ * different casing (`Rubyplay` / `RubyPlay`, `Ftg` / `FTG`) still resolves.
+ */
+const PROVIDER_NAME_KEYS_LC: Record<string, string> = Object.fromEntries(
+    Object.entries(PROVIDER_NAME_KEYS).map(([name, key]) => [name.toLowerCase(), key]),
+);
 
 /** Localised name for a display name in `PROVIDER_NAME_KEYS`, else `undefined`. */
 function localisedByName(
@@ -215,7 +248,7 @@ function localisedByName(
     te: (key: string) => boolean,
     name?: string | null,
 ): string | undefined {
-    const key = name ? PROVIDER_NAME_KEYS[name.trim()] : undefined;
+    const key = name ? PROVIDER_NAME_KEYS_LC[name.trim().toLowerCase()] : undefined;
     if (!key) return undefined;
     const full = `game.providers.${key}`;
     return te(full) ? t(full) : undefined;
