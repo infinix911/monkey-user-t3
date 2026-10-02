@@ -1250,5 +1250,32 @@
     "notes": {
       "maxWinExceededDeduction": "Max Win Exceeded (Deduction)"
     }
+  },
+  "userAgent": {
+    "devices": {
+      "desktop": "Desktop",
+      "mobile": "Mobile",
+      "tablet": "Tablet",
+      "unknown": "Unknown"
+    },
+    "os": {
+      "windows": "Windows",
+      "macos": "macOS",
+      "ios": "iOS",
+      "ipados": "iPadOS",
+      "android": "Android",
+      "linux": "Linux",
+      "unknown": "Unknown"
+    },
+    "browsers": {
+      "chrome": "Chrome",
+      "edge": "Edge",
+      "safari": "Safari",
+      "firefox": "Firefox",
+      "opera": "Opera",
+      "samsunginternet": "Samsung Internet",
+      "ie": "Internet Explorer",
+      "unknown": "Unknown"
+    }
   }
 }

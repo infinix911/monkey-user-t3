@@ -169,6 +169,7 @@ xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 2
 import { ref, computed, onMounted } from "vue";
 import type { StatusTone } from "~/components/StatusBadge.vue";
 import { useSiteConfig } from "~/composables/useSiteConfig";
+import { pageWindow } from "~/utils/pageWindow";
 
 defineOptions({
   name: "ActivityContent",
@@ -410,34 +411,9 @@ const goToPage = (page: number) => {
   fetchActivity(activeTab.value, page);
 };
 
+/** First, last and a window around the current page (shared with the Betting Report). */
 const visiblePages = computed<(number | string)[]>(() => {
-  const maxVisible = 6;
-  const pages: (number | string)[] = [];
-  if (totalPages.value <= maxVisible) {
-    for (let i = 1; i <= totalPages.value; i++) pages.push(i);
-    return pages;
-  }
-  const current = currentPage.value;
-  const half = Math.floor(maxVisible / 2);
-  let start = Math.max(1, current - half);
-  let end = Math.min(totalPages.value, current + half);
-
-  if (current <= half) {
-    end = maxVisible;
-  } else if (current >= totalPages.value - half) {
-    start = totalPages.value - maxVisible + 1;
-  }
-
-  if (start > 1) {
-    pages.push(1);
-    if (start > 2) pages.push("...");
-  }
-  for (let i = start; i <= end; i++) pages.push(i);
-  if (end < totalPages.value) {
-    if (end < totalPages.value - 1) pages.push("...");
-    pages.push(totalPages.value);
-  }
-  return pages;
+  return pageWindow(currentPage.value, totalPages.value);
 });
 
 onMounted(() => {

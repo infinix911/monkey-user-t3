@@ -120,16 +120,40 @@
       </template>
     </AppTable>
     <!-- Pagination -->
-    <div v-if="!loading && totalPages > 1" class="flex justify-center gap-3 lg:gap-2">
+    <!-- Windowed like the Activity modal: one button per page grew to hundreds
+         of buttons on a long range (7,000+ slot bets = 300 pages). -->
+    <div v-if="!loading && totalPages > 1" class="flex justify-center items-center gap-1 md:gap-3">
       <button
-        v-for="page in totalPages" :key="page" :disabled="loading" :class="[
-        'transition-colors text-sm lg:text-base cursor-pointer',
-        currentPage === page
-          ? 'tm-btn font-semibold px-3 py-1 rounded'
-          : 'tm-card tm-muted hover:text-white px-3 py-1 rounded',
-        loading ? 'opacity-50 cursor-not-allowed' : '',
-      ]" style="font-family: var(--font-line-seed)" @click="handlePageChange(page)">
-        {{ page }}
+        :disabled="currentPage === 1"
+        class="px-4 py-2 rounded-lg text-white font-line-seed text-xs transition-all duration-200 flex items-center gap-2 h-auto"
+        :class="currentPage === 1 ? 'tm-card cursor-not-allowed opacity-40' : 'tm-btn-ghost shadow-md hover:shadow-lg cursor-pointer'"
+        @click="handlePageChange(currentPage - 1)">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+        {{ t('common.previous') }}
+      </button>
+
+      <template v-for="(page, index) in visiblePages" :key="`${page}-${index}`">
+        <span v-if="page === '...'" class="tm-muted px-2 text-base">...</span>
+        <button
+          v-else
+          class="px-4 py-2 rounded-lg font-line-seed text-xs transition-all duration-200 h-auto cursor-pointer"
+          :class="currentPage === page ? 'tm-btn font-bold shadow-lg' : 'tm-btn-ghost shadow-md hover:shadow-lg'"
+          @click="handlePageChange(page)">
+          {{ page }}
+        </button>
+      </template>
+
+      <button
+        :disabled="currentPage === totalPages"
+        class="px-4 py-2 rounded-lg text-white font-line-seed text-xs transition-all duration-200 flex items-center gap-2 h-auto"
+        :class="currentPage === totalPages ? 'tm-card cursor-not-allowed opacity-40' : 'tm-btn-ghost shadow-md hover:shadow-lg cursor-pointer'"
+        @click="handlePageChange(currentPage + 1)">
+        {{ t('common.next') }}
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
       </button>
     </div>
   </div>
@@ -139,6 +163,7 @@
 import { ref, computed, watch, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { formatDateAsISO } from "~/lib/date";
+import { pageWindow } from "~/utils/pageWindow";
 import { formatNumber } from "~/lib/formatter";
 import { providerDisplayName } from "@/utils/gameProviderLogo";
 
@@ -208,6 +233,8 @@ const reportKey = computed(() => {
 const reportEntry = computed(() => recordsStore.bettingReports[reportKey.value]);
 const betHistories = computed(() => reportEntry.value?.data?.data ?? []);
 const totalPages = computed(() => reportEntry.value?.data?.pages ?? 0);
+/** First, last and a window around the current page (see utils/pageWindow.ts). */
+const visiblePages = computed(() => pageWindow(currentPage.value, totalPages.value));
 const loading = computed(() => !reportEntry.value || reportEntry.value.status === "loading");
 const error = computed(() => reportEntry.value?.status === "error" ? t("bettingReport.error") : null);
 const summary = computed(() => reportEntry.value?.data?.summary ?? null);
@@ -287,6 +314,7 @@ function handleSearch() {
 }
 
 function handlePageChange(page: number) {
+  if (page < 1 || page > totalPages.value || page === currentPage.value) return;
   fetchBetHistories(page);
 }
 
