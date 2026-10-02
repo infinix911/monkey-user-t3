@@ -117,27 +117,28 @@ v-else-if="col === 'Status'" :tone="statusTone(String(row[col] ?? ''))"
             </AppTable>
 
             <!-- Server-side Pagination -->
-            <div v-if="totalPages > 1" class="flex justify-center items-center gap-1 md:gap-3">
+            <div v-if="totalPages > 1" class="flex flex-wrap justify-center items-center gap-1 max-w-full">
                 <button
 :disabled="currentPage === 1"
-                    class="px-4 py-2 rounded-lg text-white font-line-seed text-xs transition-all duration-200 flex items-center gap-2 h-auto whitespace-nowrap shrink-0"
+                    class="px-2 py-1.5 rounded-md text-white font-line-seed text-xs transition-all duration-200 flex items-center gap-1 h-auto whitespace-nowrap shrink-0"
                     :class="currentPage === 1
                         ? 'tm-card cursor-not-allowed opacity-40'
                         : 'tm-btn-ghost shadow-md hover:shadow-lg cursor-pointer'"
+                    :aria-label="t('common.previous')"
                     @click="goToPage(currentPage - 1)">
                     <svg
-xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                     </svg>
-                    {{ t('common.previous') }}
+                    <span class="hidden sm:inline">{{ t('common.previous') }}</span>
                 </button>
 
-                <template v-for="page in visiblePages" :key="page">
-                    <span v-if="page === '...'" class="tm-muted px-2 text-base">...</span>
+                <template v-for="(page, index) in visiblePages" :key="`${page}-${index}`">
+                    <span v-if="page === '...'" class="tm-muted px-0.5 text-xs">...</span>
                     <button
 v-else
-                        class="px-4 py-2 rounded-lg font-line-seed text-xs transition-all duration-200 h-auto cursor-pointer"
+                        class="min-w-7 px-1.5 py-1.5 rounded-md font-line-seed text-xs transition-all duration-200 h-auto cursor-pointer shrink-0"
                         :class="currentPage === page
                             ? 'tm-btn font-bold shadow-lg'
                             : 'tm-btn-ghost shadow-md hover:shadow-lg'" @click="goToPage(page as number)">
@@ -147,14 +148,15 @@ v-else
 
                 <button
 :disabled="currentPage === totalPages"
-                    class="px-4 py-2 rounded-lg text-white font-line-seed text-xs transition-all duration-200 flex items-center gap-2 h-auto whitespace-nowrap shrink-0"
+                    class="px-2 py-1.5 rounded-md text-white font-line-seed text-xs transition-all duration-200 flex items-center gap-1 h-auto whitespace-nowrap shrink-0"
                     :class="currentPage === totalPages
                         ? 'tm-card cursor-not-allowed opacity-40'
                         : 'tm-btn-ghost shadow-md hover:shadow-lg cursor-pointer'"
+                    :aria-label="t('common.next')"
                     @click="goToPage(currentPage + 1)">
-                    {{ t('common.next') }}
+                    <span class="hidden sm:inline">{{ t('common.next') }}</span>
                     <svg
-xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                     </svg>
@@ -413,7 +415,7 @@ const goToPage = (page: number) => {
 
 /** First, last and a window around the current page (shared with the Betting Report). */
 const visiblePages = computed<(number | string)[]>(() => {
-  return pageWindow(currentPage.value, totalPages.value);
+  return pageWindow(currentPage.value, totalPages.value, 4);
 });
 
 onMounted(() => {
