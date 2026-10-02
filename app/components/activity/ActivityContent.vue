@@ -120,7 +120,7 @@ v-else-if="col === 'Status'" :tone="statusTone(String(row[col] ?? ''))"
             <div v-if="totalPages > 1" class="flex justify-center items-center gap-1 md:gap-3">
                 <button
 :disabled="currentPage === 1"
-                    class="px-4 py-2 rounded-lg text-white font-line-seed text-xs transition-all duration-200 flex items-center gap-2 h-auto"
+                    class="px-4 py-2 rounded-lg text-white font-line-seed text-xs transition-all duration-200 flex items-center gap-2 h-auto whitespace-nowrap shrink-0"
                     :class="currentPage === 1
                         ? 'tm-card cursor-not-allowed opacity-40'
                         : 'tm-btn-ghost shadow-md hover:shadow-lg cursor-pointer'"
@@ -147,7 +147,7 @@ v-else
 
                 <button
 :disabled="currentPage === totalPages"
-                    class="px-4 py-2 rounded-lg text-white font-line-seed text-xs transition-all duration-200 flex items-center gap-2 h-auto"
+                    class="px-4 py-2 rounded-lg text-white font-line-seed text-xs transition-all duration-200 flex items-center gap-2 h-auto whitespace-nowrap shrink-0"
                     :class="currentPage === totalPages
                         ? 'tm-card cursor-not-allowed opacity-40'
                         : 'tm-btn-ghost shadow-md hover:shadow-lg cursor-pointer'"

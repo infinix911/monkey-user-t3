@@ -125,7 +125,7 @@
     <div v-if="!loading && totalPages > 1" class="flex justify-center items-center gap-1 md:gap-3">
       <button
         :disabled="currentPage === 1"
-        class="px-4 py-2 rounded-lg text-white font-line-seed text-xs transition-all duration-200 flex items-center gap-2 h-auto"
+        class="px-4 py-2 rounded-lg text-white font-line-seed text-xs transition-all duration-200 flex items-center gap-2 h-auto whitespace-nowrap shrink-0"
         :class="currentPage === 1 ? 'tm-card cursor-not-allowed opacity-40' : 'tm-btn-ghost shadow-md hover:shadow-lg cursor-pointer'"
         @click="handlePageChange(currentPage - 1)">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -147,7 +147,7 @@
 
       <button
         :disabled="currentPage === totalPages"
-        class="px-4 py-2 rounded-lg text-white font-line-seed text-xs transition-all duration-200 flex items-center gap-2 h-auto"
+        class="px-4 py-2 rounded-lg text-white font-line-seed text-xs transition-all duration-200 flex items-center gap-2 h-auto whitespace-nowrap shrink-0"
         :class="currentPage === totalPages ? 'tm-card cursor-not-allowed opacity-40' : 'tm-btn-ghost shadow-md hover:shadow-lg cursor-pointer'"
         @click="handlePageChange(currentPage + 1)">
         {{ t('common.next') }}
