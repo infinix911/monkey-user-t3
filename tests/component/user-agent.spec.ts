@@ -78,4 +78,9 @@ describe("pageWindow", () => {
     expect(pageWindow(150, 303)).toEqual([1, "...", 147, 148, 149, 150, 151, 152, 153, "...", 303]);
     expect(pageWindow(303, 303)).toEqual([1, "...", 298, 299, 300, 301, 302, 303]);
   });
+
+  it("supports the narrower window the Betting Report uses", () => {
+    expect(pageWindow(2, 74, 4)).toEqual([1, 2, 3, 4, "...", 74]);
+    expect(pageWindow(40, 74, 4)).toEqual([1, "...", 38, 39, 40, 41, 42, "...", 74]);
+  });
 });

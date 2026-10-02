@@ -122,23 +122,24 @@
     <!-- Pagination -->
     <!-- Windowed like the Activity modal: one button per page grew to hundreds
          of buttons on a long range (7,000+ slot bets = 300 pages). -->
-    <div v-if="!loading && totalPages > 1" class="flex justify-center items-center gap-1 md:gap-3">
+    <div v-if="!loading && totalPages > 1" class="flex flex-wrap justify-center items-center gap-1 max-w-full">
       <button
         :disabled="currentPage === 1"
-        class="px-4 py-2 rounded-lg text-white font-line-seed text-xs transition-all duration-200 flex items-center gap-2 h-auto whitespace-nowrap shrink-0"
+        class="px-2 py-1.5 rounded-md text-white font-line-seed text-xs transition-all duration-200 flex items-center gap-1 h-auto whitespace-nowrap shrink-0"
         :class="currentPage === 1 ? 'tm-card cursor-not-allowed opacity-40' : 'tm-btn-ghost shadow-md hover:shadow-lg cursor-pointer'"
+        :aria-label="t('common.previous')"
         @click="handlePageChange(currentPage - 1)">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
         </svg>
-        {{ t('common.previous') }}
+        <span class="hidden sm:inline">{{ t('common.previous') }}</span>
       </button>
 
       <template v-for="(page, index) in visiblePages" :key="`${page}-${index}`">
-        <span v-if="page === '...'" class="tm-muted px-2 text-base">...</span>
+        <span v-if="page === '...'" class="tm-muted px-0.5 text-xs">...</span>
         <button
           v-else
-          class="px-4 py-2 rounded-lg font-line-seed text-xs transition-all duration-200 h-auto cursor-pointer"
+          class="min-w-7 px-1.5 py-1.5 rounded-md font-line-seed text-xs transition-all duration-200 h-auto cursor-pointer shrink-0"
           :class="currentPage === page ? 'tm-btn font-bold shadow-lg' : 'tm-btn-ghost shadow-md hover:shadow-lg'"
           @click="handlePageChange(page)">
           {{ page }}
@@ -147,11 +148,12 @@
 
       <button
         :disabled="currentPage === totalPages"
-        class="px-4 py-2 rounded-lg text-white font-line-seed text-xs transition-all duration-200 flex items-center gap-2 h-auto whitespace-nowrap shrink-0"
+        class="px-2 py-1.5 rounded-md text-white font-line-seed text-xs transition-all duration-200 flex items-center gap-1 h-auto whitespace-nowrap shrink-0"
         :class="currentPage === totalPages ? 'tm-card cursor-not-allowed opacity-40' : 'tm-btn-ghost shadow-md hover:shadow-lg cursor-pointer'"
+        :aria-label="t('common.next')"
         @click="handlePageChange(currentPage + 1)">
-        {{ t('common.next') }}
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <span class="hidden sm:inline">{{ t('common.next') }}</span>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
         </svg>
       </button>
@@ -234,7 +236,7 @@ const reportEntry = computed(() => recordsStore.bettingReports[reportKey.value])
 const betHistories = computed(() => reportEntry.value?.data?.data ?? []);
 const totalPages = computed(() => reportEntry.value?.data?.pages ?? 0);
 /** First, last and a window around the current page (see utils/pageWindow.ts). */
-const visiblePages = computed(() => pageWindow(currentPage.value, totalPages.value));
+const visiblePages = computed(() => pageWindow(currentPage.value, totalPages.value, 4));
 const loading = computed(() => !reportEntry.value || reportEntry.value.status === "loading");
 const error = computed(() => reportEntry.value?.status === "error" ? t("bettingReport.error") : null);
 const summary = computed(() => reportEntry.value?.data?.summary ?? null);
