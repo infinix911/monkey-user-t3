@@ -120,16 +120,42 @@
       </template>
     </AppTable>
     <!-- Pagination -->
-    <div v-if="!loading && totalPages > 1" class="flex justify-center gap-3 lg:gap-2">
+    <!-- Windowed like the Activity modal: one button per page grew to hundreds
+         of buttons on a long range (7,000+ slot bets = 300 pages). -->
+    <div v-if="!loading && totalPages > 1" class="flex flex-wrap justify-center items-center gap-1 max-w-full">
       <button
-        v-for="page in totalPages" :key="page" :disabled="loading" :class="[
-        'transition-colors text-sm lg:text-base cursor-pointer',
-        currentPage === page
-          ? 'tm-btn font-semibold px-3 py-1 rounded'
-          : 'tm-card tm-muted hover:text-white px-3 py-1 rounded',
-        loading ? 'opacity-50 cursor-not-allowed' : '',
-      ]" style="font-family: var(--font-line-seed)" @click="handlePageChange(page)">
-        {{ page }}
+        :disabled="currentPage === 1"
+        class="px-2 py-1.5 rounded-md text-white font-line-seed text-xs transition-all duration-200 flex items-center gap-1 h-auto whitespace-nowrap shrink-0"
+        :class="currentPage === 1 ? 'tm-card cursor-not-allowed opacity-40' : 'tm-btn-ghost shadow-md hover:shadow-lg cursor-pointer'"
+        :aria-label="t('common.previous')"
+        @click="handlePageChange(currentPage - 1)">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+        <span class="hidden sm:inline">{{ t('common.previous') }}</span>
+      </button>
+
+      <template v-for="(page, index) in visiblePages" :key="`${page}-${index}`">
+        <span v-if="page === '...'" class="tm-muted px-0.5 text-xs">...</span>
+        <button
+          v-else
+          class="min-w-7 px-1.5 py-1.5 rounded-md font-line-seed text-xs transition-all duration-200 h-auto cursor-pointer shrink-0"
+          :class="currentPage === page ? 'tm-btn font-bold shadow-lg' : 'tm-btn-ghost shadow-md hover:shadow-lg'"
+          @click="handlePageChange(page)">
+          {{ page }}
+        </button>
+      </template>
+
+      <button
+        :disabled="currentPage === totalPages"
+        class="px-2 py-1.5 rounded-md text-white font-line-seed text-xs transition-all duration-200 flex items-center gap-1 h-auto whitespace-nowrap shrink-0"
+        :class="currentPage === totalPages ? 'tm-card cursor-not-allowed opacity-40' : 'tm-btn-ghost shadow-md hover:shadow-lg cursor-pointer'"
+        :aria-label="t('common.next')"
+        @click="handlePageChange(currentPage + 1)">
+        <span class="hidden sm:inline">{{ t('common.next') }}</span>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
       </button>
     </div>
   </div>
@@ -139,6 +165,7 @@
 import { ref, computed, watch, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { formatDateAsISO } from "~/lib/date";
+import { pageWindow } from "~/utils/pageWindow";
 import { formatNumber } from "~/lib/formatter";
 import { providerDisplayName } from "@/utils/gameProviderLogo";
 
@@ -208,6 +235,8 @@ const reportKey = computed(() => {
 const reportEntry = computed(() => recordsStore.bettingReports[reportKey.value]);
 const betHistories = computed(() => reportEntry.value?.data?.data ?? []);
 const totalPages = computed(() => reportEntry.value?.data?.pages ?? 0);
+/** First, last and a window around the current page (see utils/pageWindow.ts). */
+const visiblePages = computed(() => pageWindow(currentPage.value, totalPages.value, 4));
 const loading = computed(() => !reportEntry.value || reportEntry.value.status === "loading");
 const error = computed(() => reportEntry.value?.status === "error" ? t("bettingReport.error") : null);
 const summary = computed(() => reportEntry.value?.data?.summary ?? null);
@@ -287,6 +316,7 @@ function handleSearch() {
 }
 
 function handlePageChange(page: number) {
+  if (page < 1 || page > totalPages.value || page === currentPage.value) return;
   fetchBetHistories(page);
 }
 

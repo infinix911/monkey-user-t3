@@ -1,86 +1,125 @@
 /**
- * User agent parsing utilities
+ * User agent parsing utilities for the Login History modal.
+ *
+ * `parseUserAgent` returns stable keys (`chrome`, `windows`, `mobile`) plus
+ * versions; `formatDeviceInfo` turns them into a localized label through
+ * `userAgent.*` (ko `모바일 - iOS 17.6 - 사파리`).
+ *
+ * Detection order matters: iPhone/iPad user agents also contain "like Mac OS X",
+ * and Edge / Opera / Samsung Internet / Chrome-on-iOS all contain "Chrome" or
+ * "Safari", so the more specific signatures are checked first.
  */
+
+export type DeviceKind = "desktop" | "mobile" | "tablet" | "unknown";
+
 export interface ParsedUserAgent {
+  /** Browser key under `userAgent.browsers` (`chrome`, `edge`, …, `unknown`). */
   browser: string;
+  /** Major browser version, or `""`. */
+  browserVersion: string;
+  /** OS key under `userAgent.os` (`windows`, `macos`, `ios`, …, `unknown`). */
   os: string;
-  device: string;
+  /** OS version (`10`, `14.6`, `17.6`), or `""`. */
+  osVersion: string;
+  device: DeviceKind;
+}
+
+/** First capture group of `re` in `ua`, with `_` turned into `.`, or `""`. */
+function version(ua: string, re: RegExp): string {
+  return ua.match(re)?.[1]?.replace(/_/g, ".") ?? "";
 }
 
 export function parseUserAgent(userAgentString: string): ParsedUserAgent {
-  const ua = userAgentString.toLowerCase();
+  const ua = (userAgentString ?? "").toLowerCase();
 
-  // Parse Browser
-  let browser = "Unknown";
-  if (ua.indexOf("chrome") > -1 && ua.indexOf("edg") === -1) {
-    const match = ua.match(/chrome\/(\d+)/);
-    browser = match ? `Chrome ${match[1]}` : "Chrome";
-  } else if (ua.indexOf("safari") > -1 && ua.indexOf("chrome") === -1) {
-    browser = "Safari";
-  } else if (ua.indexOf("firefox") > -1) {
-    const match = ua.match(/firefox\/(\d+)/);
-    browser = match ? `Firefox ${match[1]}` : "Firefox";
-  } else if (ua.indexOf("edg") > -1) {
-    const match = ua.match(/edg\/(\d+)/);
-    browser = match ? `Edge ${match[1]}` : "Edge";
-  } else if (ua.indexOf("opr/") > -1 || ua.indexOf("opera") > -1) {
-    const match = ua.match(/opr\/(\d+)|opera\/(\d+)/);
-    browser = match ? `Opera ${match[1] ?? match[2]}` : "Opera";
-  } else if (ua.indexOf("trident") > -1) {
-    browser = "IE";
+  // Browser: most specific first.
+  let browser = "unknown";
+  let browserVersion = "";
+  if (/edg(e|a|ios)?\//.test(ua)) {
+    browser = "edge";
+    browserVersion = version(ua, /edg(?:e|a|ios)?\/(\d+)/);
+  } else if (/opr\/|opera/.test(ua)) {
+    browser = "opera";
+    browserVersion = version(ua, /(?:opr|opera)\/(\d+)/);
+  } else if (ua.includes("samsungbrowser/")) {
+    browser = "samsunginternet";
+    browserVersion = version(ua, /samsungbrowser\/(\d+)/);
+  } else if (/firefox\/|fxios\//.test(ua)) {
+    browser = "firefox";
+    browserVersion = version(ua, /(?:firefox|fxios)\/(\d+)/);
+  } else if (/chrome\/|crios\//.test(ua)) {
+    browser = "chrome";
+    browserVersion = version(ua, /(?:chrome|crios)\/(\d+)/);
+  } else if (ua.includes("safari/")) {
+    browser = "safari";
+  } else if (/trident|msie/.test(ua)) {
+    browser = "ie";
   }
 
-  // Parse OS
-  let os = "Unknown";
-  if (ua.indexOf("windows") > -1) {
-    if (ua.indexOf("windows nt 10.0") > -1) {
-      os = "Windows 10";
-    } else if (ua.indexOf("windows nt 6.3") > -1) {
-      os = "Windows 8.1";
-    } else if (ua.indexOf("windows nt 6.2") > -1) {
-      os = "Windows 8";
-    } else if (ua.indexOf("windows nt 6.1") > -1) {
-      os = "Windows 7";
-    } else {
-      os = "Windows";
-    }
-  } else if (ua.indexOf("mac os x") > -1) {
-    const match = ua.match(/mac os x (\d+[._]\d+)/);
-    os = match ? `macOS ${match[1]!.replace(/_/g, ".")}` : "macOS";
-  } else if (ua.indexOf("linux") > -1) {
-    if (ua.indexOf("android") > -1) {
-      const match = ua.match(/android (\d+)/);
-      os = match ? `Android ${match[1]}` : "Android";
-    } else {
-      os = "Linux";
-    }
-  } else if (ua.indexOf("iphone") > -1 || ua.indexOf("ipad") > -1) {
-    const match = ua.match(/os (\d+[._]\d+)/);
-    if (ua.indexOf("ipad") > -1) {
-      os = match ? `iPadOS ${match[1]!.replace(/_/g, ".")}` : "iPadOS";
-    } else {
-      os = match ? `iOS ${match[1]!.replace(/_/g, ".")}` : "iOS";
-    }
+  // OS: iPad/iPhone before macOS, Android before Linux.
+  let os = "unknown";
+  let osVersion = "";
+  if (ua.includes("ipad")) {
+    os = "ipados";
+    osVersion = version(ua, /os (\d+[._]\d+)/);
+  } else if (/iphone|ipod/.test(ua)) {
+    os = "ios";
+    osVersion = version(ua, /os (\d+[._]\d+)/);
+  } else if (ua.includes("android")) {
+    os = "android";
+    osVersion = version(ua, /android (\d+(?:\.\d+)?)/);
+  } else if (ua.includes("windows")) {
+    os = "windows";
+    osVersion = ua.includes("windows nt 10.0") ? "10"
+      : ua.includes("windows nt 6.3") ? "8.1"
+        : ua.includes("windows nt 6.2") ? "8"
+          : ua.includes("windows nt 6.1") ? "7"
+            : "";
+  } else if (/mac os x|macintosh/.test(ua)) {
+    os = "macos";
+    osVersion = version(ua, /mac os x (\d+[._]\d+)/);
+  } else if (ua.includes("linux")) {
+    os = "linux";
   }
 
-  // Parse Device
-  let device = "Unknown";
-  if (ua.indexOf("mobile") > -1 || ua.indexOf("android") > -1) {
-    device = "Mobile";
-  } else if (ua.indexOf("tablet") > -1 || ua.indexOf("ipad") > -1) {
-    device = "Tablet";
-  } else if (
-    ua.indexOf("windows") > -1 ||
-    ua.indexOf("mac") > -1 ||
-    ua.indexOf("linux") > -1
-  ) {
-    device = "Desktop";
+  // Device.
+  let device: DeviceKind = "unknown";
+  if (ua.includes("ipad") || ua.includes("tablet") || (os === "android" && !ua.includes("mobile"))) {
+    device = "tablet";
+  } else if (ua.includes("mobile") || os === "ios" || os === "android") {
+    device = "mobile";
+  } else if (os === "windows" || os === "macos" || os === "linux") {
+    device = "desktop";
   }
 
-  return { browser, os, device };
+  return { browser, browserVersion, os, osVersion, device };
 }
 
-export function formatDeviceInfo(userAgentString: string): string {
-  const { browser, os, device } = parseUserAgent(userAgentString);
-  return `${device} - ${os} - ${browser}`;
+type Translate = (key: string) => string;
+type Exists = (key: string) => boolean;
+
+/** Localized label for a `userAgent.<group>.<key>` entry, falling back to the key. */
+function label(t: Translate, te: Exists, group: string, key: string): string {
+  const path = `userAgent.${group}.${key}`;
+  return te(path) ? t(path) : key;
+}
+
+/**
+ * Localized "Device - OS - Browser" label, e.g. ko `데스크톱 - 윈도우 10 - 크롬 129`.
+ * A user agent with no recognisable OS or browser shows a single "unknown".
+ *
+ * @param userAgentString - Raw user agent.
+ * @param t - vue-i18n `t`.
+ * @param te - vue-i18n `te`.
+ * @returns {string} The label.
+ */
+export function formatDeviceInfo(userAgentString: string, t: Translate, te: Exists): string {
+  const { browser, browserVersion, os, osVersion, device } = parseUserAgent(userAgentString);
+  if (os === "unknown" && browser === "unknown") return label(t, te, "devices", "unknown");
+  const withVersion = (name: string, v: string) => (v ? `${name} ${v}` : name);
+  return [
+    label(t, te, "devices", device),
+    withVersion(label(t, te, "os", os), osVersion),
+    withVersion(label(t, te, "browsers", browser), browserVersion),
+  ].join(" - ");
 }

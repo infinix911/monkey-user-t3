@@ -37,7 +37,7 @@
             </a>
             <span v-else>{{ row.ip_address || "—" }}</span>
           </td>
-          <td>{{ formatDeviceInfo(row.user_agent as string) }}</td>
+          <td>{{ formatDeviceInfo(row.user_agent as string, t, te) }}</td>
         </template>
       </AppTable>
     </template>
@@ -50,7 +50,7 @@ import { useI18n } from "vue-i18n";
 import { formatDeviceInfo } from "~/lib/user-agent";
 import { loginHistoryQuery } from "~/components/my-account/loginHistoryQuery";
 
-const { t } = useI18n();
+const { t, te } = useI18n();
 
 const recordsStore = useMemberRecordsStore();
 const query = loginHistoryQuery();
