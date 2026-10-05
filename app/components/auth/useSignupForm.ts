@@ -96,6 +96,7 @@ export function useSignupForm(options: UseSignupFormOptions) {
       }),
       initialValues: {
         username: "",
+        nickname: "",
         password: "",
         confirmPassword: "",
         withdrawalPassword: "",
@@ -108,6 +109,7 @@ export function useSignupForm(options: UseSignupFormOptions) {
     });
 
   const [usernameField] = defineField("username");
+  const [nicknameField] = defineField("nickname");
   const [passwordField] = defineField("password");
   const [confirmPasswordField] = defineField("confirmPassword");
   const [withdrawalPasswordField] = defineField("withdrawalPassword");
@@ -174,7 +176,7 @@ export function useSignupForm(options: UseSignupFormOptions) {
 
     try {
       // Backend contract (camelCase, see registerSchema in monkey-user-api):
-      // { username, password, confirmPassword, withdrawalPassword?, phone,
+      // { username, nickname?, password, confirmPassword, withdrawalPassword?, phone,
       //   bankName, bankAccount, bankAccountName, referral? }. Neither email
       // nor currency is sent: email is optional server-side and the form no
       // longer collects it, and registerSchema has no currency field at all.
@@ -184,6 +186,7 @@ export function useSignupForm(options: UseSignupFormOptions) {
         method: "POST",
         body: {
           username: values.username.trim().toLowerCase(),
+          nickname: values.nickname.trim(),
           password: values.password,
           confirmPassword: values.confirmPassword,
           withdrawalPassword: values.withdrawalPassword,
@@ -286,6 +289,7 @@ export function useSignupForm(options: UseSignupFormOptions) {
     bankNames,
     errors,
     usernameField,
+    nicknameField,
     passwordField,
     confirmPasswordField,
     withdrawalPasswordField,

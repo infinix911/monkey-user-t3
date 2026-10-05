@@ -991,6 +991,8 @@
     "bankInformation": "은행 정보",
     "id": "아이디",
     "enterId": "아이디 입력 (4~8자)",
+    "nickname": "닉네임",
+    "enterNickname": "닉네임 입력 (2~20자)",
     "idAvailable": "사용 가능한 아이디입니다",
     "idTaken": "이미 사용 중인 아이디입니다",
     "password": "비밀번호",
@@ -1047,7 +1049,10 @@
       "accountNumberDigitsOnly": "계좌번호는 숫자만 입력할 수 있습니다",
       "accountNumberMinLength": "계좌번호는 최소 2자리 이상이어야 합니다",
       "accountNumberMaxLength": "계좌번호는 30자리 이하여야 합니다",
-      "bankNameTooLong": "은행 이름은 30자 이하여야 합니다"
+      "bankNameTooLong": "은행 이름은 30자 이하여야 합니다",
+      "nicknameRequired": "닉네임을 입력해 주세요.",
+      "nicknameMinLength": "닉네임은 2자 이상이어야 합니다.",
+      "nicknameMaxLength": "닉네임은 20자 이하여야 합니다."
     }
   },
   "header": {

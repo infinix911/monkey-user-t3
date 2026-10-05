@@ -71,6 +71,14 @@ const signupRawSchema = (t: TFn) =>
         // rejected at login, locking the member out of the account they just
         // made.
         .regex(/^[a-zA-Z0-9]+$/, t("auth.validation.usernameInvalidChars")),
+      // Display nickname, 2-20 like the admin console's member nickname and the
+      // API's registerSchema. Stored as the member's display name.
+      nickname: z
+        .string()
+        .trim()
+        .min(1, t("signup.validation.nicknameRequired"))
+        .min(2, t("signup.validation.nicknameMinLength"))
+        .max(20, t("signup.validation.nicknameMaxLength")),
       password: z
         .string()
         .min(6, t("password.validation.newPasswordMinLength"))

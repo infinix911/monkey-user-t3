@@ -991,6 +991,8 @@
     "bankInformation": "Bank Information",
     "id": "ID",
     "enterId": "Enter ID (4-8 characters)",
+    "nickname": "Nickname",
+    "enterNickname": "Enter nickname (2~20 chars)",
     "idAvailable": "ID is available",
     "idTaken": "ID is already taken",
     "password": "Password",
@@ -1047,7 +1049,10 @@
       "accountNumberDigitsOnly": "Account number must contain digits only",
       "accountNumberMinLength": "Account number must be at least 2 digits",
       "accountNumberMaxLength": "Account number must be 30 digits or fewer",
-      "bankNameTooLong": "Bank name must be 30 characters or fewer"
+      "bankNameTooLong": "Bank name must be 30 characters or fewer",
+      "nicknameRequired": "Please enter a nickname.",
+      "nicknameMinLength": "Nickname must be at least 2 characters.",
+      "nicknameMaxLength": "Nickname must be 20 characters or fewer."
     }
   },
   "header": {
