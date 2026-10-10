@@ -353,7 +353,7 @@ const BannerPopup = defineAsyncComponent(() => import("@/components/banner/Banne
 // Modals that load data after mounting also wait for it here, alongside the
 // chunk (in parallel, capped — utils/firstPaintReady.ts), so their first paint
 // is already at the final size instead of resizing when the data lands.
-const withPrepare = <T>(chunk: Promise<T>, prepare: () => Promise<void>): Promise<T> =>
+const withPrepare = <T,>(chunk: Promise<T>, prepare: () => Promise<void>): Promise<T> =>
   Promise.all([chunk, prepare()]).then(([mod]) => mod);
 const DepositModal = defineAsyncComponent(() =>
   withPrepare(import("@/components/transaction/DepositModal.vue"), () => prepareTransactionModal("deposit")),
@@ -369,6 +369,16 @@ const FaqModal = defineAsyncComponent(() =>
   withPrepare(import("@/components/faq/FaqModal.vue"), () => whenReady([loadSiteNotices(), loadKoreanFonts()])),
 );
 const ContactModal = defineAsyncComponent(() => import("@/components/contact/ContactModal.vue"));
+
+// Deposit / withdraw permission (useDepositWithdrawAllowed). Every entry point
+// is hidden when it is false; if a re-verified session revokes it while one of
+// the modals is open, close it rather than leave a form the API will refuse.
+const depWidAllowed = useDepositWithdrawAllowed();
+watch(depWidAllowed, (allowed) => {
+  if (allowed) return;
+  if (uiStore.showDepositModal) uiStore.setShowDepositModal(false);
+  if (uiStore.showWithdrawalModal) uiStore.setShowWithdrawalModal(false);
+});
 
 // Started by app.vue with the other public bootstrap reads. The layout only
 // consumes the shared result, avoiding a second late request on first paint.

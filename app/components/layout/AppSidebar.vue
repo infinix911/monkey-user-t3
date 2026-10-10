@@ -32,7 +32,7 @@
          behind these buttons, so the pair is dropped rather than shown and
          refused. `features.payments` is the deployment-wide gate; this is the
          member-level one. -->
-    <div v-if="features.payments && authStore.user.can_dep_wid" class="px-3 pt-[10px]">
+    <div v-if="depWidAllowed" class="px-3 pt-[10px]">
       <div
         class="h-[67px] rounded-[8px] overflow-hidden flex items-stretch"
         :style="{ background: siteConfig.theme.nav.depositSectionGradient }">
@@ -70,7 +70,7 @@
 
     <!-- Game categories. Rows butt against each other (the 31px pitch IS the row
          height), so the hover pill never leaves a seam between neighbours. -->
-    <ul class="px-2 flex flex-col" :class="features.payments ? 'pt-[18px]' : 'pt-[10px]'">
+    <ul class="px-2 flex flex-col" :class="depWidAllowed ? 'pt-[18px]' : 'pt-[10px]'">
       <li v-for="item in gameItems" :key="item.id">
         <button
           type="button" :class="[ROW_CLASS, { 'is-active': isActive(item.path) }]" :style="rowVars"
@@ -233,7 +233,8 @@ const authStore = useAuthStore();
 const uiStore = useUiStore();
 const route = useRoute();
 const localePath = useLocalePath();
-const features = useFeatures();
+// Deposit / withdraw visibility (payments feature + per-member canDepWid).
+const depWidAllowed = useDepositWithdrawAllowed();
 const api = useApi();
 const { onDeposit, onWithdraw } = useNavTransactionActions();
 

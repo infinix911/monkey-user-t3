@@ -138,7 +138,6 @@ const uiStore = useUiStore();
 // the bar selects the same panel those surfaces render.
 const accountSection = useAccountSection();
 
-const features = useFeatures();
 const route = useRoute();
 const localePath = useLocalePath();
 // The centre FAB's label is the site name (not a translated string), so it is
@@ -187,9 +186,7 @@ const isAuth = computed(() => authStore.isAuthenticated);
 // one (derived from currency), `can_dep_wid` the per-member permission from
 // /auth/get-session. A denied member would only get a rejection from the routes
 // behind these buttons, so the slots are dropped rather than shown and refused.
-const canDepWid = computed(
-  () => features.payments && authStore.user.can_dep_wid,
-);
+const canDepWid = useDepositWithdrawAllowed();
 
 // The bar has two faces. Authenticated: 공지사항 · 입금 · [홈] · 출금 · 메뉴 —
 // the centre FAB is HOME (labelled with the site name) and deposit/withdraw are
