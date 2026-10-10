@@ -130,8 +130,9 @@ class="w-full h-[6px]" :style="{
             </div>
 
             <!-- Fixed Deposit/Withdraw Section — skin-selected (default vs Lucky)
-                 by theme.nav.type via useNavSkin(). -->
-            <component :is="navSkin.transaction" v-if="features.payments" />
+                 by theme.nav.type via useNavSkin(). Hidden when payments are off
+                 or the member's canDepWid is false (useDepositWithdrawAllowed). -->
+            <component :is="navSkin.transaction" v-if="depWidAllowed" />
           </div>
         </div>
       </div>
@@ -292,7 +293,8 @@ const isActive = (path: string) => {
   );
 };
 
-const features = useFeatures();
+// Deposit / withdraw panel visibility (payments feature + per-member canDepWid).
+const depWidAllowed = useDepositWithdrawAllowed();
 // Resolves the deposit/withdraw panel component for the active nav skin
 // (default vs Lucky), driven by theme.nav.type. See useNavSkin().
 const navSkin = useNavSkin();
