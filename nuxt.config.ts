@@ -209,8 +209,20 @@ export default defineNuxtConfig({
 
   vite: {
     plugins: [tailwindcss()],
+    // Pre-bundle deps that the startup scan cannot see. zod and
+    // @vee-validate/zod are only imported from lazily loaded modals/forms
+    // (login, signup, deposit, inquiry, ...), so without listing them Vite
+    // discovers them mid-session, re-optimizes, bumps the `?v=` hash and the
+    // already-loaded page fails with "504 (Outdated Optimize Dep)" /
+    // "Failed to fetch dynamically imported module".
     optimizeDeps: {
-      include: ["axios", "@vue/devtools-core", "@vue/devtools-kit"],
+      include: [
+        "axios",
+        "zod",
+        "@vee-validate/zod",
+        "@vue/devtools-core",
+        "@vue/devtools-kit",
+      ],
     },
     // OXC handles minification (see build.minify below). Its compressor strips
     // all console.* calls and `debugger` statements in production builds —
