@@ -293,3 +293,7 @@ Money logic never lives in stores — mutations go through `useApi`/`axios-clien
 ## 20. Future Reading Strategy
 
 Every session: `CLAUDE.md` → `MEMORY.md` → this file → `DECISIONS.md` → only the files the File Reading Map (§11) lists for your task. Re-scan the repo only if architecture/folders materially changed, this file is demonstrably stale, or the user asks for an audit.
+
+## Maintenance mode
+
+`app/pages/maintenance.vue` (`layout: false`) is the standalone maintenance screen; `app/middleware/maintenance.global.ts` redirects every route to it while the `maintenance:enabled` site setting is on (read from the public `/site/settings` payload via `fetchSiteSettings`, cached in the site store) and back to `/` when off. The page is brand-locked dark/yellow, keeps the language switcher live (en/ko), renders the CMS site logo, and shows the optional `maintenance:message`. Locale keys under `maintenance.*`. The monkey-user-api 503 guard is the hard gate; this is the UX layer.
