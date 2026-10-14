@@ -1,8 +1,8 @@
 {
   "maintenance": {
-    "status": "Maintenance window active",
-    "title": "Scheduled maintenance",
-    "body": "The site is temporarily offline for scheduled maintenance. Your account and balance are safe — please check back in a little while.",
+    "status": "Maintenance in progress",
+    "title": "We'll be right back",
+    "body": "We're doing some scheduled maintenance to make the site faster and better. We'll be back online shortly — thanks for your patience.",
     "retry": "Try again",
     "features": {
       "stable": "More stable service",
