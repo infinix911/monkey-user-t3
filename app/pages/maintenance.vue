@@ -17,7 +17,8 @@
  *             brandColor, which reads as no accent at all. It lights the
  *             card frame + halo, the status chip, the feature icons and the
  *             button, and re-hues the artwork (a `color`-blend tint over
- *             public/designs/misc/maintenance-art.webp).
+ *             public/designs/misc/maintenance-art-neutral.webp, a greyscale crop —
+ *             the art carries only shading; all of its colour is the tint).
  * The card is dark glass in the body colour. The artwork is referenced by its
  * local path, not `cdn()`: the CDN bucket only mirrors files uploaded to it.
  *
@@ -221,7 +222,7 @@ useHead({ title: () => `${t("maintenance.title")} · ${siteConfig.identity?.site
           <!-- Artwork, re-hued to the theme accent by the tint layer -->
           <div class="maint-art relative mx-auto w-full max-w-[400px] sm:max-w-[480px] lg:order-2 lg:max-w-none">
             <img
-              src="/designs/misc/maintenance-art.webp"
+              src="/designs/misc/maintenance-art-neutral.webp"
               alt=""
               width="608"
               height="448"
