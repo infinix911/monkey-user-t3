@@ -141,71 +141,75 @@ useHead({ title: () => `${t("maintenance.title")} · ${siteConfig.identity?.site
     />
 
     <!-- ── Top bar ─────────────────────────────────────────────────────── -->
+    <!-- Same side padding + max width as <main>, so the logo and switcher line
+         up with the card's left and right edges. -->
     <header
-      class="maint-fade relative z-20 mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-5 py-5 sm:px-8 sm:py-7"
+      class="maint-fade relative z-20 w-full px-4 py-5 sm:px-6 sm:py-7 lg:px-8"
       :class="{ 'opacity-0': !themeReady }"
     >
-      <div class="min-w-0">
-        <img
-          v-if="siteConfig.identity?.logo"
-          :src="siteConfig.identity.logo"
-          :alt="siteConfig.identity?.siteName"
-          class="h-8 w-auto max-w-[150px] object-contain sm:h-10 sm:max-w-[220px]"
-        >
-        <span v-else class="block truncate text-2xl font-black tracking-wide">
-          {{ siteConfig.identity?.siteName }}
-        </span>
-      </div>
-
-      <div class="relative shrink-0">
-        <button
-          type="button"
-          class="maint-pill maint-focus inline-flex h-10 items-center gap-2.5 rounded-full px-4 text-sm font-medium text-white/90 transition hover:text-white"
-          :aria-expanded="langOpen"
-          aria-haspopup="true"
-          @click="langOpen = !langOpen"
-        >
-          <LanguageFlag :code="(locale as 'en' | 'id' | 'ko' | 'th')" class="h-3.5 w-5 rounded-[3px]" />
-          <span class="hidden sm:inline">{{ localeName(locale) }}</span>
-          <svg
-            class="h-3.5 w-3.5 opacity-70 transition-transform"
-            :class="{ 'rotate-180': langOpen }"
-            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
-            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"
-          ><path d="m6 9 6 6 6-6" /></svg>
-        </button>
-        <!-- Click-away catcher -->
-        <button
-          v-if="langOpen"
-          type="button"
-          tabindex="-1"
-          aria-hidden="true"
-          class="fixed inset-0 z-0 cursor-default"
-          @click="langOpen = false"
-        />
-        <Transition name="maint-pop">
-          <div
-            v-if="langOpen"
-            class="maint-menu absolute right-0 top-[calc(100%+8px)] z-10 min-w-[176px] origin-top-right rounded-2xl p-1.5"
+      <div class="mx-auto flex w-full max-w-6xl items-center justify-between gap-3">
+        <div class="min-w-0">
+          <img
+            v-if="siteConfig.identity?.logo"
+            :src="siteConfig.identity.logo"
+            :alt="siteConfig.identity?.siteName"
+            class="h-8 w-auto max-w-[150px] object-contain sm:h-10 sm:max-w-[220px]"
           >
-            <button
-              v-for="code in localeCodes"
-              :key="code"
-              type="button"
-              class="maint-focus flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm text-white/80 transition hover:bg-white/10 hover:text-white"
-              :class="{ 'maint-accent font-semibold': code === locale }"
-              @click="chooseLocale(code)"
+          <span v-else class="block truncate text-2xl font-black tracking-wide">
+            {{ siteConfig.identity?.siteName }}
+          </span>
+        </div>
+
+        <div class="relative shrink-0">
+          <button
+            type="button"
+            class="maint-pill maint-focus inline-flex h-10 items-center gap-2.5 rounded-full px-4 text-sm font-medium text-white/90 transition hover:text-white"
+            :aria-expanded="langOpen"
+            aria-haspopup="true"
+            @click="langOpen = !langOpen"
+          >
+            <LanguageFlag :code="(locale as 'en' | 'id' | 'ko' | 'th')" class="h-3.5 w-5 rounded-[3px]" />
+            <span class="hidden sm:inline">{{ localeName(locale) }}</span>
+            <svg
+              class="h-3.5 w-3.5 opacity-70 transition-transform"
+              :class="{ 'rotate-180': langOpen }"
+              viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"
+            ><path d="m6 9 6 6 6-6" /></svg>
+          </button>
+          <!-- Click-away catcher -->
+          <button
+            v-if="langOpen"
+            type="button"
+            tabindex="-1"
+            aria-hidden="true"
+            class="fixed inset-0 z-0 cursor-default"
+            @click="langOpen = false"
+          />
+          <Transition name="maint-pop">
+            <div
+              v-if="langOpen"
+              class="maint-menu absolute right-0 top-[calc(100%+8px)] z-10 min-w-[176px] origin-top-right rounded-2xl p-1.5"
             >
-              <LanguageFlag :code="(code as 'en' | 'id' | 'ko' | 'th')" class="h-3.5 w-5 rounded-[3px]" />
-              <span class="flex-1 text-left">{{ localeName(code) }}</span>
-              <svg
-                v-if="code === locale"
-                class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"
-              ><path d="M20 6 9 17l-5-5" /></svg>
-            </button>
-          </div>
-        </Transition>
+              <button
+                v-for="code in localeCodes"
+                :key="code"
+                type="button"
+                class="maint-focus flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm text-white/80 transition hover:bg-white/10 hover:text-white"
+                :class="{ 'maint-accent font-semibold': code === locale }"
+                @click="chooseLocale(code)"
+              >
+                <LanguageFlag :code="(code as 'en' | 'id' | 'ko' | 'th')" class="h-3.5 w-5 rounded-[3px]" />
+                <span class="flex-1 text-left">{{ localeName(code) }}</span>
+                <svg
+                  v-if="code === locale"
+                  class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"
+                ><path d="M20 6 9 17l-5-5" /></svg>
+              </button>
+            </div>
+          </Transition>
+        </div>
       </div>
     </header>
 
