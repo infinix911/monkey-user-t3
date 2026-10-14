@@ -1,9 +1,14 @@
 {
   "maintenance": {
-    "status": "Maintenance in progress",
-    "title": "We'll be right back",
-    "body": "We're doing some scheduled maintenance to make the site faster and better. We'll be back online shortly — thanks for your patience.",
-    "retry": "Try again"
+    "status": "Maintenance window active",
+    "title": "Scheduled maintenance",
+    "body": "The site is temporarily offline for scheduled maintenance. Your account and balance are safe — please check back in a little while.",
+    "retry": "Try again",
+    "features": {
+      "stable": "More stable service",
+      "improved": "Improved experience",
+      "better": "Coming back even better"
+    }
   },
   "apiMessages": {
     "PASSWORD_TOO_SHORT": "Password must be at least 6 characters.",
