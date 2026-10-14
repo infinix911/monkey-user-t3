@@ -538,3 +538,23 @@ Metadata rejection for writes. Because sibling subdomains are same-site, an
 untrusted or compromised sibling is outside this model's protection. Better
 Auth's native checks, tenant-origin mapping, realtime origin checks, and signed
 proxy validation remain unchanged.
+
+## ADR-029 — Maintenance redirect is a UX layer over the API's hard gate
+
+**Status:** Accepted (2026-10-14)
+
+**Decision:** A global `maintenance.global.ts` middleware redirects every route to the
+standalone `/maintenance` page (`layout: false`) while the `maintenance:enabled` site
+setting is on, and away from it when off. The flag is read from the public
+`/site/settings` payload (`fetchSiteSettings`, cached in the site store), a read the API
+keeps reachable during maintenance. The page renders the live CMS logo, keeps the
+language switcher live, and shows the optional `maintenance:message` override.
+
+**Reason:** The monkey-user-api 503 guard is the real enforcement; a direct API caller
+cannot be stopped by a Nuxt redirect. The frontend redirect exists so members see a
+branded screen instead of raw 503s, and it stays correct because the flag rides in an
+allowlisted read.
+
+**Tradeoffs:** The site store caches settings, so a flag flipped mid-session is picked up
+on the next full load / SSR pass rather than instantly on an in-flight SPA navigation; the
+backend 503 covers that window. No new endpoint is added.
