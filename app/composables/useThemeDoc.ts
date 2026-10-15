@@ -4,13 +4,12 @@
  * theme saved via the theme editor without requiring a full CMS republish.
  *
  * Design notes:
- *   - Runs in parallel with the existing fetchSiteConfig() call in app.vue.
+ *   - Optional legacy loader; the root app uses fetchSiteConfig().
+ *   - A healthy Worker bootstrap settles this loader without an API request.
  *   - Intentionally additive: it only writes into userPageConfig when the API
  *     returns a non-null document. If the endpoint 404s, errors, or returns
  *     nothing, the function swallows the failure and lets the normal config
  *     (bundled defaults or CMS payload) serve the page.
- *   - Does NOT alter the DISABLE_CMS_CONFIG flag or any other fetchSiteConfig
- *     behavior — the two fetches are fully independent.
  *   - The deep-merge order mirrors useSiteConfig(): bundled defaults < CMS
  *     userpage config < theme doc. This way the theme editor's saved values
  *     always win for the fields it manages.
@@ -33,6 +32,7 @@ function deepMerge<T>(base: T, override: unknown): T {
   if (!baseIsObj || !overrideIsObj) return override as T;
   const out: Plain = { ...(base as Plain) };
   for (const key of Object.keys(override as Plain)) {
+    if (key === "__proto__" || key === "constructor" || key === "prototype") continue;
     out[key] = deepMerge((base as Plain)[key], (override as Plain)[key]);
   }
   return out as T;
@@ -42,10 +42,10 @@ function deepMerge<T>(base: T, override: unknown): T {
  * Fetch the admin-saved theme document and apply it to the shared
  * useState('userPageConfig') so useSiteConfig() picks it up reactively.
  *
- * Call from app.vue alongside fetchSiteConfig(). Errors are swallowed so a
- * missing/unreachable theme endpoint never blocks rendering.
+ * Missing/unreachable theme endpoints never block rendering.
  */
 export async function fetchThemeDoc(): Promise<boolean> {
+  if (!isThemePreview() && useState("siteBootstrapLoaded", () => false).value) return true;
   // Always return a defined value: useAsyncData warns (and may double-fetch on
   // the client) when its handler resolves to undefined.
   try {

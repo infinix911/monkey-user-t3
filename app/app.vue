@@ -102,7 +102,7 @@ async function bootstrapSite() {
 
   await publicReads;
 
-  if (!rawConfig.value) {
+  if (!rawConfig.value && !useState("siteBootstrapLoaded", () => false).value) {
     // Retry with the normal bounded backoff budget, without blocking auth or
     // the rendered fallback UI. A successful write updates every config
     // consumer through the watcher above.

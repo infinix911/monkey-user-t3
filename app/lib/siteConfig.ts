@@ -1,9 +1,9 @@
 /**
  * Site Config Fetcher
  *
- * Fetches /api/site/config/userpage and stores the response in
- * useState('userPageConfig'). Called from app.vue via useAsyncData so the
- * page can render with its compiled fallback while this refreshes.
+ * Reads a Worker-injected CMS snapshot or fetches /api/site/config/theme into
+ * useState('userPageConfig'). Without a snapshot, app.vue fetches after mount
+ * while the page renders its compiled fallback.
  *
  * Client localStorage provides a warm start while the API refreshes.
  */
@@ -11,28 +11,9 @@
 import { logger } from "~/utils/logger";
 import { useApi } from "@/composables/useApi";
 import { takeThemePrefetch, takeThemePrefetchData } from "@/lib/theme-prefetch";
+import { enforceThemeHttps as enforceHttps } from "~~/shared/utils/userpage-bootstrap";
 
 const CLIENT_CACHE_KEY_PREFIX = "themeConfig.v2";
-
-/**
- * Recursively upgrades any http:// URLs to https:// in the config object.
- * Prevents mixed-content warnings and HTTPS Lighthouse failures caused by
- * the backend/CMS returning plain-HTTP CDN links.
- */
-function enforceHttps(obj: unknown): unknown {
-  if (typeof obj === "string") {
-    return obj.startsWith("http://") ? obj.replace("http://", "https://") : obj;
-  }
-  if (Array.isArray(obj)) return obj.map(enforceHttps);
-  if (obj && typeof obj === "object") {
-    const out: Record<string, unknown> = {};
-    for (const key of Object.keys(obj)) {
-      out[key] = enforceHttps((obj as Record<string, unknown>)[key]);
-    }
-    return out;
-  }
-  return obj;
-}
 
 /**
  * Detects the `?themePreview=1` query flag in the browser.
@@ -85,7 +66,7 @@ export const fetchSiteConfig = async (options?: {
   const configError = useState<string | null>("siteConfigError", () => null);
 
   // Already populated (payload hydration or previous call) — skip refetch
-  if (apiData.value) return apiData.value;
+  if (apiData.value || !isThemePreview() && useState("siteBootstrapLoaded", () => false).value) return apiData.value;
 
   const host = getHostname();
   const clientCacheKey = `${CLIENT_CACHE_KEY_PREFIX}:${host.toLowerCase()}`;

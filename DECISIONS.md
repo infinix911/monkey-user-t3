@@ -558,3 +558,15 @@ allowlisted read.
 **Tradeoffs:** The site store caches settings, so a flag flipped mid-session is picked up
 on the next full load / SSR pass rather than instantly on an in-flight SPA navigation; the
 backend 503 covers that window. No new endpoint is added.
+
+## ADR-030 — Cloudflare embeds owned CMS snapshots into the static SPA shell
+
+**Status:** Accepted (2026-10-09).
+
+**Decision:** The Cloudflare Worker resolves independently owned `domain:<hostname>` records, trying exact hostname then parent DNS suffixes, and reads the matching validated `bootstrap:<siteCode>`. It ignores the legacy shared `site-groups` map. A cached `Shell` entrypoint renders public HTML with safely serialized `window.__SITE_BOOTSTRAP__`, trusted admin inline scripts, and CMS title/icons before static head scripts. Pinia-backed client bootstrap applies the raw/effective theme before render, prevents duplicate CMS script injection, and treats a null theme as loaded bundled defaults. The ordinary browser theme/script endpoints remain fallback and preview paths.
+
+**Reason:** Healthy deployed visits should apply the published CMS design without browser configuration requests or a fallback-theme flash. Per-hostname records support independent admin servers without replacing another publisher's routing map.
+
+**Tradeoffs:** Shells are cached by hostname for 300 seconds; KV reads cache for 60 seconds. Authenticated tag purge uses a matching Worker secret, and purge failures are advisory in the publisher. KV propagation and cache expiry can delay updates. Malformed or unavailable snapshots return complete uncacheable static fallback HTML. Scripts retain the existing trusted-admin, inline-only semantics. This template keeps its empty CMS-only icon fallback and enabled CMS theme behavior. Site settings and member/session data remain client-only.
+
+**Rollout:** Seed owned hostname records from every updated admin API before deploying this Worker, bind the same existing KV namespace, and configure the purge secret. Do not provision or publish remote data as part of local validation. The Node build/start workflow and SPA preview/session behavior remain supported. Local Miniflare/Playwright checks validate rewriting and app hydration; native cache/purge behavior requires remote validation.

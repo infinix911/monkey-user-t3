@@ -25,6 +25,15 @@ export default defineConfig({
     globals: true,
     passWithNoTests: true,
     projects: [
+      {
+        test: {
+          name: "worker",
+          environment: "node",
+          include: ["tests/worker/**/*.spec.ts"],
+          testTimeout: 30_000,
+          hookTimeout: 60_000,
+        },
+      },
       await defineVitestProject({
         test: {
           name: "component",

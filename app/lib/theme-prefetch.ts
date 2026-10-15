@@ -16,6 +16,7 @@
  * Imported by nuxt.config.ts — keep this module free of Nuxt runtime imports.
  */
 import { getProductionApiBase } from "./api-base";
+import { hasSafeThemeKeys, isRecord, isUserpageBootstrap, SITE_CODE_PATTERN } from "../../shared/utils/userpage-bootstrap";
 
 /** Window property holding the in-flight request promise. */
 const GLOBAL_KEY = "__siteThemePrefetch";
@@ -37,6 +38,11 @@ export function buildThemePrefetchScript(localApiBase?: string): string {
   return `(function(){try{
 var h=location.hostname;
 if(new URLSearchParams(location.search).get("themePreview")==="1")return;
+var SITE_CODE_PATTERN=${SITE_CODE_PATTERN.toString()};
+var isRecord=${isRecord.toString()};
+var BLOCKED_KEYS=new Set(["__proto__","prototype","constructor"]);
+var hasSafeThemeKeys=${hasSafeThemeKeys.toString()};
+if((${isUserpageBootstrap.toString()})(window.__SITE_BOOTSTRAP__)&&typeof window.__SITE_BOOTSTRAP__.customScriptsInjected==="boolean")return;
 var local=h==="localhost"||h==="127.0.0.1";
 var base=local?${JSON.stringify((localApiBase ?? "").replace(/\/$/, ""))}:(${getProductionApiBase.toString()})(h);
 if(!base)return;

@@ -2,8 +2,8 @@
  * Site Configuration
  *
  * Resolves the effective site config by deep-merging the API value
- * (/api/site/config/userpage, populated into useState by app.vue's
- * fetchSiteConfig) over the bundled Template2 config. API value wins for any
+ * (/api/site/config/theme, populated into useState by app.vue's
+ * fetchSiteConfig) over the bundled Template3 config. API value wins for any
  * field it carries; the bundled config fills any field the API omits and acts
  * as the offline fallback when the CMS payload is unavailable.
  *
@@ -21,9 +21,9 @@ type Plain = Record<string, unknown>;
 
 /**
  * Single source of truth for the site-config payload fetched from
- * /api/site/config/userpage. The payload is populated by `fetchSiteConfig`
- * (app/lib/siteConfig.ts), invoked from `app.vue` via `useAsyncData` before the
- * app mounts; `siteConfigError` is set alongside it on failure.
+ * /api/site/config/theme. The payload is populated by `fetchSiteConfig`
+ * (app/lib/siteConfig.ts) after mount, or by the early Worker bootstrap plugin;
+ * `siteConfigError` is set alongside it on failure.
  */
 export const USER_PAGE_CONFIG_KEY = "userPageConfig";
 export const SITE_CONFIG_ERROR_KEY = "siteConfigError";
@@ -41,7 +41,8 @@ const EFFECTIVE_SITE_CONFIG_KEY = "effectiveSiteConfig";
 export function useSiteConfigState() {
   const config = useState<SiteConfig | null>(USER_PAGE_CONFIG_KEY, () => null);
   const error = useState<string | null>(SITE_CONFIG_ERROR_KEY, () => null);
-  const isReady = computed(() => config.value != null);
+  const bootstrapLoaded = useState("siteBootstrapLoaded", () => false);
+  const isReady = computed(() => config.value != null || bootstrapLoaded.value);
   return { config, error, isReady };
 }
 
@@ -62,6 +63,7 @@ export function mergeSiteConfig<T>(base: T, override: unknown): T {
   }
   const out: Plain = { ...(base as Plain) };
   for (const key of Object.keys(override as Plain)) {
+    if (key === "__proto__" || key === "constructor" || key === "prototype") continue;
     out[key] = mergeSiteConfig((base as Plain)[key], (override as Plain)[key]);
   }
   return out as T;

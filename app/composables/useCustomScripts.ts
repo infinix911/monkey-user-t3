@@ -17,44 +17,18 @@
  *     useHead `style`/`noscript`/raw <div> would not run).
  *   - Plain JS with no tag wrapper. We inject it as innerHTML directly.
  *
- * Lives on its own endpoint (not bundled with /config/userpage) so the
- * payload caches and invalidates independently.
+ * Healthy Worker shells preload these scripts and mark them already injected;
+ * the standalone endpoint remains the browser fallback.
  */
 
 import { logger } from "~/utils/logger";
 import { getApiBase } from "@/lib/domain";
 import { useSiteStore, type CustomScriptEntry } from "@/stores/site";
 import { escapeInlineScript } from "~~/shared/utils/secure-serialization";
+import { extractScriptBodies } from "~~/shared/utils/userpage-bootstrap";
 import type { ResolvableScript } from "@unhead/vue";
 
-/**
- * Splits a raw HTML payload into the JS that should run. Pulls inner JS out
- * of any <script>...</script> wrappers and concatenates them; if the payload
- * has no script tags at all, it's treated as plain JS.
- *
- * Note: this is a best-effort regex parse. Admins who paste `<script src=...>`
- * external tags will not have those scripts injected — only inline content
- * is honored. Add an `external` branch later if the admin UI exposes that.
- */
-function extractScriptBodies(raw: string): string[] {
-  if (!raw) return [];
-  const pattern = /<script\b[^>]*>([\s\S]*?)<\/script\s*>/gi;
-  const bodies: string[] = [];
-  let match: RegExpExecArray | null;
-  let foundAny = false;
-  while ((match = pattern.exec(raw)) !== null) {
-    foundAny = true;
-    const inner = (match[1] ?? "").trim();
-    if (inner) bodies.push(inner);
-  }
-  if (!foundAny) {
-    const trimmed = raw.trim();
-    if (trimmed) bodies.push(trimmed);
-  }
-  return bodies;
-}
-
-/** Fetches the raw payload — call from useAsyncData in app.vue. */
+/** Load once after mount unless the Worker already preloaded the scripts. */
 export async function fetchCustomScripts(): Promise<CustomScriptEntry[]> {
   const siteStore = useSiteStore();
   if (siteStore.customScriptsLoaded) return siteStore.customScripts;
@@ -85,6 +59,7 @@ export function useCustomScripts() {
 
   const tags = computed<{ script: ResolvableScript[] }>(() => {
     const out: { script: ResolvableScript[] } = { script: [] };
+    if (siteStore.customScriptsInjected) return out;
     if (!Array.isArray(siteStore.customScripts)) return out;
 
     for (const entry of siteStore.customScripts) {

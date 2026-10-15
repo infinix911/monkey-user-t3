@@ -11,6 +11,7 @@ import { applyThemePrefetchIfReady } from "@/lib/siteConfig";
 
 export default defineNuxtPlugin({
   name: "theme-prefetch",
+  dependsOn: ["site-bootstrap"],
   setup() {
     applyThemePrefetchIfReady();
   },
