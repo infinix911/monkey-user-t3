@@ -20,6 +20,8 @@ npm run start
 
 ## Cloudflare CMS HTML bootstrap
 
+Keep `bun.lock` in version 1 format for Cloudflare builds using Bun 1.2.15. Update it with `npx --yes bun@1.2.15 install` when dependencies change.
+
 ```bash
 bun run generate
 bun run verify:cf-build
