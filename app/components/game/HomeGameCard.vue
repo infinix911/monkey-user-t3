@@ -33,12 +33,16 @@
       <span class="casino-frame-band" :style="{ background: siteConfig.theme.cardFrame.bandGradient }"
         aria-hidden="true" />
 
-      <!-- 4. Brand logo — top-center, above the frame, filtered to white. -->
+      <!-- 4. Brand logo — top-center, above the frame. Rendered in its own
+         colours (CMS logos are full-colour badges, so a whitening
+         brightness(0)/invert filter flattens them into a blank silhouette);
+         a soft dark drop-shadow keeps it legible on the bright top band. -->
       <div v-if="siteConfig.identity.logo && (gameType === 'casino' || gameType === 'slot' || gameType === 'sports')"
         class="absolute inset-x-0 flex items-center justify-center z-30 pointer-events-none"
         style="top: 2px; height: 8%;">
         <img :src="siteConfig.identity.logo" :alt="siteConfig.identity.siteName" :loading="eager ? 'eager' : 'lazy'"
-          class="object-contain h-full" style="width: auto; max-width: 35%; filter: brightness(0) invert(1);">
+          class="object-contain h-full"
+          style="width: auto; max-width: 35%; filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.55));">
       </div>
 
       <!-- 5. Provider logo — sits on the dark gradient band of the frame

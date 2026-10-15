@@ -12,7 +12,7 @@
              file loads instead of the popup growing when it arrives; any real
              logo is taller than this, so it renders at the same size. -->
         <img :src="siteConfig.identity.logoPopup" :alt="siteConfig.identity.siteName"
-          class="h-[22px] lg:h-[26px] w-auto drop-shadow"
+          class="h-[22px] lg:h-[26px] w-auto max-w-full object-contain drop-shadow"
         >
       </div>
 

@@ -51,7 +51,13 @@
                  caps it at 282px, wider than the 215px column, and `flex-shrink-0`
                  means it would otherwise overflow across the account bar. `w-full`
                  binds it to the column (max-height still clamps tall marks), so
-                 there is no second width to keep in sync with the layout. -->
+                 there is no second width to keep in sync with the layout.
+                 `object-contain`, NOT `object-cover`: with the width pinned and
+                 the height clamped, the box no longer has the image's aspect
+                 ratio, and `cover` cropped any mark proportionally taller than
+                 the box (a 16:9 badge lost its top). `contain` letterboxes
+                 instead, so every aspect ratio shows in full within
+                 logoStyles.desktopHeader. -->
             <!-- A PLAIN `<img>`: the logo is a
                  CMS-swappable asset, and the image pipeline serves it through a
                  derived, separately-cached URL, so a rebrand kept showing the
@@ -59,7 +65,7 @@
                  configured path is the one thing that always reflects what the
                  CMS is pointing at now. -->
             <img :src="siteConfig.identity.logo" :alt="siteConfig.identity.siteName"
-              class="h-auto w-auto cursor-pointer object-cover flex-shrink-0 ml-2 lg:ml-0 lg:w-full mt-2 pt-[10px]"
+              class="h-auto w-auto cursor-pointer object-contain flex-shrink-0 ml-2 lg:ml-0 lg:w-full mt-2 pt-[10px]"
               :style="siteConfig.theme.logoStyles.desktopHeader">
           </NuxtLink>
         </div>
