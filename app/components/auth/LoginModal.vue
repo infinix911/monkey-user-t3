@@ -18,7 +18,7 @@
           <!-- Logo -->
           <!-- Plain <img>: CMS-swappable logo, see AppHeader.vue -->
           <img :src="logoSrc" :alt="siteConfig.identity.siteName"
-            class="login-logo w-[220px] sm:w-[300px] drop-shadow-2xl" :style="logoStyle" loading="eager">
+            class="login-logo w-[220px] sm:w-[300px] max-h-[120px] object-contain drop-shadow-2xl" :style="logoStyle" loading="eager">
 
           <!-- Login Card — border + panel theming come from the shared
                `.modal-gradient-border` / `.tm-modal` classes fed by
@@ -178,6 +178,8 @@ const logoSrc = computed(() => {
 // Login-modal logo styling (spacing, etc.) from the theme config. The
 // responsive width stays on the Tailwind classes; only the theme-driven
 // overrides (e.g. margin-bottom) come from theme.logoStyles.loginModal.
+// `max-h-[120px] object-contain` on the img keeps a tall/square badge from
+// pushing the card off a short viewport; a theme `maxHeight` still wins.
 const logoStyle = computed(() => siteConfig.theme.logoStyles.loginModal);
 
 // Dedicated login-modal theme (theme.loginModal) drives the card's border,
