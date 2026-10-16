@@ -52,7 +52,7 @@
             <!-- Moving marquee — alternating direction per row, pauses on hover -->
             <!-- min-h reserves the logo-row height so the `revealed` gate
                  (empty -> populated) doesn't shift layout / cost CLS. -->
-            <div class="marquee-wrap relative mt-6 overflow-hidden min-h-12 sm:min-h-14"
+            <div class="marquee-wrap relative mt-6 overflow-hidden py-1.5 min-h-[68px] sm:min-h-[77px]"
               style="-webkit-mask-image: linear-gradient(to right, transparent, #000 6%, #000 94%, transparent); mask-image: linear-gradient(to right, transparent, #000 6%, #000 94%, transparent);">
               <ul class="footer-marquee flex w-max items-center gap-x-10 sm:gap-x-12"
                 :class="{ 'footer-marquee--reverse': gi % 2 === 1 }"
@@ -65,9 +65,10 @@
                      mounts once the footer nears the viewport (IO below). -->
                 <li v-for="(logo, i) in (revealed ? group.marquee : [])" :key="i"
                   class="group relative inline-flex shrink-0 items-center justify-center">
-                  <img :src="logo" alt="" width="120" height="48" loading="eager" fetchpriority="low" decoding="async"
-                    class="footer-logo invisible block h-12 w-[120px] object-contain object-center opacity-60 grayscale transition-[transform,opacity,filter] duration-500 ease-out group-hover:scale-110 group-hover:opacity-100 group-hover:grayscale-0 sm:h-14 sm:w-[140px]"
-                    @load="onLogoLoad" @error="onLogoError(logo)">
+                  <img :src="logo" alt="" width="120" height="56" loading="eager" fetchpriority="low" decoding="async"
+                    class="footer-logo block h-14 w-[120px] object-contain object-center opacity-60 grayscale transition-[transform,opacity,filter] duration-500 ease-out group-hover:scale-110 group-hover:opacity-100 group-hover:grayscale-0 sm:h-[65px] sm:w-[140px]"
+                    :class="{ invisible: !logoFits[logo] }" :style="logoFitStyle(logo)"
+                    @load="onLogoLoad(logo, $event)" @error="onLogoError(logo)">
                   <!-- Continuous shine sweep, masked to the logo's silhouette -->
                   <span class="logo-shine pointer-events-none absolute inset-0" :style="shineStyle(logo, i)"
                     aria-hidden="true" />
@@ -118,6 +119,12 @@
                   class="group relative inline-flex w-fit items-center text-sm text-white/55 transition-all duration-200 hover:translate-x-0.5 hover:text-white cursor-pointer"
                   @click="onLink(link)">
                   {{ link.label }}
+                  <!-- Unread inquiry-reply count, same as the sidebar's 문의 badge. -->
+                  <span v-if="link.badge"
+                    class="ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold leading-none text-white"
+                    :aria-label="`${link.badge} ${$t('inquiry.unreadMessage')}`">
+                    {{ link.badge > 99 ? "99+" : link.badge }}
+                  </span>
                   <span
                     class="absolute -bottom-0.5 left-0 h-px w-full origin-left scale-x-0 bg-gradient-to-r from-cyan-300/80 to-white/10 transition-transform duration-300 ease-out group-hover:scale-x-100" />
                 </component>
@@ -143,7 +150,8 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, resolveComponent } from "vue";
 import { useI18n } from "vue-i18n";
-import { CASINO_LOGOS, SLOT_LOGOS, SPORT_LOGOS } from "./footerLogos";
+import { useAccountSection } from "@/composables/useAccountSections";
+import { CASINO_LOGOS, SLOT_LOGOS } from "./footerLogos";
 
 const { t } = useI18n();
 const siteConfig = useSiteConfig();
@@ -162,16 +170,25 @@ const isAuthenticated = computed(() => authStore.isAuthenticated);
 
 const onJoin = () => uiStore.setShowSignupModal(true);
 
-// Footer quick-link modal actions — all public (Promotions/FAQ/Contact). The
-// footer doesn't expose the auth-gated Deposit/Withdraw/Inquiry links, so no
-// login-fallback wrapper is needed here.
-const openPromotion = () => uiStore.setShowPromotionModal(true);
-const openFaq = () => uiStore.setShowFaqModal(true);
-const openContact = () => uiStore.setShowContactModal(true);
+// Footer quick links open the same account sections as the sidebar's 공지사항
+// and 문의 items (`faq` is the CMS id for the 공지사항 slot). Both are account-
+// bound, so a guest gets the login prompt instead of an empty panel — the
+// sidebar's `onItemClick` rule. Both ids are exempt from the unread-inquiry
+// guard (useProfileNavigation), so no guard check is needed here.
+const accountSection = useAccountSection();
+const openSection = (id: "faq" | "inquiry") => {
+  if (!authStore.isAuthenticated) {
+    uiStore.setShowLoginModal(true);
+    return;
+  }
+  accountSection.open(id);
+};
+const openNotice = () => openSection("faq");
+const openInquiry = () => openSection("inquiry");
 
 // Runs a link's modal action (if any). NuxtLink/`<a>` links have no action,
 // so this is a no-op for them and normal navigation proceeds.
-type FooterLink = { label: string; to?: string; action?: () => void };
+type FooterLink = { label: string; to?: string; action?: () => void; badge?: number };
 const onLink = (link: FooterLink) => link.action?.();
 
 // Scroll-reveal: blocks fade/slide up in a stagger the first time the footer
@@ -216,24 +233,78 @@ onMounted(() => {
 
 onBeforeUnmount(() => io?.disconnect());
 
-// Some provider logos are portrait 480×627 export canvases where the actual
+// The provider logos are portrait 480×627 export canvases where the actual
 // wordmark sits in the bottom band, ringed by ~70% transparent padding (mostly
 // above it). object-contain would render that tiny glyph far smaller than the
-// tightly-cropped landscape logos. So for any image taller than it is wide we
-// switch to object-cover anchored low (50% 88%) — the box shows just the
-// bottom band where the logo lives, scaled up to match the cropped ones. No
-// source asset is altered; this is purely a render-time fit/position swap.
-const onLogoLoad = (e: Event) => {
-  const img = e.target as HTMLImageElement;
-  // Decide the fit BEFORE the logo is ever visible, so it paints at its final
-  // size on the first frame — no small→big flash. Portrait padded canvases get
-  // object-cover anchored low; tight landscape logos stay object-contain.
-  if (img.naturalHeight > img.naturalWidth) {
-    img.classList.remove("object-contain", "object-center");
-    img.classList.add("object-cover");
-    img.style.objectPosition = "50% 88%";
+// tightly-cropped landscape logos, so portrait images use object-cover (scaled
+// to the box width) and the visible window is slid vertically onto the art.
+//
+// That window used to be a fixed `50% 88%` band, which cut off every logo whose
+// art reaches lower or higher than the band (AllBet, PG Soft, Red Tiger, the
+// "CITY" / "GAMING" sub-lines of Nolimit and Hacksaw, …). Instead we measure
+// each logo's opaque rows once on load and centre the window on them. The box
+// (120×56 / 140×65, both ~0.464 tall:wide) is tall enough for the tallest art
+// (~199 of 480 px wide) even at the 1.1 hover scale. The shine mask reuses the
+// same fit/position so the sweep stays on the logo's silhouette.
+const LOGO_BOX_RATIO = 56 / 120; // box height ÷ width (sm: 65/140 ≈ same)
+
+type LogoFit = { fit: "contain" | "cover"; position: string };
+const logoFits = ref<Record<string, LogoFit>>({});
+
+/** Vertical centre (0–1) of the image's opaque pixels, or null if unreadable. */
+const artCenterY = (img: HTMLImageElement): number | null => {
+  try {
+    // A downscaled copy is plenty to locate the band and keeps this cheap.
+    const w = 48;
+    const h = Math.max(1, Math.round((img.naturalHeight / img.naturalWidth) * w));
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return null;
+    ctx.drawImage(img, 0, 0, w, h);
+    const data = ctx.getImageData(0, 0, w, h).data;
+    let top = -1;
+    let bottom = -1;
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        if ((data[(y * w + x) * 4 + 3] ?? 0) > 8) {
+          if (top < 0) top = y;
+          bottom = y;
+          break;
+        }
+      }
+    }
+    if (top < 0) return null;
+    return (top + bottom + 1) / 2 / h;
+  } catch {
+    return null; // tainted canvas etc. — caller falls back to contain
   }
-  img.classList.remove("invisible");
+};
+
+const onLogoLoad = (logo: string, e: Event) => {
+  if (logoFits.value[logo]) return; // the duplicated track copy shares the fit
+  const img = e.target as HTMLImageElement;
+  // Decide the fit BEFORE the logo is ever visible (it stays `invisible` until
+  // logoFits has an entry), so it paints at its final size on the first frame.
+  let fit: LogoFit = { fit: "contain", position: "50% 50%" };
+  const aspect = img.naturalHeight / img.naturalWidth;
+  if (aspect > LOGO_BOX_RATIO && img.naturalHeight > img.naturalWidth) {
+    const cy = artCenterY(img);
+    if (cy !== null) {
+      // object-position %: offset = p × (renderedH − boxH). Centre the window
+      // (LOGO_BOX_RATIO / aspect of the image height) on the art's centre.
+      const win = LOGO_BOX_RATIO / aspect;
+      const p = Math.min(1, Math.max(0, (cy - win / 2) / (1 - win)));
+      fit = { fit: "cover", position: `50% ${(p * 100).toFixed(2)}%` };
+    }
+  }
+  logoFits.value = { ...logoFits.value, [logo]: fit };
+};
+
+const logoFitStyle = (logo: string) => {
+  const f = logoFits.value[logo];
+  return f ? { objectFit: f.fit, objectPosition: f.position } : undefined;
 };
 
 // A logo that fails to fetch would otherwise sit in the row FOREVER INVISIBLE
@@ -252,25 +323,32 @@ const onLogoError = (logo: string) => {
 
 // Clips the shine sweep to each logo's own silhouette (alpha mask) and
 // staggers the start so the sheen flows across the row as a continuous wave.
-const shineStyle = (logo: string, i: number) => ({
-  WebkitMaskImage: `url(${logo})`,
-  maskImage: `url(${logo})`,
-  WebkitMaskRepeat: "no-repeat",
-  maskRepeat: "no-repeat",
-  WebkitMaskPosition: "center",
-  maskPosition: "center",
-  WebkitMaskSize: "contain",
-  maskSize: "contain",
-  animationDelay: `${(i % 10) * 0.55}s`,
-});
+// The mask uses the image's own fit/position so it lines up with the art.
+const shineStyle = (logo: string, i: number) => {
+  const f = logoFits.value[logo];
+  const size = f?.fit ?? "contain";
+  const position = f?.position ?? "center";
+  return {
+    WebkitMaskImage: `url(${logo})`,
+    maskImage: `url(${logo})`,
+    WebkitMaskRepeat: "no-repeat",
+    maskRepeat: "no-repeat",
+    WebkitMaskPosition: position,
+    maskPosition: position,
+    WebkitMaskSize: size,
+    maskSize: size,
+    animationDelay: `${(i % 10) * 0.55}s`,
+  };
+};
 
 // Provider logos grouped by category. `marquee` duplicates each set so the
 // track loops seamlessly (the CSS animation shifts by exactly one set / -50%).
+// Sports logos are deliberately not shown in the footer; SPORT_LOGOS stays in
+// footerLogos.ts (curated list) but is not rendered here.
 const logoGroups = computed(() =>
   [
     { key: "casino", title: t("footer.links.casino"), logos: CASINO_LOGOS },
     { key: "slots", title: t("footer.links.slots"), logos: SLOT_LOGOS },
-    { key: "sports", title: t("footer.links.sports"), logos: SPORT_LOGOS },
   ].map((g) => {
     // Anything that 404'd is dropped from BOTH the track and the length the
     // animation duration is derived from, so the loop still shifts by exactly
@@ -286,19 +364,16 @@ const columns = computed(() => [
   {
     heading: t("footer.columns.quickLinks"),
     links: [
-      { label: t("footer.links.promotions"), action: openPromotion },
-      { label: t("footer.links.faq"), action: openFaq },
-      { label: t("footer.links.contact"), action: openContact },
+      { label: t("sidebar.notice"), action: openNotice },
+      { label: t("profile.inquiry"), action: openInquiry, badge: uiStore.unreadInquiryCount },
     ] as FooterLink[],
   },
   {
     heading: t("footer.columns.games"),
     links: [
+      { label: t("footer.links.mini"), to: "/mini" },
       { label: t("footer.links.casino"), to: "/casino" },
       { label: t("footer.links.slots"), to: "/slots" },
-      { label: t("footer.links.sports"), to: "/sports" },
-      { label: t("footer.links.fishing"), to: "/fishing" },
-      { label: t("footer.links.virtual"), to: "/virtual" },
     ] as FooterLink[],
   },
 ]);
