@@ -1,4 +1,6 @@
 import tailwindcss from "@tailwindcss/vite";
+import { r2PublicBase } from "./shared/utils/r2-public-base";
+
 import { buildThemePrefetchScript } from "./app/lib/theme-prefetch";
 
 function configuredPreviewOrigins(): string[] {
@@ -49,6 +51,7 @@ function configuredPublicApiBase(): string {
 }
 
 const publicApiBase = configuredPublicApiBase();
+const publicAssetBase = r2PublicBase(process.env.R2_PUBLIC_BASE_URL);
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
@@ -208,6 +211,7 @@ export default defineNuxtConfig({
   },
 
   vite: {
+    define: { "import.meta.env.R2_PUBLIC_BASE_URL": JSON.stringify(publicAssetBase) },
     plugins: [tailwindcss()],
     // Pre-bundle deps that the startup scan cannot see. zod and
     // @vee-validate/zod are only imported from lazily loaded modals/forms
@@ -325,8 +329,8 @@ export default defineNuxtConfig({
       link: [
         // Image/media CDN — banner overlay here is the LCP element, so
         // warm DNS + TLS before the dynamic banner URL resolves.
-        { rel: "preconnect", href: "https://sg-sin-1.linodeobjects.com", crossorigin: "" },
-        { rel: "dns-prefetch", href: "https://sg-sin-1.linodeobjects.com" },
+        { rel: "preconnect", href: publicAssetBase, crossorigin: "" },
+        { rel: "dns-prefetch", href: publicAssetBase },
         // Game provider CDN — every game thumbnail (game_img) loads directly
         // from here (served as plain <img>, not via IPX), so warm DNS + TLS.
         { rel: "preconnect", href: "https://slots.ps9launcher.com", crossorigin: "" },
@@ -479,7 +483,7 @@ export default defineNuxtConfig({
       // (not `same-origin`) lets us still open game-launch windows / OAuth
       // popups without breaking — `same-origin` would sever the popup from
       // window.opener. CORP `cross-origin` is needed because banner/asset
-      // images are served from sg-sin-1.linodeobjects.com.
+      // images are served from the configured R2 public origin.
       crossOriginOpenerPolicy: "same-origin-allow-popups",
       crossOriginResourcePolicy: "cross-origin",
       // Lock down powerful APIs we don't use. Each empty array means "deny

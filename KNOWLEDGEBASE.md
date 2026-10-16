@@ -245,7 +245,7 @@ Money logic never lives in stores — mutations go through `useApi`/`axios-clien
 
 - A healthy Cloudflare shell applies CMS theme/scripts before Vue renders; fallback hosts still paint bundled UI while public reads settle. Keep both startup paths light.
 - `spaLoadingTemplate: false` avoids Nuxt's built-in loading splash; the page's own background paints until Vue mounts.
-- Homepage LCP: preconnects to Linode CDN + game-thumbnail host; footer marquee logos MUST stay `loading="eager"` (lazy broke animation — commit 40fbd3c); IntersectionObserver reveal is the mitigation.
+- Homepage LCP: preconnects to the configured R2 public origin + game-thumbnail host; footer marquee logos MUST stay `loading="eager"` (lazy broke animation — commit 40fbd3c); IntersectionObserver reveal is the mitigation.
 - Game payloads retain both English and Korean names so the language selector can update cards without refetching; `/_ipx/**` has rate limiting disabled (50+ transforms/page).
 - Perf e2e: `test:e2e:perf` throttled-network spec against live prod (`PERF_BASE_URL`).
 

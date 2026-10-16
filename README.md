@@ -40,3 +40,12 @@ Configure `USERPAGE_CACHE_PURGE_SECRET` as a Worker secret with Wrangler, matchi
 Local development, `?themePreview=1`, missing bindings/mappings/snapshots, or malformed data use the existing static shell and browser API fallback. Preview continues fetching `domain=preview` without live scripts. CMS theme fields retain this template's merge contract and bundled design; icons remain CMS-only with no added static fallback assets. Only inline script bodies and plain JS are supported, preserving the trusted-admin model.
 
 The generated-shell browser suite starts its own local Worker harness and intercepts all external requests; it requires generated HTML and Chromium. Native Cloudflare cache and purge behavior also require remote validation. See `KNOWLEDGEBASE.md` for the feature map and `DECISIONS.md` for design rationale. Keep npm and Bun lockfiles synchronized when dependencies change.
+
+## Public R2 assets
+
+Set `R2_PUBLIC_BASE_URL=https://assets.fr-7979.com` in the build environment. This is the public
+custom-domain origin without a bucket name or path; a trailing slash is
+normalized. Asset URLs and resource hints use this origin. Rebuild the SPA when
+it changes. Never put R2 access keys or secrets in frontend environment files.
+Committed theme examples use `https://assets.fr-7979.com`; existing CMS URLs and object migration
+remain a manual cutover task.

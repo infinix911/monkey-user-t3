@@ -1,3 +1,5 @@
+import { ASSET_CDN_BASE } from "../utils/assetUrl";
+
 /**
  * Template3 Site Configuration
  *
@@ -1009,11 +1011,11 @@ export const getDefaultThemeConfig = (): SiteConfig => {
                 gifBorder: "/designs/template-1/navbar/border/05.webp",
                 activeGifBorder: "/designs/template-1/navbar/border/05.webp",
                 icons: {
-                    hot: "https://sg-sin-1.linodeobjects.com/banana/designs/template-3/nav-icons/hot/01.webp",
-                    slot: "https://sg-sin-1.linodeobjects.com/banana/designs/template-3/nav-icons/slot/01.webp",
-                    casino: "https://sg-sin-1.linodeobjects.com/banana/designs/template-3/nav-icons/casino/01.webp",
-                    sport: "https://sg-sin-1.linodeobjects.com/banana/designs/template-3/nav-icons/sport/01.webp",
-                    mini: "https://sg-sin-1.linodeobjects.com/banana/designs/template-3/nav-icons/mini/01.webp",
+                    hot: `${ASSET_CDN_BASE}/designs/template-3/nav-icons/hot/01.webp`,
+                    slot: `${ASSET_CDN_BASE}/designs/template-3/nav-icons/slot/01.webp`,
+                    casino: `${ASSET_CDN_BASE}/designs/template-3/nav-icons/casino/01.webp`,
+                    sport: `${ASSET_CDN_BASE}/designs/template-3/nav-icons/sport/01.webp`,
+                    mini: `${ASSET_CDN_BASE}/designs/template-3/nav-icons/mini/01.webp`,
                     fishing: "/designs/banana/theme/fishing-icon-optimized-1782396049473.webp",
                     virtual: "/designs/banana/theme/virtual-icon-optimized-1782395959578.webp",
                 },
@@ -1217,13 +1219,13 @@ export const getDefaultThemeConfig = (): SiteConfig => {
         // ───────────────────────────────────────────────────────────────────
         assets: {
             images: {
-                gold: "https://banana.sg-sin-1.linodeobjects.com/dragon/stones/gold.webp",
-                bronze: "https://banana.sg-sin-1.linodeobjects.com/dragon/stones/bronze.webp",
-                silver: "https://banana.sg-sin-1.linodeobjects.com/dragon/stones/silver.webp",
-                platinum: "https://banana.sg-sin-1.linodeobjects.com/dragon/stones/platinum.webp",
-                ruby: "https://banana.sg-sin-1.linodeobjects.com/dragon/stones/ruby.webp",
-                sapphire: "https://banana.sg-sin-1.linodeobjects.com/dragon/stones/sapphire.webp",
-                diamonds: "https://banana.sg-sin-1.linodeobjects.com/dragon/stones/diamonds.webp",
+                gold: `${ASSET_CDN_BASE}/dragon/stones/gold.webp`,
+                bronze: `${ASSET_CDN_BASE}/dragon/stones/bronze.webp`,
+                silver: `${ASSET_CDN_BASE}/dragon/stones/silver.webp`,
+                platinum: `${ASSET_CDN_BASE}/dragon/stones/platinum.webp`,
+                ruby: `${ASSET_CDN_BASE}/dragon/stones/ruby.webp`,
+                sapphire: `${ASSET_CDN_BASE}/dragon/stones/sapphire.webp`,
+                diamonds: `${ASSET_CDN_BASE}/dragon/stones/diamonds.webp`,
                 mainBackground: "",
                 fixedMainBackground: false,
                 mainBackgroundMobile: false,
@@ -1254,11 +1256,11 @@ export const getDefaultThemeConfig = (): SiteConfig => {
             },
             transaction: {
                 bankAccountListPath:
-                    "https://sg-sin-1.linodeobjects.com/banana/ocean/banks/accountlist",
+                    `${ASSET_CDN_BASE}/ocean/banks/accountlist`,
                 bankAccountNoImage: "/designs/banks/accountlist/NOIMG.webp",
                 depositIcon: "",
                 withdrawIcon: "",
-                bankBasePath: "https://sg-sin-1.linodeobjects.com/banana/ocean/banks",
+                bankBasePath: `${ASSET_CDN_BASE}/ocean/banks`,
                 bankNoImage: "/designs/banks/NOIMAGE.webp",
             },
             lobbyCard: {
@@ -1284,10 +1286,10 @@ export const getDefaultThemeConfig = (): SiteConfig => {
                     slot: {},
                 },
                 gameBg: {
-                    casino: "https://banana.sg-sin-1.linodeobjects.com/designs/template-3/game-thumbnail-bg/18.webp",
-                    sport: "https://banana.sg-sin-1.linodeobjects.com/designs/template-3/game-thumbnail-bg/31.webp",
+                    casino: `${ASSET_CDN_BASE}/designs/template-3/game-thumbnail-bg/18.webp`,
+                    sport: `${ASSET_CDN_BASE}/designs/template-3/game-thumbnail-bg/31.webp`,
                     sportRatio: "",
-                    slot: "https://banana.sg-sin-1.linodeobjects.com/designs/template-3/game-thumbnail-bg/32.webp",
+                    slot: `${ASSET_CDN_BASE}/designs/template-3/game-thumbnail-bg/32.webp`,
                 },
                 gameFrame: {
                     casino: "/designs/template-3/frame.png",

@@ -2,7 +2,7 @@
 // (12 casino / 12 slots / 8 sports, to keep the footer image count low).
 //
 // Keep these SAME-ORIGIN: AppFooter uses each image as a CSS mask for its shine
-// effect, and the Linode bucket does not return the CORS headers CSS masks need.
+// effect, and the asset host may omit the CORS headers CSS masks need.
 //
 // The assets are the display-name-keyed files under `public/designs/game_logo`
 // — the same pool `getLogoImages()` resolves provider codes against, so there is
