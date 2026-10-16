@@ -7,8 +7,8 @@
          the page, not to a particular fetch state. -->
     <GameSectionHeader name="mini" :label="$t('navbar.mini')" />
 
-    <!-- Loading State -->
-    <div v-if="isLoading" class="w-full py-8 text-white text-center">
+    <!-- Loading State — first page only; later pages load under the grid. -->
+    <div v-if="isLoading && allGames.length === 0" class="w-full py-8 text-white text-center">
       <p class="text-lg text-gray-400">{{ $t("common.loading") }}</p>
     </div>
 
@@ -19,6 +19,32 @@
       <div class="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-[5px]">
         <div v-for="game in allGames" :key="game.id" class="cursor-pointer" @click="handleGameClick(game)">
           <HotGameCard :game="game" fluid />
+        </div>
+      </div>
+
+      <!-- Infinite scroll, as on /lobbies/:lobby/games: the observer requests
+           the next 24 shortly before this marker enters the viewport. It stays
+           mounted on a failed page so the member can retry without losing the
+           pages already shown. -->
+      <div
+        v-if="hasMore || isLoadingMore || loadMoreError"
+        ref="loadMoreSentinel"
+        data-testid="mini-games-sentinel"
+        class="min-h-px w-full py-6 text-center"
+        aria-live="polite"
+      >
+        <p v-if="isLoadingMore" class="text-sm text-gray-400">
+          {{ $t("common.loading") }}
+        </p>
+        <div v-else-if="loadMoreError">
+          <p class="text-sm text-red-400">{{ loadMoreError }}</p>
+          <button
+            type="button"
+            class="mt-3 rounded bg-yellow-500 px-5 py-2 text-sm text-black transition-colors hover:bg-yellow-600"
+            @click="retryLoadMore"
+          >
+            {{ $t("common.retry") }}
+          </button>
         </div>
       </div>
     </div>
@@ -45,7 +71,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { localizedGameName } from "~/utils/localized-game-name";
 
@@ -69,24 +95,113 @@ useHead({
 });
 
 
-// Fetch the mini catalogue as one filtered page rather than expanding every
-// provider lobby into a separate request. The existing loading/empty branches
-// keep the route usable while it resolves.
-const { data: miniGames, pending } = useAsyncData<GameRow[]>(
-  "mini-games-bundle",
-  async () => {
-    const { games } = await catalog.loadGames({
-      gameType: "mini",
-      page: 1,
-      limit: 50,
-    });
-    return games;
-  },
-  { default: () => [], server: false },
+// Mini catalogue, 24 per page with infinite scroll — the same pattern as
+// pages/lobbies/[lobby]/games.vue (the slot provider list). Page 1 comes from
+// useAsyncData; later pages append client-side as the sentinel nears.
+const GAMES_PER_PAGE = 24;
+const PREFETCH_MARGIN_PX = 400;
+
+const apiMessage = useApiMessage();
+
+const { data: firstPage, pending } = useAsyncData<{ games: GameRow[]; total: number }>(
+  "mini-games-page-1",
+  () => catalog.loadGames({ gameType: "mini", page: 1, limit: GAMES_PER_PAGE }),
+  { default: () => ({ games: [], total: 0 }), server: false },
 );
 
+const appendedGames = ref<GameRow[]>([]);
+const loadedPage = ref(1);
+const totalOverride = ref<number | null>(null);
+const reachedEnd = ref(false);
+const isLoadingMore = ref(false);
+const loadMoreError = ref<string | null>(null);
+const loadMoreSentinel = ref<HTMLElement | null>(null);
+
 const isLoading = computed(() => pending.value);
-const allGames = computed<GameRow[]>(() => miniGames.value ?? []);
+
+/** Page 1 + appended pages, de-duplicated by id (pages can shift underneath). */
+const allGames = computed<GameRow[]>(() => {
+  const seen = new Set<string>();
+  return [...(firstPage.value?.games ?? []), ...appendedGames.value].filter((game) => {
+    const id = String(game.id);
+    if (seen.has(id)) return false;
+    seen.add(id);
+    return true;
+  });
+});
+
+const totalGames = computed(() => totalOverride.value ?? firstPage.value?.total ?? 0);
+const hasMore = computed(() =>
+  !reachedEnd.value &&
+  (firstPage.value?.games.length ?? 0) > 0 &&
+  allGames.value.length < totalGames.value,
+);
+
+const loadNextPage = async (): Promise<void> => {
+  if (pending.value || isLoadingMore.value || loadMoreError.value || !hasMore.value) return;
+
+  const nextPage = loadedPage.value + 1;
+  isLoadingMore.value = true;
+  try {
+    const result = await catalog.loadGames({ gameType: "mini", page: nextPage, limit: GAMES_PER_PAGE });
+    appendedGames.value.push(...result.games);
+    loadedPage.value = nextPage;
+    totalOverride.value = result.total;
+    if (result.games.length === 0) reachedEnd.value = true;
+  } catch (err: unknown) {
+    loadMoreError.value = apiMessage(err, "game", "common.errorLoadingData");
+  } finally {
+    isLoadingMore.value = false;
+    // A tall viewport may still show the sentinel after the append.
+    void nextTick(maybeLoadVisibleSentinel);
+  }
+};
+
+const retryLoadMore = () => {
+  loadMoreError.value = null;
+  void loadNextPage();
+};
+
+function maybeLoadVisibleSentinel(): void {
+  const sentinel = loadMoreSentinel.value;
+  if (!sentinel || sentinel.getBoundingClientRect().top > window.innerHeight + PREFETCH_MARGIN_PX) return;
+  void loadNextPage();
+}
+
+let intersectionObserver: IntersectionObserver | null = null;
+let scrollListenerAttached = false;
+
+const stopWatchingSentinel = () => {
+  intersectionObserver?.disconnect();
+  intersectionObserver = null;
+  if (scrollListenerAttached) {
+    window.removeEventListener("scroll", maybeLoadVisibleSentinel);
+    scrollListenerAttached = false;
+  }
+};
+
+watch(loadMoreSentinel, (sentinel) => {
+  stopWatchingSentinel();
+  if (!sentinel) return;
+  if (typeof IntersectionObserver !== "undefined") {
+    intersectionObserver = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) void loadNextPage();
+      },
+      { rootMargin: `${PREFETCH_MARGIN_PX}px 0px` },
+    );
+    intersectionObserver.observe(sentinel);
+  }
+  // Always listen to scroll as well: a jump (End key, scrollbar drag) can carry
+  // the sentinel from below the viewport to above it within one frame, which
+  // the observer never reports as intersecting. maybeLoadVisibleSentinel loads
+  // whenever the sentinel is at or above the prefetch line, so it catches that.
+  window.addEventListener("scroll", maybeLoadVisibleSentinel, { passive: true });
+  scrollListenerAttached = true;
+  void nextTick(maybeLoadVisibleSentinel);
+});
+
+onBeforeUnmount(stopWatchingSentinel);
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const handleGameClick = (game: any) => {

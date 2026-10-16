@@ -113,7 +113,7 @@
       <!-- Mini Games section -->
       <template v-if="miniGames.length > 0">
         <GameSectionHeader name="mini" :label="$t('navbar.mini')" />
-        <GameCarousel :step="201" :per-page="6">
+        <GameCarousel :step="201" :per-page="6" @near-end="loadMoreMiniGames">
           <div
             v-for="game in miniGames"
             :key="`mini-${game.id}`"
@@ -156,7 +156,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { openGame } from "~~/utils/game-navigation";
 // Temporarily hidden with the Top Withdrawals/Deposits tickers (see template).
 // Restore these imports when the tickers are re-enabled.
@@ -223,8 +223,11 @@ const catalog = useGameCatalogStore();
 const hotGamesAsync = useAsyncData<AnyList>(
   "home-hot-games",
   async () => {
+    // limit 10: the API's minimum, and the exact query the navbar's HOT probe
+    // (useGameCategoryAvailability) sends — so the catalog store answers both
+    // from ONE cached / in-flight request instead of a second 48-row call.
     const res = await catalog.loadGames({
-      gameType: "slot", category: "hot", page: 1, limit: 48,
+      gameType: "slot", category: "hot", page: 1, limit: 10,
     }).catch(() => ({ games: [] }));
     return res.games;
   },
@@ -267,26 +270,65 @@ const { data: sportsLobbiesData, pending: sportsLobbiesPending } =
   sportsLobbiesAsync;
 const { data: slotLobbiesData, pending: slotLobbiesPending } = slotLobbiesAsync;
 
-// Mini games — fetch one filtered catalogue page rather than one request per
-// provider lobby. Rendered in a single horizontal scroll row like HOT.
-const miniGamesAsync = useAsyncData<AnyList>(
+// Mini games — one filtered catalogue page rather than one request per provider
+// lobby, rendered in a single horizontal scroll row like HOT. The first page is
+// 10 (the API's minimum `limit`); further pages of 10 append as the row is
+// scrolled near its right end (GameCarousel's `near-end`).
+const MINI_PAGE_SIZE = 10;
+
+const miniGamesAsync = useAsyncData<{ games: AnyList; total: number }>(
   "home-mini-games",
-  async () => {
-    const { games } = await catalog.loadGames({
-      gameType: "mini",
-      page: 1,
-      limit: 50,
-    });
-    return games;
-  },
-  { default: (): AnyList => [], server: false },
+  () => catalog.loadGames({ gameType: "mini", page: 1, limit: MINI_PAGE_SIZE }),
+  { default: () => ({ games: [], total: 0 }), server: false },
 );
 const { data: miniGamesData, pending: miniGamesPending } = miniGamesAsync;
 
 // These requests begin during setup but are intentionally not awaited: the SPA
 // renders its section-level loading state while each response arrives.
 
-const miniGames = computed<AnyList>(() => miniGamesData.value ?? []);
+const miniAppended = ref<AnyList>([]);
+const miniLoadedPage = ref(1);
+const miniTotalOverride = ref<number | null>(null);
+const miniReachedEnd = ref(false);
+const miniLoadingMore = ref(false);
+
+/** Page 1 + appended pages, de-duplicated by id (pages can shift underneath). */
+const miniGames = computed<AnyList>(() => {
+  const seen = new Set<string>();
+  return [...(miniGamesData.value?.games ?? []), ...miniAppended.value].filter((game) => {
+    const id = String(game.id);
+    if (seen.has(id)) return false;
+    seen.add(id);
+    return true;
+  });
+});
+
+const miniHasMore = computed(() =>
+  !miniReachedEnd.value &&
+  (miniGamesData.value?.games.length ?? 0) > 0 &&
+  miniGames.value.length < (miniTotalOverride.value ?? miniGamesData.value?.total ?? 0),
+);
+
+/**
+ * Appends the next mini page. A failed page is dropped silently (the row keeps
+ * what it has) and retried on the next scroll near the end.
+ */
+async function loadMoreMiniGames(): Promise<void> {
+  if (miniGamesPending.value || miniLoadingMore.value || !miniHasMore.value) return;
+  const nextPage = miniLoadedPage.value + 1;
+  miniLoadingMore.value = true;
+  try {
+    const result = await catalog.loadGames({ gameType: "mini", page: nextPage, limit: MINI_PAGE_SIZE });
+    miniAppended.value.push(...result.games);
+    miniLoadedPage.value = nextPage;
+    miniTotalOverride.value = result.total;
+    if (result.games.length === 0) miniReachedEnd.value = true;
+  } catch {
+    // Keep the loaded cards; the next near-end scroll retries this page.
+  } finally {
+    miniLoadingMore.value = false;
+  }
+}
 
 const isLoading = computed(
   () =>
