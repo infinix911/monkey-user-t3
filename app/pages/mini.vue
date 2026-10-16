@@ -169,14 +169,14 @@ function maybeLoadVisibleSentinel(): void {
 }
 
 let intersectionObserver: IntersectionObserver | null = null;
-let fallbackScrollListener = false;
+let scrollListenerAttached = false;
 
 const stopWatchingSentinel = () => {
   intersectionObserver?.disconnect();
   intersectionObserver = null;
-  if (fallbackScrollListener) {
+  if (scrollListenerAttached) {
     window.removeEventListener("scroll", maybeLoadVisibleSentinel);
-    fallbackScrollListener = false;
+    scrollListenerAttached = false;
   }
 };
 
@@ -191,11 +191,14 @@ watch(loadMoreSentinel, (sentinel) => {
       { rootMargin: `${PREFETCH_MARGIN_PX}px 0px` },
     );
     intersectionObserver.observe(sentinel);
-  } else {
-    window.addEventListener("scroll", maybeLoadVisibleSentinel, { passive: true });
-    fallbackScrollListener = true;
-    void nextTick(maybeLoadVisibleSentinel);
   }
+  // Always listen to scroll as well: a jump (End key, scrollbar drag) can carry
+  // the sentinel from below the viewport to above it within one frame, which
+  // the observer never reports as intersecting. maybeLoadVisibleSentinel loads
+  // whenever the sentinel is at or above the prefetch line, so it catches that.
+  window.addEventListener("scroll", maybeLoadVisibleSentinel, { passive: true });
+  scrollListenerAttached = true;
+  void nextTick(maybeLoadVisibleSentinel);
 });
 
 onBeforeUnmount(stopWatchingSentinel);
