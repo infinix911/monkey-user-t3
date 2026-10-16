@@ -29,7 +29,7 @@
 </style>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { onBeforeUnmount, onMounted, ref } from "vue";
 import CarouselArrow from "./CarouselArrow.vue";
 import { useCarouselScroll } from "~/composables/useCarouselScroll";
 
@@ -43,9 +43,32 @@ const props = withDefaults(
   { py: "py-1", gap: "gap-1.5" },
 );
 
+const emit = defineEmits<{
+  /**
+   * The row is within one visible width of its right end — the cue for a
+   * caller that pages its cards to append the next batch (homepage mini row).
+   * Fires repeatedly while there; callers guard against in-flight loads.
+   */
+  nearEnd: [];
+}>();
+
 const scrollRef = ref<HTMLElement | null>(null);
 const { isAtLeft, isAtRight, scrollLeft, scrollRight } = useCarouselScroll(
   scrollRef,
   { step: props.step, perPage: props.perPage },
 );
+
+function checkNearEnd(): void {
+  const el = scrollRef.value;
+  if (!el) return;
+  if (el.scrollLeft + el.clientWidth >= el.scrollWidth - el.clientWidth) emit("nearEnd");
+}
+
+onMounted(() => {
+  scrollRef.value?.addEventListener("scroll", checkNearEnd, { passive: true });
+});
+
+onBeforeUnmount(() => {
+  scrollRef.value?.removeEventListener("scroll", checkNearEnd);
+});
 </script>
