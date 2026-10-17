@@ -1,4 +1,4 @@
-import { computed, watch } from "vue";
+import { computed, watch, onServerPrefetch } from "vue";
 import { useAuthStore } from "@/stores/auth";
 import { useGameCatalogStore } from "@/stores/game-catalog";
 import type { NormalizedLobby } from "@/interfaces/game.interface";
@@ -9,7 +9,8 @@ export function useLobbyPage(gameType: string) {
   const cached = computed(() => catalog.lobbyEntry(gameType));
 
   const fetchLobbies = (force = false) => catalog.loadLobbies(gameType, force);
-  void fetchLobbies().catch(() => undefined);
+  if (import.meta.server) onServerPrefetch(() => fetchLobbies().catch(() => undefined));
+  else void fetchLobbies().catch(() => undefined);
 
   // The initial client probe is deliberately not treated as a login transition;
   // its first request is already correctly member-scoped once it settles.

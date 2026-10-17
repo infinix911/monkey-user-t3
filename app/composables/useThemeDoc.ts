@@ -5,7 +5,6 @@
  *
  * Design notes:
  *   - Optional legacy loader; the root app uses fetchSiteConfig().
- *   - A healthy Worker bootstrap settles this loader without an API request.
  *   - Intentionally additive: it only writes into userPageConfig when the API
  *     returns a non-null document. If the endpoint 404s, errors, or returns
  *     nothing, the function swallows the failure and lets the normal config
@@ -45,7 +44,6 @@ function deepMerge<T>(base: T, override: unknown): T {
  * Missing/unreachable theme endpoints never block rendering.
  */
 export async function fetchThemeDoc(): Promise<boolean> {
-  if (!isThemePreview() && useState("siteBootstrapLoaded", () => false).value) return true;
   // Always return a defined value: useAsyncData warns (and may double-fetch on
   // the client) when its handler resolves to undefined.
   try {

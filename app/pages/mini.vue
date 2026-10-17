@@ -103,10 +103,10 @@ const PREFETCH_MARGIN_PX = 400;
 
 const apiMessage = useApiMessage();
 
-const { data: firstPage, pending } = useAsyncData<{ games: GameRow[]; total: number }>(
+const { data: firstPage, pending } = await useAsyncData<{ games: GameRow[]; total: number }>(
   "mini-games-page-1",
   () => catalog.loadGames({ gameType: "mini", page: 1, limit: GAMES_PER_PAGE }),
-  { default: () => ({ games: [], total: 0 }), server: false },
+  { default: () => ({ games: [], total: 0 }) },
 );
 
 const appendedGames = ref<GameRow[]>([]);

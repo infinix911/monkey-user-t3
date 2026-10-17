@@ -50,7 +50,6 @@ export const useSiteStore = defineStore("site", () => {
    * an empty successful response from a not-yet-fetched one. */
   const customScripts = ref<CustomScriptEntry[]>([]);
   const customScriptsLoaded = ref(false);
-  const customScriptsInjected = ref(false);
 
   const setBankAccounts = (accounts: BankAccount[]) => {
     bankAccounts.value = accounts;
@@ -64,10 +63,9 @@ export const useSiteStore = defineStore("site", () => {
     poolData.value = data;
   };
 
-  const setCustomScripts = (scripts: CustomScriptEntry[], injected = false) => {
+  const setCustomScripts = (scripts: CustomScriptEntry[]) => {
     customScripts.value = scripts;
     customScriptsLoaded.value = true;
-    customScriptsInjected.value = injected;
   };
 
   /** Reset member site data while retaining public CMS scripts across logout. */
@@ -82,7 +80,6 @@ export const useSiteStore = defineStore("site", () => {
     poolData,
     customScripts,
     customScriptsLoaded,
-    customScriptsInjected,
     setBankAccounts,
     setSiteSettings,
     setPoolData,

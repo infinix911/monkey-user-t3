@@ -1,10 +1,7 @@
 /**
  * Client-only session bootstrap.
  *
- * In production, SSR hydration is skipped (cookie scoped to API domain is not
- * forwarded by the Worker), so this plugin verifies the session by calling
- * /auth/get-session after mount. In development, SSR already populated the store, so
- * we only verify if Pinia came up logged-out.
+ * Public SSR is anonymous; verify the browser session after hydration.
  *
  * Once authenticated, connects the WebSocket and fetches notices. Also pauses
  * WS on tab hide for bfcache friendliness.
@@ -43,7 +40,10 @@ export default defineNuxtPlugin((nuxtApp) => {
         waitForBootstrap(),
         sessionProbe,
       ]);
-      if (verifiedUser) authStore.applyVerifiedUser(verifiedUser);
+      if (verifiedUser) {
+        useGameCatalogStore().clear();
+        authStore.applyVerifiedUser(verifiedUser);
+      }
     } catch {
       // No valid session — stay anonymous
       authStore.resetUser();
@@ -53,6 +53,7 @@ export default defineNuxtPlugin((nuxtApp) => {
     }
 
     if (authStore.isAuthenticated) {
+      void refreshNuxtData(Object.keys(nuxtApp.payload.data).filter((key) => key.includes("games") || key.startsWith("lobbies-")));
       ws.connect();
       uiStore.fetchNotice();
       // `useNotifications()` calls `useI18n()`, which can only run while a

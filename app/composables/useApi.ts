@@ -69,15 +69,38 @@ export interface ValidatingFetch extends $Fetch {
 
 export const useApi = (): ValidatingFetch => {
   const base = getApiBase();
+  const event = import.meta.server ? useRequestEvent() : undefined;
+  const origin = import.meta.server ? useRequestURL().origin : undefined;
 
   const fetcher = $fetch.create({
     baseURL: base,
     credentials: "include",
     retry: 0,
     timeout: 10000,
+    onRequest({ options }) {
+      if (!import.meta.server) return;
+      if (!["GET", "HEAD"].includes(String(options.method || "GET").toUpperCase())) {
+        if (event) event.context.userpageUpstreamFailed = true;
+        throw new Error("Mutating API requests require the browser session");
+      }
+      const headers = new Headers(options.headers as HeadersInit | undefined);
+      for (const name of ["cookie", "authorization", "x-forwarded-host", "x-forwarded-for", "x-internal-proxy-secret"]) headers.delete(name);
+      headers.set("Origin", origin!);
+      options.headers = headers;
+      options.credentials = "omit";
+    },
+    onRequestError() { if (event) event.context.userpageUpstreamFailed = true; },
     // Clear the auto-logout latch on any successful auth response, mirroring
     // axios-client's response interceptor so re-login re-enables auto-logout.
     onResponse({ request, response }) {
+      if (event) {
+        if (response.headers.has("set-cookie")) event.context.userpageUpstreamFailed = true;
+        if (String(request).includes("/site/config/theme")) {
+          const tag = response.headers.get("x-userpage-cache-tag");
+          if (tag) event.context.userpageCacheTag = tag;
+          else event.context.userpageUpstreamFailed = true;
+        }
+      }
       if (!import.meta.client || !response.ok) return;
       const url = String(request);
       if (url.includes("/auth/sign-in/username")) {
@@ -88,6 +111,7 @@ export const useApi = (): ValidatingFetch => {
     // once per session, excluding the login attempt. Better Auth's native
     // session probe returns 200 null for anonymous visitors.
     onResponseError({ request, response }) {
+      if (event) event.context.userpageUpstreamFailed = true;
       if (!import.meta.client || response?.status !== 401) return;
       const reqUrl = String(request);
       if (reqUrl.includes("/auth/sign-in/username")) return;
@@ -120,6 +144,7 @@ export const useApi = (): ValidatingFetch => {
     const raw = await fetcher(request, opts);
     const result = schema.safeParse(raw);
     if (!result.success) {
+      if (event) event.context.userpageUpstreamFailed = true;
       throw new ApiValidationError(request, result.error.issues);
     }
     return result.data;

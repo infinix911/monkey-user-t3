@@ -13,7 +13,6 @@
 </template>
 
 <script setup lang="ts">
-import { logger } from "~/utils/logger";
 import { fetchSiteConfig } from "@/lib/siteConfig";
 import { fetchCustomScripts } from "@/composables/useCustomScripts";
 import { fetchSiteSettings } from "@/composables/useSiteSettings";
@@ -25,8 +24,7 @@ import { MOBILE_HEADER_DESIGN_WIDTH } from "@/utils/scale";
 import { syncSiteConfig } from "@/composables/useSiteConfig";
 import { useOfflineTelegramRegisterHandler } from "./composables/useOfflineTelegramRegisterHandler";
 
-// SPA bootstrap deliberately starts after the bundled fallback layout has
-// mounted. No API request is allowed to gate first paint.
+// Public CMS state is loaded before rendering and reused during hydration.
 const rawConfig = useState<unknown>("userPageConfig", () => null);
 const bootstrapReady = useState("siteConfigBootstrapReady", () => false);
 watch(rawConfig, (value) => syncSiteConfig(value), { deep: true, immediate: true });
@@ -74,47 +72,20 @@ async function applyPreferredLocale() {
   if (locale.value !== targetLocale) await setLocale(targetLocale);
 }
 
-async function bootstrapSite() {
-  // All public CMS reads are independent. Start them together so first-load
-  // latency is bounded by the slowest call rather than their combined RTT.
-  const { fetchPopupBanners } = usePopupBanners();
-  const publicReads = Promise.allSettled([
-    fetchCustomScripts(),
-    fetchSiteSettings(),
-    fetchBanners(),
-    fetchPopupBanners(),
-  ]);
-
-  // Theme config remains the only prerequisite for applying a verified member,
-  // because currency is derived from it. The session network probe itself now
-  // starts concurrently in session-verify.client.ts.
-  try {
-    await fetchSiteConfig({ maxRetries: 1, timeout: 8000 });
-  } finally {
-    try {
-      await applyPreferredLocale();
-    } catch (error) {
-      logger.warn("[bootstrap] unable to apply preferred locale", error);
-    } finally {
-      bootstrapReady.value = true;
-    }
-  }
-
-  await publicReads;
-
-  if (!rawConfig.value && !useState("siteBootstrapLoaded", () => false).value) {
-    // Retry with the normal bounded backoff budget, without blocking auth or
-    // the rendered fallback UI. A successful write updates every config
-    // consumer through the watcher above.
-    void fetchSiteConfig();
-  }
-}
-
-// The SPA loading splash is disabled (`spaLoadingTemplate: false`), so there is
-// no static document shell left to tear down here — the app paints straight
-// into the page.
+const { fetchPopupBanners } = usePopupBanners();
+await Promise.all([
+  useAsyncData("siteConfig", async () => ({ theme: await fetchSiteConfig({ maxRetries: 1 }) })),
+  useAsyncData("customScripts", fetchCustomScripts),
+  useAsyncData("siteSettings", async () => ({ settings: await fetchSiteSettings() })),
+  useAsyncData("carouselBanners", fetchBanners),
+  useAsyncData("popupBanners", fetchPopupBanners),
+]);
+// Vue does not run reactive watchers for later SSR writes.
+syncSiteConfig(rawConfig.value);
+await applyPreferredLocale();
+bootstrapReady.value = true;
 onMounted(() => {
-  void bootstrapSite();
+  if (!useState("siteThemeLoaded", () => false).value) void fetchSiteConfig();
 });
 
 // CMS-driven inline scripts loaded from /api/site/custom-scripts. Each row
@@ -159,7 +130,7 @@ useHead(() => ({
   ],
 }));
 
-// Reactive head — updates when siteConfig loads. The SPA emits no crawler
+// Reactive head — updates when siteConfig loads. The app emits no crawler
 // metadata (see SEO-REMOVAL-PLAN.md); everything here is user-visible chrome:
 // the document title, the tab/home-screen icons, and CMS-injected scripts.
 useHead(() => {

@@ -6,7 +6,7 @@
  */
 
 import { logger } from "~/utils/logger";
-import { getApiBase } from "@/lib/domain";
+import { useApi } from "@/composables/useApi";
 import { validateResponse } from "@/lib/validateResponse";
 import {
   bannersCarouselResponseSchema,
@@ -21,9 +21,10 @@ export async function fetchBanners(): Promise<BannerCarouselItem[]> {
   // Already hydrated (or already fetched this request) — never ask twice.
   if (store.loaded) return store.banners;
 
-  const apiBase = getApiBase();
+  const api = useApi();
+  const requestEvent = import.meta.server ? useRequestEvent() : undefined;
   try {
-    const raw = await $fetch<unknown>(`${apiBase}/site/banners-new/carousel`, {
+    const raw = await api<unknown>("/site/banners-new/carousel", {
       query: { page: "all" },
       timeout: 10000,
     });
@@ -34,6 +35,7 @@ export async function fetchBanners(): Promise<BannerCarouselItem[]> {
     store.setBanners(list);
     return list;
   } catch (err) {
+    if (requestEvent) requestEvent.context.userpageUpstreamFailed = true;
     // Reported rather than dev-gated: a banner fetch that fails in production
     // is exactly the kind of silent degradation Sentry should see.
     logger.error("Failed to fetch banners:", err);

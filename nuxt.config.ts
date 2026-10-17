@@ -1,7 +1,6 @@
 import tailwindcss from "@tailwindcss/vite";
 import { r2PublicBase } from "./shared/utils/r2-public-base";
 
-import { buildThemePrefetchScript } from "./app/lib/theme-prefetch";
 
 function configuredPreviewOrigins(): string[] {
   return (process.env.NUXT_PUBLIC_ADMIN_PREVIEW_ORIGIN || "")
@@ -57,7 +56,7 @@ const publicAssetBase = r2PublicBase(process.env.R2_PUBLIC_BASE_URL);
 export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
   devtools: { enabled: process.env.NODE_ENV !== "production" },
-  ssr: false,
+  ssr: true,
   // No SPA loading splash. Nuxt shows a built-in one whenever this is unset, and
   // deleting app/spa-loading-template.html alone would fall back to that rather
   // than to nothing — `false` is what actually removes it. The first paint is
@@ -78,7 +77,8 @@ export default defineNuxtConfig({
   // round trip. See PLAN analyze-the-production-build.
   features: { inlineStyles: true },
   nitro: {
-    preset: process.env.NITRO_PRESET || "node-server",
+    preset: process.env.NITRO_PRESET || "cloudflare-module",
+    cloudflare: { nodeCompat: true, deployConfig: false },
     prerender: {
       crawlLinks: false,
       routes: [],
@@ -198,7 +198,7 @@ export default defineNuxtConfig({
       project: process.env.NUXT_PUBLIC_SENTRY_PROJECT,
       authToken: process.env.SENTRY_AUTH_TOKEN,
     },
-    autoInjectServerSentry: "top-level-import",
+    autoInjectServerSentry: process.env.NITRO_PRESET === "node-server" ? "top-level-import" : undefined,
   },
 
   components: {
@@ -211,6 +211,8 @@ export default defineNuxtConfig({
   },
 
   vite: {
+    // The fetch-capable browser build also works in Workers; the Node HTTP adapter does not.
+    resolve: { alias: { axios: new URL("./node_modules/axios/dist/browser/axios.cjs", import.meta.url).pathname } },
     define: { "import.meta.env.R2_PUBLIC_BASE_URL": JSON.stringify(publicAssetBase) },
     plugins: [tailwindcss()],
     // Pre-bundle deps that the startup scan cannot see. zod and
@@ -260,7 +262,13 @@ export default defineNuxtConfig({
     // Nuxt's Vite integration configures OXC for TS/JSX transforms. Remove
     // any legacy esbuild transform options after all module config hooks have
     // run so Vite does not ignore them and emit its OXC/esbuild conflict.
-    "vite:extendConfig": (viteConfig) => {
+    "vite:extendConfig": (viteConfig, { isServer }) => {
+      // Bundle shared helpers so Nitro does not inherit Vite's relative source imports.
+      const options = viteConfig.build?.rolldownOptions;
+      if (isServer && options && Array.isArray(options.external)) {
+        const shared = new URL("./shared/", import.meta.url).pathname;
+        options.external = options.external.filter((item) => item !== "#shared" && !(item instanceof RegExp && item.test(shared)));
+      }
       delete (viteConfig as { esbuild?: unknown }).esbuild;
     },
   },
@@ -380,15 +388,6 @@ export default defineNuxtConfig({
         },
       ],
       script: [
-        // Start the CMS theme request from the HTML, in parallel with the JS
-        // bundle download, so a cold visit renders the real theme instead of
-        // flashing the bundled default. See app/lib/theme-prefetch.ts.
-        {
-          key: "theme-prefetch",
-          innerHTML: buildThemePrefetchScript(publicApiBase),
-          type: "text/javascript",
-          tagPriority: "critical",
-        },
         {
           innerHTML: `
             window.__pwaListeners = new Set();

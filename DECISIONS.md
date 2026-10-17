@@ -561,6 +561,8 @@ backend 503 covers that window. No new endpoint is added.
 
 ## ADR-030 — Cloudflare embeds owned CMS snapshots into the static SPA shell
 
+**Superseded 2026-10-17:** CMS themes and scripts now load through the browser API. KV publication, HTML injection, Shell caching, and purge endpoints were removed.
+
 **Status:** Accepted (2026-10-09).
 
 **Decision:** The Cloudflare Worker resolves independently owned `domain:<hostname>` records, trying exact hostname then parent DNS suffixes, and reads the matching validated `bootstrap:<siteCode>`. It ignores the legacy shared `site-groups` map. A cached `Shell` entrypoint renders public HTML with safely serialized `window.__SITE_BOOTSTRAP__`, trusted admin inline scripts, and CMS title/icons before static head scripts. Pinia-backed client bootstrap applies the raw/effective theme before render, prevents duplicate CMS script injection, and treats a null theme as loaded bundled defaults. The ordinary browser theme/script endpoints remain fallback and preview paths.
@@ -570,3 +572,27 @@ backend 503 covers that window. No new endpoint is added.
 **Tradeoffs:** Shells are cached by hostname for 300 seconds; KV reads cache for 60 seconds. Authenticated tag purge uses a matching Worker secret, and purge failures are advisory in the publisher. KV propagation and cache expiry can delay updates. Malformed or unavailable snapshots return complete uncacheable static fallback HTML. Scripts retain the existing trusted-admin, inline-only semantics. This template keeps its empty CMS-only icon fallback and enabled CMS theme behavior. Site settings and member/session data remain client-only.
 
 **Rollout:** Seed owned hostname records from every updated admin API before deploying this Worker, bind the same existing KV namespace, and configure the purge secret. Do not provision or publish remote data as part of local validation. The Node build/start workflow and SPA preview/session behavior remain supported. Local Miniflare/Playwright checks validate rewriting and app hydration; native cache/purge behavior requires remote validation.
+
+## API-only CMS themes — 2026-10-17
+
+All user frontends use `/api/site/config/theme` and `/api/site/custom-scripts`.
+Cloudflare serves a static SPA with no KV bindings or embedded CMS snapshots.
+Existing local cache, theme prefetch where supported, preview isolation, retries,
+and bundled defaults remain. Admin saves update PostgreSQL and invalidate API
+Redis caches; no database migration or remote KV deletion is required.
+
+## Public SSR with ten-minute cache refresh — 2026-10-17
+
+Supersedes the earlier API-only SPA startup decision while retaining the removal
+of KV. Public HTML is rendered by Nuxt in a Cloudflare Worker and cached by the
+owning `Shell` entrypoint for 600 seconds; browsers revalidate. Public API reads
+populate the SSR payload. Member credentials, wallets and account state stay
+client-only, and verified members refresh their filtered catalogues after
+hydration. Cache keys include tenant, route, locale, pagination and device.
+
+The API's deployment/group cache tag follows the theme response through SSR.
+Admin theme saves and Push persist the version-checked document, invalidate
+Redis, then purge tagged HTML. Other public CMS writes retain their tables and
+refresh all configured groups. Cache failures never roll back committed data;
+operators see a retry warning. Preview/errors/private/degraded HTML are uncached.
+No schema migration, Redis HTML cache, or KV storage is introduced.

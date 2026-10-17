@@ -1,9 +1,9 @@
 /**
- * Browser-facing domain helpers.
+ * Public SSR and browser domain helpers.
  *
- * The generated SPA talks to the API origin directly. Local development uses
+ * Public rendering and browser requests share the API origin. Local development uses
  * public runtime config; deployed sites resolve the sibling uapi service from
- * the browser's root domain.
+ * the public hostname's root domain.
  */
 
 import { getProductionApiBase } from './api-base';
@@ -45,7 +45,7 @@ function configuredApiBase(): string {
 }
 
 export function getHostname(): string {
-  if (typeof window === 'undefined') return 'localhost';
+  if (typeof window === 'undefined') return useRequestURL().hostname;
   return window.location.hostname;
 }
 
@@ -67,13 +67,13 @@ function isLocalDevelopment(): boolean {
 }
 
 // Kept in its own dependency-free module so nuxt.config can embed it in the
-// theme-prefetch <head> script; re-exported here for existing imports.
+// public SSR and browser requests; re-exported for existing imports.
 export { getProductionApiBase };
 
 /** Return the browser-facing API base URL. */
 export function getApiBase(): string {
-  if (!isLocalDevelopment() && typeof window !== 'undefined') {
-    return getProductionApiBase(window.location.hostname);
+  if (!isLocalDevelopment()) {
+    return getProductionApiBase(getHostname());
   }
   return configuredApiBase();
 }

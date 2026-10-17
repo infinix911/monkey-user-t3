@@ -32,7 +32,7 @@
 - The old 11-brand build-time selector (`NUXT_PUBLIC_SITE` / `__BUILD_SITE__`) was removed. Theme configuration comes from the CMS payload.
 - `assets.navigation` "bundled-only exception" no longer exists — renamed `assets.navIcons`, merged normally.
 - CMS theme endpoint is **`/site/config/theme`** (renamed from `/site/config/userpage`; the state key remains `"userPageConfig"`).
-- `index.js`, `wrangler.jsonc`, and `public/_headers` are active Cloudflare deployment inputs. Node build/start remains supported; `worker/userpage.ts` owns the Cloudflare CMS shell. Historical SSR/Worker comments still need source verification.
+- `index.js`, `wrangler.jsonc`, and `public/_headers` are active Cloudflare deployment inputs. Node build/start remains supported; `worker/userpage.ts` owns the Cloudflare static SPA. Historical SSR/Worker comments still need source verification.
 
 ---
 
@@ -74,15 +74,13 @@ Browser ──HTML/assets──▶ Nuxt SPA host
   └─ WebSocket /ws ──session cookie──▶ wss://uapi.<root-domain>/ws
 
 Local development uses NUXT_PUBLIC_API_BASE and its corresponding ws(s) origin.
-Cloudflare serves a hostname-specific shell with embedded CMS theme/scripts before
-Vue mounts. Other hosts and bootstrap failures use browser CMS fallback reads.
+Cloudflare serves static SPA HTML. The browser loads CMS theme and scripts through their existing public API endpoints.
 Session verification and locale application still complete after mount.
 ```
 
 **One render mode:** `ssr: false` for anonymous and authenticated visitors. The old per-request SSR/SPA switch and Nitro API/WS proxies are absent from this tree.
 
-**SPA boot (`app/app.vue`):** `onMounted` starts theme loading and, concurrently, custom scripts, site settings, carousel banners, and popup banners. The early Worker bootstrap plugin applies published themes before first render;
-without bootstrap, bundled theme defaults paint first. The theme fallback fetch updates `useState('userPageConfig')`; locale comes from `ui_locale` or the site currency. URL parameter handlers cover Telegram login/register and referrals. `session-verify.client.ts` starts the session probe alongside theme loading and applies the member after configuration is ready.
+**SPA boot (`app/app.vue`):** `onMounted` starts theme loading and, concurrently, custom scripts, site settings, carousel banners, and popup banners. Bundled defaults paint immediately; available theme-prefetch data can apply before mount. The theme API fetch updates `useState('userPageConfig')`; locale comes from `ui_locale` or the site currency. URL parameter handlers cover Telegram login/register and referrals. `session-verify.client.ts` starts the session probe alongside theme loading and applies the member after configuration is ready.
 
 ---
 
@@ -119,8 +117,8 @@ Resolution chain (verified, replaces the stale CLAUDE.md story):
 1. **Bundled base:** `getDefaultThemeConfig()` in `app/composables/useDefaultThemeConfig.ts` (1477L) — the full typed `SiteConfig` tree: `identity, theme, assets, contact, integrations, content` (6 CMS tabs, ~40 sub-interfaces). There is no `seo` group — see SEO-REMOVAL-PLAN.md. `content` is CMS-authored *copy* rather than tokens/assets — `content.depositRule` and `content.footer` (HTML, rendered in the deposit modal's bank card). See ADR-024.
 2. **CMS override:** `/site/config/theme` payload (hostname-scoped) in `useState('userPageConfig')`.
 3. **Merge:** `useSiteConfig()` merges bundled defaults and CMS values. `app/app.vue` watches `userPageConfig` and synchronizes the effective config, so consumers update when a fresh theme arrives. Wrong CMS paths are silently ignored.
-4. When no healthy Worker bootstrap exists, `app/lib/siteConfig.ts` can warm-start from client localStorage (`themeConfig.v2:<hostname>`) while refreshing from the API. Preview mode `?themePreview=1` bypasses the normal cache and updates through `theme-preview.client.ts`.
-5. **Cold-visit theme flash guard:** an inline `<head>` script (built by `app/lib/theme-prefetch.ts`, wired in `nuxt.config.ts` `app.head.script`) starts `GET /site/config/theme` while the JS bundle downloads; its URL embeds `getProductionApiBase()` from the dependency-free `app/lib/api-base.ts` so it cannot drift. `plugins/theme-prefetch.client.ts` applies the response before mount when it has landed; otherwise `fetchSiteConfig()` awaits it. First paint is still never gated on the API. On localhost it uses the build/dev-start `NUXT_PUBLIC_API_BASE` (passed in from nuxt.config); skipped with a healthy Worker bootstrap and in `?themePreview=1`.
+4. `app/lib/siteConfig.ts` can warm-start from client localStorage (`themeConfig.v2:<hostname>`) while refreshing from the API. Preview mode `?themePreview=1` bypasses the normal cache and updates through `theme-preview.client.ts`.
+5. **Cold-visit theme flash guard:** an inline `<head>` script (built by `app/lib/theme-prefetch.ts`, wired in `nuxt.config.ts` `app.head.script`) starts `GET /site/config/theme` while the JS bundle downloads; its URL embeds `getProductionApiBase()` from the dependency-free `app/lib/api-base.ts` so it cannot drift. `plugins/theme-prefetch.client.ts` applies the response before mount when it has landed; otherwise `fetchSiteConfig()` awaits it. First paint is still never gated on the API. On localhost it uses the build/dev-start `NUXT_PUBLIC_API_BASE` (passed in from nuxt.config); skipped in `?themePreview=1`.
 
 - Full field map: the typed `SiteConfig` interface in `app/composables/useDefaultThemeConfig.ts` is the authoritative contract (the standalone CMS field-map docs were removed). Transaction-modal tokens: `ThemeTransactionModalConfig` at `theme.transactionmodal.*`.
 - Layout variants are config-driven: `theme.nav.type` (`png`|`gif`) → `useNavSkin()` registry picks NavGlyph mode + transaction panel component.
@@ -243,7 +241,7 @@ Money logic never lives in stores — mutations go through `useApi`/`axios-clien
 
 ## 15. Performance Notes
 
-- A healthy Cloudflare shell applies CMS theme/scripts before Vue renders; fallback hosts still paint bundled UI while public reads settle. Keep both startup paths light.
+- A healthy Cloudflare SPA applies CMS theme/scripts before Vue renders; fallback hosts still paint bundled UI while public reads settle. Keep both startup paths light.
 - `spaLoadingTemplate: false` avoids Nuxt's built-in loading splash; the page's own background paints until Vue mounts.
 - Homepage LCP: preconnects to the configured R2 public origin + game-thumbnail host; footer marquee logos MUST stay `loading="eager"` (lazy broke animation — commit 40fbd3c); IntersectionObserver reveal is the mitigation.
 - Game payloads retain both English and Korean names so the language selector can update cards without refetching; `/_ipx/**` has rate limiting disabled (50+ transforms/page).
@@ -254,7 +252,7 @@ Money logic never lives in stores — mutations go through `useApi`/`axios-clien
 | Symptom                           | Look first                                                                                                                                                                                                                                  |
 | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Login state flashes / reload loop | `session_logged_out` latch in useApi/axios; `login-blink.spec.ts`. **Reload on a wrong withdrawal/current password → `lib/session-401.ts` (ADR-025); a 401 token missing from `CREDENTIAL_FAILURE_TOKENS` reloads instead of showing the dialog.**                                                                                                                                                                           |
-| Theme stale after reload          | Worker domain/bootstrap KV records, shell TTL/purge, then `themeConfig.v2` fallback warm-start in `siteConfig.ts`                                                                                                                                                                           |
+| Theme stale after reload          | API theme response, Redis revision cache, and `themeConfig.v2` warm-start in `siteConfig.ts`                                                                                                                                                                           |
 | Blank first paint                 | SPA bootstrap and client asset/network errors; inspect `app.vue` and the browser console                                                                                                                                                    |
 | Theme field ignored               | wrong CMS path (silent ignore) — verify against `useDefaultThemeConfig.ts` interface                                                                                                                                                        |
 | No console output in prod         | `esbuild.drop` strips console.*; use Sentry or `process.stderr.write`                                                                                                                                                                       |
@@ -300,12 +298,44 @@ Every session: `CLAUDE.md` → `MEMORY.md` → this file → `DECISIONS.md` → 
 
 `app/pages/maintenance.vue` (`layout: false`) is the standalone maintenance screen; `app/middleware/maintenance.global.ts` redirects every route to it while the `maintenance:enabled` site setting is on (read from the public `/site/settings` payload via `fetchSiteSettings`, cached in the site store) and back to `/` when off. The page is fully theme-driven — CSS vars from `useSiteConfig()`: `theme.bodyBgColor` + `assets.images.mainBackground` under a body-colour vignette for the page, a dark-glass card with an accent frame/halo, `theme.panel.actionColor` as the accent (not `brandColor`, which some themes set to white), button ink auto-contrasted, and the greyscale artwork `public/designs/misc/maintenance-art-neutral.webp` coloured to the accent by a `mix-blend-mode: color` tint layer (referenced by local path, not `cdn()` — the CDN bucket only mirrors uploaded files) — and stays invisible until the CMS theme has settled (`userPageConfig` set or `siteConfigBootstrapReady`) so the bundled default never flashes. It keeps the language switcher live (en/ko), renders the CMS site logo, and shows the optional `maintenance:message`. Locale keys under `maintenance.*`. The monkey-user-api 503 guard is the hard gate; this is the UX layer.
 
-## 21. Cloudflare published CMS shell (ADR-030)
+## Cloudflare deployment and API themes
 
-- `worker/userpage.ts` and root `index.js` implement native cached `Shell` dispatch, public HTML rewriting, and secret-authenticated POST `/__internal/userpage-cache/purge`. Cookies, paths, and query strings are excluded from tenant-shell dispatch. Static assets and preview/local requests bypass tenant lookup.
-- Shared KV uses owned `domain:<hostname>` → `{publisherId, siteCode}` and `bootstrap:<siteCode>` snapshots. The closest exact/parent record wins; invalid closer records, mismatched snapshots, and KV failures return no-store fallback HTML. Legacy `site-groups` is ignored.
-- `shared/utils/userpage-bootstrap.ts` validates the contract, blocks unsafe theme keys, upgrades HTTP theme URLs, and shares existing inline script parsing. `secure-serialization.ts` protects inline JSON/script HTML boundaries.
-- `app/lib/site-bootstrap.ts` and `plugins/site-bootstrap.client.ts` run after Pinia and before theme prefetch, synchronously seed stable config and script state, and refresh/remove hostname warm-cache values. Null published themes settle successfully; theme fetchers and background retries honor `siteBootstrapLoaded`.
-- `useCustomScripts` avoids reinjecting scripts executed by the Worker. Site-store logout clears member data while retaining public loaded/injected scripts. Settings, banners, and sessions remain ordinary client reads. T3 keeps its own bundled theme and empty CMS-only icon behavior.
-- `tools/deploy-cf.mjs` requires the existing shared namespace ID; no provisioning occurs. Set the matching `USERPAGE_CACHE_PURGE_SECRET` through Wrangler. Seed owned hostname records from updated admin publishers before Worker deployment; publisher/site/domain ownership must be unique. KV propagation and the 300-second shell / 60-second KV read caches can delay changes.
-- Tests: `npm run test:worker`, component bootstrap specs, and `bun run test:e2e:bootstrap` after generation. The generated browser harness intercepts APIs and starts Miniflare itself. Native cache/tag purge needs remote validation. See README for workflow and keep both lockfiles synchronized.
+```bash
+bun run generate
+bun run verify:cf-build
+bun run deploy:cf
+```
+
+`wrangler.jsonc` binds `.output/public` as `ASSETS`; `index.js` exports the
+static SPA Worker in `worker/userpage.ts`. HTML uses `no-store`; assets retain
+their existing headers. GET/HEAD navigation and missing assets use the static
+index fallback. Other methods and upgrades pass through to the asset binding.
+
+The browser loads CMS themes through `/api/site/config/theme` and custom scripts
+through `/api/site/custom-scripts`. Bundled defaults, hostname-scoped localStorage
+warm starts, existing prefetch where supported, retries, and `?themePreview=1`
+remain available. Preview loads `domain=preview` without warming the normal cache.
+Deployment needs no KV namespace, publishing command, or purge secret.
+
+```bash
+npm run test:worker
+npm run test:component
+npm run test:e2e:theme
+```
+
+The browser suite requires generated HTML and Chromium, starts its own local
+Worker harness, and mocks API requests. Keep `public/_headers` and both package
+lockfiles. Cloudflare hosting and R2 assets remain supported.
+
+## Public SSR and ten-minute caching — current architecture
+
+This section supersedes earlier SPA-only, API-only startup, and KV-shell
+instructions. Public data now resolves before SSR and hydrates without duplicate
+CMS requests; sessions remain browser-only. `worker/userpage.ts` wraps the Nuxt
+Cloudflare renderer, caches eligible HTML for 600 seconds, and purges group tags
+through its secret-authenticated endpoint. `useApi` sends the public Origin and
+omits member credentials on the server. `userpage_theme_config` remains the theme
+source; Redis public CMS data also expires after 600 seconds. Admin mutations
+clear Redis before Worker tags, with warnings and explicit retries after failure.
+No theme localStorage warm start or static theme-prefetch plugin remains. See
+README for build, secrets, allowed hosts, testing and rollout requirements.

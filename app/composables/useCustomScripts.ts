@@ -17,26 +17,25 @@
  *     useHead `style`/`noscript`/raw <div> would not run).
  *   - Plain JS with no tag wrapper. We inject it as innerHTML directly.
  *
- * Healthy Worker shells preload these scripts and mark them already injected;
- * the standalone endpoint remains the browser fallback.
+ * Scripts are loaded through the public CMS endpoint once per app session.
  */
 
 import { logger } from "~/utils/logger";
-import { getApiBase } from "@/lib/domain";
+import { useApi } from "@/composables/useApi";
 import { useSiteStore, type CustomScriptEntry } from "@/stores/site";
 import { escapeInlineScript } from "~~/shared/utils/secure-serialization";
-import { extractScriptBodies } from "~~/shared/utils/userpage-bootstrap";
+import { extractScriptBodies } from "~~/shared/utils/theme-utils";
 import type { ResolvableScript } from "@unhead/vue";
 
-/** Load once after mount unless the Worker already preloaded the scripts. */
+/** Load once after mount. */
 export async function fetchCustomScripts(): Promise<CustomScriptEntry[]> {
   const siteStore = useSiteStore();
   if (siteStore.customScriptsLoaded) return siteStore.customScripts;
 
-  const apiBase = getApiBase();
+  const api = useApi();
   try {
-    const res = await $fetch<CustomScriptEntry[] | { data: CustomScriptEntry[] }>(
-      `${apiBase}/site/custom-scripts`,
+    const res = await api<CustomScriptEntry[] | { data: CustomScriptEntry[] }>(
+      "/site/custom-scripts",
       { timeout: 10000 },
     );
     const list = Array.isArray(res)
@@ -59,7 +58,6 @@ export function useCustomScripts() {
 
   const tags = computed<{ script: ResolvableScript[] }>(() => {
     const out: { script: ResolvableScript[] } = { script: [] };
-    if (siteStore.customScriptsInjected) return out;
     if (!Array.isArray(siteStore.customScripts)) return out;
 
     for (const entry of siteStore.customScripts) {

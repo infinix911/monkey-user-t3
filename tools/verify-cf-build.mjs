@@ -1,22 +1,9 @@
-import { access, stat } from "node:fs/promises";
-import { constants } from "node:fs";
-import { resolve } from "node:path";
+import { stat } from "node:fs/promises";
 
-const assetDirectory = resolve(".output/public");
-const indexFile = resolve(assetDirectory, "index.html");
-
-try {
-  await access(assetDirectory, constants.R_OK);
-  const indexStats = await stat(indexFile);
-
-  if (!indexStats.isFile() || indexStats.size === 0) {
-    throw new Error("index.html is missing or empty");
+for (const path of [".output/server/index.mjs", ".output/public"]) {
+  const info = await stat(path).catch(() => null);
+  if (!info || (path.endsWith(".mjs") ? !info.isFile() || info.size === 0 : !info.isDirectory())) {
+    throw new Error(`Cloudflare SSR build is missing ${path}. Run bun run build first.`);
   }
-} catch (error) {
-  const reason = error instanceof Error ? error.message : String(error);
-  throw new Error(
-    `Cloudflare deploy preflight failed: ${indexFile} must be a non-empty file. Run \`bun run generate\` before deploying. (${reason})`,
-  );
 }
-
-console.log(`Cloudflare deploy preflight passed: ${indexFile}`);
+console.log("Cloudflare SSR renderer and public assets verified.");

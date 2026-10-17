@@ -17,12 +17,12 @@
   },
   "scripts": {
     "prebuild": "rimraf .output --impl=move-remove",
-    "build": "nuxt build",
+    "build": "nuxt build && bun run verify:cf-build",
     "dev": "nuxt dev",
-    "start": "node .output/server/index.mjs",
-    "generate": "nuxt generate",
+    "start": "wrangler dev",
+    "generate": "nuxt build",
     "verify:cf-build": "bun tools/verify-cf-build.mjs",
-    "deploy:cf": "bun run generate && bun run verify:cf-build && bun tools/deploy-cf.mjs",
+    "deploy:cf": "bun run generate && bun run verify:cf-build && wrangler deploy",
     "typecheck": "nuxt typecheck && tsc -p worker/tsconfig.json",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
@@ -34,7 +34,7 @@
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug",
     "test:worker": "vitest run --project worker",
-    "test:e2e:bootstrap": "bun run verify:cf-build && playwright test worker-bootstrap"
+    "test:e2e:theme": "bun run verify:cf-build && playwright test worker-theme"
   },
   "dependencies": {
     "@nuxt/fonts": "^0.13.0",

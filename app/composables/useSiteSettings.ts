@@ -4,7 +4,7 @@
  * Key/value rows (e.g. `site:livechat`) used across the app.
  */
 
-import { getApiBase } from "@/lib/domain";
+import { useApi } from "@/composables/useApi";
 import { useSiteStore, type SiteSettings } from "@/stores/site";
 
 interface SiteSettingItem {
@@ -17,10 +17,11 @@ export async function fetchSiteSettings(): Promise<SiteSettings | null> {
   const store = useSiteStore();
   if (store.siteSettings !== null) return store.siteSettings;
 
-  const apiBase = getApiBase();
+  const api = useApi();
+  const requestEvent = import.meta.server ? useRequestEvent() : undefined;
   try {
-    const res = await $fetch<{ data?: SiteSettingItem[] } | SiteSettingItem[]>(
-      `${apiBase}/site/settings`,
+    const res = await api<{ data?: SiteSettingItem[] } | SiteSettingItem[]>(
+      "/site/settings",
       { timeout: 10000 },
     );
     const list = Array.isArray(res)
@@ -35,6 +36,7 @@ export async function fetchSiteSettings(): Promise<SiteSettings | null> {
     store.setSiteSettings(map);
     return map;
   } catch {
+    if (requestEvent) requestEvent.context.userpageUpstreamFailed = true;
     store.setSiteSettings(null);
     return null;
   }

@@ -1,6 +1,6 @@
 # monkey-user-t3
 
-Nuxt 4 / Vue 3 member frontend with CMS-driven themes. The app is a client-rendered SPA (`ssr: false`) that calls the public member API directly with credentialed REST/WebSocket requests.
+Nuxt 4 / Vue 3 member frontend with CMS-driven themes. Public pages use SSR with ten-minute caching; member REST/WebSocket requests run in the browser.
 
 ## Development and checks
 
@@ -18,28 +18,56 @@ npm run start
 
 `build` / `start` retain the Node server workflow. Playwright feature tests require an app at `http://localhost:3000`; install Chromium with `npx playwright install chromium`. Use `npx playwright test --list` to check discovery. The performance suite uses `PERF_BASE_URL`; set it explicitly before running `npm run test:e2e:perf`.
 
-## Cloudflare CMS HTML bootstrap
-
-Keep `bun.lock` in version 1 format for Cloudflare builds using Bun 1.2.15. Update it with `npx --yes bun@1.2.15 install` when dependencies change.
+## Cloudflare public SSR and cache refresh
 
 ```bash
-bun run generate
+npm run dev
+bun run build
 bun run verify:cf-build
-bun run test:e2e:bootstrap
 bun run deploy:cf
 ```
 
-Cloudflare deployment uses `wrangler.jsonc`, the `index.js` entrypoint, `worker/userpage.ts`, and `public/_headers`. Set `CLOUDFLARE_USERPAGE_KV_NAMESPACE_ID` to the existing namespace used by the admin API. The deploy wrapper binds that namespace and refuses to provision a replacement. The updated admin API must publish owned `domain:<hostname>` records and `bootstrap:<siteCode>` snapshots before Worker deployment; the legacy shared `site-groups` map is ignored.
+The production build contains a Nuxt Cloudflare-module renderer and public assets.
+`index.js` exports the uncached gateway and cached `Shell` from `worker/userpage.ts`.
+`generate` also builds the SSR renderer; it no longer generates a static SPA.
+`npm run start` runs Wrangler locally. For a Node deployment, build with
+`NITRO_PRESET=node-server` and run `node .output/server/index.mjs` directly.
 
-The Worker resolves the closest configured hostname or parent suffix, validates its snapshot, and embeds the theme and trusted admin inline scripts before any static head script. The client plugin seeds Pinia/Nuxt config before rendering and marks scripts already injected. Healthy visits make no browser theme/custom-script requests. A published null theme loads bundled defaults and clears stale theme warm-cache data. Site settings, banners, and session data still load through their existing browser APIs.
+Public themes, scripts, settings, banners and catalogues resolve during SSR and
+hydrate from the Nuxt/Pinia payload. Member credentials are stripped during SSR;
+session, wallet and member-filtered catalogue updates run in the browser. No
+hostname-only theme localStorage warm start or duplicate theme prefetch runs.
+Existing preview and game-launch behavior remain supported.
 
-Multiple independent publishers can share the namespace; publisher identities, configured domains, and site codes must have unique ownership. Hostname-only shells exclude cookies, paths, and query strings, use native `Shell` entrypoint caching for 300 seconds, and tag responses by site code. KV reads cache for 60 seconds; changes may require propagation and shell TTL expiry.
+The `Shell` caches successful public HTML for 600 seconds. The gateway varies
+its props by hostname, route, supported pagination, locale and mobile/desktop.
+Browser HTML revalidates; previews, errors, degraded responses, `Set-Cookie`,
+private responses and credential-bearing requests bypass shared caching.
+KV remains removed. No Redis connection or Cloudflare credentials enter Nuxt.
 
-Configure `USERPAGE_CACHE_PURGE_SECRET` as a Worker secret with Wrangler, matching the admin API value and at least 32 characters. The authenticated POST `/__internal/userpage-cache/purge` accepts `{ "siteCode": "example" }` or `{ "all": true }`. Purge failures are advisory to the admin publisher; published KV remains intact. Never expose the secret through public runtime config or HTML.
+Set `USERPAGE_CACHE_PURGE_SECRET` with `wrangler secret put` in every Worker,
+matching the admin API value (at least 32 characters). Optional Worker variable
+`NUXT_ALLOWED_HOSTS` restricts deployed hosts; API CORS origins and `SITE_GROUPS`
+must include the public domains. Admin and user API must share their Redis
+`SITE_CODE` namespace. The API emits `X-Userpage-Cache-Tag`; SSR carries it onto
+cached HTML as a deployment/group-specific tag.
 
-Local development, `?themePreview=1`, missing bindings/mappings/snapshots, or malformed data use the existing static shell and browser API fallback. Preview continues fetching `domain=preview` without live scripts. CMS theme fields retain this template's merge contract and bundled design; icons remain CMS-only with no added static fallback assets. Only inline script bodies and plain JS are supported, preserving the trusted-admin model.
+Admin Save and Push persist `userpage_theme_config`, clear Redis, then call
+`POST /__internal/userpage-cache/purge` with the matching bearer secret and
+`{ "tag": "userpage-<SITE_CODE>:<templateId>" }`. Public CMS edits refresh all
+configured groups. Purge failures preserve the save and expose a retry warning;
+cache expiry is the fallback. Preview and unsaved uploads do not purge live data.
 
-The generated-shell browser suite starts its own local Worker harness and intercepts all external requests; it requires generated HTML and Chromium. Native Cloudflare cache and purge behavior also require remote validation. See `KNOWLEDGEBASE.md` for the feature map and `DECISIONS.md` for design rationale. Keep npm and Bun lockfiles synchronized when dependencies change.
+```bash
+npm run test:worker
+npm run test:component
+npm run test:e2e:theme
+```
+
+The generated-renderer suite requires a production build and Chromium, starts a
+local Worker harness, and mocks all API traffic. Local emulation does not prove
+native cache hits or distributed purge; check those in a remote preview before
+rollout. Keep `public/_headers`, both lockfiles, and existing R2 asset settings.
 
 ## Public R2 assets
 

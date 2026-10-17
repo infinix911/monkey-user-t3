@@ -74,6 +74,8 @@ export const gameQueryKey = (query: GameQuery): string =>
  * boundary; UI consumers only select serializable cached entries.
  */
 export const useGameCatalogStore = defineStore("gameCatalog", () => {
+  const api = useApi();
+  const requestEvent = import.meta.server ? useRequestEvent() : undefined;
   const lobbies = ref<Record<string, CatalogEntry<NormalizedLobby[]>>>({});
   const games = ref<Record<string, CatalogEntry<GameListResult>>>({});
   const lobbyRequests = new Map<string, Promise<NormalizedLobby[]>>();
@@ -162,7 +164,7 @@ export const useGameCatalogStore = defineStore("gameCatalog", () => {
 
     current.status = "loading";
     current.error = null;
-    const request = useApi()("/games/lobbies", {
+    const request = api("/games/lobbies", {
         ...(gameType == null ? {} : { query: { gameType: normalizeGameType(gameType) } }),
       })
       .then((raw) => validateResponse(gameLobbiesResponseSchema, raw, "/games/lobbies"))
@@ -172,6 +174,7 @@ export const useGameCatalogStore = defineStore("gameCatalog", () => {
         return data;
       })
       .catch((error: unknown) => {
+        if (requestEvent) requestEvent.context.userpageUpstreamFailed = true;
         current.status = "error";
         current.error = error instanceof Error ? error.message : "Unable to load game lobbies";
         throw error;
@@ -199,7 +202,7 @@ export const useGameCatalogStore = defineStore("gameCatalog", () => {
       ...query,
       ...(query.gameType ? { gameType: normalizeGameType(query.gameType) } : {}),
     };
-    const request = useApi()<GamesWireResponse>("/games", { query: normalizedQuery })
+    const request = api<GamesWireResponse>("/games", { query: normalizedQuery })
       .then((raw) => {
         // Older deployments may return an array. Prefer the current paginated
         // contract when possible, while retaining the established fallback.
@@ -229,6 +232,7 @@ export const useGameCatalogStore = defineStore("gameCatalog", () => {
         return data;
       })
       .catch((error: unknown) => {
+        if (requestEvent) requestEvent.context.userpageUpstreamFailed = true;
         current.status = "error";
         current.error = error instanceof Error ? error.message : "Unable to load games";
         throw error;

@@ -22,7 +22,7 @@ type Plain = Record<string, unknown>;
 /**
  * Single source of truth for the site-config payload fetched from
  * /api/site/config/theme. The payload is populated by `fetchSiteConfig`
- * (app/lib/siteConfig.ts) after mount, or by the early Worker bootstrap plugin;
+ * (app/lib/siteConfig.ts) after mount;
  * `siteConfigError` is set alongside it on failure.
  */
 export const USER_PAGE_CONFIG_KEY = "userPageConfig";
@@ -41,8 +41,8 @@ const EFFECTIVE_SITE_CONFIG_KEY = "effectiveSiteConfig";
 export function useSiteConfigState() {
   const config = useState<SiteConfig | null>(USER_PAGE_CONFIG_KEY, () => null);
   const error = useState<string | null>(SITE_CONFIG_ERROR_KEY, () => null);
-  const bootstrapLoaded = useState("siteBootstrapLoaded", () => false);
-  const isReady = computed(() => config.value != null || bootstrapLoaded.value);
+
+  const isReady = computed(() => config.value != null);
   return { config, error, isReady };
 }
 

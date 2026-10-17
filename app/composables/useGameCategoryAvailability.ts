@@ -115,13 +115,15 @@ export function useGameCategoryAvailability() {
 
   // loadLobbies(null) waits for the initial session probe itself. Calling it
   // from multiple layout surfaces is harmless because the store de-dupes it.
-  void catalog.loadLobbies(null).catch(() => undefined);
+  if (import.meta.server) onServerPrefetch(() => catalog.loadLobbies(null).catch(() => undefined));
+  else void catalog.loadLobbies(null).catch(() => undefined);
 
   // HOT is a curated slice of slot games rather than a lobby type, so the lobby
   // read above can never answer for it. It gets its own one-row probe, which the
   // store caches and de-dupes exactly like the lobby call.
   const hotGames = computed(() => catalog.gameEntry(HOT_PROBE));
-  void catalog.loadGames(HOT_PROBE).catch(() => undefined);
+  if (import.meta.server) onServerPrefetch(() => catalog.loadGames(HOT_PROBE).catch(() => undefined));
+  else void catalog.loadGames(HOT_PROBE).catch(() => undefined);
 
   // Later member transitions need one authoritative member-scoped refresh.
   // Game visibility follows the same member restrictions as lobbies, so the HOT
@@ -211,17 +213,7 @@ export function useGameCategoryAvailability() {
    * header and no grid. It was previously exempted from the filter entirely,
    * which is why it was the one category that always showed.
    *
-   * Hidden while genuinely unknown — the opposite default to `hasLobbies`, and
-   * the reason is the flash. This app is SPA-only (`ssr: false`), so there is no
-   * server render to resolve the probe in: a permissive default meant the very
-   * first visit to a deployment with nothing marked hot painted the row, then
-   * pulled it out from under the pointer a moment later. Erring hidden means the
-   * row can only ever appear, never vanish.
-   *
-   * The cost is one-sided and one-time: a deployment that *does* have hot games
-   * shows the row a beat late on a device's first visit only, because the warm
-   * seed below answers instantly on every visit after that — including the
-   * negative answer, so a site with no hot games never paints the row again.
+   * Hidden until the public probe resolves; SSR prefetches this probe.
    */
   const hasHotGames = computed(() => {
     if (hotSettled.value) return liveHasHot.value;

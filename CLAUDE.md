@@ -1,3 +1,6 @@
+> Current architecture: public SSR with 600-second Worker caching. See README;
+> earlier SPA-only and KV bootstrap instructions below are historical.
+
 # CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.

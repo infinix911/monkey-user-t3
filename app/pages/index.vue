@@ -231,7 +231,7 @@ const hotGamesAsync = useAsyncData<AnyList>(
     }).catch(() => ({ games: [] }));
     return res.games;
   },
-  { default: (): AnyList => [], server: false },
+  { default: (): AnyList => [] },
 );
 const { data: hotGamesData, pending: hotGamesPending } = hotGamesAsync;
 
@@ -255,7 +255,7 @@ const fetchLobbies = (key: string, gameType: string) =>
   useAsyncData<NormalizedLobby[]>(
     key,
     () => catalog.loadLobbies(gameType).catch(() => []),
-    { default: () => [] as NormalizedLobby[], server: false },
+    { default: () => [] as NormalizedLobby[] },
   );
 
 // Keys match the dedicated /casino, /sports, /slots pages (useLobbyPage.ts uses
@@ -279,12 +279,11 @@ const MINI_PAGE_SIZE = 10;
 const miniGamesAsync = useAsyncData<{ games: AnyList; total: number }>(
   "home-mini-games",
   () => catalog.loadGames({ gameType: "mini", page: 1, limit: MINI_PAGE_SIZE }),
-  { default: () => ({ games: [], total: 0 }), server: false },
+  { default: () => ({ games: [], total: 0 }) },
 );
 const { data: miniGamesData, pending: miniGamesPending } = miniGamesAsync;
 
-// These requests begin during setup but are intentionally not awaited: the SPA
-// renders its section-level loading state while each response arrives.
+await Promise.all([hotGamesAsync, casinoLobbiesAsync, sportsLobbiesAsync, slotLobbiesAsync, miniGamesAsync]);
 
 const miniAppended = ref<AnyList>([]);
 const miniLoadedPage = ref(1);

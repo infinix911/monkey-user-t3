@@ -9,5 +9,5 @@
     "lib": ["ES2022"],
     "skipLibCheck": true
   },
-  "include": ["./**/*.ts", "../shared/utils/userpage-bootstrap.ts", "../shared/utils/secure-serialization.ts"]
+  "include": ["./**/*.ts"]
 }

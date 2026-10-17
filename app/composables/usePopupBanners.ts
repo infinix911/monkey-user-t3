@@ -1,4 +1,4 @@
-import { getApiBase } from "@/lib/domain";
+import { useApi } from "@/composables/useApi";
 
 export interface PopupBanner {
   id: number;
@@ -20,9 +20,10 @@ export function usePopupBanners() {
   const fetchPopupBanners = async (): Promise<PopupBanner[]> => {
     if (loaded.value) return banners.value;
 
+    const api = useApi();
     try {
-      const response = await $fetch<{ data?: PopupBanner[] } | PopupBanner[]>(
-        `${getApiBase()}/site/banners/popup`,
+      const response = await api<{ data?: PopupBanner[] } | PopupBanner[]>(
+        "/site/banners/popup",
         { timeout: 10000 },
       );
       banners.value = Array.isArray(response)
