@@ -35,7 +35,10 @@
               <circle cx="11" cy="11" r="8" />
             </svg>
           </div>
-          <input v-model="searchQuery" :placeholder="$t('common.search')" type="text"
+          <!-- :value + @input instead of v-model: v-model waits for IME composition
+               to end, so a Korean syllable still being typed was not searched. -->
+          <input :value="searchQuery" :placeholder="$t('common.search')" type="text"
+            @input="searchQuery = ($event.target as HTMLInputElement).value"
             class="w-full sm:min-w-[280px] sm:max-w-[400px] h-10 rounded-lg border border-[#C9A500] bg-[#1a1a1a] pl-10 pr-4 py-2 text-sm text-white placeholder:text-[#D4AF37] focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/30 focus:border-[#D4AF37] transition-all duration-200">
         </div>
       </div>
