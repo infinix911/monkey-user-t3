@@ -3,7 +3,7 @@
     <!-- Loading / Error only replace the grid on the FIRST load (no data yet).
          Once games exist, SubGames stays mounted through search/page refetches
          so the search input never gets destroyed mid-type (focus + text loss). -->
-    <div v-if="isLoading && games.length === 0" class="w-full py-8 text-white text-center">
+    <div v-if="isLoading && games.length === 0 && !searchQuery" class="w-full py-8 text-white text-center">
       <p class="text-lg text-gray-400">{{ $t("common.loading") }}</p>
     </div>
 
@@ -22,7 +22,7 @@
     <template v-else>
       <SubGames
         :games="games"
-        :is-loading="isLoading || isLoadingMore"
+        :is-loading="isLoading"
         :current-page="loadedPage"
         :total-pages="totalPages"
         :logo="providerLogo"
@@ -320,8 +320,12 @@ onBeforeUnmount(stopWatchingSentinel);
 // against a freshly-filtered, shorter result set). Writing `q` to the URL
 // triggers the searchQuery-watched refetch above.
 const onSearch = (q: string) => {
-  const query: Record<string, string> = {};
+  const query = { ...route.query };
+  delete query.page;
   if (q) query.q = q;
-  void router.push({ query });
+  else delete query.q;
+  // replace, not push: a search term is page state, not a navigation step, so
+  // Back leaves the page instead of undoing the term one keystroke at a time.
+  void router.replace({ query });
 };
 </script>

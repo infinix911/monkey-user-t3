@@ -46,15 +46,16 @@
          correct in the SSR HTML and never reflows on hydration; each fluid
          card fills its 1fr track and keeps the 200:250 aspect ratio. -->
     <div class="w-full" :class="(logo || showSearch !== false) ? '' : 'mt-[10px] sm:mt-[8px]'">
-      <div class="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-[5px]">
-        <div v-for="game in filteredGames" :key="game.id" class="cursor-pointer" @click="handleGameClick(game)">
+      <div class="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-[5px] transition-opacity duration-150"
+        :class="isLoading && games.length ? 'opacity-60' : ''" :aria-busy="isLoading">
+        <div v-for="game in games" :key="game.id" class="cursor-pointer" @click="handleGameClick(game)">
           <HotGameCard :game="game" fluid :show-provider="showProvider !== false" />
         </div>
       </div>
     </div>
 
-    <!-- Empty search result (local narrowing OR a server search that matched nothing) -->
-    <div v-if="filteredGames.length === 0 && (games.length > 0 || searchQuery.trim())" class="py-12 text-center">
+    <!-- Empty search result: only once the server search has finished with 0 games. -->
+    <div v-if="games.length === 0 && initialSearch && (!isLoading || settledEmpty)" class="py-12 text-center">
       <p class="text-gray-400 text-sm">{{ $t("common.noGamesFound") }}</p>
     </div>
 
@@ -113,7 +114,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from "vue";
+import { ref, computed, watch, onBeforeUnmount } from "vue";
 import { openGame } from "~~/utils/game-navigation";
 import { localizedGameName } from "~/utils/localized-game-name";
 
@@ -183,6 +184,12 @@ const emit = defineEmits<{
 }>();
 
 const searchQuery = ref(props.initialSearch ?? "");
+// Last finished search had 0 games: keep its message up while the next one
+// loads, so it doesn't blink off and on between keystrokes.
+const settledEmpty = ref(false);
+watch(() => props.isLoading, (loading) => {
+  if (!loading) settledEmpty.value = props.games.length === 0;
+}, { immediate: true });
 
 // Debounce so we don't refetch on every keystroke — waits until typing pauses.
 // Emits the trimmed term; the parent turns an empty string back into the
@@ -196,7 +203,17 @@ watch(searchQuery, (val) => {
     if (term === lastEmitted) return;
     lastEmitted = term;
     emit("search", term);
-  }, 500);
+  }, 300);
+});
+
+watch(() => props.initialSearch, (value) => {
+  const term = value ?? "";
+  // Our own emit echoing back through the URL: leave the input (and any
+  // characters typed since) alone. Only external changes (Back/Forward) reset it.
+  if (term === lastEmitted) return;
+  clearTimeout(searchTimer);
+  lastEmitted = term;
+  searchQuery.value = term;
 });
 
 const handleGameClick = (game: Game) => {
@@ -220,11 +237,11 @@ const handleGameClick = (game: Game) => {
   openGame(url, { gameName });
 };
 
-const filteredGames = computed(() => {
-  if (!searchQuery.value.trim()) return props.games;
-  const q = searchQuery.value.toLowerCase();
-  return props.games.filter((game) => displayGameName(game).toLowerCase().includes(q));
-});
+// No client-side narrowing per keystroke: the backend `gameName` filter
+// matches English names, so re-filtering by the localized (Korean) display
+// name hid valid results and flashed "no games" before the server answered.
+
+onBeforeUnmount(() => clearTimeout(searchTimer));
 
 const pageItems = computed<(number | "...")[]>(() => {
   const total = props.totalPages;
