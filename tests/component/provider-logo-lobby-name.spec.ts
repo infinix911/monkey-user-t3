@@ -26,6 +26,7 @@ describe("provider logo by lobby name", () => {
     ["4", "Booongo", "BNG"],
     ["1", "Pragmatic Slots", "Pragmatic"],
     ["27", "Micro Gaming Slots", "MG"],
+    ["26", "Reel Studio", "Reel Studio"],
   ])("slot code %s named %s uses the %s logo", (code, name, expected) => {
     expect(getLogoImages(code, "lobby", true, name)).toBe(logo(expected));
   });
