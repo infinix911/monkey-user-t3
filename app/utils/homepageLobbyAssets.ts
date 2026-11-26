@@ -12,6 +12,7 @@
  * Keep `HOMEPAGE_CHARACTER_COUNTS` in sync with the number of files in each
  * `public/designs/template-3/*-character/` folder.
  */
+import { cdn } from "~/utils/assetUrl";
 import { getProviderName, getProviderNameFromLobbyName } from "~/utils/gameProviderLogo";
 export const HOMEPAGE_CHARACTER_COUNTS: Record<string, number> = {
     casino: 32,
@@ -46,7 +47,11 @@ export function lobbyCharacterUrl(
     return `${charBase}/${String(n).padStart(2, "0")}.webp`;
 }
 
-/** Folder of slot characters drawn for one specific provider (from jaeisol t3). */
+/**
+ * Folder of slot characters drawn for one specific provider. Served from the
+ * R2 asset CDN (`cdn()`), where the files already live — the same path
+ * banana-jaeisol-t3-nuxt uses — so they are not copied into `public/`.
+ */
 export const SLOT_CHARACTER_BASE = "/designs/providers/slot-character";
 
 /**
@@ -54,8 +59,8 @@ export const SLOT_CHARACTER_BASE = "/designs/providers/slot-character";
  * `SLOT_CHARACTER_BASE`. Explicit rather than derived: several files are named
  * after the lobby, not the logo (`Pragmatic Slots`, `No Limity City`, `JILI`),
  * and static hosting is case-sensitive. Providers not listed have no own art and
- * fall back to the numbered pool. Add a provider by dropping its 480x627
- * `<Name>.webp` in the folder and listing it here.
+ * fall back to the numbered pool. Add a provider by uploading its 480x627
+ * `<Name>.webp` to that CDN folder and listing it here.
  */
 const SLOT_CHARACTER_FILES: Record<string, string> = {
     "Big Time Gaming": "Big Time Gaming",
@@ -109,7 +114,7 @@ export function slotCharacterUrl(
 ): string | undefined {
     const name = getProviderNameFromLobbyName(lobbyName) ?? getProviderName(providerCode);
     const file = name ? SLOT_CHARACTER_FILES[name] : undefined;
-    return file ? `${SLOT_CHARACTER_BASE}/${encodeURIComponent(file)}.webp` : undefined;
+    return file ? cdn(`${SLOT_CHARACTER_BASE}/${encodeURIComponent(file)}.webp`) : undefined;
 }
 
 /**

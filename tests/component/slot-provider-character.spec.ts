@@ -1,17 +1,20 @@
 // @vitest-environment node
 /**
- * Slot cards show their provider's own character (art from jaeisol t3), found
+ * Slot cards show their provider's own character (CDN art, as in jaeisol t3), found
  * by lobby name first like the logos; everything else keeps the numbered pool.
  */
-import { existsSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
   SLOT_CHARACTER_BASE,
   resolveLobbyCharacter,
   slotCharacterUrl,
 } from "../../app/utils/homepageLobbyAssets";
+import { cdn } from "../../app/utils/assetUrl";
 
-const own = (file: string) => `${SLOT_CHARACTER_BASE}/${encodeURIComponent(file)}.webp`;
+const own = (file: string) => cdn(`${SLOT_CHARACTER_BASE}/${encodeURIComponent(file)}.webp`);
+
+/** Files in the CDN folder (same set banana-jaeisol-t3-nuxt serves). */
+const CDN_FILES = new Set(["Big Time Gaming", "Blueprint", "BNG", "Booming", "CosmoPlay", "CQ9", "Evoplay", "Habanero", "Hacksaw", "JDB", "JILI", "Joker", "Micro Gaming Slots", "Naga", "Netent", "NextSpin", "No Limity City", "Octoplay", "OneTouch", "Oriental Slots", "PG Soft", "Play N Go", "Playtech", "Pragmatic Slots", "Quickspin", "Red Tiger", "Relax", "Skywind Slots", "Slotmill", "Smartsoft", "Spade Gaming", "VA Gaming", "Wazdan", "Winfast", "Wonwon", "World Match", "YGGDrasil"]);
 const POOL = "/designs/template-3/slots-character";
 
 describe("slot provider characters", () => {
@@ -27,11 +30,12 @@ describe("slot provider characters", () => {
     expect(slotCharacterUrl(name, code)).toBe(own(file));
   });
 
-  it("every mapped character file exists", () => {
+  it("every mapped character is a file in the CDN folder", () => {
     for (const name of ["PG Soft", "JiLi", "Pragmatic Slots", "NolimitCity", "Spade Slots", "Skywind Slots", "Oriental Slots"]) {
       const url = slotCharacterUrl(name);
       expect(url, name).toBeTruthy();
-      expect(existsSync(`public${decodeURIComponent(url!)}`), url).toBe(true);
+      const file = decodeURIComponent(url!.split("/").pop()!.replace(/.webp$/, ""));
+      expect(CDN_FILES.has(file), file).toBe(true);
     }
   });
 
