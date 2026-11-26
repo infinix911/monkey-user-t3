@@ -141,7 +141,7 @@ const { highStakesVisible } = useEvolutionStakes();
 
 const providerLogo = computed(
   () =>
-    getLogoImages(props.game.code, props.game.id, highStakesVisible.value) ||
+    getLogoImages(props.game.code, props.game.id, highStakesVisible.value, props.game.name) ||
     props.game.logo ||
     "",
 );
