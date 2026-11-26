@@ -45,6 +45,7 @@ const LOBBY_NAME_ALIASES: Record<string, string> = {
     skywindslots: "Skywind",
     skywindlive: "Skywind",
     orientalgaming: "Oriental",
+    orientalslots: "Oriental",
     asiagaming: "Asiangaming",
     nolimitycity: "Nolimit City",
 };
