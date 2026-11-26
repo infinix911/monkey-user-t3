@@ -61,7 +61,10 @@ const providers = computed(() => {
       id: l.id,
       name: l.game_name ?? "",
       logo: lobbyLogoUrl(logoBase, l.gameProvider ?? l.id),
-      character: resolveLobbyCharacter(charBase, "slot", i, l.id, charOverrides),
+      character: resolveLobbyCharacter(charBase, "slot", i, l.id, charOverrides, {
+        name: l.game_name,
+        code: l.gameProvider,
+      }),
       bgImage: bg,
       code: l.gameProvider,
       frameImage: frame || undefined,

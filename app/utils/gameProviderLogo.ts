@@ -28,6 +28,49 @@ const CODE_TO_NAME: Record<string, string> = Object.fromEntries(
     ),
 );
 
+/** Lower-cased, letters and digits only: `Nolimit City` / `NolimitCity` -> `nolimitcity`. */
+const compactName = (name: string): string => name.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+/**
+ * Lobby names (`GET /games/lobbies` gameName) that are not a logo display name
+ * once compacted. Keys are compacted; values are display names in
+ * `gameProviderLogos.json`.
+ */
+const LOBBY_NAME_ALIASES: Record<string, string> = {
+    pragmaticslots: "Pragmatic",
+    pragmaticplaylive: "Pragmatic",
+    booongo: "BNG",
+    microgamingslots: "MG",
+    microgaminglive: "Microgaming",
+    skywindslots: "Skywind",
+    skywindlive: "Skywind",
+    orientalgaming: "Oriental",
+    orientalslots: "Oriental",
+    asiagaming: "Asiangaming",
+    nolimitycity: "Nolimit City",
+};
+
+/** compacted logo display name (and alias) -> display name. */
+const LOBBY_NAME_TO_NAME: Record<string, string> = {
+    ...Object.fromEntries(
+        (providerLogos as { name: string }[]).map((p) => [compactName(p.name), p.name] as const),
+    ),
+    ...LOBBY_NAME_ALIASES,
+};
+
+/**
+ * Display name for a lobby name (`CQ9`, `NolimitCity`, `Pragmatic Slots`), or
+ * `undefined` when the name is not a known provider.
+ *
+ * Preferred over the code lookup: numeric provider codes are per-integration,
+ * and one backend can reuse a number another type already owns (slot `2` =
+ * CQ9 while casino `2` = Big Gaming), so a code alone can pick the wrong logo.
+ */
+export function getProviderNameFromLobbyName(lobbyName?: string | null): string | undefined {
+    if (!lobbyName) return undefined;
+    return LOBBY_NAME_TO_NAME[compactName(lobbyName)];
+}
+
 /**
  * Display name for a provider code, or `undefined` when the code is unknown.
  */
@@ -70,14 +113,18 @@ const EVOLUTION_PLAIN_LOGO = "Evolution"; // no stakes pill
  * @param {boolean} [highStakesVisible] - Whether Evolution's 1:10 lobby is also
  *   on the board. Defaults to `true`, which keeps the piled 1:1 art for callers
  *   that do not know — the previous behaviour.
- * @returns {string} Logo URL, or `""` when the code maps to no provider.
+ * @param {string | null} [lobbyName] - Lobby display name. When it names a known
+ *   provider it wins over the code (see `getProviderNameFromLobbyName`).
+ * @returns {string} Logo URL, or `""` when neither the name nor the code maps
+ *   to a provider.
  */
 export function getLogoImages(
     providerCode?: string | number | null,
     lobbyId?: string | number | null,
     highStakesVisible = true,
+    lobbyName?: string | null,
 ): string {
-    const name = getProviderName(providerCode);
+    const name = getProviderNameFromLobbyName(lobbyName) ?? getProviderName(providerCode);
     if (!name) return "";
 
     // Scoped to Evolution on purpose: every other provider keeps the plain

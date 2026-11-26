@@ -377,6 +377,7 @@ const toCard = (
     index,
     l.id,
     characterOverrides,
+    { name: l.game_name, code: l.gameProvider },
   ),
   bgImage,
   frameImage: frameImage || undefined,
